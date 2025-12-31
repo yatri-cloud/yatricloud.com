@@ -130,71 +130,98 @@ export const CurriculumSection = () => {
               />
             </div>
 
-            {/* Filters */}
+            {/* Filters - Modern UI with icons */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Instructor Filter */}
                 {creators && creators.length > 0 && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Instructor
+              <div className="group">
+                <label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <span>Instructor</span>
                 </label>
-                <select
-                  value={selectedInstructor}
-                  onChange={(e) => setSelectedInstructor(e.target.value)}
-                  className="w-full bg-card border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                      <option value="All">All</option>
+                <div className="relative">
+                  <select
+                    value={selectedInstructor}
+                    onChange={(e) => setSelectedInstructor(e.target.value)}
+                    className="w-full bg-gradient-to-br from-card to-card/95 border-2 border-border/60 rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer hover:border-primary/50"
+                  >
+                      <option value="All">All Instructors</option>
                       {creators.map((instructor) => (
                     <option key={instructor} value={instructor}>
                       {instructor}
                     </option>
                   ))}
-                </select>
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
                 )}
 
               {/* Certification Filter */}
                 {availableFilters.certifications.length > 0 && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block flex items-center gap-2">
-                  <Award className="w-4 h-4" />
-                  Certifications
+              <div className="group">
+                <label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                    <Award className="w-4 h-4" />
+                  </div>
+                  <span>Certifications</span>
                 </label>
-                <select
-                  value={selectedCertification}
-                  onChange={(e) => setSelectedCertification(e.target.value)}
-                  className="w-full bg-card border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                      <option value="All">All</option>
+                <div className="relative">
+                  <select
+                    value={selectedCertification}
+                    onChange={(e) => setSelectedCertification(e.target.value)}
+                    className="w-full bg-gradient-to-br from-card to-card/95 border-2 border-border/60 rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer hover:border-primary/50"
+                  >
+                      <option value="All">All Certifications</option>
                       {availableFilters.certifications.map((cert) => (
                     <option key={cert} value={cert}>
                       {cert}
                     </option>
                   ))}
-                </select>
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
                 )}
 
               {/* Category Filter */}
                 {availableFilters.categories.length > 0 && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block flex items-center gap-2">
-                  <Tag className="w-4 h-4" />
-                  Categories
+              <div className="group">
+                <label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                    <Tag className="w-4 h-4" />
+                  </div>
+                  <span>Categories</span>
                 </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full bg-card border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                      <option value="All">All</option>
+                <div className="relative">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full bg-gradient-to-br from-card to-card/95 border-2 border-border/60 rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer hover:border-primary/50"
+                  >
+                      <option value="All">All Categories</option>
                       {availableFilters.categories.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
                   ))}
-                </select>
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
                   </div>
                 )}
               </div>
@@ -261,20 +288,23 @@ export const CurriculumSection = () => {
                 </div>
                   )}
                 
-                <Button
-                    asChild
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold group"
-                  size="sm"
-                  >
-                    <a
-                      href={course.udemyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                <motion.a
+                  href={course.udemyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
                 >
-                  Enroll Now
-                  <ExternalLink className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </a>
-                </Button>
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  
+                  <span className="relative z-10">Enroll Now</span>
+                  <ExternalLink className="relative z-10 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                  
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
+                </motion.a>
               </motion.div>
             </ScrollReveal>
           ))}

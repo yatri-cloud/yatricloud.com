@@ -104,12 +104,18 @@ export const CourseCard = ({ course, index }: CourseCardProps) => {
           href={course.udemyUrl}
           target="_blank"
           rel="noopener noreferrer"
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.02, y: -2 }}
           whileTap={{ scale: 0.98 }}
-          className="mt-auto flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="group relative mt-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
         >
-          Enroll Now
-          <ExternalLink className="h-4 w-4" />
+          {/* Shine effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          
+          <span className="relative z-10">Enroll Now</span>
+          <ExternalLink className="relative z-10 h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
+          
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
         </motion.a>
       </div>
     </motion.article>
