@@ -247,8 +247,24 @@ function getCustomCourseImage(title: string, courseSlug?: string): string | null
   
   // Custom image mappings
   const customImages: Record<string, string> = {
+    // AWS Certified AI Practitioner
     'aws certified ai practitioner': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20AI%20Practitioner%20(AIF-C01).png',
     'aif-c01': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20AI%20Practitioner%20(AIF-C01).png',
+    
+    // AWS Certified Cloud Practitioner
+    'aws certified cloud practitioner': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20Cloud%20Practitioner.png',
+    'cloud practitioner': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20Cloud%20Practitioner.png',
+    'clf-c02': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20Cloud%20Practitioner.png',
+    
+    // AWS Certified CloudOps Engineer
+    'aws certified cloudops engineer': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20CloudOps%20Engineer%20-%20Associate%20(SOA-C03).png',
+    'cloudops engineer': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20CloudOps%20Engineer%20-%20Associate%20(SOA-C03).png',
+    'soa-c03': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20CloudOps%20Engineer%20-%20Associate%20(SOA-C03).png',
+    
+    // AWS GenAI Developer Professional
+    'aws genai developer': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20GenAI%20Developer%20Professional%20Certificate.png',
+    'genai developer professional': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20GenAI%20Developer%20Professional%20Certificate.png',
+    'genai developer': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20GenAI%20Developer%20Professional%20Certificate.png',
   };
   
   // Check by title keywords
