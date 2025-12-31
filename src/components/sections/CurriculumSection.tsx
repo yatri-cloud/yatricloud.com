@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, ExternalLink, User, Award, Tag, Loader2, AlertCircle } from "lucide-react";
+import { Search, ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -130,22 +130,19 @@ export const CurriculumSection = () => {
               />
             </div>
 
-            {/* Filters - Modern UI with icons */}
+            {/* Filters - Modern UI without icons */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Instructor Filter */}
                 {creators && creators.length > 0 && (
               <div className="group">
-                <label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <span>Instructor</span>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                  Instructor
                 </label>
                 <div className="relative">
                   <select
                     value={selectedInstructor}
                     onChange={(e) => setSelectedInstructor(e.target.value)}
-                    className="w-full bg-gradient-to-br from-card to-card/95 border-2 border-border/60 rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer hover:border-primary/50"
+                    className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
                   >
                       <option value="All">All Instructors</option>
                       {creators.map((instructor) => (
@@ -154,9 +151,9 @@ export const CurriculumSection = () => {
                     </option>
                   ))}
                   </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
                 </div>
@@ -166,17 +163,14 @@ export const CurriculumSection = () => {
               {/* Certification Filter */}
                 {availableFilters.certifications.length > 0 && (
               <div className="group">
-                <label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                    <Award className="w-4 h-4" />
-                  </div>
-                  <span>Certifications</span>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                  Certifications
                 </label>
                 <div className="relative">
                   <select
                     value={selectedCertification}
                     onChange={(e) => setSelectedCertification(e.target.value)}
-                    className="w-full bg-gradient-to-br from-card to-card/95 border-2 border-border/60 rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer hover:border-primary/50"
+                    className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
                   >
                       <option value="All">All Certifications</option>
                       {availableFilters.certifications.map((cert) => (
@@ -185,9 +179,9 @@ export const CurriculumSection = () => {
                     </option>
                   ))}
                   </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
                 </div>
@@ -197,17 +191,14 @@ export const CurriculumSection = () => {
               {/* Category Filter */}
                 {availableFilters.categories.length > 0 && (
               <div className="group">
-                <label className="text-sm font-semibold text-foreground mb-3 block flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                    <Tag className="w-4 h-4" />
-                  </div>
-                  <span>Categories</span>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                  Categories
                 </label>
                 <div className="relative">
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full bg-gradient-to-br from-card to-card/95 border-2 border-border/60 rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer hover:border-primary/50"
+                    className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
                   >
                       <option value="All">All Categories</option>
                       {availableFilters.categories.map((category) => (
@@ -216,9 +207,9 @@ export const CurriculumSection = () => {
                     </option>
                   ))}
                   </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
                 </div>
