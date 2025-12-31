@@ -1,17 +1,28 @@
-import { Header } from "@/components/Header";
-import { HeroSection } from "@/components/HeroSection";
-import { CoursesSection } from "@/components/CoursesSection";
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/sections/HeroSection";
+import PainPointsSection from "@/components/sections/PainPointsSection";
+import CurriculumSection from "@/components/sections/CurriculumSection";
+import PricingSection from "@/components/sections/PricingSection";
+import InstructorSection from "@/components/sections/InstructorSection";
 import { TrustSection } from "@/components/TrustSection";
-import { Footer } from "@/components/Footer";
+import FAQSection from "@/components/sections/FAQSection";
+import CommunitySection from "@/components/sections/CommunitySection";
+import Footer from "@/components/sections/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="noise-overlay" />
+      <Navbar />
       <main>
         <HeroSection />
-        <CoursesSection />
+        <CurriculumSection />
+        <PainPointsSection />
         <TrustSection />
+        <PricingSection />
+        <InstructorSection />
+        <FAQSection />
+        <CommunitySection />
       </main>
       <Footer />
     </div>

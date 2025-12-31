@@ -8,6 +8,9 @@ export interface Course {
   rating: number;
   udemyUrl: string;
   thumbnail: string;
+  headline?: string;
+  price?: string;
+  isPaid?: boolean;
 }
 
 export const courses: Course[] = [

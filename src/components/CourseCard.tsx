@@ -1,6 +1,27 @@
 import { motion } from "framer-motion";
-import { ExternalLink, Users, Star } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import type { Course } from "@/data/courses";
+
+/**
+ * Get fallback image URL from course URL
+ * Uses proxy server to avoid Access Denied errors
+ */
+function getFallbackImageUrl(courseUrl: string): string {
+  if (!courseUrl) {
+    return 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
+  }
+  
+  // Extract course slug from full URL
+  const urlMatch = courseUrl.match(/\/course\/([^\/\?]+)/);
+  if (urlMatch && urlMatch[1]) {
+    const courseSlug = urlMatch[1].trim();
+    // Use proxy server to fetch image (avoids Access Denied)
+    const proxyUrl = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+    return `${proxyUrl}/api/udemy/image/${courseSlug}`;
+  }
+  
+  return 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
+}
 
 interface CourseCardProps {
   course: Course;
@@ -10,79 +31,72 @@ interface CourseCardProps {
 export const CourseCard = ({ course, index }: CourseCardProps) => {
   return (
     <motion.article
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
+      viewport={{ once: true, margin: "-50px" }}
       transition={{ 
-        duration: 0.6, 
-        delay: index * 0.08,
-        ease: [0.25, 0.1, 0.25, 1]
+        duration: 0.4, 
+        delay: index * 0.05,
       }}
-      whileHover={{ y: -8 }}
-      className="group relative flex flex-col rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm transition-shadow duration-500 hover:shadow-lg hover:border-primary/20"
+      className="group relative flex flex-col rounded-lg border border-border bg-card overflow-hidden hover:border-primary/50 transition-all"
     >
-      {/* Gradient overlay on hover */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-      
       {/* Thumbnail */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+      <div className="relative aspect-video overflow-hidden bg-muted">
         <motion.img
-          src={course.thumbnail}
+          src={course.thumbnail || getFallbackImageUrl(course.udemyUrl)}
           alt={course.title}
           className="h-full w-full object-cover"
           loading="lazy"
-          whileHover={{ scale: 1.08 }}
-          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.3 }}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            const currentSrc = target.src;
+            
+            if (currentSrc.includes('/api/udemy/image/')) {
+              const slugMatch = currentSrc.match(/\/api\/udemy\/image\/([^\/]+)/);
+              if (slugMatch && slugMatch[1]) {
+                target.src = `https://img-c.udemycdn.com/course/480x270/${slugMatch[1]}/`;
+                return;
+              }
+            }
+            
+            target.src = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
+          }}
         />
         
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
-        
-        {/* Free badge */}
-        <motion.div 
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 + index * 0.05 }}
-          className="absolute top-4 left-4 flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-lg shadow-emerald-500/25"
-        >
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
-          </span>
-          Free Course
-        </motion.div>
-        
         {/* Platform badge */}
-        <div className="absolute top-4 right-4 rounded-full bg-background/95 backdrop-blur-md px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm border border-border/50">
+        <div className="absolute top-3 right-3 rounded-md bg-background/95 backdrop-blur-sm px-2.5 py-1 text-xs font-medium text-foreground border border-border/50">
           Udemy
         </div>
       </div>
 
       {/* Content */}
-      <div className="relative flex flex-1 flex-col p-6">
-        {/* Category tag */}
-        <div className="mb-4 flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-primary/8 border border-primary/15 px-3 py-1 text-xs font-semibold text-primary">
-            {course.certification}
-          </span>
-          <span className="text-xs text-text-muted">{course.category}</span>
-        </div>
-
+      <div className="flex flex-1 flex-col p-5">
         {/* Title */}
-        <h3 className="text-lg font-semibold text-foreground leading-snug mb-4 line-clamp-2 group-hover:text-primary transition-colors duration-300">
+        <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
           {course.title}
         </h3>
+        
+        {/* Instructor name */}
+        {course.creator && (
+          <p className="text-sm text-text-muted mb-4">
+            by <span className="font-medium text-text-secondary">{course.creator}</span>
+          </p>
+        )}
 
-        {/* Stats */}
-        <div className="flex items-center gap-5 text-sm text-text-secondary mt-auto">
-          <div className="flex items-center gap-1.5">
-            <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-            <span className="font-medium">{course.rating}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Users className="h-4 w-4 text-text-muted" />
-            <span>{course.enrollments.toLocaleString()}</span>
-          </div>
+        {/* Category/Certification tags */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {course.certification && course.certification !== 'General' && (
+            <span className="inline-flex items-center rounded-md bg-primary/10 text-primary px-2.5 py-1 text-xs font-medium">
+              {course.certification}
+            </span>
+          )}
+          {course.category && course.category !== 'General' && (
+            <span className="inline-flex items-center rounded-md bg-muted text-text-secondary px-2.5 py-1 text-xs font-medium">
+              {course.category}
+            </span>
+          )}
         </div>
 
         {/* CTA */}
@@ -92,9 +106,9 @@ export const CourseCard = ({ course, index }: CourseCardProps) => {
           rel="noopener noreferrer"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
+          className="mt-auto flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
-          Enroll Now – It's Free
+          Enroll Now
           <ExternalLink className="h-4 w-4" />
         </motion.a>
       </div>

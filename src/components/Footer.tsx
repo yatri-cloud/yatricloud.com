@@ -17,7 +17,7 @@ const team: TeamMember[] = [
   },
   {
     name: "Nensi Ravaliya",
-    role: "Cloud Architect – Yatri Cloud",
+    role: "Creator - Yatri Cloud",
     image: "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Team%20Yatri%20Cloud/Nensi%20Ravaliya/profile-nensi-ravaliya.png",
     portfolioUrl: "https://nensi.yatricloud.com/",
   },
@@ -144,7 +144,7 @@ const TeamCard = ({ member, index }: { member: TeamMember; index: number }) => (
       whileTap={{ scale: 0.95 }}
       className="relative inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300"
     >
-      View Portfolio
+      Let's Connect
       <ExternalLink className="h-4 w-4" />
     </motion.a>
   </motion.div>
@@ -290,8 +290,9 @@ export const Footer = () => {
           className="pt-10 border-t border-border/30"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <motion.div 
-              className="flex items-center gap-4"
+            <motion.a 
+              href="/"
+              className="flex items-center gap-4 cursor-pointer"
               whileHover={{ scale: 1.02 }}
             >
               <motion.img
@@ -303,25 +304,28 @@ export const Footer = () => {
               />
               <div className="flex flex-col">
                 <span className="text-base font-semibold text-foreground">
-                  Yatri Udemy
+                  Yatri Cloud
                 </span>
                 <span className="text-xs text-text-muted">
                   © {new Date().getFullYear()} Yatri Cloud. All rights reserved.
                 </span>
               </div>
-            </motion.div>
+            </motion.a>
             
             <div className="flex items-center gap-8 text-sm">
-              {["Privacy Policy", "Terms of Service", "Contact Us"].map((item) => (
-                <motion.a
-                  key={item}
-                  href="#"
-                  whileHover={{ y: -2, color: "hsl(var(--primary))" }}
-                  className="text-text-muted hover:text-primary transition-colors duration-200"
-                >
-                  {item}
-                </motion.a>
-              ))}
+              {["Privacy Policy", "Terms of Service"].map((item) => {
+                const href = item === "Privacy Policy" ? "/privacy-policy" : "/terms-of-service";
+                return (
+                  <motion.a
+                    key={item}
+                    href={href}
+                    whileHover={{ y: -2, color: "hsl(var(--primary))" }}
+                    className="text-text-muted hover:text-primary transition-colors duration-200"
+                  >
+                    {item}
+                  </motion.a>
+                );
+              })}
             </div>
           </div>
         </motion.div>

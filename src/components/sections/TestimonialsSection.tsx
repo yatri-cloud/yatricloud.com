@@ -1,0 +1,136 @@
+import { motion } from "framer-motion";
+import ScrollReveal from "@/components/ScrollReveal";
+
+const stats = [
+  { value: "50K+", label: "Learners", accent: "primary" },
+  { value: "6+", label: "Practice Tests", accent: "primary" },
+  { value: "4.8", label: "Avg. Rating", accent: "primary" },
+  { value: "95%", label: "Success Rate", accent: "primary" },
+];
+
+export const TestimonialsSection = () => {
+  return (
+    <section id="testimonials" className="py-24 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl" />
+      
+      <div className="container mx-auto px-4 md:px-6 relative z-10">
+        <ScrollReveal>
+          <div className="text-center mb-16">
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
+              Trusted by Professionals
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              Why Learners <span className="gradient-text">Trust Us</span>
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Built with care by cloud experts who understand what it takes to pass certification exams.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        {/* Features */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16 max-w-6xl mx-auto">
+          <ScrollReveal delay={0.1}>
+            <motion.div
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Expert-Crafted Content
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Created by certified cloud professionals with hands-on industry experience.
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+            </motion.div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.2}>
+            <motion.div
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Instant Access
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Start practicing immediately. No registration or payment required.
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+            </motion.div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.3}>
+            <motion.div
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Exam-Aligned Questions
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Questions mirror actual certification exam patterns and difficulty.
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+            </motion.div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.4}>
+            <motion.div
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Proven Success Rate
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Join thousands who passed their certification exams.
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+            </motion.div>
+          </ScrollReveal>
+        </div>
+
+        {/* Stats */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+          {stats.map((stat, index) => (
+            <ScrollReveal key={index} delay={index * 0.1}>
+              <motion.div
+                className="group relative bg-gradient-to-br from-card via-card to-card/80 border border-border/60 rounded-2xl p-8 text-center overflow-hidden hover:border-primary/40 transition-all duration-500"
+                whileHover={{ y: -8, scale: 1.03 }}
+              >
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* Content */}
+                <div className="relative z-10">
+                  <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent mb-3 leading-none">
+                    {stat.value}
+                  </div>
+                  <div className="text-base font-medium text-muted-foreground uppercase tracking-wider">
+                    {stat.label}
+                  </div>
+                </div>
+                
+                {/* Decorative accent line */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent group-hover:w-3/4 transition-all duration-500" />
+              </motion.div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default TestimonialsSection;

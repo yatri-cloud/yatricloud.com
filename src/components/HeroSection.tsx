@@ -67,12 +67,14 @@ export const HeroSection = () => {
             className="mt-10 flex flex-col sm:flex-row items-center gap-4"
           >
             <motion.a
-              href="#courses"
+              href="https://pages.razorpay.com/stores/yatricloud"
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.98 }}
               className="group inline-flex items-center justify-center gap-3 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/30"
             >
-              Explore Free Practice Tests
+              Get Your 50% OFF
               <motion.span
                 animate={{ y: [0, 3, 0] }}
                 transition={{ repeat: Infinity, duration: 1.5 }}
@@ -91,7 +93,7 @@ export const HeroSection = () => {
           >
             {[
               "Always Free",
-              "No Sign-up Required",
+              "Exam Dumps",
               "Updated Weekly",
             ].map((item, index) => (
               <motion.div

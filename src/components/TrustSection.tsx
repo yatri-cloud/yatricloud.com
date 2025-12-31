@@ -1,211 +1,230 @@
 import { motion } from "framer-motion";
-import { Shield, Zap, Target, Award, TrendingUp } from "lucide-react";
+import { Check, X } from "lucide-react";
+import ScrollReveal from "@/components/ScrollReveal";
 
-const features = [
-  {
-    icon: Shield,
-    title: "Expert-Crafted Content",
-    description: "Created by certified cloud professionals with hands-on industry experience.",
-    color: "from-blue-500/20 to-cyan-500/20",
-  },
-  {
-    icon: Zap,
-    title: "Instant Access",
-    description: "Start practicing immediately. No registration or payment required.",
-    color: "from-amber-500/20 to-orange-500/20",
-  },
-  {
-    icon: Target,
-    title: "Exam-Aligned Questions",
-    description: "Questions mirror actual certification exam patterns and difficulty.",
-    color: "from-emerald-500/20 to-green-500/20",
-  },
-  {
-    icon: Award,
-    title: "Proven Success Rate",
-    description: "Join thousands who passed their certification on the first attempt.",
-    color: "from-purple-500/20 to-pink-500/20",
-  },
+const forYouPoints = [
+  "You want to master cloud certifications for professional work",
+  "You're tired of guessing what to study for your exam",
+  "You value practical skills over academic theory",
+  "You need certification skills to stay ahead in your field",
+  "You're ready to become your team's cloud expert",
 ];
 
-const stats = [
-  { value: "50K+", label: "Learners", icon: "👥" },
-  { value: "6+", label: "Practice Tests", icon: "📝" },
-  { value: "4.8", label: "Avg. Rating", icon: "⭐" },
-  { value: "95%", label: "Success Rate", icon: "🎯" },
+const notForYouPoints = [
+  "You want a free course with basic cloud tips",
+  "You prefer theory over practical application",
+  "You dislike structured, step-by-step training",
+  "You just want to explore cloud without purpose",
+  "You're seeking a math-heavy cloud deep dive",
 ];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut" as const,
-    },
-  },
-};
 
 export const TrustSection = () => {
   return (
-    <section className="py-28 bg-gradient-to-b from-background via-surface-subtle to-background relative overflow-hidden">
-      {/* Animated background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <section className="py-24 bg-background relative overflow-hidden">
+      {/* Is this for you Section */}
+      <div className="container mx-auto px-4 md:px-6 relative z-10">
+        <ScrollReveal>
+          <div className="text-center mb-12">
+            <p className="text-muted-foreground text-lg mb-2">Is this for you?</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+              This Course Is a <span className="text-primary">Perfect</span> Fit If You're Ready to...
+            </h2>
+          </div>
+        </ScrollReveal>
+
+        {/* Two Column Comparison */}
+        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-20">
+          {/* For You Box */}
+          <ScrollReveal delay={0.1}>
         <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-[100px]"
-        />
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="border-2 border-primary rounded-2xl overflow-hidden bg-card"
+            >
+              <div className="bg-primary px-6 py-4">
+                <h3 className="text-white font-bold text-lg uppercase tracking-wide">
+                  This is for you if:
+                </h3>
+              </div>
+              <div className="p-6 space-y-4">
+                {forYouPoints.map((point, index) => (
         <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]"
-        />
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                      <Check className="w-4 h-4 text-primary" />
+                    </div>
+                    <p className="text-foreground text-sm md:text-base leading-relaxed">{point}</p>
+                  </motion.div>
+                ))}
       </div>
+            </motion.div>
+          </ScrollReveal>
       
-      <div className="container relative">
+          {/* Not For You Box */}
+          <ScrollReveal delay={0.2}>
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-center mb-20"
-        >
+              transition={{ duration: 0.6 }}
+              className="border-2 border-foreground rounded-2xl overflow-hidden bg-card"
+            >
+              <div className="bg-foreground px-6 py-4">
+                <h3 className="text-background font-bold text-lg uppercase tracking-wide">
+                  This is not for you if:
+                </h3>
+              </div>
+              <div className="p-6 space-y-4">
+                {notForYouPoints.map((point, index) => (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+                    key={index}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary mb-6"
-          >
-            <TrendingUp className="h-4 w-4" />
-            Trusted by Professionals
+                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center mt-0.5">
+                      <X className="w-4 h-4 text-destructive" />
+                    </div>
+                    <p className="text-foreground text-sm md:text-base leading-relaxed">{point}</p>
+                  </motion.div>
+                ))}
+              </div>
           </motion.div>
-          
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-5">
-            Why Learners Trust Us
+          </ScrollReveal>
+        </div>
+
+        {/* Why Learners Trust Us Section */}
+        <ScrollReveal delay={0.3}>
+          <div className="text-center mb-16">
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
+              Trusted by Professionals
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              Why Learners <span className="gradient-text">Trust Us</span>
           </h2>
-          <p className="text-text-secondary text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Built with care by cloud experts who understand what it takes to pass certification exams.
           </p>
-        </motion.div>
+          </div>
+        </ScrollReveal>
 
+        {/* Features */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16 max-w-6xl mx-auto">
+          <ScrollReveal delay={0.4}>
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-20"
-        >
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              variants={itemVariants}
-              whileHover={{ 
-                y: -10, 
-                scale: 1.02,
-                transition: { duration: 0.3 }
-              }}
-              className="group relative p-7 rounded-2xl bg-card border border-border/60 hover:border-primary/30 transition-all duration-500 overflow-hidden"
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
             >
-              {/* Gradient background on hover */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileHover={{ opacity: 1, scale: 1.2 }}
-                className={`absolute inset-0 bg-gradient-to-br ${feature.color} blur-xl`}
-              />
-              
-              {/* Content */}
-              <div className="relative">
-                {/* Icon with animation */}
-                <motion.div 
-                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
-                  className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300"
-                >
-                  <feature.icon className="h-7 w-7 text-primary" />
-                </motion.div>
-                
-                <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
-                  {feature.title}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Expert-Crafted Content
                 </h3>
-                <p className="text-text-secondary text-sm leading-relaxed">
-                  {feature.description}
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Created by certified cloud professionals with hands-on industry experience.
                 </p>
               </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
             </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Stats bar with counter animation */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-3xl blur-xl" />
-          
-          <div className="relative grid grid-cols-2 md:grid-cols-4 gap-6 p-10 rounded-3xl bg-card/80 backdrop-blur-sm border border-border/60">
-            {stats.map((stat, index) => (
+          </ScrollReveal>
+          <ScrollReveal delay={0.5}>
+            <motion.div
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Instant Access
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Start practicing immediately. No registration or payment required.
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+            </motion.div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.6}>
               <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                className="text-center group cursor-default"
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Exam-Aligned Questions
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Questions mirror actual certification exam patterns and difficulty.
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+            </motion.div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.7}>
+        <motion.div
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Proven Success Rate
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Join thousands who passed their certification exams.
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+            </motion.div>
+          </ScrollReveal>
+        </div>
+
+        {/* Stats */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+          {[
+            { value: "50K+", label: "Learners" },
+            { value: "6+", label: "Practice Tests" },
+            { value: "4.8", label: "Avg. Rating" },
+            { value: "95%", label: "Success Rate" },
+          ].map((stat, index) => (
+            <ScrollReveal key={index} delay={0.8 + index * 0.1}>
+              <motion.div
+                className="group relative bg-gradient-to-br from-card via-card to-card/80 border border-border/60 rounded-2xl p-8 text-center overflow-hidden hover:border-primary/40 transition-all duration-500"
+                whileHover={{ y: -8, scale: 1.03 }}
               >
-                <motion.span
-                  initial={{ scale: 1 }}
-                  whileHover={{ scale: 1.2 }}
-                  className="text-2xl mb-2 block"
-                >
-                  {stat.icon}
-                </motion.span>
-                <motion.div 
-                  className="text-3xl md:text-4xl font-bold text-primary mb-1"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ 
-                    duration: 0.6, 
-                    delay: 0.5 + index * 0.1,
-                    type: "spring",
-                    stiffness: 200
-                  }}
-                >
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* Content */}
+                <div className="relative z-10">
+                  <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent mb-3 leading-none">
                   {stat.value}
-                </motion.div>
-                <div className="text-sm text-text-muted group-hover:text-text-secondary transition-colors">
+                  </div>
+                  <div className="text-base font-medium text-muted-foreground uppercase tracking-wider">
                   {stat.label}
+                  </div>
                 </div>
+                
+                {/* Decorative accent line */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent group-hover:w-3/4 transition-all duration-500" />
               </motion.div>
+            </ScrollReveal>
             ))}
           </div>
-        </motion.div>
       </div>
     </section>
   );
 };
+
+export default TrustSection;

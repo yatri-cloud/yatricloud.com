@@ -21,10 +21,7 @@ export const Header = () => {
           <Logo />
           <div className="flex flex-col">
             <span className="text-lg font-semibold tracking-tight text-foreground">
-              Yatri Udemy
-            </span>
-            <span className="text-xs text-muted-foreground -mt-0.5">
-              by Yatri Cloud
+              Yatri Cloud
             </span>
           </div>
         </a>
