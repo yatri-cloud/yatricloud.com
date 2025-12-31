@@ -239,6 +239,39 @@ export async function fetchUdemyCourses(
 }
 
 /**
+ * Custom image mapping for specific courses
+ * Maps course titles/slugs to custom image URLs
+ */
+function getCustomCourseImage(title: string, courseSlug?: string): string | null {
+  const titleLower = title.toLowerCase();
+  
+  // Custom image mappings
+  const customImages: Record<string, string> = {
+    'aws certified ai practitioner': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20AI%20Practitioner%20(AIF-C01).png',
+    'aif-c01': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20Certified%20AI%20Practitioner%20(AIF-C01).png',
+  };
+  
+  // Check by title keywords
+  for (const [key, imageUrl] of Object.entries(customImages)) {
+    if (titleLower.includes(key.toLowerCase())) {
+      return imageUrl;
+    }
+  }
+  
+  // Check by course slug if provided
+  if (courseSlug) {
+    const slugLower = courseSlug.toLowerCase();
+    for (const [key, imageUrl] of Object.entries(customImages)) {
+      if (slugLower.includes(key.toLowerCase())) {
+        return imageUrl;
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Transform Udemy course data to match our Course interface
  */
 export function transformUdemyCourse(udemyCourse: any): TransformedCourse {
@@ -256,29 +289,35 @@ export function transformUdemyCourse(udemyCourse: any): TransformedCourse {
   const category = extractCategory(title);
   const certification = extractCertification(title, category);
 
-  // Handle image URLs - Instructor API might not return images in response
-  // We need to construct the image URL from the course URL or ID
+  // Extract course slug for custom image lookup
+  let courseSlug: string | undefined;
+  if (udemyCourse.url) {
+    const urlMatch = udemyCourse.url.match(/\/course\/([^\/\?]+)/);
+    if (urlMatch && urlMatch[1]) {
+      courseSlug = urlMatch[1].trim();
+    }
+  }
+
+  // Handle image URLs - Check for custom images first
   let thumbnail = '';
   
-  if (udemyCourse.image_480x270) {
+  // Check for custom course image
+  const customImage = getCustomCourseImage(title, courseSlug);
+  if (customImage) {
+    thumbnail = customImage;
+  } else if (udemyCourse.image_480x270) {
     thumbnail = udemyCourse.image_480x270;
   } else if (udemyCourse.image_240x135) {
     thumbnail = udemyCourse.image_240x135;
   } else if (udemyCourse.image_125_H) {
     thumbnail = udemyCourse.image_125_H;
-  } else if (udemyCourse.url) {
-    // Extract course slug from URL and use proxy server to fetch image
-    // Format: /course/{course-slug}/ -> proxy server will handle authentication
-    const urlMatch = udemyCourse.url.match(/\/course\/([^\/\?]+)/);
-    if (urlMatch && urlMatch[1]) {
-      const courseSlug = urlMatch[1].trim();
-      // Use proxy server to fetch image (avoids CORS and access denied)
-      // In production (Vercel), use relative URL to access serverless functions
-      // In development, use localhost proxy server
-      const proxyUrl = import.meta.env.VITE_PROXY_URL || 
-        (import.meta.env.PROD ? '' : 'http://localhost:3001');
-      thumbnail = `${proxyUrl}/api/udemy/image/${courseSlug}`;
-    }
+  } else if (udemyCourse.url && courseSlug) {
+    // Use proxy server to fetch image (avoids CORS and access denied)
+    // In production (Vercel), use relative URL to access serverless functions
+    // In development, use localhost proxy server
+    const proxyUrl = import.meta.env.VITE_PROXY_URL || 
+      (import.meta.env.PROD ? '' : 'http://localhost:3001');
+    thumbnail = `${proxyUrl}/api/udemy/image/${courseSlug}`;
   }
   
   // Final fallback - use placeholder
