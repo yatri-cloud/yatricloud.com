@@ -267,8 +267,10 @@ function getCustomCourseImage(title: string, courseSlug?: string): string | null
     'genai developer': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Yatharth%20Chauhan/AWS/AWS%20GenAI%20Developer%20Professional%20Certificate.png',
     
     // AWS Certified DevOps Engineer - Professional (Nensi)
+    'aws certified devops engineer - professional exam prep': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Certified%20DevOps%20Engineer%20-%20Professional%20Exam%20Prep.png',
     'aws certified devops engineer professional': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Certified%20DevOps%20Engineer%20-%20Professional%20Exam%20Prep.png',
     'devops engineer professional': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Certified%20DevOps%20Engineer%20-%20Professional%20Exam%20Prep.png',
+    'devops engineer - professional': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Certified%20DevOps%20Engineer%20-%20Professional%20Exam%20Prep.png',
     
     // AWS Solutions Architect Associate (Nensi)
     'aws solutions architect associate': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Solutions%20Architect%20Associate%20SAA-C03.png',
