@@ -97,7 +97,7 @@ const GlobeVisualization = () => {
   }
 
   return (
-    <div className="relative w-full h-[500px] md:h-[600px] flex items-center justify-center overflow-hidden" style={{ perspective: '1200px' }}>
+    <div className="relative w-full h-[500px] md:h-[600px] flex items-center justify-center overflow-hidden" style={{ perspective: '1200px', boxShadow: 'none' }}>
       <div
         ref={containerRef}
         className="relative w-[300px] h-[300px] mx-auto"
@@ -207,9 +207,9 @@ const GlobeVisualization = () => {
         ))}
       </div>
       
-      {/* Blur effect on the left side for depth */}
+      {/* Blur effect on the left side for depth - only in dark mode */}
       <div 
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none dark:block hidden"
         style={{
           background: 'radial-gradient(circle at 30% 50%, transparent 0%, rgba(0, 0, 0, 0.3) 40%, transparent 70%)',
         }}
@@ -264,15 +264,8 @@ export const CommunitySection = () => {
           {/* Globe Visualization */}
           <ScrollReveal delay={0.4}>
             <div className="mt-16 relative">
-              {/* White background for light theme behind photos */}
-              <div className="absolute inset-0 bg-white dark:bg-transparent rounded-3xl -z-10" style={{ 
-                left: '50%', 
-                top: '50%', 
-                transform: 'translate(-50%, -50%)', 
-                width: '100%', 
-                maxWidth: '600px', 
-                height: '600px' 
-              }} />
+              {/* White background in light theme behind photos */}
+              <div className="absolute inset-0 bg-white dark:bg-transparent rounded-3xl -z-10" />
               <GlobeVisualization />
             </div>
           </ScrollReveal>
