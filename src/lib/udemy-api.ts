@@ -146,7 +146,10 @@ export async function fetchUdemyCourses(
   try {
     // Use backend proxy to avoid CORS issues
     // The proxy server handles authentication and makes the API call
-    const proxyUrl = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+    // In production (Vercel), use relative URL to access serverless functions
+    // In development, use localhost proxy server
+    const proxyUrl = import.meta.env.VITE_PROXY_URL || 
+      (import.meta.env.PROD ? '' : 'http://localhost:3001');
     const baseUrl = `${proxyUrl}/api/udemy/courses`;
     
     const params = new URLSearchParams({
@@ -270,7 +273,10 @@ export function transformUdemyCourse(udemyCourse: any): TransformedCourse {
     if (urlMatch && urlMatch[1]) {
       const courseSlug = urlMatch[1].trim();
       // Use proxy server to fetch image (avoids CORS and access denied)
-      const proxyUrl = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+      // In production (Vercel), use relative URL to access serverless functions
+      // In development, use localhost proxy server
+      const proxyUrl = import.meta.env.VITE_PROXY_URL || 
+        (import.meta.env.PROD ? '' : 'http://localhost:3001');
       thumbnail = `${proxyUrl}/api/udemy/image/${courseSlug}`;
     }
   }
@@ -458,7 +464,10 @@ export async function fetchAllUdemyCourses(
 ): Promise<TransformedCourse[]> {
   try {
     // Use backend proxy to fetch from all instructors
-    const proxyUrl = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+    // In production (Vercel), use relative URL to access serverless functions
+    // In development, use localhost proxy server
+    const proxyUrl = import.meta.env.VITE_PROXY_URL || 
+      (import.meta.env.PROD ? '' : 'http://localhost:3001');
     const baseUrl = `${proxyUrl}/api/udemy/courses`;
     
     const params = new URLSearchParams();
