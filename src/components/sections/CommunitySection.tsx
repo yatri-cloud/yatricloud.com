@@ -271,26 +271,26 @@ export const CommunitySection = () => {
       </div>
 
       {/* Bottom Section - Company Logos with Dark Background */}
-      <div className="py-20 bg-secondary/90 border-t border-border relative overflow-hidden">
-        <div className="container mx-auto px-4 md:px-6">
+      <div className="py-12 md:py-20 bg-secondary/90 border-t border-border relative overflow-hidden">
+        <div className="container mx-auto px-2 sm:px-4 md:px-6">
           {/* Scrolling Company Logos - Two Rows */}
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             {/* First Row - Left to Right */}
-            <Marquee speed="slow" className="py-4">
+            <Marquee speed="slow" className="py-2 md:py-4">
               {[...companies, ...companies].map((company, index) => (
                 <div
                   key={`${company.name}-1-${index}`}
-                  className="flex items-center justify-center px-12 h-20 opacity-60 hover:opacity-100 transition-opacity duration-300"
+                  className="flex items-center justify-center px-4 sm:px-8 md:px-12 h-12 sm:h-16 md:h-20 opacity-60 hover:opacity-100 transition-opacity duration-300"
                 >
                   <img
                     src={company.logo}
                     alt={company.name}
-                    className="h-12 w-auto object-contain filter brightness-0 invert"
+                    className="h-6 sm:h-8 md:h-12 w-auto object-contain filter brightness-0 invert max-w-[120px] sm:max-w-[150px] md:max-w-none"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
                       const fallback = document.createElement('span');
-                      fallback.className = 'text-2xl md:text-3xl font-bold text-foreground whitespace-nowrap';
+                      fallback.className = 'text-sm sm:text-lg md:text-2xl font-bold text-foreground whitespace-nowrap';
                       fallback.textContent = company.name;
                       target.parentElement?.appendChild(fallback);
                     }}
@@ -300,21 +300,21 @@ export const CommunitySection = () => {
             </Marquee>
             
             {/* Second Row - Right to Left */}
-            <Marquee speed="normal" direction="right" className="py-4">
+            <Marquee speed="normal" direction="right" className="py-2 md:py-4">
               {[...companies, ...companies].map((company, index) => (
                 <div
                   key={`${company.name}-2-${index}`}
-                  className="flex items-center justify-center px-12 h-20 opacity-60 hover:opacity-100 transition-opacity duration-300"
+                  className="flex items-center justify-center px-4 sm:px-8 md:px-12 h-12 sm:h-16 md:h-20 opacity-60 hover:opacity-100 transition-opacity duration-300"
                 >
                   <img
                     src={company.logo}
                     alt={company.name}
-                    className="h-12 w-auto object-contain filter brightness-0 invert"
+                    className="h-6 sm:h-8 md:h-12 w-auto object-contain filter brightness-0 invert max-w-[120px] sm:max-w-[150px] md:max-w-none"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
                       const fallback = document.createElement('span');
-                      fallback.className = 'text-2xl md:text-3xl font-bold text-foreground whitespace-nowrap';
+                      fallback.className = 'text-sm sm:text-lg md:text-2xl font-bold text-foreground whitespace-nowrap';
                       fallback.textContent = company.name;
                       target.parentElement?.appendChild(fallback);
                     }}

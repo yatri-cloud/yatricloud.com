@@ -33,8 +33,8 @@ export const Marquee = ({
           direction === "right" ? "[animation-direction:reverse]" : ""
         } ${pauseOnHover ? "hover:[animation-play-state:paused]" : ""}`}
       >
-        <div className="flex shrink-0 items-center gap-8 pr-8">{children}</div>
-        <div className="flex shrink-0 items-center gap-8 pr-8">{children}</div>
+        <div className="flex shrink-0 items-center gap-4 sm:gap-6 md:gap-8 pr-4 sm:pr-6 md:pr-8">{children}</div>
+        <div className="flex shrink-0 items-center gap-4 sm:gap-6 md:gap-8 pr-4 sm:pr-6 md:pr-8">{children}</div>
       </div>
     </div>
   );
