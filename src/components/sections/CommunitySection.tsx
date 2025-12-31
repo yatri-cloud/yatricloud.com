@@ -97,7 +97,7 @@ const GlobeVisualization = () => {
   }
 
   return (
-    <div className="relative w-full h-[500px] md:h-[600px] flex items-center justify-center overflow-hidden bg-background" style={{ perspective: '1200px' }}>
+    <div className="relative w-full h-[500px] md:h-[600px] flex items-center justify-center overflow-hidden" style={{ perspective: '1200px' }}>
       <div
         ref={containerRef}
         className="relative w-[300px] h-[300px] mx-auto"
@@ -174,23 +174,19 @@ const GlobeVisualization = () => {
             }}
           >
             <motion.div
-              className="w-14 h-14 rounded-full border-2 border-primary/50 overflow-hidden shadow-lg bg-background dark:bg-background"
+              className="w-14 h-14 rounded-full border-2 border-primary/50 overflow-hidden shadow-lg"
               whileHover={{ 
                 scale: 1.3,
               }}
               transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
               style={{
                 transformOrigin: 'center center',
-                backgroundColor: 'var(--background)',
               }}
             >
               <img
                 src={profilePictures[i % profilePictures.length]}
                 alt={`Community member ${i + 1}`}
                 className="w-full h-full object-cover pointer-events-none select-none"
-                style={{
-                  backgroundColor: 'var(--background)',
-                }}
                 draggable={false}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -216,13 +212,6 @@ const GlobeVisualization = () => {
         className="absolute inset-0 pointer-events-none"
         style={{
           background: 'radial-gradient(circle at 30% 50%, transparent 0%, rgba(0, 0, 0, 0.3) 40%, transparent 70%)',
-        }}
-      />
-      {/* Light mode overlay to fix dark background */}
-      <div 
-        className="absolute inset-0 pointer-events-none dark:hidden"
-        style={{
-          background: 'radial-gradient(circle at 30% 50%, transparent 0%, rgba(255, 255, 255, 0.1) 40%, transparent 70%)',
         }}
       />
     </div>
@@ -274,7 +263,16 @@ export const CommunitySection = () => {
 
           {/* Globe Visualization */}
           <ScrollReveal delay={0.4}>
-            <div className="mt-16">
+            <div className="mt-16 relative">
+              {/* White background for light theme behind photos */}
+              <div className="absolute inset-0 bg-white dark:bg-transparent rounded-3xl -z-10" style={{ 
+                left: '50%', 
+                top: '50%', 
+                transform: 'translate(-50%, -50%)', 
+                width: '100%', 
+                maxWidth: '600px', 
+                height: '600px' 
+              }} />
               <GlobeVisualization />
             </div>
           </ScrollReveal>
