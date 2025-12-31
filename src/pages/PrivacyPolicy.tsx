@@ -1,10 +1,16 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { motion } from "framer-motion";
+import { SEO } from "@/components/SEO";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO
+        title="Privacy Policy - Yatri Cloud"
+        description="Privacy Policy for Yatri Cloud certification practice hub. Learn how we collect, use, and protect your information."
+        url="https://certification.yatricloud.com/privacy-policy"
+      />
       <Navbar />
       <main className="container mx-auto px-4 md:px-6 py-24 max-w-4xl">
         <motion.div

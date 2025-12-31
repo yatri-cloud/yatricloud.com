@@ -1,10 +1,16 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { motion } from "framer-motion";
+import { SEO } from "@/components/SEO";
 
 const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO
+        title="Terms of Service - Yatri Cloud"
+        description="Terms of Service for Yatri Cloud certification practice hub. Read our terms and conditions for using our free practice tests and resources."
+        url="https://certification.yatricloud.com/terms-of-service"
+      />
       <Navbar />
       <main className="container mx-auto px-4 md:px-6 py-24 max-w-4xl">
         <motion.div

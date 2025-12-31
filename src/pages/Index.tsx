@@ -8,10 +8,12 @@ import { TrustSection } from "@/components/TrustSection";
 import FAQSection from "@/components/sections/FAQSection";
 import CommunitySection from "@/components/sections/CommunitySection";
 import Footer from "@/components/sections/Footer";
+import { SEO } from "@/components/SEO";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO />
       <div className="noise-overlay" />
       <Navbar />
       <main>
