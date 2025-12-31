@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Navbar = () => {
@@ -63,18 +62,20 @@ export const Navbar = () => {
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-4">
               <ThemeToggle />
-              <Button
-                asChild
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6"
+              <motion.a
+                href="https://pages.razorpay.com/stores/yatricloud"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
               >
-                <a
-                  href="https://pages.razorpay.com/stores/yatricloud"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Get Your 50% OFF
-                </a>
-              </Button>
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                <span className="relative z-10 text-sm">Get Your 50% OFF</span>
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
+              </motion.a>
             </div>
 
             {/* Mobile Menu Button */}
@@ -110,19 +111,21 @@ export const Navbar = () => {
               ))}
               <div className="flex items-center gap-4 mt-4">
                 <ThemeToggle />
-                <Button
-                  asChild
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg"
+                <motion.a
+                  href="https://pages.razorpay.com/stores/yatricloud"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setIsMobileMenuOpen(false)}
+                  className="group relative bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
                 >
-                  <a
-                    href="https://pages.razorpay.com/stores/yatricloud"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Get Your 50% OFF
-                  </a>
-                </Button>
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  <span className="relative z-10">Get Your 50% OFF</span>
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
+                </motion.a>
               </div>
             </div>
           </motion.div>

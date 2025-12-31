@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Play, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import CountdownTimer from "@/components/CountdownTimer";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -49,20 +48,23 @@ export const HeroSection = () => {
           {/* CTA Buttons */}
           <ScrollReveal delay={0.4}>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <Button
-                asChild
-                size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg group glow-orange"
+              <motion.a
+                href="https://pages.razorpay.com/stores/yatricloud"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05, y: -3 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-10 py-6 text-lg font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden"
               >
-                <a
-                  href="https://pages.razorpay.com/stores/yatricloud"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Get Your 50% OFF
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </a>
-              </Button>
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                
+                <span className="relative z-10">Get Your 50% OFF</span>
+                <ArrowRight className="relative z-10 ml-2 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-2xl bg-primary/0 group-hover:bg-primary/25 blur-2xl transition-all duration-300" />
+              </motion.a>
             </div>
           </ScrollReveal>
 
