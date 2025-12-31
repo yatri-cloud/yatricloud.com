@@ -392,11 +392,26 @@ function getImageFromUrl(courseUrl: string): string {
 
 /**
  * Extract category from course title
- * Returns "Common" if course matches multiple categories
+ * AI category has priority - if AI is detected, return AI even if other categories match
+ * Returns "Common" only if multiple non-AI categories match
  */
 function extractCategory(title: string): string {
   const titleLower = title.toLowerCase();
   const matchedCategories: string[] = [];
+  let hasAI = false;
+  
+  // Check for AI first (has priority)
+  if (titleLower.includes('ai') || titleLower.includes('artificial intelligence') || 
+      titleLower.includes('machine learning') || titleLower.includes('ml ') ||
+      titleLower.includes('genai') || titleLower.includes('generative ai')) {
+    hasAI = true;
+    matchedCategories.push('Artificial Intelligence');
+  }
+  
+  // If AI is found, return it immediately (AI has priority)
+  if (hasAI) {
+    return 'Artificial Intelligence';
+  }
   
   // Check for Cloud Computing
   if (titleLower.includes('aws') || titleLower.includes('amazon web services') || 
@@ -408,13 +423,6 @@ function extractCategory(title: string): string {
   // Check for DevOps
   if (titleLower.includes('devops') || titleLower.includes('dev ops')) {
     matchedCategories.push('DevOps');
-  }
-  
-  // Check for AI
-  if (titleLower.includes('ai') || titleLower.includes('artificial intelligence') || 
-      titleLower.includes('machine learning') || titleLower.includes('ml ') ||
-      titleLower.includes('genai') || titleLower.includes('generative ai')) {
-    matchedCategories.push('Artificial Intelligence');
   }
   
   // Check for Containers
