@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowDown, CheckCircle } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 
 export const HeroSection = () => {
   return (
@@ -84,12 +84,12 @@ export const HeroSection = () => {
             </motion.a>
           </motion.div>
 
-          {/* Trust indicators with icons */}
+          {/* Trust indicators - modern UI without icons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.5 }}
-            className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-4"
+            className="mt-16 flex flex-wrap items-center justify-center gap-4"
           >
             {[
               "Always Free",
@@ -98,13 +98,14 @@ export const HeroSection = () => {
             ].map((item, index) => (
               <motion.div
                 key={item}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                className="flex items-center gap-2 text-sm text-text-secondary"
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="relative px-6 py-3 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-full backdrop-blur-sm"
               >
-                <CheckCircle className="h-4 w-4 text-emerald-500" />
-                <span>{item}</span>
+                <span className="text-sm font-semibold text-foreground relative z-10">{item}</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300" />
               </motion.div>
             ))}
           </motion.div>

@@ -31,27 +31,27 @@ export const PricingSection = () => {
             <ScrollReveal key={index} delay={index * 0.15}>
               <motion.div
                 className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-3xl p-10 overflow-hidden hover:border-primary/40 transition-all duration-500"
-                whileHover={{ y: -10, scale: 1.03 }}
+                whileHover={{ y: -12, scale: 1.04 }}
               >
                 {/* Animated gradient background */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                 
                 {/* Decorative corner elements */}
-                <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-16 -translate-y-16 group-hover:bg-primary/10 transition-colors duration-500" />
-                <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full translate-x-12 translate-y-12 group-hover:bg-primary/10 transition-colors duration-500" />
+                <div className="absolute top-0 left-0 w-40 h-40 bg-primary/5 rounded-full -translate-x-20 -translate-y-20 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full translate-x-16 translate-y-16 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
                 
                 {/* Content */}
                 <div className="relative z-10">
-                  {/* Number badge */}
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30 mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-xl font-bold text-primary">{index + 1}</span>
-                </div>
+                  {/* Modern badge with number */}
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-primary/10">
+                    <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{index + 1}</span>
+                  </div>
                   
-                  <h3 className="text-2xl font-bold text-foreground mb-3 leading-tight">
+                  <h3 className="text-2xl font-bold text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
                   {feature.text}
                 </h3>
                   
-                  <div className="h-1 w-16 bg-gradient-to-r from-primary to-primary/0 rounded-full mb-4 group-hover:w-24 transition-all duration-500" />
+                  <div className="h-1.5 w-20 bg-gradient-to-r from-primary via-primary/50 to-primary/0 rounded-full mb-5 group-hover:w-28 transition-all duration-500" />
                   
                   <p className="text-base text-muted-foreground leading-relaxed">
                   {feature.description}
@@ -59,7 +59,10 @@ export const PricingSection = () => {
                 </div>
                 
                 {/* Bottom accent line */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </motion.div>
             </ScrollReveal>
           ))}

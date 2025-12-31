@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Play, Sparkles, Zap, Brain } from "lucide-react";
+import { ArrowRight, Play, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CountdownTimer from "@/components/CountdownTimer";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -66,21 +66,26 @@ export const HeroSection = () => {
             </div>
           </ScrollReveal>
 
-          {/* Trust Badges */}
+          {/* Trust Badges - Modern UI without icons */}
           <ScrollReveal delay={0.5}>
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span>Always Free</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-primary" />
-                <span>Exam Dumps</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Brain className="w-4 h-4 text-primary" />
-                <span>Updated Weekly</span>
-              </div>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              {[
+                "Always Free",
+                "Exam Dumps",
+                "Updated Weekly",
+              ].map((item, index) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  className="relative px-6 py-3 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-full backdrop-blur-sm"
+                >
+                  <span className="text-sm font-semibold text-foreground relative z-10">{item}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                </motion.div>
+              ))}
             </div>
           </ScrollReveal>
 
@@ -116,31 +121,21 @@ export const HeroSection = () => {
                 </div>
               </div>
               
-              {/* Floating Elements */}
+              {/* Floating Elements - Modern UI without icons */}
               <motion.div
-                className="absolute -top-4 -right-4 md:right-10 bg-card border border-border rounded-xl p-3 shadow-lg"
+                className="absolute -top-4 -right-4 md:right-10 bg-card border border-primary/20 rounded-xl px-4 py-2.5 shadow-lg backdrop-blur-sm"
                 animate={{ rotate: [0, 5, 0, -5, 0] }}
                 transition={{ duration: 5, repeat: Infinity }}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <span className="text-green-500 text-lg">✓</span>
-                  </div>
-                  <span className="text-sm font-medium">Exam Dumps</span>
-                </div>
+                <span className="text-sm font-semibold text-foreground">Exam Dumps</span>
               </motion.div>
               
               <motion.div
-                className="absolute -bottom-4 -left-4 md:left-10 bg-card border border-border rounded-xl p-3 shadow-lg"
+                className="absolute -bottom-4 -left-4 md:left-10 bg-card border border-primary/20 rounded-xl px-4 py-2.5 shadow-lg backdrop-blur-sm"
                 animate={{ rotate: [0, -5, 0, 5, 0] }}
                 transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">Updated Weekly</span>
-                </div>
+                <span className="text-sm font-semibold text-foreground">Updated Weekly</span>
               </motion.div>
             </motion.div>
           </ScrollReveal>
