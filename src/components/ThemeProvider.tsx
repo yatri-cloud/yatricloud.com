@@ -25,17 +25,14 @@ interface ThemeProviderProps {
 
 export const ThemeProvider = ({ children, defaultTheme = "dark" }: ThemeProviderProps) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Check localStorage first
+    // Check localStorage first - if user has set a preference, use it
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("theme") as Theme | null;
       if (stored && (stored === "light" || stored === "dark")) {
         return stored;
       }
-      // Check system preference
-      if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-        return "light";
-      }
     }
+    // Always default to dark mode (ignore system preference)
     return defaultTheme;
   });
 
@@ -48,10 +45,8 @@ export const ThemeProvider = ({ children, defaultTheme = "dark" }: ThemeProvider
         if (stored && (stored === "light" || stored === "dark")) {
           return stored;
         }
-        if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-          return "light";
-        }
       }
+      // Always default to dark mode (ignore system preference)
       return defaultTheme;
     })();
     
@@ -60,7 +55,7 @@ export const ThemeProvider = ({ children, defaultTheme = "dark" }: ThemeProvider
     } else {
       root.classList.remove("dark");
     }
-  }, []);
+  }, [defaultTheme]);
 
   // Update theme when it changes
   useEffect(() => {
