@@ -4,8 +4,7 @@ import { ChevronDown } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const faqs = [
-  { question: "Are the practice tests really free?", answer: "Yes! All our practice tests are 100% free forever. No payment, no signup required. Just start practicing immediately." },
-  { question: "Do I need to create an account?", answer: "No, you don't need to sign up or create an account. You can access all practice tests instantly without any registration." },
+  { question: "You will get all resources exam dumps after scheduling exam with us", answer: "Yes! When you schedule your certification exam with us, you'll receive comprehensive exam dumps and all study resources to help you prepare effectively and pass your exam with confidence." },
   { question: "How often are the practice tests updated?", answer: "We update our practice tests weekly to ensure they align with the latest certification exam patterns and difficulty levels." },
   { question: "Which certifications are covered?", answer: "We cover AWS and Azure certifications, including associate-level and professional-level exams. New certifications are added regularly." },
   { question: "Can I use these for exam preparation?", answer: "Absolutely! Our practice tests are designed by certified cloud professionals and mirror actual certification exam patterns to help you ace your exam." },
