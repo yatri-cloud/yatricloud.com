@@ -285,7 +285,7 @@ export const CommunitySection = () => {
                   <img
                     src={company.logo}
                     alt={company.name}
-                    className="h-6 sm:h-8 md:h-12 w-auto object-contain filter brightness-0 invert max-w-[120px] sm:max-w-[150px] md:max-w-none"
+                    className="h-6 sm:h-8 md:h-12 w-auto object-contain dark:brightness-0 dark:invert max-w-[120px] sm:max-w-[150px] md:max-w-none opacity-60 hover:opacity-100 transition-opacity"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
@@ -309,7 +309,7 @@ export const CommunitySection = () => {
                   <img
                     src={company.logo}
                     alt={company.name}
-                    className="h-6 sm:h-8 md:h-12 w-auto object-contain filter brightness-0 invert max-w-[120px] sm:max-w-[150px] md:max-w-none"
+                    className="h-6 sm:h-8 md:h-12 w-auto object-contain dark:brightness-0 dark:invert max-w-[120px] sm:max-w-[150px] md:max-w-none opacity-60 hover:opacity-100 transition-opacity"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';

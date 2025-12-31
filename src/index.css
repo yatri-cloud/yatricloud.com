@@ -11,25 +11,25 @@
 
 @layer base {
   :root {
-    /* Dark theme as default for this landing page */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
+    /* Light theme as default */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
 
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 9%;
 
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 9%;
 
     /* Blue accent as primary (#007CFF = hsl(210 100% 50%)) */
     --primary: 210 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
     --accent: 210 100% 50%;
     --accent-foreground: 0 0% 100%;
@@ -37,29 +37,30 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
     --ring: 210 100% 50%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
     --gradient-blue: linear-gradient(135deg, hsl(210 100% 50%), hsl(200 100% 55%));
-    --gradient-dark: linear-gradient(180deg, hsl(0 0% 4%), hsl(0 0% 8%));
-    --glow-blue: 0 0 60px hsl(210 100% 50% / 0.3);
-    --glow-soft: 0 0 40px hsl(210 100% 50% / 0.15);
+    --gradient-dark: linear-gradient(180deg, hsl(0 0% 98%), hsl(0 0% 95%));
+    --glow-blue: 0 0 60px hsl(210 100% 50% / 0.2);
+    --glow-soft: 0 0 40px hsl(210 100% 50% / 0.1);
 
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 0 0% 98%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 9%;
     --sidebar-primary: 210 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 15%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 90%;
     --sidebar-ring: 210 100% 50%;
   }
 
   .dark {
+    /* Dark theme */
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 
@@ -96,6 +97,11 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 210 100% 50%;
+
+    /* Dark theme custom tokens */
+    --gradient-dark: linear-gradient(180deg, hsl(0 0% 4%), hsl(0 0% 8%));
+    --glow-blue: 0 0 60px hsl(210 100% 50% / 0.3);
+    --glow-soft: 0 0 40px hsl(210 100% 50% / 0.15);
   }
 }
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -59,8 +60,9 @@ export const Navbar = () => {
               ))}
             </div>
 
-            {/* CTA Button */}
-            <div className="hidden md:block">
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center gap-4">
+              <ThemeToggle />
               <Button
                 asChild
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6"
@@ -106,19 +108,22 @@ export const Navbar = () => {
                   {link.label}
                 </a>
               ))}
-              <Button
-                asChild
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg mt-4"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <a
-                  href="https://pages.razorpay.com/stores/yatricloud"
-                  target="_blank"
-                  rel="noopener noreferrer"
+              <div className="flex items-center gap-4 mt-4">
+                <ThemeToggle />
+                <Button
+                  asChild
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Get Your 50% OFF
-                </a>
-              </Button>
+                  <a
+                    href="https://pages.razorpay.com/stores/yatricloud"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Get Your 50% OFF
+                  </a>
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}
