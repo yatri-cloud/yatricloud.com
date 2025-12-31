@@ -30,8 +30,8 @@ export const FinalCTASection = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Get 50% OFF on Certification Vouchers
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                Get 50% OFF on Certification Vouchers
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>
             </div>

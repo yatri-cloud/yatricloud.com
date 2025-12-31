@@ -77,7 +77,7 @@ export const CourseCard = ({ course, index }: CourseCardProps) => {
         <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
           {course.title}
         </h3>
-        
+
         {/* Instructor name */}
         {course.creator && (
           <p className="text-sm text-text-muted mb-4">

@@ -43,10 +43,8 @@ export const CoursesSection = () => {
       }
     });
     
-    // Sort categories with "Common" first if it exists
+    // Sort categories alphabetically
     const sortedCategories = Array.from(categories).sort((a, b) => {
-      if (a === 'Common') return -1;
-      if (b === 'Common') return 1;
       return a.localeCompare(b);
     });
     

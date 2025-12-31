@@ -409,7 +409,7 @@ function getImageFromUrl(courseUrl: string): string {
 /**
  * Extract category from course title
  * AI category has priority - if AI is detected, return AI even if other categories match
- * Returns "Common" only if multiple non-AI categories match
+ * Returns the first matched category if multiple categories match (no "Common" category)
  */
 function extractCategory(title: string): string {
   const titleLower = title.toLowerCase();
@@ -459,13 +459,8 @@ function extractCategory(title: string): string {
     matchedCategories.push('Programming');
   }
   
-  // If multiple categories matched, return "Common"
-  if (matchedCategories.length > 1) {
-    return 'Common';
-  }
-  
-  // If one category matched, return it
-  if (matchedCategories.length === 1) {
+  // If multiple categories matched, return the first one (priority order)
+  if (matchedCategories.length > 0) {
     return matchedCategories[0];
   }
   

@@ -60,7 +60,7 @@ export const HeroSection = () => {
                   rel="noopener noreferrer"
                 >
                   Get Your 50% OFF
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>
             </div>

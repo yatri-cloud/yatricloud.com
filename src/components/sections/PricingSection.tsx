@@ -45,17 +45,17 @@ export const PricingSection = () => {
                   {/* Number badge */}
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30 mb-6 group-hover:scale-110 transition-transform duration-300">
                     <span className="text-xl font-bold text-primary">{index + 1}</span>
-                  </div>
+                </div>
                   
                   <h3 className="text-2xl font-bold text-foreground mb-3 leading-tight">
-                    {feature.text}
-                  </h3>
+                  {feature.text}
+                </h3>
                   
                   <div className="h-1 w-16 bg-gradient-to-r from-primary to-primary/0 rounded-full mb-4 group-hover:w-24 transition-all duration-500" />
                   
                   <p className="text-base text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
+                  {feature.description}
+                </p>
                 </div>
                 
                 {/* Bottom accent line */}
