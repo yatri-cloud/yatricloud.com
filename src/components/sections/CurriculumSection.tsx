@@ -6,12 +6,17 @@ import { Input } from "@/components/ui/input";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useUdemyCourses } from "@/hooks/use-udemy-courses";
 import type { Course } from "@/data/courses";
+import { DRAFT_COURSE_PATTERNS } from "@/lib/udemy-api";
 
 /**
  * Check if a course is in draft mode
  * Draft courses are identified by:
  * 1. Title contains "draft" (case-insensitive)
- * 2. Specific known draft course titles (partial match)
+ * 2. Missing or invalid Udemy URL (courses without URLs are not published)
+ * 3. Title matches any pattern in DRAFT_COURSE_PATTERNS
+ * 
+ * Note: Courses returned by the Udemy API are typically published.
+ * We mark as draft if explicitly indicated in title, missing URL, or matches draft patterns.
  */
 function isDraftCourse(course: Course): boolean {
   const titleLower = course.title.toLowerCase().trim();
@@ -21,22 +26,19 @@ function isDraftCourse(course: Course): boolean {
     return true;
   }
   
-  // Check for specific known draft courses (partial match)
-  const knownDraftPatterns = [
-    'aws machine learning specialty',
-    'mls-c01',
-    'aws certified developer associate exam preparation',
-    'aws data engineer associate: 6 practice exams',
-    '390 q'
-  ];
-  
-  // Check if title matches any known draft pattern
-  for (const pattern of knownDraftPatterns) {
+  // Check against known draft course patterns
+  for (const pattern of DRAFT_COURSE_PATTERNS) {
     if (titleLower.includes(pattern.toLowerCase())) {
       return true;
     }
   }
   
+  // If course doesn't have a valid Udemy URL, it's likely not published
+  if (!course.udemyUrl || course.udemyUrl === '#' || !course.udemyUrl.includes('udemy.com')) {
+    return true;
+  }
+  
+  // Course has valid URL and no "draft" in title - it's published
   return false;
 }
 

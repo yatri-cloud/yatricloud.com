@@ -11,6 +11,17 @@
  * Authentication: Authorization: bearer {token}
  */
 
+/**
+ * List of course title patterns that indicate a course is in draft/coming soon
+ * Add course titles or partial matches here to mark them as "Coming Soon"
+ */
+export const DRAFT_COURSE_PATTERNS = [
+  'aws machine learning specialty',
+  'mls-c01',
+  'aws certified developer associate exam preparation',
+  // Add more draft course patterns here as needed
+];
+
 export interface UdemyCourse {
   id: number;
   title: string;
@@ -281,6 +292,12 @@ function getCustomCourseImage(title: string, courseSlug?: string): string | null
     'azure devops engineer expert': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AZURE/AZ-400%20Azure%20DevOps%20Engineer%20Expert%20Exam%20Prep.png',
     'az-400': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AZURE/AZ-400%20Azure%20DevOps%20Engineer%20Expert%20Exam%20Prep.png',
     'azure devops expert': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AZURE/AZ-400%20Azure%20DevOps%20Engineer%20Expert%20Exam%20Prep.png',
+    
+    // AWS Data Engineer Associate (Nensi)
+    'aws data engineer associate': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Data%20Engineer%20Associate.png',
+    'data engineer associate': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Data%20Engineer%20Associate.png',
+    'dea-c01': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Data%20Engineer%20Associate.png',
+    'aws certified data engineer': 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/Nensi%20Ravaliya/AWS/AWS%20Data%20Engineer%20Associate.png',
   };
   
   // Check by title keywords
