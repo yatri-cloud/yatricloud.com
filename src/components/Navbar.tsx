@@ -17,6 +17,7 @@ export const Navbar = () => {
   }, []);
 
   const navLinks = [
+    { href: "#certification-flow", label: "Get Certified" },
     { href: "#courses", label: "Practice Tests" },
     { href: "#resources", label: "Resources" },
     { href: "#team", label: "Team" },
@@ -52,6 +53,15 @@ export const Navbar = () => {
                 <a
                   key={link.href}
                   href={link.href}
+                  onClick={(e) => {
+                    if (link.href.startsWith('#')) {
+                      e.preventDefault();
+                      const element = document.querySelector(link.href);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }
+                  }}
                   className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium"
                 >
                   {link.label}
@@ -103,8 +113,17 @@ export const Navbar = () => {
                 <a
                   key={link.href}
                   href={link.href}
+                  onClick={(e) => {
+                    if (link.href.startsWith('#')) {
+                      e.preventDefault();
+                      const element = document.querySelector(link.href);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }
+                    setIsMobileMenuOpen(false);
+                  }}
                   className="text-xl font-medium text-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.label}
                 </a>
