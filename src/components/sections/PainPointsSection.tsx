@@ -3,26 +3,26 @@ import ScrollReveal from "@/components/ScrollReveal";
 
 const resources = [
   {
-    title: "Exam Guides",
-    description: "Step-by-step certification roadmaps",
+    title: "Complete Registration",
+    description: "Make your payment and get started with the certification process",
     gradient: "from-blue-500/20 via-purple-500/20 to-pink-500/20",
     accent: "blue",
   },
   {
-    title: "Study Materials",
-    description: "Curated notes and cheat sheets",
+    title: "Join Support Group",
+    description: "Get exam scheduling coordination and direct support from our team",
     gradient: "from-purple-500/20 via-pink-500/20 to-orange-500/20",
     accent: "purple",
   },
   {
-    title: "Video Tutorials",
-    description: "In-depth concept explanations",
+    title: "Schedule Your Exam",
+    description: "We'll arrange a meeting call to finalize your exam date and time",
     gradient: "from-pink-500/20 via-orange-500/20 to-yellow-500/20",
     accent: "pink",
   },
   {
-    title: "Get Early Access",
-    description: "Be the first to access new resources",
+    title: "Get Certified",
+    description: "Receive exam dumps, study resources, and personal support to ace your exam",
     gradient: "from-orange-500/20 via-yellow-500/20 to-green-500/20",
     accent: "orange",
   },
@@ -38,13 +38,13 @@ export const PainPointsSection = () => {
         <ScrollReveal>
           <div className="text-center mb-16">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
-              Learning Hub
+              Certification Process
             </span>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Free <span className="gradient-text">Resources</span>
+              How to Get <span className="gradient-text">Certified</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Everything you need to prepare for your certification journey
+              Follow these simple steps to get your AWS Associate certification with our full support
             </p>
           </div>
         </ScrollReveal>

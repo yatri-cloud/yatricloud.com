@@ -2,9 +2,9 @@ import { motion } from "framer-motion";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const features = [
-  { text: "Always Free", description: "No payment required", gradient: "from-blue-500/20 to-purple-500/20" },
-  { text: "Exam Dumps", description: "Start immediately", gradient: "from-purple-500/20 to-pink-500/20" },
-  { text: "Updated Weekly", description: "Fresh content regularly", gradient: "from-pink-500/20 to-orange-500/20" },
+  { text: "50% OFF Vouchers", description: "Get AWS Associate exam vouchers at half price", gradient: "from-blue-500/20 to-purple-500/20" },
+  { text: "Exam Dumps & Resources", description: "Comprehensive study materials included", gradient: "from-purple-500/20 to-pink-500/20" },
+  { text: "Personal Support", description: "Direct support from our team for your doubts", gradient: "from-pink-500/20 to-orange-500/20" },
 ];
 
 export const PricingSection = () => {
@@ -15,13 +15,13 @@ export const PricingSection = () => {
         <ScrollReveal>
           <div className="text-center mb-16">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
-              100% Free Forever
+              Certification Package
             </span>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Practice Tests & <span className="gradient-text">Exam Prep</span>
+              What's <span className="gradient-text">Included</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Master your certification exams with expert-curated practice tests. No payment, no signup — just start learning.
+              Get everything you need to pass your AWS Associate certification exam with our comprehensive support package
             </p>
           </div>
         </ScrollReveal>

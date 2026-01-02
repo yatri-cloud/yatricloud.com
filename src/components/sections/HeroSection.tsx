@@ -41,7 +41,7 @@ export const HeroSection = () => {
           {/* Subheadline */}
           <ScrollReveal delay={0.3}>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Limited-time discounts for cloud and associate-level certifications. Start with our free practice tests and ace your exam.
+              Get certified with AWS Associate exams at 50% OFF. Complete your registration, join our support group, and we'll schedule your exam. Plus, get exam dumps, study resources, and personal support included!
             </p>
           </ScrollReveal>
 
@@ -72,9 +72,9 @@ export const HeroSection = () => {
           <ScrollReveal delay={0.5}>
             <div className="flex flex-wrap items-center justify-center gap-4">
               {[
-                "Always Free",
-                "Exam Dumps",
-                "Updated Weekly",
+                "50% OFF Vouchers",
+                "Exam Dumps Included",
+                "Personal Support",
               ].map((item, index) => (
                 <motion.div
                   key={item}
@@ -111,12 +111,12 @@ export const HeroSection = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-foreground text-left">
-                        <span className="text-primary font-medium">100% Free Forever</span> - Practice Tests & Exam Prep. Master your certification exams with expert-curated practice tests. No payment, no signup — just start learning.
+                        <span className="text-primary font-medium">Get Certified Now</span> - Complete your registration, join our WhatsApp group, and we'll schedule your AWS Associate exam. Get exam dumps, study resources, and personal support to ace your certification!
                       </p>
                       <div className="flex gap-2 mt-3">
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">AWS</span>
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">Azure</span>
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">Free Forever</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">AWS Associate</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">50% OFF</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">Full Support</span>
                       </div>
                     </div>
                   </div>
@@ -129,7 +129,7 @@ export const HeroSection = () => {
                 animate={{ rotate: [0, 5, 0, -5, 0] }}
                 transition={{ duration: 5, repeat: Infinity }}
               >
-                <span className="text-sm font-semibold text-foreground">Exam Dumps</span>
+                <span className="text-sm font-semibold text-foreground">Study Resources</span>
               </motion.div>
               
               <motion.div
@@ -137,7 +137,7 @@ export const HeroSection = () => {
                 animate={{ rotate: [0, -5, 0, 5, 0] }}
                 transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
               >
-                <span className="text-sm font-semibold text-foreground">Updated Weekly</span>
+                <span className="text-sm font-semibold text-foreground">Personal Support</span>
               </motion.div>
             </motion.div>
           </ScrollReveal>

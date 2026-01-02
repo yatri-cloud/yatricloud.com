@@ -3,19 +3,19 @@ import { Check, X } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const forYouPoints = [
-  "You want to master cloud certifications for professional work",
-  "You're tired of guessing what to study for your exam",
-  "You value practical skills over academic theory",
-  "You need certification skills to stay ahead in your field",
-  "You're ready to become your team's cloud expert",
+  "You want to get AWS Associate certified at 50% OFF",
+  "You need exam dumps and study resources to pass",
+  "You value personal support and guidance throughout",
+  "You're ready to follow a structured certification process",
+  "You want to join a supportive community of learners",
 ];
 
 const notForYouPoints = [
-  "You want a free course with basic cloud tips",
-  "You prefer theory over practical application",
-  "You dislike structured, step-by-step training",
-  "You just want to explore cloud without purpose",
-  "You're seeking a math-heavy cloud deep dive",
+  "You want completely free certification vouchers",
+  "You prefer to schedule exams without support",
+  "You don't want to join a WhatsApp group",
+  "You're not interested in exam dumps or study materials",
+  "You prefer to handle everything independently",
 ];
 
 export const TrustSection = () => {
@@ -27,7 +27,7 @@ export const TrustSection = () => {
           <div className="text-center mb-12">
             <p className="text-muted-foreground text-lg mb-2">Is this for you?</p>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
-              This Course Is a <span className="text-primary">Perfect</span> Fit If You're Ready to...
+              This Certification Program Is a <span className="text-primary">Perfect</span> Fit If You're Ready to...
             </h2>
           </div>
         </ScrollReveal>
@@ -113,7 +113,7 @@ export const TrustSection = () => {
               Why Learners <span className="gradient-text">Trust Us</span>
           </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Built with care by cloud experts who understand what it takes to pass certification exams.
+            We provide complete certification support - from exam scheduling to study resources and personal guidance to help you pass your AWS Associate exam.
           </p>
           </div>
         </ScrollReveal>
@@ -145,10 +145,10 @@ export const TrustSection = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
                 <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
-                  Instant Access
+                  Complete Support Package
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Start practicing immediately. No registration or payment required.
+                  Get exam dumps, study resources, exam guides, and personal support included with your certification.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
@@ -162,10 +162,10 @@ export const TrustSection = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
                 <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
-                  Exam-Aligned Questions
+                  Guided Exam Scheduling
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Questions mirror actual certification exam patterns and difficulty.
+                  Our team schedules your exam through a personal meeting call to ensure everything is set up correctly.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
@@ -179,10 +179,10 @@ export const TrustSection = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
                 <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
-                  Proven Success Rate
+                  50% OFF Vouchers
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Join thousands who passed their certification exams.
+                  Get AWS Associate exam vouchers at half price with our limited-time offer.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />

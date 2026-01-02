@@ -4,10 +4,11 @@ import { ChevronDown } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const faqs = [
-  { question: "Will I get all resources and exam dumps after scheduling my exam with you?", answer: "Yes! When you schedule your certification exam with us, you'll receive comprehensive exam dumps and all study resources to help you prepare effectively and pass your exam with confidence." },
-  { question: "How often are the practice tests updated?", answer: "We update our practice tests weekly to ensure they align with the latest certification exam patterns and difficulty levels." },
-  { question: "Which certifications are covered?", answer: "We cover AWS and Azure certifications, including associate-level and professional-level exams. New certifications are added regularly." },
-  { question: "Can I use these for exam preparation?", answer: "Absolutely! Our practice tests are designed by certified cloud professionals and mirror actual certification exam patterns to help you ace your exam." },
+  { question: "Will I get all resources and exam dumps after scheduling my exam with you?", answer: "Yes! When you schedule your certification exam with us, you'll receive comprehensive exam dumps, study resources, exam guides, and personal support to help you prepare effectively and pass your exam with confidence. All bonus features are available from 01/01/2026." },
+  { question: "Which AWS Associate exams are eligible for the 50% OFF discount?", answer: "We offer 50% OFF on the following AWS Associate exams: AWS Cloud Practitioner, AWS AI Practitioner, AWS Certified Solutions Architect – Associate (SAA-C03), AWS Certified Developer – Associate (DVA-C02), AWS Certified CloudOps Engineer – Associate (SOA-C03), AWS Certified Data Engineer – Associate (DEA-C01), and AWS Certified Machine Learning Engineer – Associate (MLA-C01)." },
+  { question: "How does the exam scheduling process work?", answer: "After you complete your payment and join our WhatsApp group, our team will arrange a meeting call with you. During this call, we'll schedule your exam, finalize the date and time, and ensure the correct exam is selected. This process helps avoid any mistakes and ensures everything is set up correctly." },
+  { question: "Is joining the WhatsApp group mandatory?", answer: "Yes, joining the WhatsApp group is mandatory. This group is used for exam scheduling coordination, important updates, and direct support from our team. It's essential for smooth communication throughout your certification journey." },
+  { question: "What happens after I make the payment?", answer: "After payment confirmation, you'll receive instructions to join our WhatsApp group. Once you're in the group, our team will contact you to arrange a meeting call where we'll schedule your exam and provide you with all the study resources and exam dumps you need." },
 ];
 
 export const FAQSection = () => {
