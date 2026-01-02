@@ -11,11 +11,11 @@ const forYouPoints = [
 ];
 
 const notForYouPoints = [
-  "You want completely free certification vouchers without payment",
-  "You prefer to schedule exams independently without our support",
-  "You don't want to join the mandatory WhatsApp group",
-  "You're not interested in exam dumps or study materials",
-  "You want to handle the entire certification process yourself",
+  "You're looking for completely free vouchers (we offer 50% OFF with full support package)",
+  "You prefer handling exam scheduling yourself (we provide guided support to ensure success)",
+  "You're hesitant about joining our support group (it's essential for coordination and direct help)",
+  "You don't need additional resources (we include exam dumps, Udemy access, and study materials)",
+  "You want to go solo (we're here to support you every step of the way)",
 ];
 
 export const TrustSection = () => {
@@ -79,7 +79,7 @@ export const TrustSection = () => {
             >
               <div className="bg-foreground px-6 py-4">
                 <h3 className="text-background font-bold text-lg uppercase tracking-wide">
-                  This is not for you if:
+                  Consider Our Offer If:
                 </h3>
               </div>
               <div className="p-6 space-y-4">
@@ -92,8 +92,8 @@ export const TrustSection = () => {
                     transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
                     className="flex items-start gap-3"
                   >
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center mt-0.5">
-                      <X className="w-4 h-4 text-destructive" />
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                      <X className="w-4 h-4 text-primary" />
                     </div>
                     <p className="text-foreground text-sm md:text-base leading-relaxed">{point}</p>
                   </motion.div>
