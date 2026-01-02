@@ -13,12 +13,12 @@ const eligibleExams = [
 ];
 
 const bonusFeatures = [
-  "50% OFF on AWS Associate Exam Vouchers",
-  "Exam Dumps",
-  "Study Resources and Materials",
-  "Udemy Course Free Access",
-  "Topmate Free Connect with Yatharth & Nensi",
-  "LinkedIn Recommendation from Us",
+  "50% OFF AWS Associate Exam Vouchers",
+  "Comprehensive Exam Dumps",
+  "Study Resources & Materials",
+  "Free Udemy Course Access",
+  "Free Topmate Sessions with Yatharth & Nensi",
+  "LinkedIn Recommendation",
 ];
 
 const steps = [
