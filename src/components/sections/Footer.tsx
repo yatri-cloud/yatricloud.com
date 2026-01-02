@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ExternalLink, Mail, MessageCircle, CreditCard, Users, BookOpen, FileText, HelpCircle, Linkedin, Globe } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -13,8 +13,8 @@ export const Footer = () => {
   ];
 
   const resources = [
-    { href: "#resources", label: "Resources", icon: BookOpen },
-    { href: "#courses", label: "Udemy Courses", icon: BookOpen },
+    { href: "#resources", label: "Resources" },
+    { href: "#courses", label: "Udemy Courses" },
   ];
 
   const legalLinks = [
@@ -26,37 +26,15 @@ export const Footer = () => {
     {
       href: "https://pages.razorpay.com/stores/yatricloud",
       label: "Payment & Registration",
-      icon: CreditCard,
       external: true,
     },
     {
       href: "https://chat.whatsapp.com/EEAZws1rcr6CkiATivaikf",
       label: "WhatsApp Support Group",
-      icon: MessageCircle,
       external: true,
     },
   ];
 
-  const socialLinks = [
-    {
-      href: "https://www.linkedin.com/company/yatricloud",
-      label: "LinkedIn",
-      icon: Linkedin,
-      external: true,
-    },
-    {
-      href: "https://topmate.io/yatharth_chauhan",
-      label: "Topmate",
-      icon: Users,
-      external: true,
-    },
-    {
-      href: "https://yatricloud.com",
-      label: "Website",
-      icon: Globe,
-      external: true,
-    },
-  ];
 
   return (
     <footer className="relative bg-gradient-to-b from-background via-card/30 to-background border-t border-border/50 overflow-hidden">
@@ -92,27 +70,6 @@ export const Footer = () => {
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
                 Get AWS Associate certified at 50% OFF. Complete support package with exam dumps, resources, and personalized guidance.
               </p>
-              
-              {/* Social Links */}
-              <div className="flex items-center gap-3 pt-2">
-                {socialLinks.map((social, index) => (
-                  <motion.a
-                    key={social.label}
-                    href={social.href}
-                    target={social.external ? "_blank" : undefined}
-                    rel={social.external ? "noopener noreferrer" : undefined}
-                    initial={{ opacity: 0, scale: 0 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1, duration: 0.3 }}
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="p-2.5 rounded-xl bg-card border border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group"
-                  >
-                    <social.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </motion.a>
-                ))}
-              </div>
             </motion.div>
 
             {/* Quick Links */}
@@ -173,7 +130,7 @@ export const Footer = () => {
                       }}
                       className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
                     >
-                      <resource.icon className="w-4 h-4" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary/0 group-hover:bg-primary transition-colors" />
                       {resource.label}
                     </a>
                   </li>
@@ -199,7 +156,7 @@ export const Footer = () => {
                       rel={contact.external ? "noopener noreferrer" : undefined}
                       className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
                     >
-                      <contact.icon className="w-4 h-4" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary/0 group-hover:bg-primary transition-colors" />
                       <span className="flex-1">{contact.label}</span>
                       {contact.external && (
                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -233,13 +190,6 @@ export const Footer = () => {
               </p>
             </div>
 
-            {/* Additional Info */}
-            <div className="mt-6 pt-6 border-t border-border/30">
-              <p className="text-xs text-muted-foreground text-center max-w-3xl mx-auto">
-                Yatri Cloud provides AWS Associate certification support with 50% OFF vouchers, exam dumps, study resources, 
-                Udemy course access, Topmate sessions, and LinkedIn recommendations. Get certified with our comprehensive support package.
-              </p>
-            </div>
           </div>
       </div>
     </div>
