@@ -2,9 +2,31 @@ import { motion } from "framer-motion";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const features = [
-  { text: "50% OFF Vouchers", description: "Get AWS Associate exam vouchers at half price", gradient: "from-blue-500/20 to-purple-500/20" },
-  { text: "Exam Dumps & Resources", description: "Comprehensive study materials included", gradient: "from-purple-500/20 to-pink-500/20" },
-  { text: "Personal Support", description: "Direct support from our team for your doubts", gradient: "from-pink-500/20 to-orange-500/20" },
+  { 
+    text: "50% OFF Vouchers", 
+    description: "Get AWS Associate exam vouchers at half price - limited time offer", 
+    gradient: "from-blue-500/20 to-purple-500/20" 
+  },
+  { 
+    text: "Exam Dumps & Resources", 
+    description: "Comprehensive exam dumps and study resources to help you prepare effectively", 
+    gradient: "from-purple-500/20 to-pink-500/20" 
+  },
+  { 
+    text: "Udemy Course Free Access", 
+    description: "Get free access to our premium Udemy certification courses", 
+    gradient: "from-pink-500/20 to-orange-500/20" 
+  },
+  { 
+    text: "Topmate Free Connect", 
+    description: "Free Topmate sessions with Yatharth Chauhan and Nensi Ravaliya for personalized guidance", 
+    gradient: "from-orange-500/20 to-yellow-500/20" 
+  },
+  { 
+    text: "LinkedIn Recommendation", 
+    description: "Get a professional LinkedIn recommendation from us after certification", 
+    gradient: "from-yellow-500/20 to-green-500/20" 
+  },
 ];
 
 export const PricingSection = () => {
@@ -26,7 +48,7 @@ export const PricingSection = () => {
           </div>
         </ScrollReveal>
         
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {features.map((feature, index) => (
             <ScrollReveal key={index} delay={index * 0.15}>
               <motion.div

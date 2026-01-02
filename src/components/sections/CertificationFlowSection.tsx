@@ -13,10 +13,12 @@ const eligibleExams = [
 ];
 
 const bonusFeatures = [
+  "50% OFF on AWS Associate Exam Vouchers",
   "Exam Dumps",
-  "Study Resources and materials",
-  "Exam Guide",
-  "Personal Support for doubt",
+  "Study Resources and Materials",
+  "Udemy Course Free Access",
+  "Topmate Free Connect with Yatharth & Nensi",
+  "LinkedIn Recommendation from Us",
 ];
 
 const steps = [
@@ -152,7 +154,7 @@ export const CertificationFlowSection = () => {
                   </motion.div>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-5">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {bonusFeatures.map((feature, index) => (
                     <motion.div
                       key={index}
