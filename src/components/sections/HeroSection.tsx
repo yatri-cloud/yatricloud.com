@@ -148,7 +148,7 @@ export const HeroSection = () => {
 
           {/* Certification Process Section */}
           <ScrollReveal delay={0.7}>
-            <div className="mt-20 max-w-6xl mx-auto">
+            <div id="certification-process" className="mt-20 max-w-6xl mx-auto">
               <div className="text-center mb-12">
                 <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
                   Certification Process
