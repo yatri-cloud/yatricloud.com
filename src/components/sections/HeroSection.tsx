@@ -4,8 +4,8 @@ import CountdownTimer from "@/components/CountdownTimer";
 import ScrollReveal from "@/components/ScrollReveal";
 
 export const HeroSection = () => {
-  // Set target date to January 11, 2026 (end of New Year week offer starting Jan 4)
-  const targetDate = new Date('2026-01-11T23:59:59');
+  // Set target date to January 4, 2026 (end of New Year offer)
+  const targetDate = new Date('2026-01-04T23:59:59');
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">

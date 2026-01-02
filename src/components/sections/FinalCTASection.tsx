@@ -4,8 +4,8 @@ import ScrollReveal from "@/components/ScrollReveal";
 import CountdownTimer from "@/components/CountdownTimer";
 
 export const FinalCTASection = () => {
-  // Set target date to January 11, 2026 (end of New Year week offer starting Jan 4)
-  const targetDate = new Date('2026-01-11T23:59:59');
+  // Set target date to January 4, 2026 (end of New Year offer)
+  const targetDate = new Date('2026-01-04T23:59:59');
 
   return (
     <section className="py-24 relative overflow-hidden">
