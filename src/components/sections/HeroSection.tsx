@@ -116,7 +116,6 @@ export const HeroSection = () => {
                         <span className="text-primary font-medium">Get Certified Now</span> - Register, join WhatsApp, and we'll schedule your exam. Get dumps, resources, and support included!
                       </p>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">AWS Associate</span>
                         <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">50% OFF</span>
                         <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Exam Dumps</span>
                         <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Free Udemy</span>
