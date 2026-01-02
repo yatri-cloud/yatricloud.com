@@ -26,6 +26,21 @@ function getFallbackImageUrl(courseUrl: string): string {
   return 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
 }
 
+/**
+ * Get "Coming Soon" thumbnail image
+ */
+function getComingSoonThumbnail(): string {
+  // Using a professional "coming soon" placeholder image
+  return 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=225&fit=crop&q=80';
+}
+
+/**
+ * Check if a course is in draft mode
+ */
+function isDraftCourse(course: Course): boolean {
+  return course.title.toLowerCase().includes('draft');
+}
+
 export const CurriculumSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedInstructor, setSelectedInstructor] = useState("All");
@@ -231,27 +246,38 @@ export const CurriculumSection = () => {
         {/* Courses Grid */}
         {!isLoading && !error && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {filteredCourses.map((course, index) => (
+          {filteredCourses.map((course, index) => {
+            const isDraft = isDraftCourse(course);
+            const thumbnailUrl = isDraft ? getComingSoonThumbnail() : (course.thumbnail || getFallbackImageUrl(course.udemyUrl));
+            
+            return (
             <ScrollReveal key={course.id} delay={index * 0.1}>
               <motion.div
                 className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
                 whileHover={{ y: -5 }}
               >
                   {/* Course Image */}
-                  {course.thumbnail && (
-                    <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
-                      <img
-                        src={course.thumbnail || getFallbackImageUrl(course.udemyUrl)}
-                        alt={course.title}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = getFallbackImageUrl(course.udemyUrl);
-                        }}
-                      />
-                    </div>
-                  )}
+                  <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
+                    <img
+                      src={thumbnailUrl}
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = isDraft ? getComingSoonThumbnail() : getFallbackImageUrl(course.udemyUrl);
+                      }}
+                    />
+                    {/* Coming Soon Overlay */}
+                    {isDraft && (
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-primary/90 flex items-center justify-center">
+                        <div className="text-center">
+                          <span className="text-3xl font-bold text-primary-foreground mb-2 block">Coming Soon</span>
+                          <span className="text-sm text-primary-foreground/90">This course is being prepared</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -279,26 +305,33 @@ export const CurriculumSection = () => {
                 </div>
                   )}
                 
-                <motion.a
-                  href={course.udemyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group relative w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
-                >
-                  {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  
-                  <span className="relative z-10">Enroll Now</span>
-                  <ExternalLink className="relative z-10 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
-                  
-                  {/* Glow effect */}
-                  <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
-                </motion.a>
+                {isDraft ? (
+                  <div className="group relative w-full bg-gradient-to-r from-muted via-muted/90 to-muted text-muted-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-not-allowed">
+                    <span className="relative z-10">Coming Soon</span>
+                  </div>
+                ) : (
+                  <motion.a
+                    href={course.udemyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group relative w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
+                  >
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    
+                    <span className="relative z-10">Enroll Now</span>
+                    <ExternalLink className="relative z-10 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                    
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
+                  </motion.a>
+                )}
               </motion.div>
             </ScrollReveal>
-          ))}
+            );
+          })}
         </div>
         )}
 
