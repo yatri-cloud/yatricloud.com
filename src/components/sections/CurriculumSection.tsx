@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,6 +123,25 @@ export const CurriculumSection = () => {
   }, [filteredCourses, visibleCourses]);
 
   const hasMoreCourses = filteredCourses.length > visibleCourses;
+  const viewMoreButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Handle View More click with smooth scroll
+  const handleViewMore = () => {
+    const previousVisibleCount = visibleCourses;
+    setVisibleCourses(filteredCourses.length);
+    
+    // Smooth scroll to newly revealed courses after a short delay
+    setTimeout(() => {
+      const newCoursesStart = document.querySelector(`[data-course-index="${previousVisibleCount}"]`);
+      if (newCoursesStart) {
+        newCoursesStart.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        });
+      }
+    }, 100);
+  };
 
   return (
     <section id="courses" className="py-24 relative">
@@ -277,13 +296,30 @@ export const CurriculumSection = () => {
         {/* Courses Grid */}
         {!isLoading && !error && (
           <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {displayedCourses.map((course, index) => (
-                <ScrollReveal key={course.id} delay={index * 0.1}>
+            <motion.div 
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
+              layout
+            >
+              <AnimatePresence mode="popLayout">
+                {displayedCourses.map((course, index) => (
                   <motion.div
-                    className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
-                    whileHover={{ y: -5 }}
+                    key={course.id}
+                    data-course-index={index}
+                    layout
+                    initial={index >= 6 ? { opacity: 0, y: 20, scale: 0.95 } : false}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ 
+                      duration: 0.4,
+                      delay: index >= 6 ? (index - 6) * 0.05 : 0,
+                      ease: "easeOut"
+                    }}
                   >
+                    <ScrollReveal delay={index < 6 ? index * 0.1 : 0}>
+                      <motion.div
+                        className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
+                        whileHover={{ y: -5 }}
+                      >
                   {/* Course Image */}
                   <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
                     {isDraftCourse(course) ? (
@@ -356,32 +392,42 @@ export const CurriculumSection = () => {
                     <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
                   </motion.a>
                 )}
+                      </motion.div>
+                    </ScrollReveal>
                   </motion.div>
-                </ScrollReveal>
-              ))}
-            </div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
             
             {/* View More Button */}
-            {hasMoreCourses && (
-              <div className="flex justify-center mt-10">
-                <motion.button
-                  onClick={() => setVisibleCourses(filteredCourses.length)}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="group relative bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
+            <AnimatePresence>
+              {hasMoreCourses && (
+                <motion.div 
+                  className="flex justify-center mt-10"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  
-                  <span className="relative z-10">
-                    View More ({filteredCourses.length - visibleCourses} more)
-                  </span>
-                  
-                  {/* Glow effect */}
-                  <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
-                </motion.button>
-              </div>
-            )}
+                  <motion.button
+                    ref={viewMoreButtonRef}
+                    onClick={handleViewMore}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="group relative bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
+                  >
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    
+                    <span className="relative z-10">
+                      View More ({filteredCourses.length - visibleCourses} more)
+                    </span>
+                    
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         )}
 
