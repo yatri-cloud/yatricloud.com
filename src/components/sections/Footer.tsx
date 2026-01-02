@@ -195,18 +195,15 @@ export const Footer = () => {
                 >
                   Yatri Cloud
                 </a>
-                . All rights reserved.
-                <br />
-                <span className="text-xs">Designed by{' '}
-                  <a 
-                    href="https://uimitra.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="hover:text-primary transition-colors"
-                  >
-                    Uimitra
-                  </a>
-                </span>
+                {' '}· Designed by{' '}
+                <a 
+                  href="https://uimitra.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  Uimitra
+                </a>
               </p>
             </div>
 
