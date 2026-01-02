@@ -119,7 +119,7 @@ export const TrustSection = () => {
         </ScrollReveal>
 
         {/* Features */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mb-16 max-w-6xl mx-auto">
           <ScrollReveal delay={0.4}>
         <motion.div
               className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
@@ -183,6 +183,23 @@ export const TrustSection = () => {
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Direct support from our team via WhatsApp group for guidance and assistance.
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+            </motion.div>
+          </ScrollReveal>
+          <ScrollReveal delay={0.8}>
+            <motion.div
+              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -6, scale: 1.02 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                  Yatri Wall of Fame
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Get featured on our Wall of Fame after successfully passing your AWS certification.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />

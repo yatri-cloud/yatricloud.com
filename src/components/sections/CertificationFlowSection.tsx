@@ -38,6 +38,11 @@ const bonusFeatures = [
     description: "Get a professional LinkedIn recommendation from us after certification", 
     gradient: "from-yellow-500/20 to-green-500/20" 
   },
+  { 
+    text: "Yatri Wall of Fame", 
+    description: "Get featured on our Wall of Fame after successfully passing your AWS certification", 
+    gradient: "from-green-500/20 to-teal-500/20" 
+  },
 ];
 
 const steps = [
