@@ -73,8 +73,10 @@ export const HeroSection = () => {
             <div className="flex flex-wrap items-center justify-center gap-4">
               {[
                 "50% OFF Vouchers",
-                "Exam Dumps Included",
-                "Personal Support",
+                "Exam Dumps",
+                "Free Udemy Access",
+                "Topmate Connect",
+                "LinkedIn Recommendation",
               ].map((item, index) => (
                 <motion.div
                   key={item}
@@ -113,10 +115,13 @@ export const HeroSection = () => {
                       <p className="text-foreground text-left">
                         <span className="text-primary font-medium">Get Certified Now</span> - Complete your registration, join our WhatsApp group, and we'll schedule your AWS Associate exam. Get exam dumps, study resources, and personal support to ace your certification!
                       </p>
-                      <div className="flex gap-2 mt-3">
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">AWS Associate</span>
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">50% OFF</span>
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full">Full Support</span>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">AWS Associate</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">50% OFF</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Exam Dumps</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Free Udemy</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Topmate Connect</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">LinkedIn Rec</span>
                       </div>
                     </div>
                   </div>
