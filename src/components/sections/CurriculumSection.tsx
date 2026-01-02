@@ -8,6 +8,13 @@ import { useUdemyCourses } from "@/hooks/use-udemy-courses";
 import type { Course } from "@/data/courses";
 
 /**
+ * Check if a course is in draft mode
+ */
+function isDraftCourse(course: Course): boolean {
+  return course.title.toLowerCase().includes('draft');
+}
+
+/**
  * Get fallback image URL from course URL
  * Uses proxy server to avoid Access Denied errors
  */
@@ -24,21 +31,6 @@ function getFallbackImageUrl(courseUrl: string): string {
   }
   
   return 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
-}
-
-/**
- * Get "Coming Soon" thumbnail image
- */
-function getComingSoonThumbnail(): string {
-  // Using a professional "coming soon" placeholder image
-  return 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=225&fit=crop&q=80';
-}
-
-/**
- * Check if a course is in draft mode
- */
-function isDraftCourse(course: Course): boolean {
-  return course.title.toLowerCase().includes('draft');
 }
 
 export const CurriculumSection = () => {
@@ -246,11 +238,7 @@ export const CurriculumSection = () => {
         {/* Courses Grid */}
         {!isLoading && !error && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {filteredCourses.map((course, index) => {
-            const isDraft = isDraftCourse(course);
-            const thumbnailUrl = isDraft ? getComingSoonThumbnail() : (course.thumbnail || getFallbackImageUrl(course.udemyUrl));
-            
-            return (
+          {filteredCourses.map((course, index) => (
             <ScrollReveal key={course.id} delay={index * 0.1}>
               <motion.div
                 className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
@@ -258,24 +246,24 @@ export const CurriculumSection = () => {
               >
                   {/* Course Image */}
                   <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
-                    <img
-                      src={thumbnailUrl}
-                      alt={course.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = isDraft ? getComingSoonThumbnail() : getFallbackImageUrl(course.udemyUrl);
-                      }}
-                    />
-                    {/* Coming Soon Overlay */}
-                    {isDraft && (
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-primary/90 flex items-center justify-center">
-                        <div className="text-center">
-                          <span className="text-3xl font-bold text-primary-foreground mb-2 block">Coming Soon</span>
-                          <span className="text-sm text-primary-foreground/90">This course is being prepared</span>
+                    {isDraftCourse(course) ? (
+                      <div className="h-full w-full bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center">
+                        <div className="text-center p-6">
+                          <div className="text-4xl font-bold text-primary mb-2">Coming Soon</div>
+                          <div className="text-sm text-muted-foreground">This course is being prepared</div>
                         </div>
                       </div>
+                    ) : (
+                      <img
+                        src={course.thumbnail || getFallbackImageUrl(course.udemyUrl)}
+                        alt={course.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = getFallbackImageUrl(course.udemyUrl);
+                        }}
+                      />
                     )}
                   </div>
 
@@ -305,9 +293,9 @@ export const CurriculumSection = () => {
                 </div>
                   )}
                 
-                {isDraft ? (
-                  <div className="group relative w-full bg-gradient-to-r from-muted via-muted/90 to-muted text-muted-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-not-allowed">
-                    <span className="relative z-10">Coming Soon</span>
+                {isDraftCourse(course) ? (
+                  <div className="w-full bg-muted text-muted-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
+                    <span>Coming Soon</span>
                   </div>
                 ) : (
                   <motion.a
@@ -330,8 +318,7 @@ export const CurriculumSection = () => {
                 )}
               </motion.div>
             </ScrollReveal>
-            );
-          })}
+          ))}
         </div>
         )}
 
