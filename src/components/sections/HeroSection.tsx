@@ -145,6 +145,110 @@ export const HeroSection = () => {
               </motion.div>
             </motion.div>
           </ScrollReveal>
+
+          {/* Certification Process Section */}
+          <ScrollReveal delay={0.7}>
+            <div id="certification-process" className="mt-20 max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
+                  Certification Process
+                </span>
+                <h2 className="text-3xl md:text-5xl font-bold mb-4">
+                  How to Get <span className="gradient-text">Certified</span>
+                </h2>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  Follow these simple steps to get your AWS Associate certification with our full support
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  {
+                    number: "01",
+                    title: "Complete Registration",
+                    description: "Make your payment and get started with the certification process",
+                  },
+                  {
+                    number: "02",
+                    title: "Join Support Group",
+                    description: "Get exam scheduling coordination and direct support from our team",
+                  },
+                  {
+                    number: "03",
+                    title: "Schedule Your Exam",
+                    description: "We'll arrange a meeting call to finalize your exam date and time",
+                  },
+                  {
+                    number: "04",
+                    title: "Get Certified",
+                    description: "Receive exam dumps, study resources, and personal support to ace your exam",
+                  },
+                ].map((step, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1, duration: 0.6 }}
+                    whileHover={{ y: -8, scale: 1.02 }}
+                    className="group relative bg-gradient-to-br from-card via-card/98 to-card/95 border-2 border-border/60 rounded-2xl p-6 overflow-hidden hover:border-primary/50 transition-all duration-500 shadow-xl hover:shadow-2xl hover:shadow-primary/10"
+                  >
+                    {/* Animated gradient background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    {/* Decorative corner elements */}
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
+                    <div className="absolute bottom-0 left-0 w-20 h-20 bg-primary/5 rounded-full translate-y-10 -translate-x-10 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
+                    
+                    <div className="relative z-10">
+                      {/* Step Number */}
+                      <div className="mb-4">
+                        <span className="text-4xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+                          {step.number}
+                        </span>
+                      </div>
+                      
+                      {/* Title */}
+                      <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                        {step.title}
+                      </h3>
+                      
+                      {/* Decorative line */}
+                      <div className="h-1 w-12 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full mb-4 group-hover:w-16 transition-all duration-500" />
+                      
+                      {/* Description */}
+                      <p className="text-muted-foreground text-sm leading-relaxed mb-4 group-hover:text-foreground/80 transition-colors">
+                        {step.description}
+                      </p>
+                      
+                      {/* Learn More Link */}
+                      <motion.a
+                        href="#certification-flow"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const element = document.querySelector('#certification-flow');
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }}
+                        whileHover={{ x: 5 }}
+                        className="inline-flex items-center gap-2 text-primary font-semibold text-sm group/link"
+                      >
+                        Learn More
+                        <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                      </motion.a>
+                    </div>
+                    
+                    {/* Bottom accent line */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>
