@@ -64,7 +64,7 @@ export const CurriculumSection = () => {
   const [selectedInstructor, setSelectedInstructor] = useState("All");
   const [selectedCertification, setSelectedCertification] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [visibleCourses, setVisibleCourses] = useState(9); // Show 3x3 = 9 courses initially
+  const [visibleCourses, setVisibleCourses] = useState(6); // Show 3x2 = 6 courses initially
 
   // Fetch courses from Udemy API
   const { courses, isLoading, error, refetch, creators } = useUdemyCourses({
@@ -114,7 +114,7 @@ export const CurriculumSection = () => {
 
   // Reset visible courses when filters change
   useEffect(() => {
-    setVisibleCourses(9);
+    setVisibleCourses(6);
   }, [searchQuery, selectedInstructor, selectedCertification, selectedCategory]);
 
   // Get courses to display (limited to visibleCourses)
@@ -279,11 +279,11 @@ export const CurriculumSection = () => {
           <>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
               {displayedCourses.map((course, index) => (
-            <ScrollReveal key={course.id} delay={index * 0.1}>
-              <motion.div
-                className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
-                whileHover={{ y: -5 }}
-              >
+                <ScrollReveal key={course.id} delay={index * 0.1}>
+                  <motion.div
+                    className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
+                    whileHover={{ y: -5 }}
+                  >
                   {/* Course Image */}
                   <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
                     {isDraftCourse(course) ? (
@@ -356,8 +356,8 @@ export const CurriculumSection = () => {
                     <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
                   </motion.a>
                 )}
-              </motion.div>
-            </ScrollReveal>
+                  </motion.div>
+                </ScrollReveal>
               ))}
             </div>
             
