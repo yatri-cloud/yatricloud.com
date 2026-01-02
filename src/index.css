@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,8 +8,6 @@
    Dark theme with blue accents (#007CFF), premium feel
    All colors in HSL format
 */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap');
 
 @layer base {
   :root {
