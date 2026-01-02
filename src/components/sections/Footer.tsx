@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 
 export const Footer = () => {
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2026;
 
   const quickLinks = [
     { href: "#certification-process", label: "Get Certified" },
@@ -186,7 +186,27 @@ export const Footer = () => {
 
               {/* Copyright */}
               <p className="text-sm text-muted-foreground text-center md:text-right">
-                © {currentYear} Yatri Cloud. All rights reserved.
+                © {currentYear}{' '}
+                <a 
+                  href="https://yatricloud.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  Yatri Cloud
+                </a>
+                . All rights reserved.
+                <br />
+                <span className="text-xs">Designed by{' '}
+                  <a 
+                    href="https://uimitra.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors"
+                  >
+                    Uimitra
+                  </a>
+                </span>
               </p>
             </div>
 
