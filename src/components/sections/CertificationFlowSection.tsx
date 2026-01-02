@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { CheckCircle2, ExternalLink, MessageCircle, Calendar, CreditCard, Users, Sparkles, ArrowRight, Award, BookOpen, Headphones } from "lucide-react";
+import { CheckCircle2, ExternalLink, MessageCircle, Calendar, CreditCard, Users, Sparkles, ArrowRight, Award, BookOpen, Headphones, FileText } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const eligibleExams = [
@@ -13,10 +13,10 @@ const eligibleExams = [
 ];
 
 const bonusFeatures = [
-  { icon: BookOpen, text: "Exam Dumps", description: "Comprehensive exam preparation materials" },
-  { icon: Award, text: "Study Resources and materials", description: "Curated study guides and resources" },
-  { icon: Sparkles, text: "Exam Guide", description: "Step-by-step certification roadmap" },
-  { icon: Headphones, text: "Personal Support for doubt", description: "Direct access to our expert team" },
+  { icon: FileText, text: "Exam Dumps", color: "from-blue-500/20 to-cyan-500/20" },
+  { icon: BookOpen, text: "Study Resources and materials", color: "from-purple-500/20 to-pink-500/20" },
+  { icon: Award, text: "Exam Guide", color: "from-orange-500/20 to-red-500/20" },
+  { icon: Headphones, text: "Personal Support for doubt", color: "from-green-500/20 to-emerald-500/20" },
 ];
 
 const steps = [
@@ -25,6 +25,7 @@ const steps = [
     title: "Complete Your Registration",
     description: "Make your payment to get started with the certification process",
     icon: CreditCard,
+    gradient: "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
     action: {
       label: "Payment Link",
       url: "https://pages.razorpay.com/stores/yatricloud",
@@ -35,6 +36,7 @@ const steps = [
     title: "Join the WhatsApp Group",
     description: "This group is used for exam scheduling coordination, important updates, and direct support from our team",
     icon: MessageCircle,
+    gradient: "from-green-500/20 via-emerald-500/20 to-teal-500/20",
     action: {
       label: "WhatsApp Group Link",
       url: "https://chat.whatsapp.com/EEAZws1rcr6CkiATivaikf",
@@ -46,83 +48,81 @@ const steps = [
     title: "Exam Scheduling",
     description: "After payment confirmation, our team will schedule your exam only during a meeting call. The meeting will be arranged by our team, and exam date and time will be finalized inside the meeting itself. This ensures correct exam selection and avoids any mistakes.",
     icon: Calendar,
+    gradient: "from-purple-500/20 via-pink-500/20 to-rose-500/20",
     action: null,
   },
 ];
 
 export const CertificationFlowSection = () => {
   return (
-    <section id="certification-flow" className="py-24 relative overflow-hidden">
+    <section id="certification-flow" className="py-32 relative overflow-hidden">
       {/* Enhanced Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
-      <div className="absolute top-1/4 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/3 to-transparent" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       
       <div className="container mx-auto px-4 md:px-6 relative z-10">
+        {/* Header */}
         <ScrollReveal>
           <div className="text-center mb-20">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-primary font-semibold text-sm uppercase tracking-wider">
                 Get Certified with Yatri Cloud
               </span>
             </motion.div>
-            <h2 className="text-4xl md:text-6xl font-bold mb-6">
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
               Your Path to <span className="gradient-text">AWS Certification</span>
             </h2>
-            <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-              Follow these simple steps to get your AWS Associate certification with our complete support package
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Follow these simple steps to get your AWS Associate certification with our comprehensive support
             </p>
           </div>
         </ScrollReveal>
 
         <div className="max-w-6xl mx-auto">
-          {/* Eligible Exams - Enhanced Design */}
+          {/* Eligible Exams - Premium Card Design */}
           <ScrollReveal delay={0.1}>
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-3xl p-8 md:p-12 mb-10 hover:border-primary/50 transition-all duration-500 overflow-hidden"
+              className="group relative bg-gradient-to-br from-card via-card/98 to-card/95 border-2 border-border/60 rounded-[2rem] p-10 md:p-12 mb-10 overflow-hidden hover:border-primary/50 transition-all duration-700 shadow-2xl"
+              whileHover={{ y: -8, scale: 1.01 }}
             >
               {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
-              {/* Decorative corner elements */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -translate-y-20 translate-x-20 group-hover:bg-primary/10 transition-colors duration-500 blur-2xl" />
+              {/* Decorative corner accents */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full translate-y-24 -translate-x-24 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
               
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 shadow-lg shadow-primary/10">
-                    <Award className="w-7 h-7 text-primary" />
+                    <CheckCircle2 className="w-7 h-7 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Eligible AWS Associate Exams</h3>
-                    <p className="text-sm text-muted-foreground">Choose from these eligible certification exams</p>
+                    <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-1">Eligible AWS Associate Exams</h3>
+                    <div className="h-1 w-24 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
                   </div>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-3">
+                <div className="grid md:grid-cols-2 gap-4">
                   {eligibleExams.map((exam, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: index * 0.08 }}
-                      className="group/item flex items-start gap-3 p-4 rounded-xl bg-gradient-to-br from-background/50 to-background/30 border border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
+                      transition={{ delay: index * 0.08, duration: 0.5 }}
+                      className="group/item flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-card/50 to-card/30 border border-border/40 hover:border-primary/40 hover:bg-card/70 transition-all duration-300"
                     >
-                      <div className="flex-shrink-0 mt-0.5">
-                        <CheckCircle2 className="w-5 h-5 text-primary group-hover/item:scale-110 transition-transform" />
+                      <div className="flex-shrink-0 mt-1">
+                        <div className="w-2 h-2 rounded-full bg-primary group-hover/item:scale-150 transition-transform duration-300" />
                       </div>
-                      <span className="text-foreground font-medium leading-relaxed group-hover/item:text-primary transition-colors">
-                        {exam}
-                      </span>
+                      <span className="text-foreground text-base leading-relaxed font-medium">{exam}</span>
                     </motion.div>
                   ))}
                 </div>
@@ -133,66 +133,58 @@ export const CertificationFlowSection = () => {
             </motion.div>
           </ScrollReveal>
 
-          {/* Bonus Features - Enhanced Design */}
+          {/* Bonus Features - Premium Design */}
           <ScrollReveal delay={0.2}>
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="group relative bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 border-2 border-primary/40 rounded-3xl p-8 md:p-12 mb-12 relative overflow-hidden shadow-2xl shadow-primary/10"
+              className="group relative bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 border-2 border-primary/40 rounded-[2rem] p-10 md:p-12 mb-12 overflow-hidden shadow-2xl shadow-primary/10"
+              whileHover={{ y: -8, scale: 1.01 }}
             >
-              {/* Animated background effects */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full -translate-y-48 translate-x-48 blur-3xl animate-pulse" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full translate-y-32 -translate-x-32 blur-2xl" />
+              {/* Animated background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              
+              {/* Floating orbs */}
+              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full -translate-y-40 translate-x-40 blur-3xl animate-pulse" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full translate-y-32 -translate-x-32 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
               
               <div className="relative z-10">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/20 border-2 border-primary/40 shadow-lg">
-                      <Sparkles className="w-7 h-7 text-primary" />
+                    <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/20 border-2 border-primary/40 shadow-lg shadow-primary/20">
+                      <Users className="w-7 h-7 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Bonus Features</h3>
-                      <p className="text-sm text-muted-foreground">Everything you need to succeed</p>
+                      <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-1">Bonus Features</h3>
+                      <div className="h-1 w-24 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
                     </div>
                   </div>
                   <motion.div
-                    initial={{ scale: 0.9 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/30 to-primary/20 border-2 border-primary/40 text-primary font-bold text-sm shadow-lg"
+                    className="px-6 py-3 rounded-full bg-gradient-to-r from-primary/30 to-primary/20 border-2 border-primary/40 backdrop-blur-sm"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <Calendar className="w-4 h-4" />
-                    <span>Available from 01/01/2026</span>
+                    <span className="text-primary font-bold text-sm md:text-base">Available from 01/01/2026</span>
                   </motion.div>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-5">
                   {bonusFeatures.map((feature, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ y: -4, scale: 1.02 }}
-                      className="group/item relative bg-gradient-to-br from-card/80 via-card/60 to-card/40 border-2 border-border/50 rounded-2xl p-6 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden"
+                      transition={{ delay: index * 0.1, duration: 0.6, type: "spring" }}
+                      whileHover={{ y: -6, scale: 1.02 }}
+                      className="group/item relative p-6 rounded-2xl bg-gradient-to-br from-card/80 via-card/60 to-card/40 border-2 border-border/50 hover:border-primary/50 transition-all duration-500 overflow-hidden"
                     >
-                      {/* Background gradient on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-300" />
+                      {/* Gradient overlay */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover/item:opacity-100 transition-opacity duration-500`} />
                       
-                      <div className="relative z-10 flex items-start gap-4">
-                        <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30 group-hover/item:scale-110 group-hover/item:rotate-6 transition-all duration-300">
+                      <div className="relative z-10 flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-primary/10 group-hover/item:bg-primary/20 transition-colors">
                           <feature.icon className="w-6 h-6 text-primary" />
                         </div>
-                        <div className="flex-1">
-                          <h4 className="text-lg font-bold text-foreground mb-1 group-hover/item:text-primary transition-colors">
-                            {feature.text}
-                          </h4>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {feature.description}
-                          </p>
-                        </div>
+                        <span className="text-foreground font-semibold text-lg">{feature.text}</span>
                       </div>
                       
                       {/* Shine effect */}
@@ -204,166 +196,172 @@ export const CertificationFlowSection = () => {
             </motion.div>
           </ScrollReveal>
 
-          {/* Steps - Enhanced with Connection Lines */}
+          {/* Steps - Premium Timeline Design */}
           <div className="relative">
-            {/* Connection line between steps (desktop only) */}
-            <div className="hidden md:block absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/30 via-primary/20 to-primary/30" />
+            {/* Connecting line for steps */}
+            <div className="hidden md:block absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/20 via-primary/40 to-primary/20 rounded-full" />
             
-            <div className="space-y-8 relative">
+            <div className="space-y-8">
               {steps.map((step, index) => (
                 <ScrollReveal key={index} delay={0.3 + index * 0.15}>
                   <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    className="group relative"
+                    initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="group relative"
+                    transition={{ duration: 0.8, type: "spring" }}
                   >
-                    {/* Step connector dot (desktop only) */}
-                    <div className="hidden md:block absolute left-8 top-8 w-4 h-4 rounded-full bg-primary border-4 border-background shadow-lg shadow-primary/30 z-20" />
-                    
-                    <motion.div
-                      className="relative bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-3xl p-8 md:p-10 overflow-hidden hover:border-primary/50 transition-all duration-500 ml-0 md:ml-16"
-                      whileHover={{ y: -6, scale: 1.02 }}
-                    >
-                      {/* Enhanced decorative elements */}
-                      <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -translate-y-20 translate-x-20 group-hover:bg-primary/15 transition-colors duration-500 blur-3xl" />
-                      <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full translate-y-16 -translate-x-16 group-hover:bg-primary/10 transition-colors duration-500 blur-2xl" />
-                      
-                      <div className="relative z-10">
-                        <div className="flex flex-col md:flex-row md:items-start gap-6">
-                          {/* Enhanced Step Number */}
-                          <div className="flex-shrink-0 flex items-center gap-4 md:block">
-                            <div className="relative">
-                              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/25 via-primary/15 to-primary/10 border-2 border-primary/40 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-xl shadow-primary/20">
-                                <span className="text-3xl font-bold bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
-                                  {step.number}
-                                </span>
-                              </div>
-                              {/* Glow effect */}
-                              <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            </div>
-                            {/* Arrow connector (mobile only) */}
-                            {index < steps.length - 1 && (
-                              <div className="md:hidden flex-1 flex items-center justify-center py-2">
-                                <ArrowRight className="w-6 h-6 text-primary/40" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Content */}
-                          <div className="flex-1">
-                            <div className="flex flex-wrap items-center gap-3 mb-4">
-                              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20">
-                                <step.icon className="w-6 h-6 text-primary" />
-                              </div>
-                              <h3 className="text-2xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">
-                                {step.title}
-                              </h3>
-                              {step.action?.mandatory && (
-                                <motion.span
-                                  initial={{ scale: 0.8 }}
-                                  whileInView={{ scale: 1 }}
-                                  viewport={{ once: true }}
-                                  className="px-4 py-1.5 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/30 text-primary text-xs font-bold uppercase tracking-wider shadow-lg"
-                                >
-                                  Mandatory
-                                </motion.span>
-                              )}
-                            </div>
-                            
-                            <div className="h-2 w-24 bg-gradient-to-r from-primary via-primary/60 to-primary/0 rounded-full mb-6 group-hover:w-32 transition-all duration-500" />
-                            
-                            <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8">
-                              {step.description}
-                            </p>
-
-                            {/* Enhanced Action Button */}
-                            {step.action && (
-                              <motion.a
-                                href={step.action.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                whileHover={{ scale: 1.05, y: -3 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="group/btn relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-8 py-4 text-base font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden"
-                              >
-                                {/* Shine effect */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                                
-                                <span className="relative z-10">{step.action.label}</span>
-                                <ExternalLink className="relative z-10 w-5 h-5 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-0.5 transition-transform duration-300" />
-                                
-                                {/* Glow effect */}
-                                <div className="absolute inset-0 rounded-2xl bg-primary/0 group-hover/btn:bg-primary/25 blur-2xl transition-all duration-300" />
-                              </motion.a>
-                            )}
-                          </div>
-                        </div>
+                    <div className="flex gap-6 md:gap-8">
+                      {/* Step Number Badge - Desktop */}
+                      <div className="hidden md:flex flex-shrink-0 relative z-10">
+                        <motion.div
+                          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 border-4 border-primary/30 flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                          whileHover={{ rotate: 360 }}
+                          transition={{ duration: 0.6 }}
+                        >
+                          <span className="text-3xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+                            {step.number}
+                          </span>
+                        </motion.div>
+                        {/* Glow effect */}
+                        <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       </div>
 
-                      {/* Enhanced bottom accent line */}
-                      <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      
-                      {/* Shine effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    </motion.div>
+                      {/* Content Card */}
+                      <motion.div
+                        className="flex-1 relative bg-gradient-to-br from-card via-card/98 to-card/95 border-2 border-border/60 rounded-[2rem] p-8 md:p-10 overflow-hidden hover:border-primary/50 transition-all duration-700 shadow-2xl group-hover:shadow-primary/10"
+                        whileHover={{ y: -8, scale: 1.02 }}
+                      >
+                        {/* Animated gradient background */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+                        
+                        {/* Decorative elements */}
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -translate-y-20 translate-x-20 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full translate-y-16 -translate-x-16 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
+                        
+                        <div className="relative z-10">
+                          {/* Step Number Badge - Mobile */}
+                          <div className="md:hidden flex items-center gap-4 mb-6">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 flex items-center justify-center shadow-lg">
+                              <span className="text-2xl font-black bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                                {step.number}
+                              </span>
+                            </div>
+                            <div className="h-1 flex-1 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
+                          </div>
+
+                          {/* Header */}
+                          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                                <step.icon className="w-6 h-6 text-primary" />
+                              </div>
+                              <div>
+                                <h3 className="text-2xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                                  {step.title}
+                                </h3>
+                                {step.action?.mandatory && (
+                                  <motion.span
+                                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-bold border border-primary/30"
+                                    animate={{ scale: [1, 1.05, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                  >
+                                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                    Mandatory
+                                  </motion.span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Decorative line */}
+                          <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full mb-6 group-hover:w-40 transition-all duration-500" />
+                          
+                          {/* Description */}
+                          <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 group-hover:text-foreground/80 transition-colors">
+                            {step.description}
+                          </p>
+
+                          {/* Action Button */}
+                          {step.action && (
+                            <motion.a
+                              href={step.action.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              whileHover={{ scale: 1.05, y: -3 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="group/btn relative inline-flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-8 py-4 text-base font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden"
+                            >
+                              {/* Shine effect */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
+                              
+                              <span className="relative z-10">{step.action.label}</span>
+                              <ExternalLink className="relative z-10 w-5 h-5 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-0.5 transition-transform duration-300" />
+                              
+                              {/* Glow effect */}
+                              <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover/btn:bg-primary/25 blur-2xl transition-all duration-300" />
+                            </motion.a>
+                          )}
+                        </div>
+                        
+                        {/* Bottom accent line */}
+                        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      </motion.div>
+                    </div>
                   </motion.div>
                 </ScrollReveal>
               ))}
             </div>
           </div>
 
-          {/* Thank You Message - Enhanced */}
-          <ScrollReveal delay={0.6}>
+          {/* Thank You Message - Premium Design */}
+          <ScrollReveal delay={0.7}>
             <motion.div
+              className="mt-16 relative"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="mt-16 relative"
+              transition={{ duration: 0.8, type: "spring" }}
             >
-              <div className="relative text-center p-10 md:p-12 rounded-3xl bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border-2 border-primary/40 overflow-hidden shadow-2xl shadow-primary/20">
-                {/* Animated background effects */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+              <div className="relative bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border-2 border-primary/40 rounded-[2rem] p-12 md:p-16 text-center overflow-hidden shadow-2xl">
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10 opacity-50" />
+                
+                {/* Floating orbs */}
+                <div className="absolute top-0 left-1/4 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-40 h-40 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
                 
                 <div className="relative z-10">
                   <motion.div
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2, type: "spring" }}
-                    className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/20 border-2 border-primary/40 mb-6 shadow-lg"
+                    className="inline-flex items-center gap-2 mb-6"
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 3, repeat: Infinity }}
                   >
-                    <Sparkles className="w-8 h-8 text-primary" />
+                    <Sparkles className="w-6 h-6 text-primary" />
                   </motion.div>
-                  
                   <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                     Thank you for trusting <span className="gradient-text">Yatri Cloud</span>
                   </h3>
-                  <p className="text-xl md:text-2xl text-muted-foreground font-medium">
-                    Let's get you certified! 🚀
-                  </p>
-                  
-                  {/* Decorative elements */}
-                  <div className="flex items-center justify-center gap-2 mt-6">
-                    {[1, 2, 3].map((i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ scale: 0 }}
-                        whileInView={{ scale: 1 }}
-                        viewport={{ once: true }}
-                        className="w-2 h-2 rounded-full bg-primary"
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{ 
-                          delay: 0.4 + i * 0.1,
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          repeatDelay: i * 0.2 
-                        }}
-                      />
-                    ))}
+                  <div className="flex items-center justify-center gap-2 text-xl md:text-2xl text-muted-foreground">
+                    <span>Let's get you certified!</span>
+                    <motion.span
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      🚀
+                    </motion.span>
                   </div>
                 </div>
+                
+                {/* Shine effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+                />
               </div>
             </motion.div>
           </ScrollReveal>
@@ -374,4 +372,3 @@ export const CertificationFlowSection = () => {
 };
 
 export default CertificationFlowSection;
-
