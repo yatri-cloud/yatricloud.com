@@ -179,12 +179,22 @@ export const CertificationFlowSection = () => {
             </motion.div>
           </ScrollReveal>
 
-          {/* Steps - Clean Timeline Design */}
-          <div className="relative">
-            {/* Connecting line for steps */}
-            <div className="hidden md:block absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/20 via-primary/40 to-primary/20 rounded-full" />
+          {/* Steps - Enhanced Timeline Design */}
+          <div className="relative pl-0 md:pl-20">
+            {/* Connecting line for steps - Behind the numbers */}
+            <div className="hidden md:block absolute left-10 top-0 bottom-0 w-0.5">
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-primary/30 to-primary/10 rounded-full" />
+              {/* Animated progress line */}
+              <motion.div
+                className="absolute top-0 left-0 w-full bg-gradient-to-b from-primary via-primary/80 to-primary rounded-full origin-top"
+                initial={{ scaleY: 0 }}
+                whileInView={{ scaleY: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              />
+            </div>
             
-            <div className="space-y-8">
+            <div className="space-y-12">
               {steps.map((step, index) => (
                 <ScrollReveal key={index} delay={0.3 + index * 0.15}>
                   <motion.div
@@ -194,20 +204,22 @@ export const CertificationFlowSection = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.8, type: "spring" }}
                   >
-                    <div className="flex gap-6 md:gap-8">
+                    <div className="flex gap-6 md:gap-8 items-start">
                       {/* Step Number Badge - Desktop */}
-                      <div className="hidden md:flex flex-shrink-0 relative z-10">
+                      <div className="hidden md:flex flex-shrink-0 relative z-20 -ml-10">
                         <motion.div
-                          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 border-4 border-primary/30 flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-card via-card/95 to-card/90 border-4 border-primary/40 flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative"
                           whileHover={{ rotate: 360 }}
                           transition={{ duration: 0.6 }}
                         >
-                          <span className="text-3xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+                          {/* Background circle behind number */}
+                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 blur-sm" />
+                          <span className="relative z-10 text-3xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
                             {step.number}
                           </span>
                         </motion.div>
                         {/* Glow effect */}
-                        <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="absolute inset-0 rounded-2xl bg-primary/30 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
                       </div>
 
                       {/* Content Card */}
@@ -225,8 +237,9 @@ export const CertificationFlowSection = () => {
                         <div className="relative z-10">
                           {/* Step Number Badge - Mobile */}
                           <div className="md:hidden flex items-center gap-4 mb-6">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 flex items-center justify-center shadow-lg">
-                              <span className="text-2xl font-black bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-card via-card/95 to-card/90 border-4 border-primary/40 flex items-center justify-center shadow-lg">
+                              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 blur-sm" />
+                              <span className="relative z-10 text-2xl font-black bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                                 {step.number}
                               </span>
                             </div>
@@ -314,15 +327,9 @@ export const CertificationFlowSection = () => {
                   <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                     Thank you for trusting <span className="gradient-text">Yatri Cloud</span>
                   </h3>
-                  <div className="flex items-center justify-center gap-2 text-xl md:text-2xl text-muted-foreground">
-                    <span>Let's get you certified!</span>
-                    <motion.span
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      🚀
-                    </motion.span>
-                  </div>
+                  <p className="text-xl md:text-2xl text-muted-foreground">
+                    Let's get you certified!
+                  </p>
                 </div>
                 
                 {/* Shine effect */}
