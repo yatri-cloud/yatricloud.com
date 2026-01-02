@@ -126,59 +126,81 @@ export const CertificationFlowSection = () => {
             </motion.div>
           </ScrollReveal>
 
-          {/* Bonus Features - Clean Design */}
+          {/* Bonus Features - Premium Box Design */}
           <ScrollReveal delay={0.2}>
-            <motion.div
-              className="group relative bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 border-2 border-primary/40 rounded-[2rem] p-10 md:p-12 mb-12 overflow-hidden shadow-2xl shadow-primary/10"
-              whileHover={{ y: -8, scale: 1.01 }}
-            >
-              {/* Animated background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              
-              {/* Floating orbs */}
-              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full -translate-y-40 translate-x-40 blur-3xl animate-pulse" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full translate-y-32 -translate-x-32 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
-              
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-                  <div>
-                    <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Bonus Features</h3>
-                    <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
-                  </div>
-                  <motion.div
-                    className="px-6 py-3 rounded-full bg-gradient-to-r from-primary/30 to-primary/20 border-2 border-primary/40 backdrop-blur-sm"
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <span className="text-primary font-bold text-sm md:text-base">Available from 01/01/2026</span>
-                  </motion.div>
+            <div className="mb-12">
+              {/* Header */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
+                <div>
+                  <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Bonus Features</h3>
+                  <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
                 </div>
-                
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {bonusFeatures.map((feature, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1, duration: 0.6, type: "spring" }}
-                      whileHover={{ y: -6, scale: 1.02 }}
-                      className="group/item relative p-6 rounded-2xl bg-gradient-to-br from-card/80 via-card/60 to-card/40 border-2 border-border/50 hover:border-primary/50 transition-all duration-500 overflow-hidden"
-                    >
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                          <span className="text-foreground font-semibold text-lg">{feature}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Shine effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/item:translate-x-full transition-transform duration-1000" />
-                    </motion.div>
-                  ))}
-                </div>
+                <motion.div
+                  className="px-6 py-3 rounded-full bg-gradient-to-r from-primary/30 to-primary/20 border-2 border-primary/40 backdrop-blur-sm"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <span className="text-primary font-bold text-sm md:text-base">Available from 01/01/2026</span>
+                </motion.div>
               </div>
-            </motion.div>
+              
+              {/* Individual Benefit Boxes */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {bonusFeatures.map((feature, index) => {
+                  const gradients = [
+                    "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
+                    "from-purple-500/20 via-pink-500/20 to-rose-500/20",
+                    "from-orange-500/20 via-amber-500/20 to-yellow-500/20",
+                    "from-green-500/20 via-emerald-500/20 to-teal-500/20",
+                    "from-indigo-500/20 via-blue-500/20 to-purple-500/20",
+                    "from-red-500/20 via-pink-500/20 to-rose-500/20",
+                  ];
+                  
+                  return (
+                    <ScrollReveal key={index} delay={0.2 + index * 0.1}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.1, duration: 0.6, type: "spring" }}
+                        whileHover={{ y: -8, scale: 1.03 }}
+                        className="group relative bg-gradient-to-br from-card via-card/98 to-card/95 border-2 border-border/60 rounded-2xl p-8 overflow-hidden hover:border-primary/50 transition-all duration-500 shadow-xl hover:shadow-2xl hover:shadow-primary/10"
+                      >
+                        {/* Animated gradient background */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                        
+                        {/* Decorative corner elements */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full translate-y-12 -translate-x-12 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
+                        
+                        <div className="relative z-10">
+                          {/* Number badge */}
+                          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 mb-5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-primary/10">
+                            <span className="text-xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+                              {index + 1}
+                            </span>
+                          </div>
+                          
+                          {/* Feature text */}
+                          <h4 className="text-xl font-bold text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
+                            {feature}
+                          </h4>
+                          
+                          {/* Decorative line */}
+                          <div className="h-1 w-16 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full group-hover:w-24 transition-all duration-500" />
+                        </div>
+                        
+                        {/* Bottom accent line */}
+                        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      </motion.div>
+                    </ScrollReveal>
+                  );
+                })}
+              </div>
+            </div>
           </ScrollReveal>
 
           {/* Steps - Enhanced Timeline Design */}
