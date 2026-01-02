@@ -1,26 +1,250 @@
+import { motion } from "framer-motion";
+import { ExternalLink, Mail, MessageCircle, CreditCard, Users, BookOpen, FileText, HelpCircle, Linkedin, Globe } from "lucide-react";
 
-export const Footer = () => (
-  <footer className="py-12 border-t border-border">
-    <div className="container mx-auto px-4 md:px-6">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-        <a href="/" className="flex items-center gap-2">
-          <img
-            src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
-            alt="Yatri Cloud"
-            className="h-8 w-8"
-          />
-          <div className="flex flex-col">
-            <span className="text-xl font-bold">Yatri Cloud</span>
+export const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
+  const quickLinks = [
+    { href: "#certification-process", label: "Get Certified" },
+    { href: "#benefits", label: "Benefits" },
+    { href: "#courses", label: "Practice Tests" },
+    { href: "#team", label: "Team" },
+    { href: "#faq", label: "FAQ" },
+  ];
+
+  const resources = [
+    { href: "#resources", label: "Resources", icon: BookOpen },
+    { href: "#courses", label: "Udemy Courses", icon: BookOpen },
+  ];
+
+  const legalLinks = [
+    { href: "/privacy-policy", label: "Privacy Policy" },
+    { href: "/terms-of-service", label: "Terms of Service" },
+  ];
+
+  const contactLinks = [
+    {
+      href: "https://pages.razorpay.com/stores/yatricloud",
+      label: "Payment & Registration",
+      icon: CreditCard,
+      external: true,
+    },
+    {
+      href: "https://chat.whatsapp.com/EEAZws1rcr6CkiATivaikf",
+      label: "WhatsApp Support Group",
+      icon: MessageCircle,
+      external: true,
+    },
+  ];
+
+  const socialLinks = [
+    {
+      href: "https://www.linkedin.com/company/yatricloud",
+      label: "LinkedIn",
+      icon: Linkedin,
+      external: true,
+    },
+    {
+      href: "https://topmate.io/yatharth_chauhan",
+      label: "Topmate",
+      icon: Users,
+      external: true,
+    },
+    {
+      href: "https://yatricloud.com",
+      label: "Website",
+      icon: Globe,
+      external: true,
+    },
+  ];
+
+  return (
+    <footer className="relative bg-gradient-to-b from-background via-card/30 to-background border-t border-border/50 overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/2 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      
+      <div className="container mx-auto px-4 md:px-6 relative z-10">
+        <div className="py-16 md:py-20">
+          {/* Main Footer Content */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+            {/* Company Info */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="space-y-4"
+            >
+              <a href="/" className="flex items-center gap-3 group">
+                <img
+                  src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
+                  alt="Yatri Cloud"
+                  className="h-10 w-10 transition-transform duration-300 group-hover:scale-110"
+                />
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    Yatri Cloud
+                  </span>
+                  <span className="text-xs text-muted-foreground">AWS Certification Support</span>
+                </div>
+              </a>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                Get AWS Associate certified at 50% OFF. Complete support package with exam dumps, resources, and personalized guidance.
+              </p>
+              
+              {/* Social Links */}
+              <div className="flex items-center gap-3 pt-2">
+                {socialLinks.map((social, index) => (
+                  <motion.a
+                    key={social.label}
+                    href={social.href}
+                    target={social.external ? "_blank" : undefined}
+                    rel={social.external ? "noopener noreferrer" : undefined}
+                    initial={{ opacity: 0, scale: 0 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1, duration: 0.3 }}
+                    whileHover={{ scale: 1.1, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-2.5 rounded-xl bg-card border border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group"
+                  >
+                    <social.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </motion.a>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Quick Links */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="space-y-4"
+            >
+              <h3 className="text-lg font-bold text-foreground mb-4">Quick Links</h3>
+              <ul className="space-y-3">
+                {quickLinks.map((link) => (
+                  <li key={link.href}>
+                    <a
+                      href={link.href}
+                      onClick={(e) => {
+                        if (link.href.startsWith('#')) {
+                          e.preventDefault();
+                          const element = document.querySelector(link.href);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }
+                      }}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary/0 group-hover:bg-primary transition-colors" />
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Resources */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="space-y-4"
+            >
+              <h3 className="text-lg font-bold text-foreground mb-4">Resources</h3>
+              <ul className="space-y-3">
+                {resources.map((resource) => (
+                  <li key={resource.href}>
+                    <a
+                      href={resource.href}
+                      onClick={(e) => {
+                        if (resource.href.startsWith('#')) {
+                          e.preventDefault();
+                          const element = document.querySelector(resource.href);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }
+                      }}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <resource.icon className="w-4 h-4" />
+                      {resource.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Contact & Support */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="space-y-4"
+            >
+              <h3 className="text-lg font-bold text-foreground mb-4">Contact & Support</h3>
+              <ul className="space-y-3">
+                {contactLinks.map((contact) => (
+                  <li key={contact.href}>
+                    <a
+                      href={contact.href}
+                      target={contact.external ? "_blank" : undefined}
+                      rel={contact.external ? "noopener noreferrer" : undefined}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <contact.icon className="w-4 h-4" />
+                      <span className="flex-1">{contact.label}</span>
+                      {contact.external && (
+                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
           </div>
-        </a>
-        <div className="flex gap-6 text-sm text-muted-foreground">
-          <a href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</a>
-          <a href="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Service</a>
-        </div>
-        <p className="text-sm text-muted-foreground">© 2025 Yatri Cloud. All rights reserved.</p>
+
+          {/* Bottom Bar */}
+          <div className="pt-8 border-t border-border/50">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              {/* Legal Links */}
+              <div className="flex flex-wrap items-center gap-6 text-sm">
+                {legalLinks.map((legal) => (
+                  <a
+                    key={legal.href}
+                    href={legal.href}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {legal.label}
+                  </a>
+                ))}
+              </div>
+
+              {/* Copyright */}
+              <p className="text-sm text-muted-foreground text-center md:text-right">
+                © {currentYear} Yatri Cloud. All rights reserved.
+              </p>
+            </div>
+
+            {/* Additional Info */}
+            <div className="mt-6 pt-6 border-t border-border/30">
+              <p className="text-xs text-muted-foreground text-center max-w-3xl mx-auto">
+                Yatri Cloud provides AWS Associate certification support with 50% OFF vouchers, exam dumps, study resources, 
+                Udemy course access, Topmate sessions, and LinkedIn recommendations. Get certified with our comprehensive support package.
+              </p>
+            </div>
+          </div>
       </div>
     </div>
   </footer>
 );
+};
 
 export default Footer;
