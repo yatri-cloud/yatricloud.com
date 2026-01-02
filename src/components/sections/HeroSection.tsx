@@ -41,7 +41,7 @@ export const HeroSection = () => {
           {/* Subheadline */}
           <ScrollReveal delay={0.3}>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Get certified with AWS Associate exams at 50% OFF. Complete your registration, join our support group, and we'll schedule your exam. Plus, get exam dumps, study resources, and personal support included!
+              Get AWS Associate certified at 50% OFF. Register, join WhatsApp, and we'll schedule your exam. Dumps, resources, and support included!
             </p>
           </ScrollReveal>
 
