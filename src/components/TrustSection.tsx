@@ -113,8 +113,8 @@ export const TrustSection = () => {
               Why Learners <span className="gradient-text">Trust Us</span>
           </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            We provide complete certification support - from exam scheduling to study resources and personal guidance to help you pass your AWS Associate exam.
-          </p>
+              Complete certification support from exam scheduling to study resources and personal guidance.
+            </p>
           </div>
         </ScrollReveal>
 
@@ -131,7 +131,7 @@ export const TrustSection = () => {
                   50% OFF Vouchers
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Get AWS Associate exam vouchers at half price with our limited-time offer for eligible exams.
+                  Get AWS Associate exam vouchers at half price - limited time offer.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
@@ -148,7 +148,7 @@ export const TrustSection = () => {
                   Complete Support Package
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Get exam dumps, study resources, exam guides, and personal support included with your certification.
+                  Exam dumps, study resources, guides, and personal support included.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
@@ -165,24 +165,24 @@ export const TrustSection = () => {
                   Guided Exam Scheduling
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Our team schedules your exam through a personal meeting call to ensure everything is set up correctly.
+                  Our team schedules your exam via personal meeting call for correct setup.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
           <ScrollReveal delay={0.7}>
-        <motion.div
+            <motion.div
               className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
               whileHover={{ y: -6, scale: 1.02 }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
                 <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
-                  50% OFF Vouchers
+                  Personal Support
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Get AWS Associate exam vouchers at half price with our limited-time offer.
+                  Direct support from our team via WhatsApp group for guidance and assistance.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
