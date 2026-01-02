@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,7 @@ export const CurriculumSection = () => {
   const [selectedInstructor, setSelectedInstructor] = useState("All");
   const [selectedCertification, setSelectedCertification] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [visibleCourses, setVisibleCourses] = useState(9); // Show 3x3 = 9 courses initially
 
   // Fetch courses from Udemy API
   const { courses, isLoading, error, refetch, creators } = useUdemyCourses({
@@ -110,6 +111,18 @@ export const CurriculumSection = () => {
     return matchesSearch && matchesInstructor && matchesCertification && matchesCategory;
   });
   }, [courses, searchQuery, selectedInstructor, selectedCertification, selectedCategory]);
+
+  // Reset visible courses when filters change
+  useEffect(() => {
+    setVisibleCourses(9);
+  }, [searchQuery, selectedInstructor, selectedCertification, selectedCategory]);
+
+  // Get courses to display (limited to visibleCourses)
+  const displayedCourses = useMemo(() => {
+    return filteredCourses.slice(0, visibleCourses);
+  }, [filteredCourses, visibleCourses]);
+
+  const hasMoreCourses = filteredCourses.length > visibleCourses;
 
   return (
     <section id="courses" className="py-24 relative">
@@ -263,8 +276,9 @@ export const CurriculumSection = () => {
 
         {/* Courses Grid */}
         {!isLoading && !error && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {filteredCourses.map((course, index) => (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {displayedCourses.map((course, index) => (
             <ScrollReveal key={course.id} delay={index * 0.1}>
               <motion.div
                 className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
@@ -344,8 +358,31 @@ export const CurriculumSection = () => {
                 )}
               </motion.div>
             </ScrollReveal>
-          ))}
-        </div>
+              ))}
+            </div>
+            
+            {/* View More Button */}
+            {hasMoreCourses && (
+              <div className="flex justify-center mt-10">
+                <motion.button
+                  onClick={() => setVisibleCourses(filteredCourses.length)}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="group relative bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
+                >
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  
+                  <span className="relative z-10">
+                    View More ({filteredCourses.length - visibleCourses} more)
+                  </span>
+                  
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
+                </motion.button>
+              </div>
+            )}
+          </>
         )}
 
         {/* Empty state */}
