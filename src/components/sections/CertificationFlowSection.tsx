@@ -147,7 +147,7 @@ export const CertificationFlowSection = () => {
 
           {/* Bonus Features - Matching PricingSection UI */}
           <ScrollReveal delay={0.2}>
-            <div className="mb-12">
+            <div id="benefits" className="mb-12 scroll-mt-20">
               {/* Header */}
               <div className="text-center mb-10">
                 <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
@@ -157,7 +157,7 @@ export const CertificationFlowSection = () => {
                   What's <span className="gradient-text">Included</span>
                 </h3>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  Get everything you need to pass your AWS Associate certification exam with our comprehensive support package
+                  These benefits are available only after getting 50% OFF and passing your AWS Associate certification exam. Get everything you need to succeed with our comprehensive support package.
                 </p>
               </div>
               

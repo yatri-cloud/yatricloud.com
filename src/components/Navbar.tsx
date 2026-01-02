@@ -18,6 +18,7 @@ export const Navbar = () => {
 
   const navLinks = [
     { href: "#certification-process", label: "Get Certified" },
+    { href: "#benefits", label: "Benefits" },
     { href: "#courses", label: "Practice Tests" },
     { href: "#resources", label: "Resources" },
     { href: "#team", label: "Team" },

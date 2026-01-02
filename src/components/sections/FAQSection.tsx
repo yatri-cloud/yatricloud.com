@@ -31,7 +31,7 @@ const faqs = [
   },
   { 
     question: "What bonus features are included with my certification?", 
-    answer: "When you complete the certification process with us, you'll receive the following bonus features (available from 01/01/2026): Exam Dumps, Study Resources and materials, Exam Guide, and Personal Support for doubt. These resources are designed to help you prepare effectively and pass your exam with confidence." 
+    answer: "These benefits are available only after getting 50% OFF and passing your AWS Associate certification exam. You'll receive: 50% OFF Vouchers, Exam Dumps & Resources, Udemy Course Free Access, Topmate Free Connect with Yatharth & Nensi, and LinkedIn Recommendation. These resources are designed to help you prepare effectively and pass your exam with confidence." 
   },
   { 
     question: "What happens after I make the payment?", 
