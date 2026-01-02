@@ -119,8 +119,8 @@ export const HeroSection = () => {
                         <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">50% OFF</span>
                         <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Exam Dumps</span>
                         <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Free Udemy</span>
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">Topmate Connect</span>
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">LinkedIn Rec</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold" style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title="Free Topmate Connect">Free Topmate...</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold" style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title="LinkedIn Recommendation">LinkedIn Rec...</span>
                       </div>
                     </div>
                   </div>
