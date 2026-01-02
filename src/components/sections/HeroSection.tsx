@@ -146,7 +146,7 @@ export const HeroSection = () => {
             </motion.div>
           </ScrollReveal>
 
-          {/* Certification Process Section */}
+          {/* Certification Process Section - Moved here */}
           <ScrollReveal delay={0.7}>
             <div id="certification-process" className="mt-20 max-w-6xl mx-auto">
               <div className="text-center mb-12">
@@ -166,22 +166,22 @@ export const HeroSection = () => {
                   {
                     number: "01",
                     title: "Complete Registration",
-                    description: "Make your payment to get started",
+                    description: "Make your payment and get started with the certification process",
                   },
                   {
                     number: "02",
                     title: "Join Support Group",
-                    description: "Get coordination and direct support",
+                    description: "Get exam scheduling coordination and direct support from our team",
                   },
                   {
                     number: "03",
                     title: "Schedule Your Exam",
-                    description: "We'll arrange a call to finalize date and time",
+                    description: "We'll arrange a meeting call to finalize your exam date and time",
                   },
                   {
                     number: "04",
                     title: "Get Certified",
-                    description: "Receive dumps, resources, and support",
+                    description: "Receive exam dumps, study resources, and personal support to ace your exam",
                   },
                 ].map((step, index) => (
                   <motion.div
