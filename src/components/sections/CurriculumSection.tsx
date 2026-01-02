@@ -9,9 +9,35 @@ import type { Course } from "@/data/courses";
 
 /**
  * Check if a course is in draft mode
+ * Draft courses are identified by:
+ * 1. Title contains "draft" (case-insensitive)
+ * 2. Specific known draft course titles (partial match)
  */
 function isDraftCourse(course: Course): boolean {
-  return course.title.toLowerCase().includes('draft');
+  const titleLower = course.title.toLowerCase().trim();
+  
+  // Check if title contains "draft"
+  if (titleLower.includes('draft')) {
+    return true;
+  }
+  
+  // Check for specific known draft courses (partial match)
+  const knownDraftPatterns = [
+    'aws machine learning specialty',
+    'mls-c01',
+    'aws certified developer associate exam preparation',
+    'aws data engineer associate: 6 practice exams',
+    '390 q'
+  ];
+  
+  // Check if title matches any known draft pattern
+  for (const pattern of knownDraftPatterns) {
+    if (titleLower.includes(pattern.toLowerCase())) {
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 /**
