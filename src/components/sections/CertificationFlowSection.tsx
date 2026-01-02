@@ -46,7 +46,7 @@ const steps = [
   {
     number: 3,
     title: "Exam Scheduling",
-    description: "After payment confirmation, our team will schedule your exam only during a meeting call. The meeting will be arranged by our team, and exam date and time will be finalized inside the meeting itself. This ensures correct exam selection and avoids any mistakes.",
+    description: "Our team will schedule your exam during a meeting call. We'll arrange the call and finalize the date and time together to ensure correct exam selection.",
     gradient: "from-purple-500/20 via-pink-500/20 to-rose-500/20",
     action: null,
   },

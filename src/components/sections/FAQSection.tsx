@@ -14,7 +14,7 @@ const faqs = [
   },
   { 
     question: "Step 3: How does the exam scheduling process work?", 
-    answer: "After payment confirmation, our team will schedule your exam only during a meeting call. The meeting will be arranged by our team, and the exam date and time will be finalized inside the meeting itself. This ensures correct exam selection and avoids any mistakes. We handle everything for you to make the process smooth and error-free." 
+    answer: "Our team will schedule your exam during a meeting call. We'll arrange the call and finalize the date and time together to ensure correct exam selection. We handle everything for you to make the process smooth and error-free." 
   },
   { 
     question: "Which AWS Associate exams are eligible for the 50% OFF discount?", 
