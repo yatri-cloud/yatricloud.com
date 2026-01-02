@@ -13,12 +13,31 @@ const eligibleExams = [
 ];
 
 const bonusFeatures = [
-  "50% OFF AWS Associate Exam Vouchers",
-  "Comprehensive Exam Dumps",
-  "Study Resources & Materials",
-  "Free Udemy Course Access",
-  "Free Topmate Sessions with Yatharth & Nensi",
-  "LinkedIn Recommendation",
+  { 
+    text: "50% OFF Vouchers", 
+    description: "Get AWS Associate exam vouchers at half price - limited time offer", 
+    gradient: "from-blue-500/20 to-purple-500/20" 
+  },
+  { 
+    text: "Exam Dumps & Resources", 
+    description: "Comprehensive exam dumps and study resources to help you prepare effectively", 
+    gradient: "from-purple-500/20 to-pink-500/20" 
+  },
+  { 
+    text: "Udemy Course Free Access", 
+    description: "Get free access to our premium Udemy certification courses", 
+    gradient: "from-pink-500/20 to-orange-500/20" 
+  },
+  { 
+    text: "Topmate Free Connect", 
+    description: "Free Topmate sessions with Yatharth Chauhan and Nensi Ravaliya for personalized guidance", 
+    gradient: "from-orange-500/20 to-yellow-500/20" 
+  },
+  { 
+    text: "LinkedIn Recommendation", 
+    description: "Get a professional LinkedIn recommendation from us after certification", 
+    gradient: "from-yellow-500/20 to-green-500/20" 
+  },
 ];
 
 const steps = [
@@ -126,79 +145,63 @@ export const CertificationFlowSection = () => {
             </motion.div>
           </ScrollReveal>
 
-          {/* Bonus Features - Premium Box Design */}
+          {/* Bonus Features - Matching PricingSection UI */}
           <ScrollReveal delay={0.2}>
             <div className="mb-12">
               {/* Header */}
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
-                <div>
-                  <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Bonus Features</h3>
-                  <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
-                </div>
-                <motion.div
-                  className="px-6 py-3 rounded-full bg-gradient-to-r from-primary/30 to-primary/20 border-2 border-primary/40 backdrop-blur-sm"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <span className="text-primary font-bold text-sm md:text-base">Available from 01/01/2026</span>
-                </motion.div>
+              <div className="text-center mb-10">
+                <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
+                  Certification Package
+                </span>
+                <h3 className="text-3xl md:text-5xl font-bold mb-4">
+                  What's <span className="gradient-text">Included</span>
+                </h3>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  Get everything you need to pass your AWS Associate certification exam with our comprehensive support package
+                </p>
               </div>
               
               {/* Individual Benefit Boxes */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {bonusFeatures.map((feature, index) => {
-                  const gradients = [
-                    "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
-                    "from-purple-500/20 via-pink-500/20 to-rose-500/20",
-                    "from-orange-500/20 via-amber-500/20 to-yellow-500/20",
-                    "from-green-500/20 via-emerald-500/20 to-teal-500/20",
-                    "from-indigo-500/20 via-blue-500/20 to-purple-500/20",
-                    "from-red-500/20 via-pink-500/20 to-rose-500/20",
-                  ];
-                  
-                  return (
-                    <ScrollReveal key={index} delay={0.2 + index * 0.1}>
-                      <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.1, duration: 0.6, type: "spring" }}
-                        whileHover={{ y: -8, scale: 1.03 }}
-                        className="group relative bg-gradient-to-br from-card via-card/98 to-card/95 border-2 border-border/60 rounded-2xl p-8 overflow-hidden hover:border-primary/50 transition-all duration-500 shadow-xl hover:shadow-2xl hover:shadow-primary/10"
-                      >
-                        {/* Animated gradient background */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                        
-                        {/* Decorative corner elements */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
-                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full translate-y-12 -translate-x-12 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
-                        
-                        <div className="relative z-10">
-                          {/* Number badge */}
-                          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 mb-5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-primary/10">
-                            <span className="text-xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-                              {index + 1}
-                            </span>
-                          </div>
-                          
-                          {/* Feature text */}
-                          <h4 className="text-xl font-bold text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
-                            {feature}
-                          </h4>
-                          
-                          {/* Decorative line */}
-                          <div className="h-1 w-16 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full group-hover:w-24 transition-all duration-500" />
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+                {bonusFeatures.map((feature, index) => (
+                  <ScrollReveal key={index} delay={0.2 + index * 0.15}>
+                    <motion.div
+                      className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-3xl p-10 overflow-hidden hover:border-primary/40 transition-all duration-500"
+                      whileHover={{ y: -12, scale: 1.04 }}
+                    >
+                      {/* Animated gradient background */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                      
+                      {/* Decorative corner elements */}
+                      <div className="absolute top-0 left-0 w-40 h-40 bg-primary/5 rounded-full -translate-x-20 -translate-y-20 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
+                      <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full translate-x-16 translate-y-16 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
+                      
+                      {/* Content */}
+                      <div className="relative z-10">
+                        {/* Modern badge with number */}
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-primary/10">
+                          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{index + 1}</span>
                         </div>
                         
-                        {/* Bottom accent line */}
-                        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <h4 className="text-2xl font-bold text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
+                          {feature.text}
+                        </h4>
                         
-                        {/* Shine effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                      </motion.div>
-                    </ScrollReveal>
-                  );
-                })}
+                        <div className="h-1.5 w-20 bg-gradient-to-r from-primary via-primary/50 to-primary/0 rounded-full mb-5 group-hover:w-28 transition-all duration-500" />
+                        
+                        <p className="text-base text-muted-foreground leading-relaxed">
+                          {feature.description}
+                        </p>
+                      </div>
+                      
+                      {/* Bottom accent line */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      
+                      {/* Shine effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    </motion.div>
+                  </ScrollReveal>
+                ))}
               </div>
             </div>
           </ScrollReveal>
