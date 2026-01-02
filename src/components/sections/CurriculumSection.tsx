@@ -65,6 +65,10 @@ export const CurriculumSection = () => {
   // Client-side filtering
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
+      // Filter out draft courses
+      const isDraft = course.title.toLowerCase().includes('draft');
+      if (isDraft) return false;
+      
       const matchesSearch = !searchQuery || searchQuery.trim() === "" || 
         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (course.category && course.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
