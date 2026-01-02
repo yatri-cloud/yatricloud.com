@@ -18,7 +18,16 @@ const faqs = [
   },
   { 
     question: "Which AWS Associate exams are eligible for the 50% OFF discount?", 
-    answer: "We offer 50% OFF on the following AWS Associate exams: AWS Cloud Practitioner, AWS AI Practitioner, AWS Certified Solutions Architect – Associate (SAA-C03), AWS Certified Developer – Associate (DVA-C02), AWS Certified CloudOps Engineer – Associate (SOA-C03), AWS Certified Data Engineer – Associate (DEA-C01), and AWS Certified Machine Learning Engineer – Associate (MLA-C01)." 
+    answer: "list",
+    listItems: [
+      "AWS Cloud Practitioner",
+      "AWS AI Practitioner",
+      "AWS Certified Solutions Architect – Associate (SAA-C03)",
+      "AWS Certified Developer – Associate (DVA-C02)",
+      "AWS Certified CloudOps Engineer – Associate (SOA-C03)",
+      "AWS Certified Data Engineer – Associate (DEA-C01)",
+      "AWS Certified Machine Learning Engineer – Associate (MLA-C01)"
+    ]
   },
   { 
     question: "What bonus features are included with my certification?", 
@@ -95,9 +104,23 @@ export const FAQSection = () => {
                     >
                       <div className="px-6 md:px-8 pb-6 md:pb-8">
                         <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-4" />
-                        <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
-                          {faq.answer}
-                        </p>
+                        {faq.answer === "list" && faq.listItems ? (
+                          <div className="text-muted-foreground text-base md:text-lg leading-relaxed">
+                            <p className="mb-4">We offer 50% OFF on the following AWS Associate exams:</p>
+                            <ul className="space-y-2 list-none">
+                              {faq.listItems.map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-3">
+                                  <span className="text-primary mt-1.5 flex-shrink-0">•</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
+                            {faq.answer}
+                          </p>
+                        )}
                       </div>
                     </motion.div>
                   )}
