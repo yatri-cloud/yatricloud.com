@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { CheckCircle2, ExternalLink, MessageCircle, Calendar, CreditCard, Users, Sparkles, ArrowRight, Award, BookOpen, Headphones, FileText } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const eligibleExams = [
@@ -13,10 +13,10 @@ const eligibleExams = [
 ];
 
 const bonusFeatures = [
-  { icon: FileText, text: "Exam Dumps", color: "from-blue-500/20 to-cyan-500/20" },
-  { icon: BookOpen, text: "Study Resources and materials", color: "from-purple-500/20 to-pink-500/20" },
-  { icon: Award, text: "Exam Guide", color: "from-orange-500/20 to-red-500/20" },
-  { icon: Headphones, text: "Personal Support for doubt", color: "from-green-500/20 to-emerald-500/20" },
+  "Exam Dumps",
+  "Study Resources and materials",
+  "Exam Guide",
+  "Personal Support for doubt",
 ];
 
 const steps = [
@@ -24,7 +24,6 @@ const steps = [
     number: 1,
     title: "Complete Your Registration",
     description: "Make your payment to get started with the certification process",
-    icon: CreditCard,
     gradient: "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
     action: {
       label: "Payment Link",
@@ -35,7 +34,6 @@ const steps = [
     number: 2,
     title: "Join the WhatsApp Group",
     description: "This group is used for exam scheduling coordination, important updates, and direct support from our team",
-    icon: MessageCircle,
     gradient: "from-green-500/20 via-emerald-500/20 to-teal-500/20",
     action: {
       label: "WhatsApp Group Link",
@@ -47,7 +45,6 @@ const steps = [
     number: 3,
     title: "Exam Scheduling",
     description: "After payment confirmation, our team will schedule your exam only during a meeting call. The meeting will be arranged by our team, and exam date and time will be finalized inside the meeting itself. This ensures correct exam selection and avoids any mistakes.",
-    icon: Calendar,
     gradient: "from-purple-500/20 via-pink-500/20 to-rose-500/20",
     action: null,
   },
@@ -66,11 +63,10 @@ export const CertificationFlowSection = () => {
         <ScrollReveal>
           <div className="text-center mb-20">
             <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 mb-6"
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-primary font-semibold text-sm uppercase tracking-wider">
                 Get Certified with Yatri Cloud
               </span>
@@ -85,7 +81,7 @@ export const CertificationFlowSection = () => {
         </ScrollReveal>
 
         <div className="max-w-6xl mx-auto">
-          {/* Eligible Exams - Premium Card Design */}
+          {/* Eligible Exams - Clean Card Design */}
           <ScrollReveal delay={0.1}>
             <motion.div
               className="group relative bg-gradient-to-br from-card via-card/98 to-card/95 border-2 border-border/60 rounded-[2rem] p-10 md:p-12 mb-10 overflow-hidden hover:border-primary/50 transition-all duration-700 shadow-2xl"
@@ -99,14 +95,9 @@ export const CertificationFlowSection = () => {
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full translate-y-24 -translate-x-24 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
               
               <div className="relative z-10">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 shadow-lg shadow-primary/10">
-                    <CheckCircle2 className="w-7 h-7 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-1">Eligible AWS Associate Exams</h3>
-                    <div className="h-1 w-24 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
-                  </div>
+                <div className="mb-8">
+                  <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Eligible AWS Associate Exams</h3>
+                  <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -117,9 +108,9 @@ export const CertificationFlowSection = () => {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.08, duration: 0.5 }}
-                      className="group/item flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-card/50 to-card/30 border border-border/40 hover:border-primary/40 hover:bg-card/70 transition-all duration-300"
+                      className="group/item flex items-start gap-4 p-5 rounded-xl bg-gradient-to-br from-card/50 to-card/30 border border-border/40 hover:border-primary/40 hover:bg-card/70 transition-all duration-300"
                     >
-                      <div className="flex-shrink-0 mt-1">
+                      <div className="flex-shrink-0 mt-1.5">
                         <div className="w-2 h-2 rounded-full bg-primary group-hover/item:scale-150 transition-transform duration-300" />
                       </div>
                       <span className="text-foreground text-base leading-relaxed font-medium">{exam}</span>
@@ -133,7 +124,7 @@ export const CertificationFlowSection = () => {
             </motion.div>
           </ScrollReveal>
 
-          {/* Bonus Features - Premium Design */}
+          {/* Bonus Features - Clean Design */}
           <ScrollReveal delay={0.2}>
             <motion.div
               className="group relative bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 border-2 border-primary/40 rounded-[2rem] p-10 md:p-12 mb-12 overflow-hidden shadow-2xl shadow-primary/10"
@@ -148,14 +139,9 @@ export const CertificationFlowSection = () => {
               
               <div className="relative z-10">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/20 border-2 border-primary/40 shadow-lg shadow-primary/20">
-                      <Users className="w-7 h-7 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-1">Bonus Features</h3>
-                      <div className="h-1 w-24 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
-                    </div>
+                  <div>
+                    <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Bonus Features</h3>
+                    <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
                   </div>
                   <motion.div
                     className="px-6 py-3 rounded-full bg-gradient-to-r from-primary/30 to-primary/20 border-2 border-primary/40 backdrop-blur-sm"
@@ -177,14 +163,11 @@ export const CertificationFlowSection = () => {
                       whileHover={{ y: -6, scale: 1.02 }}
                       className="group/item relative p-6 rounded-2xl bg-gradient-to-br from-card/80 via-card/60 to-card/40 border-2 border-border/50 hover:border-primary/50 transition-all duration-500 overflow-hidden"
                     >
-                      {/* Gradient overlay */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover/item:opacity-100 transition-opacity duration-500`} />
-                      
-                      <div className="relative z-10 flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-primary/10 group-hover/item:bg-primary/20 transition-colors">
-                          <feature.icon className="w-6 h-6 text-primary" />
+                      <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-primary" />
+                          <span className="text-foreground font-semibold text-lg">{feature}</span>
                         </div>
-                        <span className="text-foreground font-semibold text-lg">{feature.text}</span>
                       </div>
                       
                       {/* Shine effect */}
@@ -196,7 +179,7 @@ export const CertificationFlowSection = () => {
             </motion.div>
           </ScrollReveal>
 
-          {/* Steps - Premium Timeline Design */}
+          {/* Steps - Clean Timeline Design */}
           <div className="relative">
             {/* Connecting line for steps */}
             <div className="hidden md:block absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/20 via-primary/40 to-primary/20 rounded-full" />
@@ -251,31 +234,24 @@ export const CertificationFlowSection = () => {
                           </div>
 
                           {/* Header */}
-                          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-                            <div className="flex items-center gap-4">
-                              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                                <step.icon className="w-6 h-6 text-primary" />
-                              </div>
-                              <div>
-                                <h3 className="text-2xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors mb-2">
-                                  {step.title}
-                                </h3>
-                                {step.action?.mandatory && (
-                                  <motion.span
-                                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-bold border border-primary/30"
-                                    animate={{ scale: [1, 1.05, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                  >
-                                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                    Mandatory
-                                  </motion.span>
-                                )}
-                              </div>
+                          <div className="mb-6">
+                            <div className="flex items-center gap-3 mb-3">
+                              <h3 className="text-2xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">
+                                {step.title}
+                              </h3>
+                              {step.action?.mandatory && (
+                                <motion.span
+                                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-bold border border-primary/30"
+                                  animate={{ scale: [1, 1.05, 1] }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                >
+                                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                  Mandatory
+                                </motion.span>
+                              )}
                             </div>
+                            <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full group-hover:w-40 transition-all duration-500" />
                           </div>
-                          
-                          {/* Decorative line */}
-                          <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full mb-6 group-hover:w-40 transition-all duration-500" />
                           
                           {/* Description */}
                           <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 group-hover:text-foreground/80 transition-colors">
@@ -317,7 +293,7 @@ export const CertificationFlowSection = () => {
             </div>
           </div>
 
-          {/* Thank You Message - Premium Design */}
+          {/* Thank You Message - Clean Design */}
           <ScrollReveal delay={0.7}>
             <motion.div
               className="mt-16 relative"
@@ -335,13 +311,6 @@ export const CertificationFlowSection = () => {
                 <div className="absolute bottom-0 right-1/4 w-40 h-40 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
                 
                 <div className="relative z-10">
-                  <motion.div
-                    className="inline-flex items-center gap-2 mb-6"
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  >
-                    <Sparkles className="w-6 h-6 text-primary" />
-                  </motion.div>
                   <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                     Thank you for trusting <span className="gradient-text">Yatri Cloud</span>
                   </h3>
