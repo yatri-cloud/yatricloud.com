@@ -31,7 +31,7 @@ const faqs = [
   },
   { 
     question: "What bonus features are included with my certification?", 
-    answer: "These benefits are available only after getting 50% OFF and passing your AWS Associate certification exam. You'll receive: 50% OFF Vouchers, Exam Dumps & Resources, Udemy Course Free Access, Topmate Free Connect with Yatharth & Nensi, and LinkedIn Recommendation. These resources are designed to help you prepare effectively and pass your exam with confidence." 
+    answer: "These benefits are available only after getting 50% OFF. You'll receive: 50% OFF Vouchers, Exam Dumps & Resources, Udemy Course Free Access, Topmate Free Connect with Yatharth & Nensi, and LinkedIn Recommendation. These resources are designed to help you prepare effectively and pass your exam with confidence." 
   },
   { 
     question: "What happens after I make the payment?", 

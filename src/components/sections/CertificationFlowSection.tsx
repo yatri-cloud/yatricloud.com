@@ -157,7 +157,7 @@ export const CertificationFlowSection = () => {
                   What's <span className="gradient-text">Included</span>
                 </h3>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  These benefits are available only after getting 50% OFF and passing your AWS Associate certification exam. Get everything you need to succeed with our comprehensive support package.
+                  These benefits are available only after getting 50% OFF. Get everything you need to succeed with our comprehensive support package.
                 </p>
               </div>
               
