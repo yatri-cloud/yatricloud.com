@@ -3,19 +3,19 @@ import { Check, X } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const forYouPoints = [
-  "You want to get AWS Associate certified at 50% OFF",
-  "You need exam dumps and study resources to pass",
-  "You value personal support and guidance throughout",
-  "You're ready to follow a structured certification process",
-  "You want to join a supportive community of learners",
+  "You want to get AWS Associate certified with 50% OFF vouchers",
+  "You're ready to complete registration and join our WhatsApp group",
+  "You need exam dumps, study resources, and personal support",
+  "You value guided exam scheduling through our team's meeting calls",
+  "You want a complete certification package with full support",
 ];
 
 const notForYouPoints = [
-  "You want completely free certification vouchers",
-  "You prefer to schedule exams without support",
-  "You don't want to join a WhatsApp group",
+  "You want completely free certification vouchers without payment",
+  "You prefer to schedule exams independently without our support",
+  "You don't want to join the mandatory WhatsApp group",
   "You're not interested in exam dumps or study materials",
-  "You prefer to handle everything independently",
+  "You want to handle the entire certification process yourself",
 ];
 
 export const TrustSection = () => {
@@ -128,10 +128,10 @@ export const TrustSection = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
                 <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
-                  Expert-Crafted Content
+                  50% OFF Vouchers
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Created by certified cloud professionals with hands-on industry experience.
+                  Get AWS Associate exam vouchers at half price with our limited-time offer for eligible exams.
                 </p>
               </div>
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
