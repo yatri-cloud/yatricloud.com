@@ -166,22 +166,22 @@ export const HeroSection = () => {
                   {
                     number: "01",
                     title: "Complete Registration",
-                    description: "Make your payment and get started with the certification process",
+                    description: "Make your payment to get started",
                   },
                   {
                     number: "02",
                     title: "Join Support Group",
-                    description: "Get exam scheduling coordination and direct support from our team",
+                    description: "Get coordination and direct support",
                   },
                   {
                     number: "03",
                     title: "Schedule Your Exam",
-                    description: "We'll arrange a meeting call to finalize your exam date and time",
+                    description: "We'll arrange a call to finalize date and time",
                   },
                   {
                     number: "04",
                     title: "Get Certified",
-                    description: "Receive exam dumps, study resources, and personal support to ace your exam",
+                    description: "Receive dumps, resources, and support",
                   },
                 ].map((step, index) => (
                   <motion.div
