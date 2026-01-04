@@ -145,6 +145,15 @@
     background-image: linear-gradient(135deg, hsl(210 100% 50%), hsl(200 100% 55%));
   }
 
+  /* Scrollbar hide */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Glow effects */
   .glow-orange {
     box-shadow: var(--glow-blue);

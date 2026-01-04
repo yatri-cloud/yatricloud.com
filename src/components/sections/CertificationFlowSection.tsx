@@ -213,18 +213,6 @@ export const CertificationFlowSection = () => {
 
           {/* Steps - Enhanced Timeline Design */}
           <div className="relative pl-0 md:pl-20">
-            {/* Connecting line for steps - Behind the numbers */}
-            <div className="hidden md:block absolute left-10 top-0 bottom-0 w-0.5">
-              <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-primary/30 to-primary/10 rounded-full" />
-              {/* Animated progress line */}
-              <motion.div
-                className="absolute top-0 left-0 w-full bg-gradient-to-b from-primary via-primary/80 to-primary rounded-full origin-top"
-                initial={{ scaleY: 0 }}
-                whileInView={{ scaleY: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-              />
-            </div>
             
             <div className="space-y-12">
               {steps.map((step, index) => (
@@ -240,12 +228,14 @@ export const CertificationFlowSection = () => {
                       {/* Step Number Badge - Desktop */}
                       <div className="hidden md:flex flex-shrink-0 relative z-20 -ml-10">
                         <motion.div
-                          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-card via-card/95 to-card/90 border-4 border-primary/40 flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative"
+                          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-card via-card to-card border-4 border-primary/40 flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative backdrop-blur-sm"
                           whileHover={{ rotate: 360 }}
                           transition={{ duration: 0.6 }}
                         >
+                          {/* Solid background to cover the line */}
+                          <div className="absolute inset-0 rounded-2xl bg-card" />
                           {/* Background circle behind number */}
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 blur-sm" />
+                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10" />
                           <span className="relative z-10 text-3xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
                             {step.number}
                           </span>
@@ -269,8 +259,10 @@ export const CertificationFlowSection = () => {
                         <div className="relative z-10">
                           {/* Step Number Badge - Mobile */}
                           <div className="md:hidden flex items-center gap-4 mb-6">
-                            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-card via-card/95 to-card/90 border-4 border-primary/40 flex items-center justify-center shadow-lg">
-                              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 blur-sm" />
+                            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-card via-card to-card border-4 border-primary/40 flex items-center justify-center shadow-lg backdrop-blur-sm">
+                              {/* Solid background */}
+                              <div className="absolute inset-0 rounded-2xl bg-card" />
+                              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10" />
                               <span className="relative z-10 text-2xl font-black bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                                 {step.number}
                               </span>

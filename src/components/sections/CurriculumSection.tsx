@@ -4,9 +4,8 @@ import { Search, ExternalLink, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ScrollReveal from "@/components/ScrollReveal";
-import { useUdemyCourses } from "@/hooks/use-udemy-courses";
+import { useUdemySheets } from "@/hooks/use-udemy-sheets";
 import type { Course } from "@/data/courses";
-import { DRAFT_COURSE_PATTERNS } from "@/lib/udemy-api";
 
 /**
  * Check if a course is in draft mode
@@ -18,47 +17,43 @@ import { DRAFT_COURSE_PATTERNS } from "@/lib/udemy-api";
  * Note: Courses returned by the Udemy API are typically published.
  * We mark as draft if explicitly indicated in title, missing URL, or matches draft patterns.
  */
-function isDraftCourse(course: Course): boolean {
-  const titleLower = course.title.toLowerCase().trim();
-  
-  // Check if title contains "draft"
-  if (titleLower.includes('draft')) {
-    return true;
-  }
-  
-  // Check against known draft course patterns
-  for (const pattern of DRAFT_COURSE_PATTERNS) {
-    if (titleLower.includes(pattern.toLowerCase())) {
-      return true;
-    }
-  }
-  
-  // If course doesn't have a valid Udemy URL, it's likely not published
-  if (!course.udemyUrl || course.udemyUrl === '#' || !course.udemyUrl.includes('udemy.com')) {
-    return true;
-  }
-  
-  // Course has valid URL and no "draft" in title - it's published
-  return false;
-}
-
 /**
- * Get fallback image URL from course URL
- * Uses proxy server to avoid Access Denied errors
+ * Get fallback image URL
  */
-function getFallbackImageUrl(courseUrl: string): string {
-  if (!courseUrl) {
+function getFallbackImageUrl(courseUrl: string, thumbnail?: string): string {
+  // Use provided thumbnail if available
+  if (thumbnail) {
+    return thumbnail;
+  }
+  
+  // Fallback to default image
     return 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
   }
   
-  const urlMatch = courseUrl.match(/\/course\/([^\/\?]+)/);
-  if (urlMatch && urlMatch[1]) {
-    const courseSlug = urlMatch[1].trim();
-    const proxyUrl = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
-    return `${proxyUrl}/api/udemy/image/${courseSlug}`;
+/**
+ * Capitalize category name properly
+ */
+function capitalizeCategory(category: string): string {
+  if (!category) return category;
+  
+  // Handle special cases
+  const specialCases: Record<string, string> = {
+    'ai': 'AI',
+    'devops': 'DevOps',
+    'gcp': 'GCP',
+    'aws': 'AWS',
+  };
+  
+  const lowerCategory = category.toLowerCase();
+  if (specialCases[lowerCategory]) {
+    return specialCases[lowerCategory];
   }
   
-  return 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
+  // Capitalize first letter of each word
+  return category
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
 }
 
 export const CurriculumSection = () => {
@@ -68,8 +63,8 @@ export const CurriculumSection = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [visibleCourses, setVisibleCourses] = useState(6); // Show 3x2 = 6 courses initially
 
-  // Fetch courses from Udemy API
-  const { courses, isLoading, error, refetch, creators } = useUdemyCourses({
+  // Fetch courses from Google Sheets
+  const { courses, isLoading, error, refetch, creators } = useUdemySheets({
     enabled: true,
   });
 
@@ -270,7 +265,7 @@ export const CurriculumSection = () => {
                       <option value="All">All Categories</option>
                       {availableFilters.categories.map((category) => (
                     <option key={category} value={category}>
-                      {category}
+                      {capitalizeCategory(category)}
                     </option>
                   ))}
                   </select>
@@ -324,25 +319,16 @@ export const CurriculumSection = () => {
                       >
                   {/* Course Image */}
                   <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
-                    {isDraftCourse(course) ? (
-                      <div className="h-full w-full bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center">
-                        <div className="text-center p-6">
-                          <div className="text-4xl font-bold text-primary mb-2">Coming Soon</div>
-                          <div className="text-sm text-muted-foreground">This course is being prepared</div>
-                        </div>
-                      </div>
-                    ) : (
-                      <img
-                        src={course.thumbnail || getFallbackImageUrl(course.udemyUrl)}
+                    <img
+                      src={course.thumbnail || getFallbackImageUrl(course.udemyUrl, course.thumbnail)}
                         alt={course.title}
                         className="w-full h-full object-cover"
                         loading="lazy"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = getFallbackImageUrl(course.udemyUrl);
+                        target.src = getFallbackImageUrl(course.udemyUrl, course.thumbnail);
                         }}
                       />
-                    )}
                   </div>
 
                 <div className="flex items-start justify-between mb-4">
@@ -354,7 +340,7 @@ export const CurriculumSection = () => {
                       )}
                       {course.category && course.category !== 'General' && (
                     <span className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded">
-                      {course.category}
+                      {capitalizeCategory(course.category)}
                     </span>
                       )}
                   </div>
@@ -371,11 +357,6 @@ export const CurriculumSection = () => {
                 </div>
                   )}
                 
-                {isDraftCourse(course) ? (
-                  <div className="w-full bg-muted text-muted-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
-                    <span>Coming Soon</span>
-                  </div>
-                ) : (
                   <motion.a
                     href={course.udemyUrl}
                     target="_blank"
@@ -393,7 +374,6 @@ export const CurriculumSection = () => {
                     {/* Glow effect */}
                     <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
                   </motion.a>
-                )}
                       </motion.div>
                     </ScrollReveal>
                   </motion.div>

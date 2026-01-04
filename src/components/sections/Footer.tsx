@@ -64,7 +64,6 @@ export const Footer = () => {
                   <span className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
                     Yatri Cloud
                   </span>
-                  <span className="text-xs text-muted-foreground">AWS Certification Support</span>
                 </div>
               </a>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">

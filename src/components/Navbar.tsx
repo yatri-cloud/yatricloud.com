@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,7 +23,7 @@ export const Navbar = () => {
     { href: "#certification-process", label: "Get Certified" },
     { href: "#benefits", label: "Benefits" },
     { href: "#courses", label: "Practice Tests" },
-    { href: "#resources", label: "Resources" },
+    { href: "/achievements", label: "Achievements" },
     { href: "#team", label: "Team" },
     { href: "#faq", label: "FAQ" },
   ];
@@ -57,10 +60,31 @@ export const Navbar = () => {
                   onClick={(e) => {
                     if (link.href.startsWith('#')) {
                       e.preventDefault();
+                      // Check if we're on the homepage
+                      const isHomePage = location.pathname === '/' || location.pathname === '';
+                      
+                      if (isHomePage) {
+                        // On homepage, just scroll to section
+                        const element = document.querySelector(link.href);
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      } else {
+                        // On other pages, navigate to homepage first, then scroll after a delay
+                        navigate('/');
+                        setTimeout(() => {
                       const element = document.querySelector(link.href);
                       if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       }
+                        }, 100);
+                      }
+                    } else {
+                      // For non-hash links like /achievements, use React Router navigation
+                      e.preventDefault();
+                      navigate(link.href);
+                      // Scroll to top when navigating to a new page
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}
                   className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium"
@@ -74,16 +98,14 @@ export const Navbar = () => {
             <div className="hidden md:flex items-center gap-4">
               <ThemeToggle />
               <motion.a
-                href="https://pages.razorpay.com/stores/yatricloud"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/certifiedyatris"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 className="group relative bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
               >
                 {/* Shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                <span className="relative z-10 text-sm">Get Your 50% OFF</span>
+                <span className="relative z-10 text-sm">Get Started</span>
                 {/* Glow effect */}
                 <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
               </motion.a>
@@ -117,10 +139,31 @@ export const Navbar = () => {
                   onClick={(e) => {
                     if (link.href.startsWith('#')) {
                       e.preventDefault();
+                      // Check if we're on the homepage
+                      const isHomePage = location.pathname === '/' || location.pathname === '';
+                      
+                      if (isHomePage) {
+                        // On homepage, just scroll to section
+                        const element = document.querySelector(link.href);
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      } else {
+                        // On other pages, navigate to homepage first, then scroll after a delay
+                        navigate('/');
+                        setTimeout(() => {
                       const element = document.querySelector(link.href);
                       if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       }
+                        }, 100);
+                      }
+                    } else {
+                      // For non-hash links like /achievements, use React Router navigation
+                      e.preventDefault();
+                      navigate(link.href);
+                      // Scroll to top when navigating to a new page
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                     setIsMobileMenuOpen(false);
                   }}
@@ -132,9 +175,7 @@ export const Navbar = () => {
               <div className="flex items-center gap-4 mt-4">
                 <ThemeToggle />
                 <motion.a
-                  href="https://pages.razorpay.com/stores/yatricloud"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/certifiedyatris"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -142,7 +183,7 @@ export const Navbar = () => {
                 >
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  <span className="relative z-10">Get Your 50% OFF</span>
+                  <span className="relative z-10">Get Started</span>
                   {/* Glow effect */}
                   <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
                 </motion.a>

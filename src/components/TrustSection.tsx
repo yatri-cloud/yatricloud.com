@@ -119,90 +119,109 @@ export const TrustSection = () => {
         </ScrollReveal>
 
         {/* Features */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mb-16 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-16 max-w-7xl mx-auto">
           <ScrollReveal delay={0.4}>
         <motion.div
-              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -6, scale: 1.02 }}
+              className="group relative bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/5 border-2 border-amber-500/20 rounded-2xl p-6 hover:border-amber-500/40 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -8, scale: 1.03 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
-                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-2xl font-black text-amber-500">1</span>
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
                   50% OFF Vouchers
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Get AWS Associate exam vouchers at half price - limited time offer.
                 </p>
               </div>
-              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-amber-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
+          
           <ScrollReveal delay={0.5}>
             <motion.div
-              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -6, scale: 1.02 }}
+              className="group relative bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-indigo-500/5 border-2 border-blue-500/20 rounded-2xl p-6 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -8, scale: 1.03 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
-                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-2xl font-black text-blue-500">2</span>
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
                   Complete Support Package
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Exam dumps, study resources, guides, and personal support included.
                 </p>
               </div>
-              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-blue-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
+          
           <ScrollReveal delay={0.6}>
               <motion.div
-              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -6, scale: 1.02 }}
+              className="group relative bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-rose-500/5 border-2 border-purple-500/20 rounded-2xl p-6 hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -8, scale: 1.03 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
-                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-2xl font-black text-purple-500">3</span>
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
                   Guided Exam Scheduling
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Our team schedules your exam via personal meeting call for correct setup.
                 </p>
               </div>
-              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-purple-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
+          
           <ScrollReveal delay={0.7}>
             <motion.div
-              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -6, scale: 1.02 }}
+              className="group relative bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/5 border-2 border-green-500/20 rounded-2xl p-6 hover:border-green-500/40 hover:shadow-xl hover:shadow-green-500/20 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -8, scale: 1.03 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
-                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-2xl font-black text-green-500">4</span>
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
                   Personal Support
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Direct support from our team via WhatsApp group for guidance and assistance.
                 </p>
               </div>
-              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-green-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
+          
           <ScrollReveal delay={0.8}>
             <motion.div
-              className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-2xl p-8 hover:border-primary/40 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -6, scale: 1.02 }}
+              className="group relative bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-orange-500/5 border-2 border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-500/40 hover:shadow-xl hover:shadow-yellow-500/20 transition-all duration-500 overflow-hidden"
+              whileHover={{ y: -8, scale: 1.03 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative z-10">
-                <h3 className="text-lg font-bold text-foreground mb-3 leading-tight">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-500/20 to-amber-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-2xl font-black text-yellow-500">5</span>
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
                   Yatri Wall of Fame
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Get featured on our Wall of Fame after successfully passing your AWS certification.
                 </p>
               </div>
-              <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors duration-500" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-yellow-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
         </div>

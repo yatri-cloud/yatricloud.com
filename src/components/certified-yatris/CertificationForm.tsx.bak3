@@ -1,0 +1,539 @@
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CheckCircle2, Loader2, Upload, X, Calendar } from "lucide-react";
+import { submitCertification, fetchCertifications } from "@/lib/google-sheets";
+import { useToast } from "@/hooks/use-toast";
+import { Country } from "country-state-city";
+import { parsePhoneNumber } from "libphonenumber-js";
+import { Checkbox } from "@/components/ui/checkbox";
+
+interface CertificationFormData {
+  fullName: string;
+  email: string;
+  certificationProvider: string;
+  selectedCertifications: string[]; // Array of certification values
+  certificationDate: string;
+  linkedinUrl: string;
+  verifiedCredential: string;
+  country: string;
+  stateProvince: string;
+  city: string;
+  countryCode: string;
+  phoneNumber: string;
+  photo: File | null;
+  additionalNotes?: string;
+}
+
+interface SelectedCertification {
+  value: string;
+  label: string;
+  code: string;
+}
+
+const CERTIFICATION_PROVIDERS = [
+  { value: "aws", label: "AWS" },
+  { value: "azure", label: "Azure" },
+  { value: "gcp", label: "Google Cloud" },
+  { value: "kubernetes", label: "Kubernetes" },
+  { value: "terraform", label: "Terraform" },
+  { value: "other", label: "Other" },
+];
+
+const AWS_CERTIFICATIONS = [
+  { value: "cloud-practitioner", label: "AWS Certified Cloud Practitioner", code: "CLF-C02" },
+  { value: "solutions-architect-associate", label: "AWS Certified Solutions Architect - Associate", code: "SAA-C03" },
+  { value: "developer-associate", label: "AWS Certified Developer - Associate", code: "DVA-C02" },
+  { value: "sysops-associate", label: "AWS Certified SysOps Administrator - Associate", code: "SOA-C02" },
+  { value: "cloudops-associate", label: "AWS Certified CloudOps Engineer - Associate", code: "SOA-C03" },
+  { value: "solutions-architect-professional", label: "AWS Certified Solutions Architect - Professional", code: "SAP-C02" },
+  { value: "devops-engineer-professional", label: "AWS Certified DevOps Engineer - Professional", code: "DOP-C02" },
+  { value: "security-specialty", label: "AWS Certified Security - Specialty", code: "SCS-C02" },
+  { value: "machine-learning-specialty", label: "AWS Certified Machine Learning - Specialty", code: "MLS-C01" },
+  { value: "data-engineer-associate", label: "AWS Certified Data Engineer - Associate", code: "DEA-C01" },
+  { value: "ai-practitioner", label: "AWS Certified AI Practitioner", code: "AIF-C01" },
+  { value: "genai-developer", label: "AWS GenAI Developer Professional", code: "GENAI" },
+];
+
+const AZURE_CERTIFICATIONS = [
+  { value: "az-900", label: "Azure Fundamentals", code: "AZ-900" },
+  { value: "az-104", label: "Azure Administrator Associate", code: "AZ-104" },
+  { value: "az-204", label: "Azure Developer Associate", code: "AZ-204" },
+  { value: "az-305", label: "Azure Solutions Architect Expert", code: "AZ-305" },
+  { value: "az-400", label: "Azure DevOps Engineer Expert", code: "AZ-400" },
+  { value: "az-500", label: "Azure Security Engineer Associate", code: "AZ-500" },
+  { value: "az-700", label: "Azure Network Engineer Associate", code: "AZ-700" },
+  { value: "ai-900", label: "Azure AI Fundamentals", code: "AI-900" },
+  { value: "ai-102", label: "Azure AI Engineer Associate", code: "AI-102" },
+];
+
+// Get all countries from country-state-city library
+const getAllCountries = () => {
+  return Country.getAllCountries().map(country => ({
+    value: country.isoCode,
+    label: country.name,
+    phoneCode: country.phonecode
+  }));
+};
+
+interface CertificationCredential {
+  certificationValue: string;
+  certificationName: string;
+  examCode: string;
+  certificationDate: string;
+  verifiedCredential: string;
+  additionalNotes?: string;
+}
+
+export const CertificationForm = () => {
+  const { toast } = useToast();
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [existingCertifications, setExistingCertifications] = useState<any[]>([]);
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  
+  // Multi-step form state
+  const [currentStep, setCurrentStep] = useState<'selection' | 'common-info' | 'credentials'>('selection');
+  const [currentCertIndex, setCurrentCertIndex] = useState(0);
+  const [certificationCredentials, setCertificationCredentials] = useState<CertificationCredential[]>([]);
+  
+  // Location state management - removed state fetching, only manual entry
+  
+  // Get all countries
+  const countries = getAllCountries();
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+    reset,
+  } = useForm<CertificationFormData>({
+    defaultValues: {
+      fullName: "",
+      email: "",
+      certificationProvider: "",
+      selectedCertifications: [],
+      linkedinUrl: "",
+      country: "",
+      stateProvince: "",
+      city: "",
+      countryCode: "",
+      phoneNumber: "",
+      photo: null,
+    },
+  });
+
+  // Separate form for certification credentials
+  const {
+    register: registerCredential,
+    handleSubmit: handleSubmitCredential,
+    formState: { errors: credentialErrors },
+    setValue: setCredentialValue,
+    watch: watchCredential,
+    reset: resetCredential,
+  } = useForm<{
+    certificationDate: string;
+    verifiedCredential: string;
+    additionalNotes?: string;
+  }>({
+    defaultValues: {
+      certificationDate: "",
+      verifiedCredential: "",
+      additionalNotes: "",
+    },
+  });
+
+  const selectedProvider = watch("certificationProvider");
+  const selectedCertifications = watch("selectedCertifications") || [];
+  const email = watch("email");
+  const selectedCountry = watch("country");
+  const countryCode = watch("countryCode");
+
+  // Load existing certifications on mount for duplicate checking
+  useEffect(() => {
+    const loadExistingCertifications = async () => {
+      try {
+        const certs = await fetchCertifications();
+        setExistingCertifications(certs);
+      } catch (error) {
+        console.error("Error loading existing certifications:", error);
+        // Continue anyway - duplicate check will be done on submit
+      }
+    };
+    loadExistingCertifications();
+  }, []);
+
+  // Auto-set country code for phone number when country changes
+  useEffect(() => {
+    if (selectedCountry) {
+      const countryData = countries.find(c => c.value === selectedCountry);
+      if (countryData && countryData.phoneCode) {
+        setValue("countryCode", `+${countryData.phoneCode}`);
+      }
+    }
+  }, [selectedCountry, setValue, countries]);
+
+  // Get certifications based on provider
+  const getCertifications = () => {
+    if (selectedProvider === "aws") return AWS_CERTIFICATIONS;
+    if (selectedProvider === "azure") return AZURE_CERTIFICATIONS;
+    return [];
+  };
+
+  // Check for duplicate submission
+  const checkDuplicate = (email: string, certificationName: string, examCode: string): boolean => {
+    if (!email || !certificationName || !examCode) return false;
+    
+    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedCertName = certificationName.toLowerCase().trim();
+    const normalizedExamCode = examCode.toLowerCase().trim();
+
+    return existingCertifications.some((cert) => {
+      const existingEmail = (cert.email || "").toLowerCase().trim();
+      const existingCertName = (cert.certificationName || "").toLowerCase().trim();
+      const existingExamCode = (cert.examCode || "").toLowerCase().trim();
+
+      return (
+        existingEmail === normalizedEmail &&
+        existingCertName === normalizedCertName &&
+        existingExamCode === normalizedExamCode
+      );
+    });
+  };
+
+  // Handle certification toggle (multiple selection)
+  const handleCertificationToggle = (certValue: string, checked: boolean) => {
+    const current = selectedCertifications || [];
+    if (checked) {
+      // Only add if not already in the array
+      if (!current.includes(certValue)) {
+        setValue("selectedCertifications", [...current, certValue], { shouldValidate: true });
+      }
+    } else {
+      // Remove from array
+      setValue("selectedCertifications", current.filter(v => v !== certValue), { shouldValidate: true });
+    }
+  };
+
+  // Handle "Done" button - move to common info step
+  const handleDoneSelection = () => {
+    if (selectedCertifications.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one certification.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Initialize credentials array for each selected certification
+    const certifications = getCertifications();
+    const initialCredentials: CertificationCredential[] = selectedCertifications.map(certValue => {
+      const cert = certifications.find(c => c.value === certValue);
+      return {
+        certificationValue: certValue,
+        certificationName: cert?.label || '',
+        examCode: cert?.code || '',
+        certificationDate: '',
+        verifiedCredential: '',
+        additionalNotes: '',
+      };
+    });
+    setCertificationCredentials(initialCredentials);
+    setCurrentStep('common-info');
+  };
+
+  // Handle common info submission - move to credentials step
+  const handleCommonInfoSubmit = (data: CertificationFormData) => {
+    setCurrentStep('credentials');
+    setCurrentCertIndex(0);
+  };
+
+  // Handle credential submission for current certification
+  const handleCredentialSubmit = (credentialData: { certificationDate: string; verifiedCredential: string; additionalNotes?: string }) => {
+    const updated = [...certificationCredentials];
+    updated[currentCertIndex] = {
+      ...updated[currentCertIndex],
+      ...credentialData,
+    };
+    setCertificationCredentials(updated);
+
+    // Move to next certification or submit all
+    if (currentCertIndex < certificationCredentials.length - 1) {
+      setCurrentCertIndex(currentCertIndex + 1);
+      resetCredential();
+      // Pre-fill next certification's exam code if available
+      const nextCert = updated[currentCertIndex + 1];
+      if (nextCert) {
+        setCredentialValue('certificationDate', '');
+        setCredentialValue('verifiedCredential', '');
+        setCredentialValue('additionalNotes', '');
+      }
+    } else {
+      // All credentials collected, submit everything
+      submitAllCertifications();
+    }
+  };
+
+  // Submit all certifications with their credentials
+  const submitAllCertifications = async () => {
+    setIsSubmitting(true);
+    try {
+      const commonData = watch();
+      const sheetName = selectedProvider === "aws" 
+        ? "certified-aws-yatris" 
+        : selectedProvider === "azure"
+        ? "certified-azure-yatris"
+        : selectedProvider === "gcp"
+        ? "certified-gcp-yatris"
+        : selectedProvider === "kubernetes"
+        ? "certified-kubernetes-yatris"
+        : selectedProvider === "terraform"
+        ? "certified-terraform-yatris"
+        : "certified-other-yatris";
+
+      const submissionPromises = certificationCredentials.map(async (cred) => {
+        // Check for duplicates
+        if (checkDuplicate(commonData.email, cred.certificationName, cred.examCode)) {
+          console.warn(`Skipping duplicate: ${cred.certificationName} for ${commonData.email}`);
+          return null;
+        }
+
+        const subSheetName = `${cred.examCode}: ${cred.certificationName}`;
+
+        return await submitCertification({
+          fullName: commonData.fullName,
+          email: commonData.email,
+          certificationProvider: selectedProvider,
+          certificationName: cred.certificationName,
+          examCode: cred.examCode,
+          certificationDate: cred.certificationDate,
+          linkedinUrl: commonData.linkedinUrl,
+          verifiedCredential: cred.verifiedCredential,
+          country: commonData.country,
+          stateProvince: commonData.stateProvince,
+          city: commonData.city,
+          countryCode: commonData.countryCode,
+          phoneNumber: commonData.phoneNumber,
+          photo: commonData.photo,
+          additionalNotes: cred.additionalNotes || '',
+          sheetName,
+          subSheetName,
+        });
+      });
+
+      const results = await Promise.all(submissionPromises);
+      const successful = results.filter(r => r !== null).length;
+      const total = certificationCredentials.length;
+
+      setIsSuccess(true);
+      reset();
+      resetCredential();
+      setPhotoPreview(null);
+      setCurrentStep('selection');
+      setCurrentCertIndex(0);
+      setCertificationCredentials([]);
+      
+      toast({
+        title: "Success! 🎉",
+        description: `Successfully submitted ${successful} of ${total} certification${total > 1 ? 's' : ''}!`,
+      });
+    } catch (error: any) {
+      console.error("Error submitting certifications:", error);
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to submit certifications. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle photo upload
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setValue("photo", file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle form submission
+  const onSubmit = async (data: CertificationFormData) => {
+    // Validate required fields
+    // Validate location fields
+    if (!data.country) {
+      toast({
+        title: "Validation Error",
+        description: "Please select your country",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!data.city) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter your city",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedProvider) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a certification provider",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation is now handled in the submission function
+
+    if (!photoPreview || !data.photo) {
+      toast({
+        title: "Validation Error",
+        description: "Please upload your photo",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for duplicate submission
+    setIsCheckingDuplicates(true);
+    try {
+      // Refresh certifications list before checking
+      const currentCerts = await fetchCertifications();
+      setExistingCertifications(currentCerts);
+      // Duplicate checking is now done per certification in the submission loop
+    } catch (error) {
+      console.error("Error checking duplicates:", error);
+      // Continue with submission if duplicate check fails
+    } finally {
+      setIsCheckingDuplicates(false);
+    }
+
+    setIsSubmitting(true);
+    setIsSuccess(false);
+
+    try {
+      // Validate that at least one certification is selected
+      if (!data.selectedCertifications || data.selectedCertifications.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please select at least one certification.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Determine sheet name based on provider
+      const sheetName = selectedProvider === "aws" 
+        ? "certified-aws-yatris" 
+        : selectedProvider === "azure"
+        ? "certified-azure-yatris"
+        : selectedProvider === "gcp"
+        ? "certified-gcp-yatris"
+        : selectedProvider === "kubernetes"
+        ? "certified-kubernetes-yatris"
+        : selectedProvider === "terraform"
+        ? "certified-terraform-yatris"
+        : "certified-other-yatris";
+
+      // Get all certifications for the provider
+      const certifications = getCertifications();
+      
+      // Submit each selected certification separately
+      const submissionPromises = data.selectedCertifications.map(async (certValue) => {
+        const selectedCert = certifications.find((c) => c.value === certValue);
+        if (!selectedCert) {
+          throw new Error(`Certification not found: ${certValue}`);
+        }
+
+        const fullCertificationName = selectedCert.label;
+        const examCode = selectedCert.code;
+
+        // Check for duplicates before submitting
+        if (checkDuplicate(data.email, fullCertificationName, examCode)) {
+          console.warn(`Skipping duplicate: ${fullCertificationName} for ${data.email}`);
+          return null; // Skip this one
+        }
+
+        // Create sub-sheet name in format: "Exam Code: Certification Name"
+        const subSheetName = `${examCode}: ${fullCertificationName}`;
+
+        // Submit to Google Sheets
+        return await submitCertification({
+          fullName: data.fullName,
+          email: data.email,
+          certificationProvider: selectedProvider,
+          certificationName: fullCertificationName,
+          examCode: examCode,
+          certificationDate: data.certificationDate,
+          linkedinUrl: data.linkedinUrl,
+          verifiedCredential: data.verifiedCredential,
+          country: data.country,
+          stateProvince: data.stateProvince,
+          city: data.city,
+          countryCode: data.countryCode,
+          phoneNumber: data.phoneNumber,
+          photo: data.photo,
+          additionalNotes: data.additionalNotes,
+          sheetName,
+          subSheetName,
+        });
+      });
+
+      // Wait for all submissions to complete
+      const results = await Promise.all(submissionPromises);
+      const successful = results.filter(r => r !== null).length;
+      const total = data.selectedCertifications.length;
+
+      setIsSuccess(true);
+      reset();
+      setPhotoPreview(null);
+      
+      toast({
+        title: "Success! 🎉",
+        description: `Successfully submitted ${successful} of ${total} certification${total > 1 ? 's' : ''}!`,
+      });
+    } catch (error: any) {
+      console.error("Error submitting certification:", error);
+      const errorMessage = error?.message || "Failed to submit certification. Please try again.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };

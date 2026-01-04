@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Play, Sparkles } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import CountdownTimer from "@/components/CountdownTimer";
 import ScrollReveal from "@/components/ScrollReveal";
 
 export const HeroSection = () => {
-  // Set target date to January 4, 2026 (end of New Year offer)
-  const targetDate = new Date('2026-01-04T23:59:59');
+  // Set target date to January 31, 2026 (end of New Year offer)
+  const targetDate = new Date('2026-01-31T23:59:59');
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -23,7 +23,7 @@ export const HeroSection = () => {
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <span className="text-primary text-sm font-semibold">🎉 New Year 2026 Week Offer</span>
+              <span className="text-primary text-sm font-semibold">🎉 New Year 2026 Offer</span>
               <div className="w-px h-4 bg-border" />
               <CountdownTimer targetDate={targetDate} className="scale-75 origin-left" />
             </motion.div>
@@ -108,9 +108,6 @@ export const HeroSection = () => {
                 </div>
                 <div className="bg-secondary/50 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                    </div>
                     <div className="flex-1">
                       <p className="text-foreground text-left">
                         <span className="text-primary font-medium">Get Certified Now</span> - Register, join WhatsApp, and we'll schedule your exam. Get dumps, resources, and support included!

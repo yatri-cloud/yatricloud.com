@@ -4,32 +4,38 @@ import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
 import Marquee from "@/components/Marquee";
 import { useEffect, useRef } from "react";
+import { useTheme } from "@/components/ThemeProvider";
 
-// Company logos with image URLs
+// Base URL for certification logos (same as used in certification form)
+const LOGO_BASE_URL = "https://raw.githubusercontent.com/yatricloud/yatri-images/main/certification.yatricloud.com/logo/certifications";
+
+// Company logos with image URLs (using same logos as certification form)
 const companies = [
   {
     name: "AWS",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
+    logo: `${LOGO_BASE_URL}/aws.svg`,
+    logoLight: `${LOGO_BASE_URL}/aws-light.png`,
   },
   {
     name: "Google Cloud",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/5/50/Google_Cloud_logo.svg",
+    logo: `${LOGO_BASE_URL}/google_cloud.svg`,
   },
   {
     name: "Azure",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg",
+    logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg`,
   },
   {
     name: "Salesforce",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Salesforce.com_logo.svg",
+    logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg`,
   },
   {
     name: "Oracle",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg",
+    logo: `${LOGO_BASE_URL}/Oracle_logo.svg`,
   },
   {
     name: "GitHub",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg",
+    logo: `${LOGO_BASE_URL}/github-white-icon.webp`,
+    logoLight: `${LOGO_BASE_URL}/github-white-icon.webp`,
   },
 ];
 
@@ -219,6 +225,8 @@ const GlobeVisualization = () => {
 };
 
 export const CommunitySection = () => {
+  const { theme } = useTheme();
+  
   return (
     <section className="relative">
       {/* Top Section - Join Our Community (Dark Background) */}
@@ -285,9 +293,17 @@ export const CommunitySection = () => {
                   className="flex items-center justify-center px-4 sm:px-8 md:px-12 h-12 sm:h-16 md:h-20 opacity-60 hover:opacity-100 transition-opacity duration-300"
                 >
                   <img
-                    src={company.logo}
+                    src={
+                      company.name === 'AWS'
+                        ? (theme === 'dark' ? company.logoLight || company.logo : company.logo)
+                        : company.name === 'GitHub'
+                        ? (theme === 'dark' ? company.logo : (company.logoLight || company.logo))
+                        : company.logo
+                    }
                     alt={company.name}
-                    className="h-6 sm:h-8 md:h-12 w-auto object-contain dark:brightness-0 dark:invert max-w-[120px] sm:max-w-[150px] md:max-w-none opacity-60 hover:opacity-100 transition-opacity"
+                    className={`h-6 sm:h-8 md:h-12 w-auto object-contain max-w-[120px] sm:max-w-[150px] md:max-w-none opacity-60 hover:opacity-100 transition-opacity ${
+                      company.name === 'GitHub' && theme === 'light' ? 'invert' : ''
+                    }`}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
@@ -309,9 +325,17 @@ export const CommunitySection = () => {
                   className="flex items-center justify-center px-4 sm:px-8 md:px-12 h-12 sm:h-16 md:h-20 opacity-60 hover:opacity-100 transition-opacity duration-300"
                 >
                   <img
-                    src={company.logo}
+                    src={
+                      company.name === 'AWS'
+                        ? (theme === 'dark' ? company.logoLight || company.logo : company.logo)
+                        : company.name === 'GitHub'
+                        ? (theme === 'dark' ? company.logo : (company.logoLight || company.logo))
+                        : company.logo
+                    }
                     alt={company.name}
-                    className="h-6 sm:h-8 md:h-12 w-auto object-contain dark:brightness-0 dark:invert max-w-[120px] sm:max-w-[150px] md:max-w-none opacity-60 hover:opacity-100 transition-opacity"
+                    className={`h-6 sm:h-8 md:h-12 w-auto object-contain max-w-[120px] sm:max-w-[150px] md:max-w-none opacity-60 hover:opacity-100 transition-opacity ${
+                      company.name === 'GitHub' && theme === 'light' ? 'invert' : ''
+                    }`}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
