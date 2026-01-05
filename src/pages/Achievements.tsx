@@ -584,7 +584,7 @@ const Achievements = () => {
       
       <main>
       {/* Hero Section */}
-      <section className="relative pt-32 md:pt-40 pb-24 overflow-hidden">
+      <section className="relative pt-28 md:pt-40 pb-20 overflow-hidden">
         {/* Background Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
@@ -742,11 +742,12 @@ const Achievements = () => {
           {/* Provider Filter */}
           {providers.length > 1 && (
             <ScrollReveal delay={0.1}>
-              <div className="flex justify-center mb-8">
-                <div className="inline-flex bg-muted rounded-xl p-1 border border-border">
+              <div className="flex justify-center mb-6">
+                <div className="inline-flex bg-muted rounded-xl p-1 border border-border max-w-full overflow-x-auto scrollbar-hide">
+                  <div className="inline-flex min-w-max">
                   <button
                     onClick={() => setSelectedProvider("all")}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                    className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${
                       selectedProvider === "all"
                         ? "bg-primary text-primary-foreground shadow-lg"
                         : "text-muted-foreground hover:text-foreground"
@@ -773,7 +774,7 @@ const Achievements = () => {
                         <button
                           key={provider}
                           onClick={() => setSelectedProvider(provider)}
-                          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                          className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${
                             selectedProvider === provider
                               ? "bg-primary text-primary-foreground shadow-lg"
                               : "text-muted-foreground hover:text-foreground"
@@ -791,10 +792,13 @@ const Achievements = () => {
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
                           />
-                          {provider} ({groupedByProvider[provider]?.reduce((sum, person) => sum + person.certifications.length, 0) || 0})
+                          <span className="hidden sm:inline">
+                            {provider} ({groupedByProvider[provider]?.reduce((sum, person) => sum + person.certifications.length, 0) || 0})
+                          </span>
                         </button>
                       );
                     })}
+                  </div>
                 </div>
               </div>
             </ScrollReveal>
@@ -1076,7 +1080,7 @@ const Achievements = () => {
 
       {/* World Map Section */}
       {allMapMarkers.length > 0 && (
-        <section className="py-16 md:py-24 bg-muted/30">
+        <section className="py-14 md:py-24 bg-muted/30">
           <div className="container mx-auto px-4 md:px-6 max-w-[1600px]">
             <ScrollReveal delay={0.2}>
               <div className="mb-8">
@@ -1090,11 +1094,12 @@ const Achievements = () => {
                 </div>
 
                 {/* Map Provider Filter */}
-                <div className="flex justify-center mb-8">
-                  <div className="inline-flex bg-muted rounded-xl p-1 border border-border">
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex bg-muted rounded-xl p-1 border border-border max-w-full overflow-x-auto scrollbar-hide">
+                    <div className="inline-flex min-w-max">
                     <button
                       onClick={() => setSelectedMapProvider("all")}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                      className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${
                         selectedMapProvider === "all"
                           ? "bg-primary text-primary-foreground shadow-lg"
                           : "text-muted-foreground hover:text-foreground"
@@ -1122,7 +1127,7 @@ const Achievements = () => {
                         <button
                           key={provider}
                           onClick={() => setSelectedMapProvider(provider)}
-                          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                          className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${
                             selectedMapProvider === provider
                               ? "bg-primary text-primary-foreground shadow-lg"
                               : "text-muted-foreground hover:text-foreground"
@@ -1140,10 +1145,13 @@ const Achievements = () => {
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
                           />
-                          {provider} ({providerCount})
+                          <span className="hidden sm:inline">
+                            {provider} ({providerCount})
+                          </span>
                         </button>
                       );
                     })}
+                    </div>
                   </div>
                 </div>
 

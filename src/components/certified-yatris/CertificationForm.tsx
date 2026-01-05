@@ -285,11 +285,11 @@ export const CertificationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [existingCertifications, setExistingCertifications] = useState<any[]>([]);
+  const [currentCertIndex, setCurrentCertIndex] = useState(0);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState<'selection' | 'common-info' | 'credentials'>('selection');
-  const [currentCertIndex, setCurrentCertIndex] = useState(0);
   const [certificationCredentials, setCertificationCredentials] = useState<CertificationCredential[]>([]);
   
   // Location state management - removed state fetching, only manual entry
@@ -1588,14 +1588,19 @@ export const CertificationForm = () => {
                       </Label>
                       <Input
                         id={`year-${cred.certificationValue}`}
-                        type="number"
-                        min="2000"
-                        max={new Date().getFullYear()}
+                        type="text"
+                        inputMode="numeric"
                         value={cred.certificationDate || ''}
                         onChange={(e) => {
-                          const year = e.target.value;
-                          if (year === '' || (parseInt(year) >= 2000 && parseInt(year) <= new Date().getFullYear())) {
-                            handleCredentialUpdate(cred.certificationValue, 'certificationDate', year);
+                          const year = e.target.value.replace(/\D/g, "");
+                          const numericYear = year ? parseInt(year, 10) : NaN;
+                          if (
+                            year === "" ||
+                            (!isNaN(numericYear) &&
+                              numericYear >= 2000 &&
+                              numericYear <= new Date().getFullYear())
+                          ) {
+                            handleCredentialUpdate(cred.certificationValue, "certificationDate", year);
                           }
                         }}
                         placeholder="e.g., 2024"
@@ -1695,19 +1700,28 @@ export const CertificationForm = () => {
               </Label>
               <Input
                 id="credential-certificationDate"
-                type="number"
-                min="2000"
-                max={new Date().getFullYear()}
-                {...registerCredential("certificationDate", { 
+                type="text"
+                inputMode="numeric"
+                {...registerCredential("certificationDate", {
                   required: "Year is required",
-                  min: {
-                    value: 2000,
-                    message: "Year must be 2000 or later"
+                  validate: (value) => {
+                    const cleaned = (value || "").toString().replace(/\D/g, "");
+                    if (!cleaned) {
+                      return "Year is required";
+                    }
+                    const year = parseInt(cleaned, 10);
+                    const currentYear = new Date().getFullYear();
+                    if (isNaN(year)) {
+                      return "Please enter a valid year";
+                    }
+                    if (year < 2000) {
+                      return "Year must be 2000 or later";
+                    }
+                    if (year > currentYear) {
+                      return `Year cannot be later than ${currentYear}`;
+                    }
+                    return true;
                   },
-                  max: {
-                    value: new Date().getFullYear(),
-                    message: `Year cannot be later than ${new Date().getFullYear()}`
-                  }
                 })}
                 placeholder="e.g., 2024"
                 className="w-full"

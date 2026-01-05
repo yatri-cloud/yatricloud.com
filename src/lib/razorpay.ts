@@ -106,7 +106,7 @@ export const initiatePayment = async (
       amount: amount, // amount in paise
       currency: "INR",
       name: "Yatri Cloud",
-      description: productName + (testMode ? " (TEST MODE - No Real Money)" : ""),
+      description: productName,
       order_id: orderId,
       handler: function (response: any) {
         // Handle successful payment

@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Store, Filter, Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -13,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { CartProvider } from "@/contexts/CartContext";
 
 const YatriStore = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | "All">("All");
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +44,17 @@ const YatriStore = () => {
     return products.filter((product) => product.category === selectedCategory);
   }, [selectedCategory, products]);
 
+  const handleViewProcedure = () => {
+    // Navigate to home and scroll to the 3-step certification process section
+    navigate("/");
+    setTimeout(() => {
+      const el = document.querySelector("#certification-process");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+  };
+
   return (
     <CartProvider>
       <div className="min-h-screen bg-background text-foreground">
@@ -68,7 +81,6 @@ const YatriStore = () => {
                 transition={{ delay: 0.1 }}
                 className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-medium text-primary mb-6 shadow-sm"
               >
-                <Store className="h-4 w-4" />
                 Yatri Store
               </motion.div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
@@ -79,65 +91,87 @@ const YatriStore = () => {
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 Get certified with our exclusive exam vouchers. Limited time offers with amazing discounts!
               </p>
+              <div className="mt-6 flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleViewProcedure}
+                  className="rounded-full px-5 text-sm font-medium"
+                >
+                  See process to get scheduled exam
+                </Button>
+              </div>
             </motion.div>
 
-            {/* Cart Button - Fixed Position */}
-            <div className="fixed bottom-6 right-6 z-50">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <CartSheet />
-              </motion.div>
-            </div>
           </div>
         </section>
 
-        {/* Category Filters */}
+        {/* Category Filters + Cart CTA */}
         <section className="sticky top-16 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
           <div className="container mx-auto px-4 md:px-6">
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 py-4 overflow-x-auto pb-4 scrollbar-hide"
+              className="flex items-center justify-between gap-4 py-4"
             >
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground whitespace-nowrap">
-                <Filter className="h-4 w-4 text-primary" />
-                <span>Filter by:</span>
+              {/* Filters */}
+              <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground whitespace-nowrap">
+                  <span>Filter by:</span>
+                </div>
+                <Button
+                  variant={selectedCategory === "All" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory("All")}
+                  className="whitespace-nowrap font-medium"
+                >
+                  All
+                  {selectedCategory === "All" && (
+                    <Badge variant="secondary" className="ml-2">
+                      {products.length}
+                    </Badge>
+                  )}
+                </Button>
+                {categories.map((category) => {
+                  const count = products.filter((p) => p.category === category).length;
+                  if (count === 0) return null;
+                  return (
+                    <Button
+                      key={category}
+                      variant={selectedCategory === category ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCategory(category)}
+                      className="whitespace-nowrap font-medium"
+                    >
+                      {category}
+                      {selectedCategory === category && (
+                        <Badge variant="secondary" className="ml-2">
+                          {count}
+                        </Badge>
+                      )}
+                    </Button>
+                  );
+                })}
               </div>
-              <Button
-                variant={selectedCategory === "All" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory("All")}
-                className="whitespace-nowrap font-medium"
-              >
-                All
-                {selectedCategory === "All" && (
-                  <Badge variant="secondary" className="ml-2">
-                    {products.length}
-                  </Badge>
-                )}
-              </Button>
-              {categories.map((category) => {
-                const count = products.filter((p) => p.category === category).length;
-                if (count === 0) return null;
-                return (
-                  <Button
-                    key={category}
-                    variant={selectedCategory === category ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(category)}
-                    className="whitespace-nowrap font-medium"
-                  >
-                    {category}
-                    {selectedCategory === category && (
-                      <Badge variant="secondary" className="ml-2">
-                        {count}
-                      </Badge>
-                    )}
-                  </Button>
-                );
-              })}
+
+              {/* Cart CTA - right side, "best buying" style */}
+              <div className="hidden md:block">
+                <motion.div
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 shadow-sm px-3 py-2 flex items-center gap-2"
+                >
+                  <div className="flex flex-col items-end mr-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-primary/80">
+                      Smart Cart
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      Review & checkout securely
+                    </span>
+                  </div>
+                  <CartSheet />
+                </motion.div>
+              </div>
             </motion.div>
           </div>
         </section>

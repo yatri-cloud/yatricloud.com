@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { submitProduct } from "@/lib/store-products";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import AddProductLoginForm from "@/components/store/AddProductLoginForm";
 
 const productSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -35,6 +36,7 @@ type ProductFormData = z.infer<typeof productSchema>;
 const AddProduct = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
 
   const {
@@ -59,12 +61,39 @@ const AddProduct = () => {
   const discountedPrice = watch("discountedPrice");
   const discountValue = watch("discount");
 
-  // Auto-calculate discount
-  const calculateDiscount = () => {
-    if (originalPrice > 0 && discountedPrice > 0) {
-      const discount = Math.round(((originalPrice - discountedPrice) / originalPrice) * 100);
-      setValue("discount", discount);
+  // Helpers to safely parse numbers from text inputs
+  const parseNumber = (value: string) => {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // Keep the three pricing fields in sync:
+  // - When original or discounted changes -> update discount %
+  // - When original or discount % changes -> update discounted
+  const updateFromOriginalAndDiscounted = (nextOriginal: number, nextDiscounted: number) => {
+    if (nextOriginal > 0 && nextDiscounted >= 0) {
+      const nextDiscount = Math.round(((nextOriginal - nextDiscounted) / nextOriginal) * 100);
+      setValue("discount", nextDiscount);
     }
+  };
+
+  const updateDiscountedFromOriginalAndPercent = (nextOriginal: number, nextDiscount: number) => {
+    if (nextOriginal > 0 && nextDiscount >= 0 && nextDiscount <= 100) {
+      const nextDiscounted = Math.round(nextOriginal * (1 - nextDiscount / 100));
+      setValue("discountedPrice", nextDiscounted);
+    }
+  };
+
+  // Check authentication on mount
+  useEffect(() => {
+    const token = sessionStorage.getItem("yatri_store_auth_token");
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
   };
 
   const onSubmit = async (data: ProductFormData) => {
@@ -80,6 +109,19 @@ const AddProduct = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Gate Add Product behind admin login, similar to /udemy
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <SEO />
+        <div className="noise-overlay" />
+        <Navbar />
+        <AddProductLoginForm onLoginSuccess={handleLoginSuccess} />
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -186,12 +228,20 @@ const AddProduct = () => {
                     <Label htmlFor="originalPrice">Original Price (₹) *</Label>
                     <Input
                       id="originalPrice"
-                      type="number"
-                      step="1"
+                      type="text"
+                      inputMode="decimal"
                       {...register("originalPrice", { valueAsNumber: true })}
                       onChange={(e) => {
-                        setValue("originalPrice", parseFloat(e.target.value) || 0);
-                        calculateDiscount();
+                        const nextOriginal = parseNumber(e.target.value);
+                        setValue("originalPrice", nextOriginal);
+
+                        // If discount % is set, recompute discounted price from original + discount
+                        if (discountValue > 0) {
+                          updateDiscountedFromOriginalAndPercent(nextOriginal, discountValue);
+                        } else if (discountedPrice > 0) {
+                          // Otherwise, if discounted already present, recompute discount %
+                          updateFromOriginalAndDiscounted(nextOriginal, discountedPrice);
+                        }
                       }}
                     />
                     {errors.originalPrice && (
@@ -203,12 +253,17 @@ const AddProduct = () => {
                     <Label htmlFor="discountedPrice">Discounted Price (₹) *</Label>
                     <Input
                       id="discountedPrice"
-                      type="number"
-                      step="1"
+                      type="text"
+                      inputMode="decimal"
                       {...register("discountedPrice", { valueAsNumber: true })}
                       onChange={(e) => {
-                        setValue("discountedPrice", parseFloat(e.target.value) || 0);
-                        calculateDiscount();
+                        const nextDiscounted = parseNumber(e.target.value);
+                        setValue("discountedPrice", nextDiscounted);
+
+                        // When discounted price changes, update discount % based on current original
+                        if (originalPrice > 0) {
+                          updateFromOriginalAndDiscounted(originalPrice, nextDiscounted);
+                        }
                       }}
                     />
                     {errors.discountedPrice && (
@@ -220,17 +275,16 @@ const AddProduct = () => {
                     <Label htmlFor="discount">Discount (%) *</Label>
                     <Input
                       id="discount"
-                      type="number"
-                      step="1"
+                      type="text"
+                      inputMode="decimal"
                       {...register("discount", { valueAsNumber: true })}
                       onChange={(e) => {
-                        const value = parseFloat(e.target.value);
+                        const value = parseNumber(e.target.value);
                         const safeValue = isNaN(value) ? 0 : value;
                         setValue("discount", safeValue);
                         // When discount changes, recalculate discounted price from original
                         if (originalPrice > 0) {
-                          const newDiscounted = Math.round(originalPrice * (1 - safeValue / 100));
-                          setValue("discountedPrice", newDiscounted);
+                          updateDiscountedFromOriginalAndPercent(originalPrice, safeValue);
                         }
                       }}
                     />
@@ -280,14 +334,6 @@ const AddProduct = () => {
                     <p className="text-sm text-destructive">{errors.description.message}</p>
                   )}
                 </div>
-
-                {/* Info Alert */}
-                <Alert>
-                  <AlertDescription>
-                    <strong>Note:</strong> If category is AWS, a subsheet named "aws-certifications" will be created automatically.
-                    The product will be added to both the main "add-product" sheet and the category-specific subsheet.
-                  </AlertDescription>
-                </Alert>
 
                 {/* Submit Button */}
                 <div className="flex gap-4">

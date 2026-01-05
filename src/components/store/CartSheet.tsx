@@ -173,17 +173,17 @@ export const CartSheet = () => {
               </div>
 
               <div className="mt-auto pt-4 border-t space-y-4">
-                {testMode && (
-                  <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                    <AlertTitle className="text-amber-800 dark:text-amber-200 font-semibold">
-                      🧪 TEST MODE - No Real Money Deducted
-                    </AlertTitle>
-                    <AlertDescription className="text-amber-700 dark:text-amber-300 text-xs mt-1">
-                      <strong>UPI doesn't work in test mode.</strong> Use Indian test card: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">5267 3181 8797 5449</code> with CVV <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">123</code> and expiry <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">12/25</code>. <strong>Only Indian cards (Visa, Mastercard, RuPay) are supported.</strong>
-                    </AlertDescription>
-                  </Alert>
-                )}
+    {testMode && (
+      <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+        <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+        <AlertTitle className="text-amber-800 dark:text-amber-200 font-semibold">
+          Payment sandbox active
+        </AlertTitle>
+        <AlertDescription className="text-amber-700 dark:text-amber-300 text-xs mt-1">
+          This checkout session is configured for non-production testing. In production, real payments will be processed securely via Razorpay.
+        </AlertDescription>
+      </Alert>
+    )}
                 <div className="space-y-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
@@ -192,11 +192,6 @@ export const CartSheet = () => {
                       {totalPrice.toLocaleString("en-IN")}
                     </span>
                   </div>
-                  {testMode && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      💰 No real money will be deducted in test mode
-                    </p>
-                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button

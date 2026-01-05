@@ -41,7 +41,7 @@ export const Navbar = () => {
         }`}
       >
         <div className="container mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center justify-between h-16 md:h-20 gap-3 md:gap-6 flex-wrap">
             {/* Logo */}
             <a href="/" className="flex items-center gap-2">
               <img
@@ -53,7 +53,7 @@ export const Navbar = () => {
             </a>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-4 lg:gap-8 max-w-full overflow-x-auto scrollbar-hide">
               {navLinks.map((link) => (
                 <a
                   key={link.href}

@@ -37,7 +37,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       whileHover={{ y: -8 }}
       className="h-full"
     >
-      <Card className="group relative h-full flex flex-col overflow-hidden border-border/60 hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-lg">
+      <Card className="group relative h-full flex flex-col overflow-hidden rounded-2xl border-2 border-border bg-card/95 hover:border-primary/70 transition-all duration-300 shadow-sm hover:shadow-lg">
         {/* Discount Badge */}
         <div className="absolute top-4 right-4 z-10">
           <motion.div
@@ -50,10 +50,10 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </motion.div>
         </div>
 
-        {/* Category Badge */}
+        {/* Level Badge (e.g., Associate / Practitioner) */}
         <div className="absolute top-4 left-4 z-10">
-          <Badge variant="secondary" className="font-semibold backdrop-blur-sm bg-secondary/80">
-            {product.category}
+          <Badge className="font-semibold bg-background/95 text-foreground border border-border/70 shadow-sm">
+            {product.level}
           </Badge>
         </div>
 
@@ -69,41 +69,35 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-500" />
         </div>
 
-        <CardHeader className="flex-1 p-5">
-          <div className="flex items-start justify-between gap-2 mb-3">
-            <CardTitle className="text-lg font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors min-h-[3.5rem]">
+        <CardHeader className="flex-1 px-5 pt-5 pb-2">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <CardTitle className="text-lg font-bold leading-snug line-clamp-2 group-hover:text-primary transition-colors">
               {product.title}
             </CardTitle>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {product.examCode && (
-              <Badge variant="outline" className="text-xs font-medium">
+              <Badge variant="outline" className="text-[11px] font-medium tracking-wide">
                 {product.examCode}
               </Badge>
             )}
-            <Badge variant="secondary" className="text-xs">
-              {product.level}
-            </Badge>
           </div>
         </CardHeader>
 
-        <CardContent className="px-5 pb-4 space-y-4">
+        <CardContent className="px-5 pt-1 pb-4 space-y-2">
           {/* Pricing */}
-          <div className="flex items-baseline gap-3">
-            <div className="flex flex-col gap-1">
-              <span className="text-2xl font-bold text-foreground">
-                ₹{product.discountedPrice.toLocaleString("en-IN")}
-              </span>
-              <span className="text-sm text-muted-foreground line-through">
-                ₹{product.originalPrice.toLocaleString("en-IN")}
-              </span>
-            </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold tracking-tight text-foreground">
+              ₹{product.discountedPrice.toLocaleString("en-IN")}
+            </span>
+            <span className="text-sm text-muted-foreground line-through">
+              ₹{product.originalPrice.toLocaleString("en-IN")}
+            </span>
           </div>
 
           {/* Limited Time Offer Badge */}
-          <div className="flex items-center gap-2 text-xs text-amber-500 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-md">
-            <Tag className="h-3.5 w-3.5" />
-            <span>Limited Time Offer</span>
+          <div className="inline-flex items-center justify-center text-xs font-semibold bg-red-600 text-white px-3 py-1.5 rounded-md shadow-sm">
+            Limited Time Offer
           </div>
         </CardContent>
 
@@ -127,11 +121,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
-                <div className="relative aspect-video rounded-lg overflow-hidden border">
+                <div className="relative w-full max-w-sm mx-auto rounded-lg overflow-hidden border aspect-square flex items-center justify-center bg-muted">
                   <img
                     src={product.image}
                     alt={product.title}
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-full object-contain"
                   />
                 </div>
                 <div className="flex items-baseline gap-3">
