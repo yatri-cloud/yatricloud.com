@@ -6,8 +6,12 @@ declare global {
   }
 }
 
-const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_S05Hqy9qMsJRVs";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+// Public Razorpay Key ID – must be provided via Vite env (VITE_RAZORPAY_KEY_ID)
+// Never hard-code keys in the source; they should come from environment variables.
+const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID ?? "";
+// For local dev, set VITE_API_BASE_URL=http://localhost:3001
+// In production on Vercel, leave VITE_API_BASE_URL empty so we use relative /api path
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 // Check if we're in test mode
 export const isTestMode = () => {
@@ -39,9 +43,17 @@ export interface RazorpayOrder {
 
 export const createRazorpayOrder = async (orderData: RazorpayOrder): Promise<string> => {
   try {
-    console.log('Creating Razorpay order:', { url: `${API_BASE_URL}/api/razorpay/create-order`, amount: orderData.amount });
+    if (!RAZORPAY_KEY) {
+      throw new Error("Razorpay key is not configured. Please set VITE_RAZORPAY_KEY_ID in environment variables.");
+    }
+
+    const url = API_BASE_URL
+      ? `${API_BASE_URL}/api/razorpay/create-order`
+      : `/api/razorpay/create-order`;
+
+    console.log('Creating Razorpay order:', { url, amount: orderData.amount });
     
-    const response = await fetch(`${API_BASE_URL}/api/razorpay/create-order`, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -66,9 +78,6 @@ export const createRazorpayOrder = async (orderData: RazorpayOrder): Promise<str
     return data.orderId;
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error(`Failed to connect to server. Please make sure the backend server is running on ${API_BASE_URL}`);
-    }
     throw error;
   }
 };
