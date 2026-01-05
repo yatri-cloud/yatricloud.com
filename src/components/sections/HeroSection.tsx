@@ -49,7 +49,7 @@ export const HeroSection = () => {
           <ScrollReveal delay={0.4}>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <motion.a
-                href="https://pages.razorpay.com/stores/yatricloud"
+                href="https://certification.yatricloud.com/yatristore"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.05, y: -3 }}

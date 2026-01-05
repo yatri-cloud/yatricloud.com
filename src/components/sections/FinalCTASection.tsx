@@ -21,7 +21,7 @@ export const FinalCTASection = () => {
             </div>
             <div className="flex justify-center">
               <motion.a
-                href="https://pages.razorpay.com/stores/yatricloud"
+                href="https://certification.yatricloud.com/yatristore"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.05, y: -3 }}

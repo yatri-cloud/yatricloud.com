@@ -24,7 +24,7 @@ export const Footer = () => {
 
   const contactLinks = [
     {
-      href: "https://pages.razorpay.com/stores/yatricloud",
+      href: "https://certification.yatricloud.com/yatristore",
       label: "Payment & Registration",
       external: true,
     },

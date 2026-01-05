@@ -67,7 +67,7 @@ export const HeroSection = () => {
             className="mt-10 flex flex-col sm:flex-row items-center gap-4"
           >
             <motion.a
-              href="https://pages.razorpay.com/stores/yatricloud"
+              href="https://certification.yatricloud.com/yatristore"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05, y: -3 }}

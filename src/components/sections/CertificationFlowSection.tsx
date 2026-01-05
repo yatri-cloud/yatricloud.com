@@ -53,7 +53,7 @@ const steps = [
     gradient: "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
     action: {
       label: "Payment Link",
-      url: "https://pages.razorpay.com/stores/yatricloud",
+      url: "https://certification.yatricloud.com/yatristore",
     },
   },
   {
