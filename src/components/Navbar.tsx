@@ -24,6 +24,7 @@ export const Navbar = () => {
     { href: "#benefits", label: "Benefits" },
     { href: "#courses", label: "Practice Tests" },
     { href: "/achievements", label: "Achievements" },
+    { href: "/yatristore", label: "Store" },
     { href: "#team", label: "Team" },
     { href: "#faq", label: "FAQ" },
   ];

@@ -23,8 +23,17 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: true, // Allow all origins in development
+  credentials: true,
+}));
 app.use(express.json());
+
+// Logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`, req.body ? JSON.stringify(req.body) : '');
+  next();
+});
 
 // Udemy API tokens from .env - support multiple instructors
 const UDEMY_INSTRUCTOR_TOKEN = process.env.UDEMY_INSTRUCTOR_TOKEN || process.env.VITE_UDEMY_INSTRUCTOR_TOKEN;
@@ -259,6 +268,72 @@ app.get('/api/udemy/image/:courseSlug', async (req, res) => {
 });
 
 /**
+ * Razorpay Order Creation Endpoint
+ * POST /api/razorpay/create-order
+ */
+app.post('/api/razorpay/create-order', async (req, res) => {
+  try {
+    const { amount, currency = 'INR', receipt, notes } = req.body;
+    
+    if (!amount) {
+      return res.status(400).json({ error: 'Amount is required' });
+    }
+
+    // Get Razorpay credentials from env
+    // Priority: RAZORPAY_KEY_ID > VITE_RAZORPAY_KEY_ID > default test key
+    const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_S05Hqy9qMsJRVs';
+    const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || process.env.VITE_RAZORPAY_KEY_SECRET || 'AbZUaer9h9iPXWHK3QNUF3TG';
+
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({ 
+        error: 'Razorpay credentials not configured',
+        message: 'Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables'
+      });
+    }
+
+    // Create order using Razorpay REST API directly
+    const orderOptions = {
+      amount: amount, // amount in paise
+      currency: currency,
+      receipt: receipt || `receipt_${Date.now()}`,
+      notes: notes || {},
+    };
+
+    // Call Razorpay API directly
+    const auth = Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString('base64');
+    const response = await fetch('https://api.razorpay.com/v1/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${auth}`,
+      },
+      body: JSON.stringify(orderOptions),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.description || `Razorpay API error: ${response.status}`);
+    }
+
+    const order = await response.json();
+    console.log('✅ Razorpay order created:', order.id);
+    
+    res.json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      receipt: order.receipt,
+    });
+  } catch (error) {
+    console.error('❌ Razorpay order creation error:', error);
+    res.status(500).json({
+      error: 'Failed to create Razorpay order',
+      message: error.message,
+    });
+  }
+});
+
+/**
  * Health check endpoint
  */
 app.get('/health', (req, res) => {
@@ -272,6 +347,7 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Udemy API Proxy Server running on http://localhost:${PORT}`);
   console.log(`📚 Courses endpoint: http://localhost:${PORT}/api/udemy/courses`);
+  console.log(`💳 Razorpay endpoint: http://localhost:${PORT}/api/razorpay/create-order`);
   console.log(`💚 Health check: http://localhost:${PORT}/health`);
   console.log(`\n⚠️  Make sure your frontend calls: http://localhost:${PORT}/api/udemy/courses`);
 });

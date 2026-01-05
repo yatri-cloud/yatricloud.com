@@ -10,6 +10,8 @@ import TermsOfService from "./pages/TermsOfService";
 import CertifiedYatris from "./pages/CertifiedYatris";
 import Achievements from "./pages/Achievements";
 import Udemy from "./pages/Udemy";
+import YatriStore from "./pages/YatriStore";
+import AddProduct from "./pages/AddProduct";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/certifiedyatris" element={<CertifiedYatris />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/udemy" element={<Udemy />} />
+          <Route path="/yatristore" element={<YatriStore />} />
+          <Route path="/addproduct" element={<AddProduct />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

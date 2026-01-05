@@ -54,11 +54,17 @@ General project documentation.
 - `TROUBLESHOOTING.md` - Troubleshooting guide
 - `IMPLEMENTATION_SUMMARY.md` - Implementation summary
 
+### 🛍️ [Yatri Store](./yatri-store/)
+E-commerce store for certification vouchers.
+
+- `YATRI_STORE.md` - Complete Yatri Store documentation and setup guide
+
 ## 🔍 Quick Links
 
 - **Main README**: See root `README.md` for project overview
 - **Google Sheets Setup**: Start with `google-sheets/GOOGLE_APPS_SCRIPT_SETUP.md`
 - **Environment Setup**: See `setup/SETUP_ENV.md`
 - **Deployment**: See `deployment/DEPLOYMENT.md`
+- **Yatri Store**: See `yatri-store/YATRI_STORE.md` for store documentation
 - **Troubleshooting**: See `cors-fixes/DEBUGGING_GUIDE.md` or `general/TROUBLESHOOTING.md`
 
