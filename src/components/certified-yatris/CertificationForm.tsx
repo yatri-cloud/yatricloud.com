@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -281,6 +282,7 @@ interface CertificationCredential {
 export const CertificationForm = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -769,6 +771,8 @@ export const CertificationForm = () => {
         title: "Success! 🎉",
         description: `Successfully submitted ${successful} of ${total} certification${total > 1 ? 's' : ''}!`,
       });
+      // Redirect users to Achievements to view their submission
+      navigate("/achievements");
     } catch (error: any) {
       console.error("Error submitting certifications:", error);
       toast({
@@ -953,6 +957,9 @@ export const CertificationForm = () => {
         title: "Success! 🎉",
         description: `Successfully submitted ${successful} of ${total} certification${total > 1 ? 's' : ''}!`,
       });
+
+      // Redirect to Achievements page right after submit
+      navigate('/achievements');
     } catch (error: any) {
       console.error("Error submitting certification:", error);
       const errorMessage = error?.message || "Failed to submit certification. Please try again.";
@@ -1588,23 +1595,17 @@ export const CertificationForm = () => {
                       </Label>
                       <Input
                         id={`year-${cred.certificationValue}`}
-                        type="text"
+                        type="number"
                         inputMode="numeric"
+                        min={2000}
+                        max={new Date().getFullYear()}
                         value={cred.certificationDate || ''}
                         onChange={(e) => {
-                          const year = e.target.value.replace(/\D/g, "");
-                          const numericYear = year ? parseInt(year, 10) : NaN;
-                          if (
-                            year === "" ||
-                            (!isNaN(numericYear) &&
-                              numericYear >= 2000 &&
-                              numericYear <= new Date().getFullYear())
-                          ) {
-                            handleCredentialUpdate(cred.certificationValue, "certificationDate", year);
-                          }
+                          const value = e.target.value.slice(0, 4);
+                          handleCredentialUpdate(cred.certificationValue, "certificationDate", value);
                         }}
                         placeholder="e.g., 2024"
-                        className="w-full"
+                        className="w-full appearance-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         required
                       />
                       <p className="text-xs text-muted-foreground mt-1">
@@ -1700,16 +1701,14 @@ export const CertificationForm = () => {
               </Label>
               <Input
                 id="credential-certificationDate"
-                type="text"
+                type="number"
                 inputMode="numeric"
+                min={2000}
+                max={new Date().getFullYear()}
                 {...registerCredential("certificationDate", { 
                   required: "Year is required",
                   validate: (value) => {
-                    const cleaned = (value || "").toString().replace(/\D/g, "");
-                    if (!cleaned) {
-                      return "Year is required";
-                    }
-                    const year = parseInt(cleaned, 10);
+                    const year = parseInt((value || "").toString(), 10);
                     const currentYear = new Date().getFullYear();
                     if (isNaN(year)) {
                       return "Please enter a valid year";
@@ -1719,12 +1718,12 @@ export const CertificationForm = () => {
                     }
                     if (year > currentYear) {
                       return `Year cannot be later than ${currentYear}`;
-                  }
+                    }
                     return true;
                   },
                 })}
                 placeholder="e.g., 2024"
-                className="w-full"
+                className="w-full appearance-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
               {credentialErrors.certificationDate && (
                 <p className="text-sm text-destructive mt-1">
