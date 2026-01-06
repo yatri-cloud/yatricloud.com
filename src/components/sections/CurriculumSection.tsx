@@ -321,14 +321,16 @@ export const CurriculumSection = () => {
                   <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
                     <img
                       src={course.thumbnail || getFallbackImageUrl(course.udemyUrl, course.thumbnail)}
-                        alt={course.title}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      width={640}
+                      height={360}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
                         target.src = getFallbackImageUrl(course.udemyUrl, course.thumbnail);
-                        }}
-                      />
+                      }}
+                    />
                   </div>
 
                 <div className="flex items-start justify-between mb-4">

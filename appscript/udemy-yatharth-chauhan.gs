@@ -134,7 +134,8 @@ function doGet(e) {
         imageUrl: course['imagelink'] || course['image link'] || '',
         creator: course['creator'] || 'yatharth-chauhan',
         certification: course['tech'] || '',
-        category: course['category'] || ''
+        category: course['category'] || '',
+        timestamp: course['timestamp'] || ''
       };
       
       // Only add if course has required fields

@@ -90,6 +90,7 @@ export interface TransformedCourse {
   headline?: string;
   price?: string;
   isPaid?: boolean;
+  created?: string; // Course creation date for sorting
 }
 
 /**
@@ -408,6 +409,7 @@ export function transformUdemyCourse(udemyCourse: any): TransformedCourse {
     headline: udemyCourse.headline,
     price: price,
     isPaid: udemyCourse.is_paid || false,
+    created: udemyCourse.created || undefined, // Preserve creation date for sorting
   };
 }
 
@@ -604,10 +606,11 @@ export async function fetchAllUdemyCourses(
       );
     }
 
-    // Sort by created date (latest first) - already sorted by server, but ensure it
+    // Sort by created date (latest first)
     filtered.sort((a, b) => {
-      // This is already sorted by server, but we ensure it here too
-      return 0; // Server already sorts by latest
+      const dateA = a.created ? new Date(a.created).getTime() : 0;
+      const dateB = b.created ? new Date(b.created).getTime() : 0;
+      return dateB - dateA; // Latest first (descending order)
     });
 
     return filtered;

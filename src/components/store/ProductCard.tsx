@@ -64,6 +64,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             alt={product.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             loading="lazy"
+            width={640}
+            height={480}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-500" />
@@ -126,6 +128,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                     src={product.image}
                     alt={product.title}
                     className="max-w-full max-h-full object-contain"
+                    loading="lazy"
+                    width={600}
+                    height={600}
                   />
                 </div>
                 <div className="flex items-baseline gap-3">

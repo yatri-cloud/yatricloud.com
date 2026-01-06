@@ -1702,7 +1702,7 @@ export const CertificationForm = () => {
                 id="credential-certificationDate"
                 type="text"
                 inputMode="numeric"
-                {...registerCredential("certificationDate", {
+                {...registerCredential("certificationDate", { 
                   required: "Year is required",
                   validate: (value) => {
                     const cleaned = (value || "").toString().replace(/\D/g, "");
@@ -1719,7 +1719,7 @@ export const CertificationForm = () => {
                     }
                     if (year > currentYear) {
                       return `Year cannot be later than ${currentYear}`;
-                    }
+                  }
                     return true;
                   },
                 })}

@@ -15,6 +15,7 @@ export interface UdemyCourse {
   creator: string;
   certification: string;
   category: string;
+  timestamp?: string; // Course creation timestamp for sorting
 }
 
 /**
@@ -88,7 +89,15 @@ export async function fetchUdemyCourses(): Promise<UdemyCourse[]> {
              course.creator || 'Unknown',
     certification: course.certification || course.tech || '',
     category: course.category || '',
+    timestamp: course.timestamp || '', // Preserve timestamp for sorting
   }));
+
+  // Sort by timestamp (latest first)
+  allCourses.sort((a, b) => {
+    const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return dateB - dateA; // Latest first (descending order)
+  });
 
   console.log(`📊 Total courses loaded: ${allCourses.length}`);
   return allCourses;
