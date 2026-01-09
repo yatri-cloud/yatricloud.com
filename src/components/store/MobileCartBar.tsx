@@ -36,7 +36,7 @@ export const MobileCartBar = () => {
                   )}
                 </div>
                 {totalItems > 0 && (
-                  <Badge className="ml-auto bg-primary-foreground text-primary">
+                  <Badge className="ml-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-2 border-primary/40 shadow-lg font-bold min-w-[24px] text-center hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-primary/60 hover:shadow-xl transition-all ring-2 ring-primary/10">
                     {totalItems}
                   </Badge>
                 )}
