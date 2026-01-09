@@ -187,9 +187,9 @@ const YatriStore = () => {
                 className="text-center py-20"
               >
                 <Loader2 className="h-16 w-16 text-muted-foreground mx-auto mb-4 animate-spin" />
-                <h3 className="text-2xl font-semibold mb-2">Loading products...</h3>
+                <h3 className="text-2xl font-semibold mb-2">Loading certificates...</h3>
                 <p className="text-muted-foreground">
-                  Loading Certificates
+                  Pleasewait for few seconds...
                 </p>
               </motion.div>
             ) : filteredProducts.length === 0 ? (
