@@ -1,17 +1,18 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, ShoppingCart, IndianRupee } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/store/ProductCard";
 import { CartSheet } from "@/components/store/CartSheet";
+import { MobileCartBar } from "@/components/store/MobileCartBar";
 import { categories, ProductCategory } from "@/data/store-products";
 import { fetchStoreProducts, StoreProduct } from "@/lib/store-products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CartProvider } from "@/contexts/CartContext";
+import { CartProvider, useCart } from "@/contexts/CartContext";
 
 const YatriStore = () => {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ const YatriStore = () => {
 
   return (
     <CartProvider>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-background text-foreground pb-20 md:pb-0">
         <SEO />
         <div className="noise-overlay" />
         <Navbar />
@@ -154,7 +155,7 @@ const YatriStore = () => {
                 })}
               </div>
 
-              {/* Cart CTA - right side, "best buying" style */}
+              {/* Cart CTA - right side, \"best buying\" style (desktop only) */}
               <div className="hidden md:block">
                 <motion.div
                   whileHover={{ scale: 1.03, y: -2 }}
@@ -268,6 +269,9 @@ const YatriStore = () => {
         </section>
 
         <Footer />
+        
+        {/* Mobile Cart Bar - Fixed at bottom */}
+        <MobileCartBar />
       </div>
     </CartProvider>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
@@ -9,7 +9,11 @@ import { useCart } from "@/contexts/CartContext";
 import { initiatePayment, isTestMode } from "@/lib/razorpay";
 import { toast } from "sonner";
 
-export const CartSheet = () => {
+interface CartSheetProps {
+  trigger?: ReactNode;
+}
+
+export const CartSheet = ({ trigger }: CartSheetProps) => {
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const testMode = isTestMode();
@@ -67,19 +71,21 @@ export const CartSheet = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
-          <ShoppingCart className="h-5 w-5" />
-          {totalItems > 0 && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
-            >
-              {totalItems}
-            </motion.div>
-          )}
-          <span className="sr-only">Shopping cart</span>
-        </Button>
+        {trigger || (
+          <Button variant="outline" size="icon" className="relative">
+            <ShoppingCart className="h-5 w-5" />
+            {totalItems > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
+              >
+                {totalItems}
+              </motion.div>
+            )}
+            <span className="sr-only">Shopping cart</span>
+          </Button>
+        )}
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg">
         <SheetHeader>

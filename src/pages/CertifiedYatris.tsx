@@ -76,17 +76,9 @@ const CertifiedYatris = () => {
               <h1 className="text-4xl md:text-6xl font-bold mb-4">
                 Share Your <span className="gradient-text">Achievement</span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
                 Celebrate your certification success with the Yatri Cloud community
               </p>
-              <div className="flex justify-center">
-                <a
-                  href="https://certification.yatricloud.com/certifiedyatris"
-                  className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition"
-                >
-                  Be a Yatri Wall of Fame — Submit Now
-                </a>
-              </div>
             </div>
           </ScrollReveal>
         </div>
