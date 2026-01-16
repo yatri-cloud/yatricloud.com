@@ -1385,6 +1385,12 @@ const Achievements = () => {
                         };
                         const cardColor = getCardColor();
                         
+                        // Special styling for Yatharth Chauhan and Nensi Ravaliya
+                        const isSpecialPerson = person.fullName === "Yatharth Chauhan" || person.fullName === "Nensi Ravaliya";
+                        const specialCardClasses = isSpecialPerson 
+                          ? "bg-black/80 dark:bg-white/80 backdrop-blur-sm border-yellow-500 border-4" 
+                          : `bg-gradient-to-br ${cardColor.from} ${cardColor.via} ${cardColor.to} backdrop-blur-sm border ${cardColor.border}`;
+                        
                         return (
                         <motion.div
                           key={person.id}
@@ -1392,7 +1398,7 @@ const Achievements = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ delay: index * 0.08, duration: 0.5, ease: "easeOut" }}
                           whileHover={{ y: -8, scale: 1.02 }}
-                          className={`group relative flex flex-col bg-gradient-to-br ${cardColor.from} ${cardColor.via} ${cardColor.to} backdrop-blur-sm border ${cardColor.border} rounded-2xl p-6 hover:border-opacity-60 transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer`}
+                          className={`group relative flex flex-col ${specialCardClasses} rounded-2xl p-6 hover:border-opacity-60 transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer`}
                           onClick={() => openPersonModal(person)}
                         >
                           {/* Animated gradient background */}
@@ -1406,7 +1412,11 @@ const Achievements = () => {
                           {/* Photo */}
                           <div className="relative mb-6 z-10 flex justify-center">
                             <motion.div
-                              className="relative overflow-visible rounded-full border-4 border-primary/20 shadow-xl group-hover:border-primary/40 transition-all duration-300"
+                              className={`relative overflow-visible rounded-full border-4 shadow-xl transition-all duration-300 ${
+                                isSpecialPerson 
+                                  ? "border-yellow-500 group-hover:border-yellow-400" 
+                                  : "border-primary/20 group-hover:border-primary/40"
+                              }`}
                               whileHover={{ scale: 1.05 }}
                             >
                               <img
@@ -1419,12 +1429,20 @@ const Achievements = () => {
                               />
                               {/* Certification Count Badge - On the circular border, bottom right */}
                               <motion.div
-                                className="absolute bottom-0 right-0 w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-background shadow-lg z-20"
+                                className={`absolute bottom-0 right-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 shadow-lg z-20 ${
+                                  isSpecialPerson 
+                                    ? "bg-yellow-500 border-yellow-600" 
+                                    : "bg-gradient-to-br from-primary to-primary/80 border-background"
+                                }`}
                                 style={{
                                   transform: 'translate(10%, 25%)'
                                 }}
                               >
-                                <span className="text-xs md:text-sm font-bold text-primary-foreground leading-none">
+                                <span className={`text-xs md:text-sm font-bold leading-none ${
+                                  isSpecialPerson 
+                                    ? "text-black" 
+                                    : "text-primary-foreground"
+                                }`}>
                                   {totalCertCount}x
                                 </span>
                               </motion.div>
@@ -1432,7 +1450,11 @@ const Achievements = () => {
                           </div>
 
                           {/* Name */}
-                          <h4 className="text-xl md:text-2xl font-bold text-foreground mb-4 text-center relative z-10 group-hover:text-primary transition-colors">
+                          <h4 className={`text-xl md:text-2xl font-bold mb-4 text-center relative z-10 transition-colors ${
+                            isSpecialPerson 
+                              ? "text-white dark:text-black group-hover:text-yellow-300 dark:group-hover:text-yellow-600" 
+                              : "text-foreground group-hover:text-primary"
+                          }`}>
                             {person.fullName}
                           </h4>
 
@@ -1463,14 +1485,22 @@ const Achievements = () => {
                                   >
                                     {/* Certification count before logo - only show if NOT in "All" view */}
                                     {!isAllView && (
-                                      <span className="text-xs font-bold text-foreground/80">
+                                      <span className={`text-xs font-bold ${
+                                        isSpecialPerson 
+                                          ? "text-white dark:text-black" 
+                                          : "text-foreground/80"
+                                      }`}>
                                         {count}x
                                       </span>
                                     )}
-                                    <div className={`flex items-center justify-center bg-background/50 rounded-lg border border-border/40 p-1 ${
+                                    <div className={`flex items-center justify-center rounded-lg border p-1 ${
                                       providerName === 'ORACLE' || providerName === 'SERVICENOW' 
                                         ? 'w-12 h-12' 
                                         : 'w-8 h-8'
+                                    } ${
+                                      isSpecialPerson 
+                                        ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40" 
+                                        : "bg-background/50 border-border/40"
                                     }`}>
                                       <img
                                         src={logoSrc}
@@ -1489,13 +1519,21 @@ const Achievements = () => {
                             {person.country && (
                               <motion.div
                                 whileHover={{ scale: 1.1 }}
-                                className="flex items-center gap-1.5 px-2 py-1 bg-background/50 rounded-lg border border-border/40"
+                                className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${
+                                  isSpecialPerson 
+                                    ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40" 
+                                    : "bg-background/50 border-border/40"
+                                }`}
                                 title={getCountryName(person.country)}
                               >
                                 <span className="text-lg leading-none">
                                   {getCountryFlag(person.country)}
                                 </span>
-                                <span className="text-xs font-medium text-foreground/80">
+                                <span className={`text-xs font-medium ${
+                                  isSpecialPerson 
+                                    ? "text-white dark:text-black font-semibold" 
+                                    : "text-foreground/80"
+                                }`}>
                                   {getCountryName(person.country)}
                                 </span>
                               </motion.div>
@@ -1729,14 +1767,23 @@ const Achievements = () => {
               <DialogHeader>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="relative">
-                    <img
-                      src={selectedPerson.photoUrl || "https://via.placeholder.com/150"}
-                      alt={selectedPerson.fullName}
-                      className="w-20 h-20 rounded-full object-cover border-4 border-primary/30"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://via.placeholder.com/150";
-                      }}
-                    />
+                    {(() => {
+                      const isSpecialPerson = selectedPerson.fullName === "Yatharth Chauhan" || selectedPerson.fullName === "Nensi Ravaliya";
+                      return (
+                        <img
+                          src={selectedPerson.photoUrl || "https://via.placeholder.com/150"}
+                          alt={selectedPerson.fullName}
+                          className={`w-20 h-20 rounded-full object-cover border-4 ${
+                            isSpecialPerson 
+                              ? "border-yellow-500" 
+                              : "border-primary/30"
+                          }`}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://via.placeholder.com/150";
+                          }}
+                        />
+                      );
+                    })()}
                     {/* Certification Count Badge - On the circular border, bottom right */}
                     <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center border-2 border-background shadow-lg z-20 translate-x-1/4 translate-y-1/4">
                       <span className="text-[10px] font-bold text-primary-foreground leading-none">
@@ -1905,18 +1952,6 @@ const Achievements = () => {
                                             : (certProviderLogo.logoLight || certProviderLogo.logo))))
                                 : null;
                               
-                              const year = (() => {
-                                const yearNum = parseInt(cert.certificationDate);
-                                if (!isNaN(yearNum)) {
-                                  return yearNum.toString();
-                                }
-                                try {
-                                  return new Date(cert.certificationDate).getFullYear().toString();
-                                } catch {
-                                  return cert.certificationDate;
-                                }
-                              })();
-                              
                               return (
                               <motion.div
                                 key={cert.id}
@@ -1930,7 +1965,7 @@ const Achievements = () => {
                                   {cert.certificationName}
                                 </h4>
                                 
-                                {/* Exam Code, Year, and Verified */}
+                                {/* Exam Code and Verified */}
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold border ${
                                     PROVIDER_COLORS[providerName] 
@@ -1939,8 +1974,6 @@ const Achievements = () => {
                                   }`}>
                                     {cert.examCode}
                                   </div>
-                                  <span className="text-xs text-muted-foreground">•</span>
-                                  <span className="text-xs text-muted-foreground font-medium">{year}</span>
                                   {cert.verifiedCredential && cert.verifiedCredential.trim() !== '' && (
                                     <>
                                       <span className="text-xs text-muted-foreground">•</span>

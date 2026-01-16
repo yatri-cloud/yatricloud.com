@@ -30,10 +30,12 @@ export default async function handler(
 
   if (!YATRIS_API_URL) {
     console.error('❌ YATRIS_USERS_API_URL not configured');
+    console.error('❌ Available env vars:', Object.keys(process.env).filter(k => k.includes('YATRIS')));
     return response.status(500).json({
       success: false,
       error: 'Server configuration error',
-      message: 'YATRIS_USERS_API_URL not configured. Please add this environment variable in Vercel.',
+      message: 'YATRIS_USERS_API_URL not configured. Please add this environment variable in Vercel and redeploy.',
+      help: 'Visit /api/yatris-proxy-check to verify environment variables',
     });
   }
 

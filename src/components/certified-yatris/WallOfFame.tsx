@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Linkedin, Calendar, Award, Filter } from "lucide-react";
+import { Trophy, Linkedin, Award, Filter } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -213,16 +213,6 @@ export const WallOfFame = () => {
                   </span>
                   <span className="px-2 py-1 bg-muted rounded-md text-xs">
                     {cert.certificationProvider.toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  <span>
-                    {new Date(cert.certificationDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
                   </span>
                 </div>
               </div>

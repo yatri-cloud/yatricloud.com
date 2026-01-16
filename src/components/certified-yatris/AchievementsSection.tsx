@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Linkedin, Calendar, Award, Sparkles, Trophy } from "lucide-react";
+import { Linkedin, Award, Sparkles, Trophy } from "lucide-react";
 import { fetchCertifications } from "@/lib/google-sheets";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -248,16 +248,6 @@ export const AchievementsSection = () => {
                             </span>
                             <span className="px-2 py-1 bg-muted rounded-md text-xs text-muted-foreground">
                               {cert.certificationProvider.toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              {new Date(cert.certificationDate).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              })}
                             </span>
                           </div>
                         </div>

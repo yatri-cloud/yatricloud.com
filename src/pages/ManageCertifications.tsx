@@ -312,7 +312,6 @@ const ManageCertifications = () => {
                                   </h4>
                                   <div className="text-sm text-muted-foreground space-y-1">
                                     <p>Exam Code: {cert.examCode}</p>
-                                    <p>Year Passed: {cert.certificationDate}</p>
                                     {cert.verifiedCredential && (
                                       <p>
                                         Credential:{" "}
