@@ -29,9 +29,11 @@ export default async function handler(
   }
 
   if (!YATRIS_API_URL) {
+    console.error('❌ YATRIS_USERS_API_URL not configured');
     return response.status(500).json({
+      success: false,
       error: 'Server configuration error',
-      message: 'YATRIS_USERS_API_URL not configured',
+      message: 'YATRIS_USERS_API_URL not configured. Please add this environment variable in Vercel.',
     });
   }
 
@@ -48,6 +50,8 @@ export default async function handler(
       }
     }
 
+    console.log(`📤 Proxying ${request.method} request to: ${url.substring(0, 50)}...`);
+
     // Forward the request to Google Apps Script
     const proxyResponse = await fetch(url, {
       method: request.method,
@@ -57,6 +61,8 @@ export default async function handler(
       body: request.method === 'POST' ? JSON.stringify(request.body) : undefined,
     });
 
+    console.log(`📥 Response status: ${proxyResponse.status} ${proxyResponse.statusText}`);
+
     const contentType = proxyResponse.headers.get('content-type');
     let data;
     
@@ -65,10 +71,26 @@ export default async function handler(
         data = await proxyResponse.json();
       } else {
         const text = await proxyResponse.text();
+        console.log(`📄 Response content type: ${contentType}`);
+        console.log(`📄 Response preview: ${text.substring(0, 200)}...`);
+        
+        // Check if it's an HTML error page (common with Google Apps Script errors)
+        if (text.includes('<html') || text.includes('<!DOCTYPE')) {
+          return response.status(500).json({
+            success: false,
+            error: 'Google Apps Script error',
+            message: 'The Google Apps Script returned an HTML error page. Please check the script deployment and logs.',
+          });
+        }
+        
         try {
           data = JSON.parse(text);
         } catch {
-          data = { success: false, error: 'Invalid response', message: text };
+          data = { 
+            success: false, 
+            error: 'Invalid response format', 
+            message: `Expected JSON but received: ${contentType || 'unknown'}. Response: ${text.substring(0, 500)}` 
+          };
         }
       }
 
@@ -101,10 +123,26 @@ export default async function handler(
     }
   } catch (error: any) {
     console.error('❌ Proxy error:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      cause: error.cause,
+    });
+    
+    // Check if it's a network error
+    if (error.message && (error.message.includes('fetch') || error.message.includes('network'))) {
+      return response.status(500).json({
+        success: false,
+        error: 'Network error',
+        message: 'Failed to connect to Google Apps Script. Please check if the script is deployed and accessible.',
+      });
+    }
+    
     return response.status(500).json({
       success: false,
       error: 'Proxy error',
-      message: error.message || 'Failed to connect to server',
+      message: error.message || 'Failed to connect to server. Please check Vercel logs for details.',
     });
   }
 }
