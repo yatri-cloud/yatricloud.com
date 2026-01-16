@@ -1848,6 +1848,7 @@ const Achievements = () => {
                         </svg>
                         <span className="text-sm font-semibold">LinkedIn</span>
                       </a>
+                      {/* Download button - commented out
                       <button
                         onClick={downloadPersonImage}
                         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all"
@@ -1855,6 +1856,7 @@ const Achievements = () => {
                         <Download className="w-4 h-4" />
                         <span className="text-sm font-semibold">Download</span>
                       </button>
+                      */}
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/20 text-primary border border-primary/30">
                         <span className="text-sm font-bold">{selectedPerson.certifications.length}x Certified</span>
                         {/* Certification Logos */}
