@@ -85,12 +85,31 @@ function doPost(e) {
   try {
     // Handle empty postData (sometimes happens with CORS preflight)
     if (!e.postData || !e.postData.contents) {
-      return ContentService.createTextOutput(JSON.stringify({ error: 'No data provided' }))
-        .setMimeType(ContentService.MimeType.JSON);
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false,
+        error: 'No data provided' 
+      })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    const data = JSON.parse(e.postData.contents);
+    let data;
+    try {
+      data = JSON.parse(e.postData.contents);
+    } catch (parseError) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false,
+        error: 'Invalid JSON data',
+        message: parseError.toString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     const action = data.action;
+    
+    if (!action) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false,
+        error: 'Action is required'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
 
     // Create output - CORS headers are handled automatically by Google Apps Script
     const output = ContentService.createTextOutput();
@@ -98,9 +117,18 @@ function doPost(e) {
 
     if (action === 'register') {
       // Register new user
-      const result = registerUser(data);
-      output.setContent(JSON.stringify(result));
-      return output;
+      try {
+        const result = registerUser(data);
+        output.setContent(JSON.stringify(result));
+        return output;
+      } catch (error) {
+        output.setContent(JSON.stringify({ 
+          success: false,
+          error: 'Registration failed', 
+          message: error.toString() 
+        }));
+        return output;
+      }
     }
 
     if (action === 'login') {
@@ -218,10 +246,13 @@ function doPost(e) {
       return output;
     }
 
-    output.setContent(JSON.stringify({ error: 'Invalid action' }));
+    output.setContent(JSON.stringify({ success: false, error: 'Invalid action' }));
     return output;
   } catch (error) {
+    Logger.log('doPost error: ' + error.toString());
+    Logger.log('Error stack: ' + (error.stack || 'No stack trace'));
     return ContentService.createTextOutput(JSON.stringify({ 
+      success: false,
       error: 'Server error', 
       message: error.toString() 
     })).setMimeType(ContentService.MimeType.JSON);
@@ -233,7 +264,16 @@ function doPost(e) {
  */
 function registerUser(data) {
   try {
+    // Validate input data exists
+    if (!data) {
+      return { success: false, error: 'No data provided' };
+    }
+
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    if (!ss) {
+      return { success: false, error: 'Failed to access spreadsheet' };
+    }
+
     let usersSheet = ss.getSheetByName(USERS_SHEET_NAME);
     
     if (!usersSheet) {
@@ -261,33 +301,39 @@ function registerUser(data) {
     // Check if user already exists
     const existingUser = getUserByEmail(data.email);
     if (existingUser) {
-      return { error: 'User already exists with this email' };
+      return { success: false, error: 'User already exists with this email' };
     }
 
     // Validate required fields
+    if (!data.email || !data.email.trim()) {
+      return { success: false, error: 'Email is required' };
+    }
+    if (!data.password || !data.password.trim()) {
+      return { success: false, error: 'Password is required' };
+    }
     if (!data.fullName || !data.fullName.trim()) {
-      return { error: 'Full name is required' };
+      return { success: false, error: 'Full name is required' };
     }
     if (!data.linkedinUrl || !data.linkedinUrl.trim()) {
-      return { error: 'LinkedIn URL is required' };
+      return { success: false, error: 'LinkedIn URL is required' };
     }
     if (!data.country || !data.country.trim()) {
-      return { error: 'Country is required' };
+      return { success: false, error: 'Country is required' };
     }
     if (!data.stateProvince || !data.stateProvince.trim()) {
-      return { error: 'State/Province is required' };
+      return { success: false, error: 'State/Province is required' };
     }
     if (!data.city || !data.city.trim()) {
-      return { error: 'City is required' };
+      return { success: false, error: 'City is required' };
     }
     if (!data.countryCode || !data.countryCode.trim()) {
-      return { error: 'Country code is required' };
+      return { success: false, error: 'Country code is required' };
     }
     if (!data.phoneNumber || !data.phoneNumber.trim()) {
-      return { error: 'Phone number is required' };
+      return { success: false, error: 'Phone number is required' };
     }
     if (!data.photoUrl || !data.photoUrl.trim()) {
-      return { error: 'Photo is required' };
+      return { success: false, error: 'Photo is required' };
     }
 
     // Hash password (simple hash - in production, use proper hashing)
@@ -340,7 +386,13 @@ function registerUser(data) {
         }
       };
   } catch (error) {
-    return { error: 'Registration failed', message: error.toString() };
+    Logger.log('Registration error: ' + error.toString());
+    Logger.log('Error stack: ' + (error.stack || 'No stack trace'));
+    return { 
+      success: false,
+      error: 'Registration failed', 
+      message: error.toString() 
+    };
   }
 }
 

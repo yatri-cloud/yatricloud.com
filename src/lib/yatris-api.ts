@@ -63,16 +63,24 @@ export async function registerUser(data: {
       }),
     });
 
-    if (!response.ok) {
-      throw new Error('Registration failed');
+    const result = await response.json();
+
+    // Check if response has an error (even if status is 200)
+    if (!response.ok || result.error || !result.success) {
+      const errorMessage = result.error || result.message || 'Registration failed';
+      console.error('Registration error:', errorMessage, result);
+      return {
+        success: false,
+        error: errorMessage,
+      };
     }
 
-    return await response.json();
+    return result;
   } catch (error: any) {
     console.error('Registration error:', error);
     return {
       success: false,
-      error: error.message || 'Registration failed',
+      error: error.message || 'Registration failed. Please check your connection and try again.',
     };
   }
 }

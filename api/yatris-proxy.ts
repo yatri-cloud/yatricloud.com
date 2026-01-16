@@ -60,27 +60,51 @@ export default async function handler(
     const contentType = proxyResponse.headers.get('content-type');
     let data;
     
-    if (contentType && contentType.includes('application/json')) {
-      data = await proxyResponse.json();
-    } else {
-      const text = await proxyResponse.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { error: 'Invalid response', message: text };
+    try {
+      if (contentType && contentType.includes('application/json')) {
+        data = await proxyResponse.json();
+      } else {
+        const text = await proxyResponse.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { success: false, error: 'Invalid response', message: text };
+        }
       }
-    }
 
-    if (!proxyResponse.ok) {
-      return response.status(proxyResponse.status).json(data);
-    }
+      // Check if response indicates an error (even if status is 200)
+      if (data.error || (data.success === false)) {
+        return response.status(proxyResponse.ok ? 200 : proxyResponse.status).json({
+          success: false,
+          error: data.error || 'Request failed',
+          message: data.message || data.error,
+        });
+      }
 
-    return response.status(200).json(data);
+      // If status is not ok, return error
+      if (!proxyResponse.ok) {
+        return response.status(proxyResponse.status).json({
+          success: false,
+          error: data.error || 'Request failed',
+          message: data.message || `Server returned ${proxyResponse.status}`,
+        });
+      }
+
+      return response.status(200).json(data);
+    } catch (parseError: any) {
+      console.error('❌ Error parsing response:', parseError);
+      return response.status(proxyResponse.ok ? 200 : proxyResponse.status).json({
+        success: false,
+        error: 'Response parsing error',
+        message: parseError.message,
+      });
+    }
   } catch (error: any) {
     console.error('❌ Proxy error:', error);
     return response.status(500).json({
+      success: false,
       error: 'Proxy error',
-      message: error.message,
+      message: error.message || 'Failed to connect to server',
     });
   }
 }
