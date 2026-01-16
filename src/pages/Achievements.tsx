@@ -508,10 +508,16 @@ const Achievements = () => {
     return acc;
   }, {} as Record<string, GroupedPerson>);
 
-  // Convert to array and sort by name
-  const persons = Object.values(groupedByPerson).sort((a, b) => 
-    a.fullName.localeCompare(b.fullName)
-  );
+  // Convert to array and sort by name (Yatharth always first, then Nensi, then others alphabetically)
+  const persons = Object.values(groupedByPerson).sort((a, b) => {
+    // Special ordering: Yatharth first, then Nensi, then others
+    if (a.fullName === "Yatharth Chauhan") return -1;
+    if (b.fullName === "Yatharth Chauhan") return 1;
+    if (a.fullName === "Nensi Ravaliya") return -1;
+    if (b.fullName === "Nensi Ravaliya") return 1;
+    // Alphabetical for others
+    return a.fullName.localeCompare(b.fullName);
+  });
 
   // Group persons by provider - filter certifications by provider for each person
   // Store total certification count for each person
@@ -1467,15 +1473,37 @@ const Achievements = () => {
                                 
                                 if (!providerLogo) return null;
                                 
-                                const logoSrc = providerName === 'AWS'
-                                  ? (theme === 'dark' 
-                                      ? providerLogo.logo  // aws-light.png for dark mode
-                                      : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                                  : (theme === 'dark' 
-                                      ? (providerLogo.logoLight || providerLogo.logo)
-                                      : (providerName === 'GITHUB' 
-                                          ? providerLogo.logo 
-                                          : (providerLogo.logoLight || providerLogo.logo)));
+                                // Special AWS logo alternation for Yatharth and Nensi (theme-dependent)
+                                let logoSrc;
+                                if (providerName === 'AWS' && isSpecialPerson) {
+                                  // Alternate AWS logos based on theme: swaps when theme changes
+                                  if (person.fullName === "Yatharth Chauhan") {
+                                    // Yatharth: logoLight in light mode, logo in dark mode
+                                    logoSrc = theme === 'dark' 
+                                      ? providerLogo.logo  // aws-light.png in dark mode
+                                      : (providerLogo.logoLight || providerLogo.logo); // aws.svg in light mode
+                                  } else if (person.fullName === "Nensi Ravaliya") {
+                                    // Nensi: logo in light mode, logoLight in dark mode (opposite of Yatharth)
+                                    logoSrc = theme === 'dark' 
+                                      ? (providerLogo.logoLight || providerLogo.logo) // aws.svg in dark mode
+                                      : providerLogo.logo; // aws-light.png in light mode
+                                  } else {
+                                    logoSrc = theme === 'dark' 
+                                      ? providerLogo.logo 
+                                      : (providerLogo.logoLight || providerLogo.logo);
+                                  }
+                                } else {
+                                  // Normal logo selection for other providers or non-special persons
+                                  logoSrc = providerName === 'AWS'
+                                    ? (theme === 'dark' 
+                                        ? providerLogo.logo  // aws-light.png for dark mode
+                                        : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
+                                    : (theme === 'dark' 
+                                        ? (providerLogo.logoLight || providerLogo.logo)
+                                        : (providerName === 'GITHUB' 
+                                            ? providerLogo.logo 
+                                            : (providerLogo.logoLight || providerLogo.logo)));
+                                }
                                 
                                 return (
                                   <motion.div
@@ -1833,6 +1861,7 @@ const Achievements = () => {
                         {(() => {
                           const uniqueProviders = Array.from(new Set(selectedPerson.certifications.map(c => c.certificationProvider.toUpperCase())));
                           const { theme } = useTheme();
+                          const isSpecialPerson = selectedPerson.fullName === "Yatharth Chauhan" || selectedPerson.fullName === "Nensi Ravaliya";
                           
                           return (
                             <div className="flex items-center gap-1 ml-2">
@@ -1840,15 +1869,37 @@ const Achievements = () => {
                                 const providerLogo = PROVIDER_LOGOS[providerName];
                                 if (!providerLogo) return null;
                                 
-                                const logoSrc = providerName === 'AWS'
-                                  ? (theme === 'dark' 
-                                      ? providerLogo.logo  // aws-light.png for dark mode
-                                      : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                                  : (theme === 'dark' 
-                                      ? (providerLogo.logoLight || providerLogo.logo)
-                                      : (providerName === 'GITHUB' 
-                                          ? providerLogo.logo 
-                                          : (providerLogo.logoLight || providerLogo.logo)));
+                                // Special AWS logo alternation for Yatharth and Nensi (theme-dependent)
+                                let logoSrc;
+                                if (providerName === 'AWS' && isSpecialPerson) {
+                                  // Alternate AWS logos based on theme: swaps when theme changes
+                                  if (selectedPerson.fullName === "Yatharth Chauhan") {
+                                    // Yatharth: logoLight in light mode, logo in dark mode
+                                    logoSrc = theme === 'dark' 
+                                      ? providerLogo.logo  // aws-light.png in dark mode
+                                      : (providerLogo.logoLight || providerLogo.logo); // aws.svg in light mode
+                                  } else if (selectedPerson.fullName === "Nensi Ravaliya") {
+                                    // Nensi: logo in light mode, logoLight in dark mode (opposite of Yatharth)
+                                    logoSrc = theme === 'dark' 
+                                      ? (providerLogo.logoLight || providerLogo.logo) // aws.svg in dark mode
+                                      : providerLogo.logo; // aws-light.png in light mode
+                                  } else {
+                                    logoSrc = theme === 'dark' 
+                                      ? providerLogo.logo 
+                                      : (providerLogo.logoLight || providerLogo.logo);
+                                  }
+                                } else {
+                                  // Normal logo selection for other providers or non-special persons
+                                  logoSrc = providerName === 'AWS'
+                                    ? (theme === 'dark' 
+                                        ? providerLogo.logo  // aws-light.png for dark mode
+                                        : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
+                                    : (theme === 'dark' 
+                                        ? (providerLogo.logoLight || providerLogo.logo)
+                                        : (providerName === 'GITHUB' 
+                                            ? providerLogo.logo 
+                                            : (providerLogo.logoLight || providerLogo.logo)));
+                                }
                                 
                                 return (
                                   <div

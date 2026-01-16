@@ -387,7 +387,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                 <Input
                   id="register-linkedin"
                   type="url"
-                  placeholder="https://linkedin.com/in/yatharth-chauhan"
+                  placeholder="https://linkedin.com/in/yourprofile"
                   value={registerData.linkedinUrl}
                   onChange={(e) =>
                     setRegisterData({ ...registerData, linkedinUrl: e.target.value })
@@ -473,7 +473,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                 <Input
                   id="register-state"
                   type="text"
-                  placeholder="Karnataka"
+                  placeholder="Your state/province"
                   value={registerData.stateProvince}
                   onChange={(e) =>
                     setRegisterData({ ...registerData, stateProvince: e.target.value })
@@ -487,7 +487,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                 <Input
                   id="register-city"
                   type="text"
-                  placeholder="BENGALURU"
+                  placeholder="Your city"
                   value={registerData.city}
                   onChange={(e) =>
                     setRegisterData({ ...registerData, city: e.target.value })

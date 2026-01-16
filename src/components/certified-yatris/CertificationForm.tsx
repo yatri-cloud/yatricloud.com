@@ -1186,7 +1186,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
         <p className="text-muted-foreground mb-8">
           Your certification has been submitted successfully. You'll appear on the Wall of Fame soon!
         </p>
-        <div className="flex gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Button onClick={() => {
             setIsSuccess(false);
             reset();
@@ -1196,6 +1196,14 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
               loadUserCertifications();
             }
           }}>Submit Another</Button>
+          <Button 
+            variant="default"
+            onClick={() => {
+              window.location.href = "/achievements";
+            }}
+          >
+            View Achievements
+          </Button>
           {user?.email && (
             <Button 
               variant="outline" 
@@ -1319,7 +1327,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                   <Input
                     id="fullName"
                     {...register("fullName", { required: "Full name is required" })}
-                    placeholder="yatharth chauhan"
+                    placeholder="Your full name"
                     className="w-full"
                   />
                   {errors.fullName && (
@@ -1342,7 +1350,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                         message: "Invalid email address",
                       },
                     })}
-                    placeholder="yatharth.chauhan@example.com"
+                    placeholder="your.email@example.com"
                     className="w-full"
                   />
                   {errors.email && (
@@ -1736,7 +1744,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                   <Input
                     id="fullName"
                     {...register("fullName", { required: "Full name is required" })}
-                    placeholder="yatharth chauhan"
+                    placeholder="Your full name"
                     className="w-full"
                   />
                   {errors.fullName && (
@@ -1759,7 +1767,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                         message: "Invalid email address",
                       },
                     })}
-                    placeholder="yatharth.chauhan@example.com"
+                    placeholder="your.email@example.com"
                     className="w-full"
                   />
                   {errors.email && (
