@@ -17,7 +17,7 @@
    ```env
    CANVA_CLIENT_ID=your_canva_client_id_here
    CANVA_CLIENT_SECRET=your_canva_client_secret_here
-   VITE_CANVA_TEMPLATE_ID=DAG-Uwaecgc
+   VITE_CANVA_TEMPLATE_ID=your_template_id_here
    ```
 2. Restart your dev server: `npm run dev`
 
@@ -28,7 +28,7 @@
 4. Add these three variables:
    - `CANVA_CLIENT_ID` = `your_canva_client_id_here`
    - `CANVA_CLIENT_SECRET` = `your_canva_client_secret_here`
-   - `VITE_CANVA_TEMPLATE_ID` = `DAG-Uwaecgc`
+   - `VITE_CANVA_TEMPLATE_ID` = `your_template_id_here`
 5. Select **All Environments** (Production, Preview, Development)
 6. Click **Save**
 7. **Redeploy** your project

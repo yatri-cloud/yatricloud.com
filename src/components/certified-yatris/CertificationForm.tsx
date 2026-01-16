@@ -303,6 +303,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
   const [editingCert, setEditingCert] = useState<number | null>(null);
   const [currentCertIndex, setCurrentCertIndex] = useState(0);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'a-z' | 'z-a' | 'default'>('a-z');
   
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState<'selection' | 'common-info' | 'credentials'>('selection');
@@ -690,30 +691,21 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       setPhotoPreview(user.photoUrl);
     }
 
-    // Validate that all certifications have years
-    const missingYears = certificationCredentials.filter(
-      (cred) => !cred.certificationDate || cred.certificationDate.trim() === ''
+    // Validate that all certifications are selected
+    const missingCerts = certificationCredentials.filter(
+      (cred) => !cred.certificationValue || cred.certificationValue.trim() === ''
     );
     
-    if (missingYears.length > 0) {
+    if (missingCerts.length > 0) {
       toast({
         title: "Validation Error",
-        description: `Please enter the year passed for all ${missingYears.length} certification(s).`,
+        description: `Please select a certification for all ${missingCerts.length} certification(s).`,
         variant: "destructive",
       });
       return;
     }
-
-    // Validate year range
-    const currentYear = new Date().getFullYear();
-    const invalidYears = certificationCredentials.filter(
-      (cred) => {
-        const year = parseInt(cred.certificationDate);
-        return isNaN(year) || year < 2000 || year > currentYear;
-      }
-    );
     
-    if (invalidYears.length > 0) {
+    if (false) {
       toast({
         title: "Validation Error",
         description: `Please enter a valid year (2000 - ${currentYear}) for all certifications.`,
@@ -799,7 +791,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           certificationProvider: provider,
           certificationName: cred.certificationName,
           examCode: cred.examCode,
-          certificationDate: cred.certificationDate,
+          certificationDate: '', // Year Passed field removed
           verifiedCredential: cred.verifiedCredential || '',
           additionalNotes: cred.additionalNotes || '',
           linkedinUrl: user?.linkedinUrl || '',
@@ -918,7 +910,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
             certificationProvider: certProvider,
             certificationName: cred.certificationName,
             examCode: cred.examCode,
-            certificationDate: cred.certificationDate,
+            certificationDate: '', // Year Passed field removed
             linkedinUrl: user?.linkedinUrl || '',
             verifiedCredential: cred.verifiedCredential,
             country: user?.country || '',
@@ -1463,9 +1455,24 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           {/* Multiple Certification Selection - Grouped by Provider */}
           {selectedProviders.length > 0 && (
             <div>
-              <Label className="mb-3 block text-base font-semibold">
-                Step 2: Select Your Certifications <span className="text-destructive">*</span>
-              </Label>
+              <div className="flex items-center justify-between mb-3">
+                <Label className="block text-base font-semibold">
+                  Step 2: Select Your Certifications <span className="text-destructive">*</span>
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm text-muted-foreground">Sort:</Label>
+                  <Select value={sortOrder} onValueChange={(value: 'a-z' | 'z-a' | 'default') => setSortOrder(value)}>
+                    <SelectTrigger className="w-[120px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="a-z">A to Z</SelectItem>
+                      <SelectItem value="z-a">Z to A</SelectItem>
+                      <SelectItem value="default">Default</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <p className="text-sm text-muted-foreground mb-4">
                 Choose the specific certifications you want to submit. You can select multiple certifications from your chosen providers.
               </p>
@@ -1495,7 +1502,14 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                         </h4>
                       </div>
                       <div className="grid grid-cols-1 gap-2 ml-2">
-                        {providerCerts.map((cert) => {
+                        {[...providerCerts].sort((a, b) => {
+                          if (sortOrder === 'a-z') {
+                            return a.label.localeCompare(b.label);
+                          } else if (sortOrder === 'z-a') {
+                            return b.label.localeCompare(a.label);
+                          }
+                          return 0;
+                        }).map((cert) => {
                           const isChecked = selectedCertifications.includes(cert.value);
                           return (
                             <motion.div
@@ -1769,56 +1783,6 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                       <p className="text-sm text-muted-foreground">Exam Code: {cert.code}</p>
                     </div>
                     
-                    {/* Certification Year */}
-                    <div>
-                      <Label htmlFor={`year-${cred.certificationValue}`} className="mb-2">
-                        Year Passed <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id={`year-${cred.certificationValue}`}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={4}
-                        value={cred.certificationDate || ''}
-                        onChange={(e) => {
-                          // Allow any numeric input while typing
-                          const year = e.target.value.replace(/\D/g, "");
-                          // Only allow up to 4 digits
-                          const limitedYear = year.slice(0, 4);
-                          handleCredentialUpdate(cred.certificationValue, "certificationDate", limitedYear);
-                        }}
-                        onBlur={(e) => {
-                          // Validate on blur
-                          const year = e.target.value.replace(/\D/g, "");
-                          const numericYear = year ? parseInt(year, 10) : NaN;
-                          const currentYear = new Date().getFullYear();
-                          
-                          if (year && (!isNaN(numericYear))) {
-                            if (numericYear < 2000) {
-                              toast({
-                                title: "Invalid Year",
-                                description: `Year must be 2000 or later.`,
-                                variant: "destructive",
-                              });
-                              handleCredentialUpdate(cred.certificationValue, "certificationDate", "");
-                            } else if (numericYear > currentYear) {
-                              toast({
-                                title: "Invalid Year",
-                                description: `Year cannot be later than ${currentYear}.`,
-                                variant: "destructive",
-                              });
-                              handleCredentialUpdate(cred.certificationValue, "certificationDate", "");
-                            }
-                          }
-                        }}
-                        placeholder="e.g., 2024"
-                        className="w-full"
-                        required
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Enter the year you passed this certification (2000 - {new Date().getFullYear()})
-                      </p>
-                    </div>
 
                     {/* Verified Credential URL */}
                     <div>
@@ -1920,55 +1884,56 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           </div>
 
           <form onSubmit={handleSubmitCredential(handleCredentialSubmit)} className="space-y-6">
-            {/* Certification Year */}
+            {/* Certification Selection */}
             <div>
-              <Label htmlFor="credential-certificationDate" className="mb-2">
-                Year Passed <span className="text-destructive">*</span>
+              <Label htmlFor="credential-certification" className="mb-2">
+                Certification <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id="credential-certificationDate"
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
-                defaultValue={currentCert.certificationDate || ''}
-                {...registerCredential("certificationDate", {
-                  required: "Year is required",
-                  validate: (value) => {
-                    const cleaned = (value || "").toString().replace(/\D/g, "");
-                    if (!cleaned) {
-                      return "Year is required";
-                    }
-                    const year = parseInt(cleaned, 10);
-                    const currentYear = new Date().getFullYear();
-                    if (isNaN(year)) {
-                      return "Please enter a valid year";
-                    }
-                    if (year < 2000) {
-                      return "Year must be 2000 or later";
-                    }
-                    if (year > currentYear) {
-                      return `Year cannot be later than ${currentYear}`;
+              <Select
+                value={currentCert.certificationValue || ''}
+                onValueChange={(value) => {
+                  const allCerts = getCertifications();
+                  const selectedCert = allCerts.find(c => c.value === value);
+                  if (selectedCert) {
+                    setCredentialValue("certificationValue", value);
+                    // Update the current cert in the credentials array
+                    const updatedCreds = [...certificationCredentials];
+                    updatedCreds[currentCertIndex] = {
+                      ...updatedCreds[currentCertIndex],
+                      certificationValue: value,
+                      certificationName: selectedCert.label,
+                      examCode: selectedCert.code,
+                    };
+                    setCertificationCredentials(updatedCreds);
                   }
-                    return true;
-                  },
-                })}
-                onChange={(e) => {
-                  // Allow any numeric input while typing (up to 4 digits)
-                  const year = e.target.value.replace(/\D/g, "");
-                  const limitedYear = year.slice(0, 4);
-                  setCredentialValue("certificationDate", limitedYear, { shouldValidate: false });
                 }}
-                placeholder="e.g., 2024"
-                className="w-full"
-              />
-              {credentialErrors.certificationDate && (
-                <p className="text-sm text-destructive mt-1">
-                  {credentialErrors.certificationDate.message}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Enter the year you passed this certification (2000 - {new Date().getFullYear()})
-              </p>
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a certification" />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedCertifications
+                    .map(certValue => {
+                      const allCerts = getCertifications();
+                      return allCerts.find(c => c.value === certValue);
+                    })
+                    .filter(cert => cert !== undefined)
+                    .sort((a, b) => {
+                      if (!a || !b) return 0;
+                      if (sortOrder === 'a-z') {
+                        return a.label.localeCompare(b.label);
+                      } else if (sortOrder === 'z-a') {
+                        return b.label.localeCompare(a.label);
+                      }
+                      return 0;
+                    })
+                    .map((cert) => (
+                      <SelectItem key={cert!.value} value={cert!.value}>
+                        {cert!.label} ({cert!.code})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Verified Credential URL */}

@@ -17,7 +17,7 @@ Create a `.env` file in the project root:
 ```env
 CANVA_CLIENT_ID=your_canva_client_id_here
 CANVA_CLIENT_SECRET=your_canva_client_secret_here
-VITE_CANVA_TEMPLATE_ID=DAG-Uwaecgc
+VITE_CANVA_TEMPLATE_ID=your_template_id_here
 ```
 
 **For Vercel:**
@@ -25,7 +25,7 @@ VITE_CANVA_TEMPLATE_ID=DAG-Uwaecgc
 2. Add these three variables:
    - `CANVA_CLIENT_ID` = `your_canva_client_id_here`
    - `CANVA_CLIENT_SECRET` = `your_canva_client_secret_here`
-   - `VITE_CANVA_TEMPLATE_ID` = (your template ID - set after creating template)
+   - `VITE_CANVA_TEMPLATE_ID` = `your_template_id_here`
 
 ### 2. Create Your Canva Template
 

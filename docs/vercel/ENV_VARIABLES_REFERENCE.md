@@ -23,10 +23,10 @@ VITE_UDEMY_CREDENTIALS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbwsL5
 VITE_UDEMY_INSTRUCTOR_TOKEN=YrCJK4kzRFSoPjB3tRQLBpEL7LLQOzC7
 
 # Canva Connect API (for automated image generation)
-# Template: https://www.canva.com/design/DAG-Uwaecgc/...
+# Get these from: https://www.canva.com/developers/
 CANVA_CLIENT_ID=your_canva_client_id_here
 CANVA_CLIENT_SECRET=your_canva_client_secret_here
-VITE_CANVA_TEMPLATE_ID=DAG-Uwaecgc
+VITE_CANVA_TEMPLATE_ID=your_template_id_here
 
 # Yatris Users API (Google Apps Script Web App URL)
 # Deploy yatris-users.gs as a web app and use the URL here
@@ -54,10 +54,10 @@ VITE_UDEMY_CREDENTIALS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbwsL5
 VITE_UDEMY_INSTRUCTOR_TOKEN=YrCJK4kzRFSoPjB3tRQLBpEL7LLQOzC7
 
 # Canva Connect API (for automated image generation)
-# Template: https://www.canva.com/design/DAG-Uwaecgc/...
+# Get these from: https://www.canva.com/developers/
 CANVA_CLIENT_ID=your_canva_client_id_here
 CANVA_CLIENT_SECRET=your_canva_client_secret_here
-VITE_CANVA_TEMPLATE_ID=DAG-Uwaecgc
+VITE_CANVA_TEMPLATE_ID=your_template_id_here
 
 # Yatris Users API (Google Apps Script Web App URL)
 # Deploy yatris-users.gs as a web app and use the URL here

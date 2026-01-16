@@ -10,12 +10,13 @@ Create a `.env` file in the root of your project:
 
 ```env
 # Canva Connect API Credentials
+# Get these from: https://www.canva.com/developers/
 CANVA_CLIENT_ID=your_canva_client_id_here
 CANVA_CLIENT_SECRET=your_canva_client_secret_here
 
 # Canva Template ID
-# Template: https://www.canva.com/design/DAG-Uwaecgc/...
-VITE_CANVA_TEMPLATE_ID=DAG-Uwaecgc
+# Create a template in Canva and get the ID from the template URL
+VITE_CANVA_TEMPLATE_ID=your_template_id_here
 ```
 
 ### For Vercel Deployment

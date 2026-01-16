@@ -403,8 +403,8 @@ const Achievements = () => {
   
   // Canva template ID - Set this to your Canva template ID
   // Get it from your Canva template URL or Canva API
-  // Template: https://www.canva.com/design/DAG-Uwaecgc/...
-  const CANVA_TEMPLATE_ID = import.meta.env.VITE_CANVA_TEMPLATE_ID || 'DAG-Uwaecgc';
+  // Get template ID from environment variable
+  const CANVA_TEMPLATE_ID = import.meta.env.VITE_CANVA_TEMPLATE_ID;
 
   useEffect(() => {
     // Scroll to top when component mounts
