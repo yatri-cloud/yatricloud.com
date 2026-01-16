@@ -12,6 +12,8 @@ import Achievements from "./pages/Achievements";
 import Udemy from "./pages/Udemy";
 import YatriStore from "./pages/YatriStore";
 import AddProduct from "./pages/AddProduct";
+import ManageCertifications from "./pages/ManageCertifications";
+import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/certifiedyatris" element={<CertifiedYatris />} />
+          <Route path="/manage-certifications" element={<ManageCertifications />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/udemy" element={<Udemy />} />
           <Route path="/yatristore" element={<YatriStore />} />

@@ -75,6 +75,7 @@ export interface CertificationSubmission {
   countryCode: string;
   phoneNumber: string;
   photo: File | null;
+  photoUrl?: string; // Optional: if user has photo from signup, use this instead of uploading
   additionalNotes?: string;
   sheetName: string;
   subSheetName: string;
@@ -170,10 +171,16 @@ export async function submitCertification(
     );
   }
 
-  // Upload photo if provided
+  // Use photoUrl from user profile if available, otherwise upload photo file
   let photoUrl = "";
-  if (data.photo) {
+  if (data.photoUrl) {
+    // User has photo from signup/profile - use it directly
+    photoUrl = data.photoUrl;
+    console.log("📸 Using photo from user profile");
+  } else if (data.photo) {
+    // Upload new photo file
     photoUrl = await uploadPhoto(data.photo);
+    console.log("📸 Uploaded new photo file");
   }
 
   // Prepare submission data

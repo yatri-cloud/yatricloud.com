@@ -21,6 +21,16 @@ VITE_UDEMY_YATHARTH_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbzG7mJbt
 VITE_UDEMY_NENSI_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbxo_PNFMqIZttrLkCzPM6oxaXDA_LJ702_FwCj3hbwv2yHvHzuGV4tZgZktLj9PgIHA/exec
 VITE_UDEMY_CREDENTIALS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbwsL5nNkmskfCqKQAwdykxWX0bDj7kaeTE0DIVM9ZioVwKtNVLkhUkAP7AiXjxGDInM/exec
 VITE_UDEMY_INSTRUCTOR_TOKEN=YrCJK4kzRFSoPjB3tRQLBpEL7LLQOzC7
+
+# Canva Connect API (for automated image generation)
+# Template: https://www.canva.com/design/DAG-Uwaecgc/...
+CANVA_CLIENT_ID=your_canva_client_id_here
+CANVA_CLIENT_SECRET=your_canva_client_secret_here
+VITE_CANVA_TEMPLATE_ID=DAG-Uwaecgc
+
+# Yatris Users API (Google Apps Script Web App URL)
+# Deploy yatris-users.gs as a web app and use the URL here
+YATRIS_USERS_API_URL=https://script.google.com/macros/s/AKfycbxHqWK2-fa7hRWf40_jZBKOUxLktgeVawx6e7pe68V83-dx9Ol34ShdqPtXTn0fNiOT5g/exec
 ```
 
 ---
@@ -42,6 +52,16 @@ VITE_UDEMY_YATHARTH_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbzG7mJbt
 VITE_UDEMY_NENSI_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbxo_PNFMqIZttrLkCzPM6oxaXDA_LJ702_FwCj3hbwv2yHvHzuGV4tZgZktLj9PgIHA/exec
 VITE_UDEMY_CREDENTIALS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbwsL5nNkmskfCqKQAwdykxWX0bDj7kaeTE0DIVM9ZioVwKtNVLkhUkAP7AiXjxGDInM/exec
 VITE_UDEMY_INSTRUCTOR_TOKEN=YrCJK4kzRFSoPjB3tRQLBpEL7LLQOzC7
+
+# Canva Connect API (for automated image generation)
+# Template: https://www.canva.com/design/DAG-Uwaecgc/...
+CANVA_CLIENT_ID=your_canva_client_id_here
+CANVA_CLIENT_SECRET=your_canva_client_secret_here
+VITE_CANVA_TEMPLATE_ID=DAG-Uwaecgc
+
+# Yatris Users API (Google Apps Script Web App URL)
+# Deploy yatris-users.gs as a web app and use the URL here
+YATRIS_USERS_API_URL=https://script.google.com/macros/s/AKfycbxHqWK2-fa7hRWf40_jZBKOUxLktgeVawx6e7pe68V83-dx9Ol34ShdqPtXTn0fNiOT5g/exec
 ```
 
 ---

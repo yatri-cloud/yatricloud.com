@@ -132,10 +132,10 @@ export const WallOfFame = () => {
           {/* Exam Code Filter */}
           <Select value={filterExamCode} onValueChange={setFilterExamCode}>
             <SelectTrigger>
-              <SelectValue placeholder="All Certifications" />
+              <SelectValue placeholder="Yatri Stars" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Certifications</SelectItem>
+              <SelectItem value="all">Yatri Stars</SelectItem>
               {uniqueExamCodes.map((code) => (
                 <SelectItem key={code} value={code}>
                   {code}

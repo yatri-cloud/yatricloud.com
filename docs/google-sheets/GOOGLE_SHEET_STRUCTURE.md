@@ -35,7 +35,7 @@ Each sheet should have these **16 columns** in this exact order:
 | Column | Header Name | Description | Example |
 |--------|-------------|-------------|---------|
 | A | **Timestamp** | When the form was submitted | 2024-01-15T10:30:00.000Z |
-| B | **Full Name** | Person's full name | John Doe |
+| B | **Full Name** | Person's full name | Your Name |
 | C | **Email** | Email address | john@example.com |
 | D | **Certification Provider** | Provider name (lowercase) | aws, azure, gcp |
 | E | **Certification Name** | Full certification name | AWS Certified Solutions Architect - Associate |
@@ -87,7 +87,7 @@ Here's what a complete row looks like:
 
 | Timestamp | Full Name | Email | Certification Provider | Certification Name | Exam Code | Certification Date | LinkedIn URL | Verified Credential | Country | State/Province | City | Country Code | Phone Number | Photo URL | Additional Notes |
 |-----------|-----------|-------|----------------------|-------------------|-----------|-------------------|-------------|---------------------|---------|----------------|------|--------------|--------------|-----------|------------------|
-| 2024-01-15T10:30:00Z | John Doe | john@example.com | aws | AWS Certified Solutions Architect - Associate | SAA-C03 | 2024-01-15 | https://linkedin.com/in/johndoe | https://www.credly.com/badges/... | US | CA | San Francisco | +1 | 9876543210 | data:image/jpeg;base64,/9j/4AAQ... | Great course! |
+| 2024-01-15T10:30:00Z | Your Name | john@example.com | aws | AWS Certified Solutions Architect - Associate | SAA-C03 | 2024-01-15 | https://linkedin.com/in/johndoe | https://www.credly.com/badges/... | US | CA | San Francisco | +1 | 9876543210 | data:image/jpeg;base64,/9j/4AAQ... | Great course! |
 
 ## Important Notes
 

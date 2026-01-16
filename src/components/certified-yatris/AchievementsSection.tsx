@@ -27,12 +27,46 @@ export const AchievementsSection = () => {
   }, []);
 
   const loadCertifications = async () => {
-    setIsLoading(true);
+    // Load from cache immediately for instant display
+    const cacheKey = 'yatri_certifications_cache';
+    const cacheTimestampKey = 'yatri_certifications_cache_timestamp';
+    const cacheMaxAge = 5 * 60 * 1000; // 5 minutes
+    
+    try {
+      const cachedData = localStorage.getItem(cacheKey);
+      const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
+      
+      if (cachedData && cachedTimestamp) {
+        const age = Date.now() - parseInt(cachedTimestamp, 10);
+        if (age < cacheMaxAge) {
+          const parsedData = JSON.parse(cachedData);
+          setCertifications(parsedData);
+          setIsLoading(false); // Show cached data immediately
+          console.log("📊 Loaded certifications from cache:", parsedData.length);
+        }
+      }
+    } catch (error) {
+      console.warn("⚠️ Error loading from cache:", error);
+    }
+
+    // Fetch fresh data in the background
     try {
       const data = await fetchCertifications();
       setCertifications(data);
+      
+      // Cache the fresh data
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+        localStorage.setItem(cacheTimestampKey, Date.now().toString());
+      } catch (cacheError) {
+        console.warn("⚠️ Error caching data:", cacheError);
+      }
     } catch (error) {
       console.error("Error loading certifications:", error);
+      // Only show loading error if we don't have cached data
+      if (certifications.length === 0) {
+        setIsLoading(false);
+      }
     } finally {
       setIsLoading(false);
     }

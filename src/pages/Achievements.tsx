@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Linkedin, Calendar, Award, Sparkles, Trophy, CheckCircle2, Star, ExternalLink, ShieldCheck, TrendingUp, Users, Building2, Calendar as CalendarIcon, BadgeCheck, GraduationCap, Briefcase, Zap, Sparkles as SparklesIcon, Star as StarIcon, CheckCircle, Clock, FileText } from "lucide-react";
+import { Linkedin, Calendar, Award, Sparkles, Trophy, CheckCircle2, Star, ExternalLink, ShieldCheck, TrendingUp, Users, Building2, Calendar as CalendarIcon, BadgeCheck, GraduationCap, Briefcase, Zap, Sparkles as SparklesIcon, Star as StarIcon, CheckCircle, Clock, FileText, Download } from "lucide-react";
+import html2canvas from "html2canvas";
+import { downloadCanvaImage } from "@/lib/canva-api";
 import { fetchCertifications } from "@/lib/google-sheets";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -208,6 +210,77 @@ const PROVIDER_COLORS: Record<string, { bg: string; text: string; border: string
   },
 };
 
+// Provider brand colors for card backgrounds
+// Single provider = brand color, Multiple providers = primary blue
+const PROVIDER_BRAND_COLORS: Record<string, { from: string; via: string; to: string; border: string }> = {
+  AWS: {
+    from: 'from-yellow-500/20 dark:from-yellow-600/30',
+    via: 'via-orange-500/15 dark:via-orange-600/25',
+    to: 'to-yellow-400/10 dark:to-yellow-500/20',
+    border: 'border-yellow-400/30 dark:border-yellow-500/40'
+  },
+  AZURE: {
+    from: 'from-blue-500/20 dark:from-blue-600/30',
+    via: 'via-blue-400/15 dark:via-blue-500/25',
+    to: 'to-blue-300/10 dark:to-blue-400/20',
+    border: 'border-blue-400/30 dark:border-blue-500/40'
+  },
+  GCP: {
+    from: 'from-blue-500/20 dark:from-blue-600/30',
+    via: 'via-yellow-500/15 dark:via-yellow-600/25',
+    to: 'to-green-500/10 dark:to-green-600/20',
+    border: 'border-blue-400/30 dark:border-blue-500/40'
+  },
+  GOOGLE: {
+    from: 'from-blue-500/20 dark:from-blue-600/30',
+    via: 'via-yellow-500/15 dark:via-yellow-600/25',
+    to: 'to-green-500/10 dark:to-green-600/20',
+    border: 'border-blue-400/30 dark:border-blue-500/40'
+  },
+  GITHUB: {
+    from: 'from-gray-800/30 dark:from-gray-900/40',
+    via: 'via-gray-700/20 dark:via-gray-800/30',
+    to: 'to-gray-600/15 dark:to-gray-700/25',
+    border: 'border-gray-600/30 dark:border-gray-700/40'
+  },
+  ORACLE: {
+    from: 'from-red-600/20 dark:from-red-700/30',
+    via: 'via-red-500/15 dark:via-red-600/25',
+    to: 'to-red-400/10 dark:to-red-500/20',
+    border: 'border-red-500/30 dark:border-red-600/40'
+  },
+  SALESFORCE: {
+    from: 'from-blue-500/20 dark:from-blue-600/30',
+    via: 'via-cyan-500/15 dark:via-cyan-600/25',
+    to: 'to-blue-400/10 dark:to-blue-500/20',
+    border: 'border-blue-400/30 dark:border-blue-500/40'
+  },
+  SERVICENOW: {
+    from: 'from-teal-500/20 dark:from-teal-600/30',
+    via: 'via-blue-500/15 dark:via-blue-600/25',
+    to: 'to-teal-400/10 dark:to-teal-500/20',
+    border: 'border-teal-400/30 dark:border-teal-500/40'
+  },
+  KUBERNETES: {
+    from: 'from-blue-500/20 dark:from-blue-600/30',
+    via: 'via-blue-400/15 dark:via-blue-500/25',
+    to: 'to-blue-300/10 dark:to-blue-400/20',
+    border: 'border-blue-400/30 dark:border-blue-500/40'
+  },
+  TERRAFORM: {
+    from: 'from-purple-500/20 dark:from-purple-600/30',
+    via: 'via-purple-400/15 dark:via-purple-500/25',
+    to: 'to-purple-300/10 dark:to-purple-400/20',
+    border: 'border-purple-400/30 dark:border-purple-500/40'
+  },
+  MULTIPLE: {
+    from: 'from-primary/30 dark:from-primary/40',
+    via: 'via-primary/25 dark:via-primary/35',
+    to: 'to-primary/20 dark:to-primary/30',
+    border: 'border-primary/40 dark:border-primary/50'
+  }
+};
+
 interface CertificationEntry {
   id: string;
   fullName: string;
@@ -325,7 +398,13 @@ const Achievements = () => {
   const [selectedMapProvider, setSelectedMapProvider] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<GroupedPerson | null>(null);
+  const [useCanva, setUseCanva] = useState(false);
   const { theme } = useTheme();
+  
+  // Canva template ID - Set this to your Canva template ID
+  // Get it from your Canva template URL or Canva API
+  // Template: https://www.canva.com/design/DAG-Uwaecgc/...
+  const CANVA_TEMPLATE_ID = import.meta.env.VITE_CANVA_TEMPLATE_ID || 'DAG-Uwaecgc';
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -334,41 +413,80 @@ const Achievements = () => {
   }, []);
 
   const loadCertifications = async () => {
-    setIsLoading(true);
+    // Load from cache immediately for instant display
+    const cacheKey = 'yatri_certifications_cache';
+    const cacheTimestampKey = 'yatri_certifications_cache_timestamp';
+    const cacheMaxAge = 10 * 60 * 1000; // 10 minutes (increased for better persistence)
+    
+    // Load from cache FIRST - this ensures instant display
+    let cacheLoaded = false;
+    try {
+      const cachedData = localStorage.getItem(cacheKey);
+      const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
+      
+      if (cachedData) {
+        try {
+          const parsedData = JSON.parse(cachedData);
+          if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
+            setCertifications(parsedData);
+            setIsLoading(false); // Show cached data immediately
+            cacheLoaded = true;
+            console.log("✅ Loaded certifications from cache:", parsedData.length);
+          } else if (parsedData && Array.isArray(parsedData)) {
+            // Cache exists but is empty array - still use it to show empty state immediately
+            setCertifications(parsedData);
+            setIsLoading(false);
+            cacheLoaded = true;
+          }
+        } catch (parseError) {
+          console.warn("⚠️ Error parsing cached data:", parseError);
+        }
+      }
+    } catch (error) {
+      console.warn("⚠️ Error loading from cache:", error);
+    }
+
+    // If no cache loaded, show loading while fetching
+    if (!cacheLoaded) {
+      setIsLoading(true);
+    }
+
+    // Always fetch fresh data in the background (even if cache was loaded)
     setError(null);
     try {
       const data = await fetchCertifications();
-      console.log("📊 Loaded certifications:", data);
-      console.log("📊 Count:", data.length);
-      // Debug: Check country and other fields for each certification
-      data.forEach((cert, index) => {
-        console.log(`🔍 Cert ${index} (${cert.fullName}):`, {
-          country: cert.country,
-          hasCountry: cert.country && cert.country.trim() !== '',
-          verifiedCredential: cert.verifiedCredential,
-          allKeys: Object.keys(cert)
-        });
-      });
+      
+      // Cache the fresh data
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+        localStorage.setItem(cacheTimestampKey, Date.now().toString());
+      } catch (cacheError) {
+        console.warn("⚠️ Error caching data:", cacheError);
+      }
+      
+      // Update with fresh data
       setCertifications(data);
+      setIsLoading(false);
       
       // If no data and no error, check if it's a CORS issue
-      if (data.length === 0) {
+      if (data.length === 0 && !cacheLoaded) {
         // Check console for CORS errors
         const hasCorsError = window.location.href.includes('localhost') || window.location.href.includes('127.0.0.1');
         if (hasCorsError) {
           // Don't set error here - let the user check console
-          // The actual error will be logged in console
         }
       }
     } catch (error: any) {
       console.error("❌ Error loading certifications:", error);
-      if (error.message && error.message.includes("CORS")) {
-        setError("CORS Error: Please update your Google Apps Script with the doOptions() function. See FIX_CORS_GET_REQUEST.md for instructions.");
-      } else {
-        setError("Failed to load certifications. Please check the browser console for details.");
+      // Only set error if we don't have cached data
+      if (!cacheLoaded) {
+        setIsLoading(false);
+        if (error.message && error.message.includes("CORS")) {
+          setError("CORS Error: Please update your Google Apps Script with the doOptions() function. See FIX_CORS_GET_REQUEST.md for instructions.");
+        } else {
+          setError("Failed to load certifications. Please check the browser console for details.");
+        }
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -574,6 +692,332 @@ const Achievements = () => {
   // Close person modal
   const closePersonModal = () => {
     setSelectedPerson(null);
+  };
+
+  // Download person card as image
+  const downloadPersonImage = async () => {
+    if (!selectedPerson) return;
+
+    // If Canva is enabled and template ID is set, use Canva API
+    if (useCanva && CANVA_TEMPLATE_ID) {
+      try {
+        // Get all person certifications to determine providers and counts
+        const allPersonCerts = persons.find(p => p.id === selectedPerson.id)?.certifications || selectedPerson.certifications;
+        const providerCounts = allPersonCerts.reduce((acc, cert) => {
+          const provider = cert.certificationProvider.toUpperCase();
+          acc[provider] = (acc[provider] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        const uniqueProviders = Object.keys(providerCounts).sort();
+        const providerCertList = uniqueProviders.map(provider => 
+          `${providerCounts[provider]}x ${provider}`
+        ).join(' • ');
+
+        await downloadCanvaImage({
+          templateId: CANVA_TEMPLATE_ID,
+          name: selectedPerson.fullName,
+          photoUrl: selectedPerson.photoUrl || 'https://via.placeholder.com/300',
+          certifications: providerCertList,
+          country: selectedPerson.country ? getCountryName(selectedPerson.country) : '',
+          totalCertifications: selectedPerson.certifications.length.toString(),
+        });
+        return;
+      } catch (error: any) {
+        console.error('Canva download failed, falling back to html2canvas:', error);
+        // Fall through to html2canvas method
+      }
+    }
+
+    try {
+      // Get all person certifications to determine providers and counts
+      const allPersonCerts = persons.find(p => p.id === selectedPerson.id)?.certifications || selectedPerson.certifications;
+      const providerCounts = allPersonCerts.reduce((acc, cert) => {
+        const provider = cert.certificationProvider.toUpperCase();
+        acc[provider] = (acc[provider] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      const uniqueProviders = Object.keys(providerCounts).sort();
+
+      // Calculate total certifications
+      const totalCertifications = allPersonCerts.length;
+
+      // Get provider logo URLs
+      // For blue background, we want logos that will be inverted to white
+      // Use regular logo (not logoLight) as we'll invert it
+      const getProviderLogo = (provider: string) => {
+        const providerKey = provider.toUpperCase();
+        const logoData = PROVIDER_LOGOS[providerKey];
+        if (logoData) {
+          // Use regular logo (will be inverted to white on blue background)
+          // For GitHub, use the white icon directly
+          if (providerKey === 'GITHUB') {
+            return logoData.logo || logoData.logoLight;
+          }
+          return logoData.logo;
+        }
+        return null;
+      };
+
+      // Solid primary blue color
+      const primaryBlue = '#3b82f6';
+      const primaryBlueLight = '#60a5fa';
+      const primaryBlueDark = '#2563eb';
+
+      // Create a container for the image
+      const container = document.createElement('div');
+      container.style.width = '1000px';
+      container.style.height = '1000px';
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.backgroundColor = primaryBlue;
+      container.style.padding = '0';
+      container.style.boxSizing = 'border-box';
+      container.style.display = 'flex';
+      container.style.flexDirection = 'column';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'space-between';
+      document.body.appendChild(container);
+
+      // Provider brand colors for circular logos
+      const providerColors: Record<string, string> = {
+        'AWS': '#FF9900', // Orange
+        'AZURE': '#0078D4', // Blue
+        'GCP': '#4285F4', // Google Blue
+        'GOOGLE': '#4285F4',
+        'GITHUB': '#181717', // Black
+        'ORACLE': '#F80000', // Red
+        'SALESFORCE': '#00A1E0', // Blue
+        'SERVICENOW': '#81B5A1', // Teal
+      };
+
+      // Generate provider logos HTML (circular with colored backgrounds)
+      const providerLogosHTML = uniqueProviders.map(provider => {
+        const logoUrl = getProviderLogo(provider);
+        if (!logoUrl) return '';
+        const providerKey = provider.toUpperCase();
+        const bgColor = providerColors[providerKey] || '#666666';
+        
+        return `
+          <div style="
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: ${bgColor};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            padding: 10px;
+            box-sizing: border-box;
+          ">
+            <img 
+              src="${logoUrl}" 
+              alt="${provider}"
+              style="
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                filter: brightness(0) invert(1);
+              "
+              crossorigin="anonymous"
+            />
+          </div>
+        `;
+      }).filter(html => html !== '').join('');
+
+      // Create the card content matching the exact design
+      const cardHTML = `
+        <div style="
+          width: 100%;
+          height: 100%;
+          position: relative;
+          background: linear-gradient(180deg, #2196F3 0%, #003366 100%);
+          padding: 50px 40px;
+          box-sizing: border-box;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          color: white;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+        ">
+          <!-- Top Left: Yatri Cloud Branding -->
+          <div style="
+            position: absolute;
+            top: 50px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+          ">
+            <img 
+              src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
+              alt="Yatri Cloud"
+              style="width: 40px; height: 40px; filter: brightness(0) invert(1);"
+              crossorigin="anonymous"
+            />
+            <span style="
+              font-size: 20px;
+              font-weight: 400;
+              color: white;
+              letter-spacing: 0.2px;
+            ">Yatri Cloud</span>
+          </div>
+
+          <!-- Center Content -->
+          <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+            gap: 20px;
+            margin-top: 100px;
+          ">
+            <!-- Profile Photo -->
+            <img 
+              src="${selectedPerson.photoUrl || 'https://via.placeholder.com/300'}" 
+              alt="${selectedPerson.fullName}"
+              style="
+                width: 400px;
+                height: 400px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 5px solid white;
+              "
+              crossorigin="anonymous"
+            />
+
+            <!-- Name -->
+            <h2 style="
+              font-size: 64px;
+              font-weight: 700;
+              color: white;
+              margin: 0;
+              text-align: center;
+              letter-spacing: -1px;
+              line-height: 1.2;
+              margin-top: 16px;
+            ">${selectedPerson.fullName}</h2>
+
+            <!-- Certification Breakdown Text -->
+            <div style="
+              font-size: 32px;
+              font-weight: 500;
+              color: white;
+              text-align: center;
+              letter-spacing: 0.2px;
+              margin-top: 12px;
+              line-height: 1.4;
+            ">
+              ${uniqueProviders.map((provider, idx) => {
+                const count = providerCounts[provider];
+                return `${count}<span style="font-size: 0.65em; vertical-align: super; line-height: 0; position: relative; top: -0.1em;">x</span> ${provider}${idx < uniqueProviders.length - 1 ? ' <span style="margin: 0 14px; font-weight: 300; opacity: 0.8;">|</span> ' : ''}`;
+              }).join('')}
+            </div>
+
+            <!-- Provider Logos -->
+            ${providerLogosHTML ? `
+            <div style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              gap: 24px;
+              margin-top: 20px;
+            ">
+              ${providerLogosHTML}
+            </div>
+            ` : ''}
+          </div>
+
+          <!-- Bottom: Total Certification Badge -->
+          <div style="
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: auto;
+            padding-bottom: 50px;
+          ">
+            <div style="
+              background: #000000;
+              border-radius: 50px;
+              padding: 18px 56px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <span style="
+                font-size: 36px;
+                font-weight: 700;
+                color: white;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                line-height: 1;
+              ">
+                ${totalCertifications}<span style="font-size: 0.6em; vertical-align: super; line-height: 0; position: relative; top: -0.15em;">X</span> CERTIFIED
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = cardHTML;
+
+      // Wait for images to load
+      await new Promise((resolve) => {
+        const images = container.querySelectorAll('img');
+        let loaded = 0;
+        const total = images.length;
+        if (total === 0) {
+          setTimeout(resolve, 500);
+          return;
+        }
+        images.forEach((img) => {
+          const checkComplete = () => {
+            loaded++;
+            if (loaded === total) {
+              setTimeout(resolve, 300);
+            }
+          };
+          if (img.complete) {
+            checkComplete();
+          } else {
+            img.onload = checkComplete;
+            img.onerror = checkComplete;
+          }
+        });
+        // Timeout fallback
+        setTimeout(() => {
+          if (loaded < total) resolve(undefined);
+        }, 5000);
+      });
+
+      // Generate canvas
+      const canvas = await html2canvas(container, {
+        width: 1000,
+        height: 1000,
+        scale: 2,
+        backgroundColor: primaryBlue,
+        useCORS: true,
+        logging: false,
+        allowTaint: false,
+      });
+
+      // Download the image
+      const link = document.createElement('a');
+      link.download = `${selectedPerson.fullName.replace(/\s+/g, '_')}_Yatri_Cloud_Certification.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(container);
+    } catch (error) {
+      console.error('Error generating image:', error);
+      alert('Failed to generate image. Please try again.');
+    }
   };
 
   return (
@@ -861,13 +1305,10 @@ const Achievements = () => {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
                         <div>
                           <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
-                            {isAllView ? "All Certifications" : `${provider} Certifications`}
+                            {isAllView ? "Yatri Stars" : `${provider} Certifications`}
                           </h3>
                           <p className="text-lg text-muted-foreground">
-                            {isAllView 
-                              ? `${totalCertifications} ${totalCertifications === 1 ? "achievement" : "achievements"} from ${certs.length} ${certs.length === 1 ? "person" : "people"}`
-                              : `${certs.reduce((sum, person) => sum + person.certifications.length, 0)} ${certs.reduce((sum, person) => sum + person.certifications.length, 0) === 1 ? "achievement" : "achievements"} from ${certs.length} ${certs.length === 1 ? "person" : "people"}`
-                            }
+                            {certs.length} {certs.length === 1 ? "yatri" : "yatris"} certified
                           </p>
                         </div>
                         {/* Country Filter - Only show for "All" view */}
@@ -917,14 +1358,32 @@ const Achievements = () => {
                         const totalCertCount = isAllView ? person.certifications.length : ((person as any).totalCertifications || person.certifications.length); // Total across all providers
                         const currentProvider = isAllView ? "" : provider; // Current provider being displayed
                         
-                        // Get unique providers from person's certifications with counts
-                        const providerCounts = person.certifications.reduce((acc, cert) => {
+                        // Get ALL certifications for this person (not just current view)
+                        // Look up the person in the original persons array to get all their certifications
+                        const allPersonCerts = persons.find(p => p.id === person.id)?.certifications || person.certifications;
+                        
+                        // Get unique providers from ALL person's certifications with counts
+                        const providerCounts = allPersonCerts.reduce((acc, cert) => {
                           const provider = cert.certificationProvider.toUpperCase();
                           acc[provider] = (acc[provider] || 0) + 1;
                           return acc;
                         }, {} as Record<string, number>);
                         const uniqueProviders = Object.keys(providerCounts);
                         const { theme } = useTheme();
+                        
+                        // Determine card background color based on providers
+                        // Single provider = brand color, Multiple providers = primary blue
+                        const getCardColor = () => {
+                          if (uniqueProviders.length === 1) {
+                            const singleProvider = uniqueProviders[0];
+                            const brandColor = PROVIDER_BRAND_COLORS[singleProvider] || PROVIDER_BRAND_COLORS.MULTIPLE;
+                            return brandColor;
+                          } else {
+                            // Multiple providers - use primary blue
+                            return PROVIDER_BRAND_COLORS.MULTIPLE;
+                          }
+                        };
+                        const cardColor = getCardColor();
                         
                         return (
                         <motion.div
@@ -933,7 +1392,7 @@ const Achievements = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ delay: index * 0.08, duration: 0.5, ease: "easeOut" }}
                           whileHover={{ y: -8, scale: 1.02 }}
-                          className="group relative flex flex-col bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-sm border border-border/40 rounded-2xl p-6 hover:border-primary/50 transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer"
+                          className={`group relative flex flex-col bg-gradient-to-br ${cardColor.from} ${cardColor.via} ${cardColor.to} backdrop-blur-sm border ${cardColor.border} rounded-2xl p-6 hover:border-opacity-60 transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer`}
                           onClick={() => openPersonModal(person)}
                         >
                           {/* Animated gradient background */}
@@ -1314,6 +1773,13 @@ const Achievements = () => {
                         </svg>
                         <span className="text-sm font-semibold">LinkedIn</span>
                       </a>
+                      <button
+                        onClick={downloadPersonImage}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span className="text-sm font-semibold">Download</span>
+                      </button>
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/20 text-primary border border-primary/30">
                         <span className="text-sm font-bold">{selectedPerson.certifications.length}x Certified</span>
                         {/* Certification Logos */}

@@ -12,13 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Loader2, Upload, X, Calendar, Check } from "lucide-react";
+import { CheckCircle2, Loader2, Upload, X, Calendar, Check, Edit, Trash2, Plus } from "lucide-react";
 import { submitCertification, fetchCertifications } from "@/lib/google-sheets";
+import { getUserCertifications, updateCertification, deleteCertification } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
-import { Country } from "country-state-city";
-import { parsePhoneNumber } from "libphonenumber-js";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTheme } from "@/components/ThemeProvider";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface CertificationFormData {
   fullName: string;
@@ -47,6 +47,17 @@ interface SelectedCertification {
 
 // Base URL for certification logos
 const LOGO_BASE_URL = "https://raw.githubusercontent.com/yatricloud/yatri-images/main/certification.yatricloud.com/logo/certifications";
+
+// Provider logos mapping
+const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
+  aws: { logo: `${LOGO_BASE_URL}/aws.svg`, logoLight: `${LOGO_BASE_URL}/aws-light.png` },
+  azure: { logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  gcp: { logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  github: { logo: `${LOGO_BASE_URL}/github-white-icon.webp`, logoLight: `${LOGO_BASE_URL}/github-white-icon.webp` },
+  oracle: { logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  salesforce: { logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg` },
+  servicenow: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
+};
 
 // Only include providers that have logos available
 const CERTIFICATION_PROVIDERS = [
@@ -261,14 +272,6 @@ const SERVICENOW_CERTIFICATIONS: SelectedCertification[] = [
   { value: "cloud-cost-management-accreditation", label: "Cloud Cost Management Accreditation (NEW)", code: "CCMA", logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
 ];
 
-// Get all countries from country-state-city library
-const getAllCountries = () => {
-  return Country.getAllCountries().map(country => ({
-    value: country.isoCode,
-    label: country.name,
-    phoneCode: country.phonecode
-  }));
-};
 
 interface CertificationCredential {
   certificationValue: string;
@@ -278,13 +281,26 @@ interface CertificationCredential {
   verifiedCredential: string;
 }
 
-export const CertificationForm = () => {
+interface CertificationFormProps {
+  user?: {
+    email: string;
+    fullName: string;
+    linkedinUrl?: string;
+    photoUrl?: string;
+    country?: string;
+  };
+}
+
+export const CertificationForm = ({ user }: CertificationFormProps) => {
   const { toast } = useToast();
   const { theme } = useTheme();
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [existingCertifications, setExistingCertifications] = useState<any[]>([]);
+  const [userCertifications, setUserCertifications] = useState<any[]>([]);
+  const [isLoadingCerts, setIsLoadingCerts] = useState(false);
+  const [editingCert, setEditingCert] = useState<number | null>(null);
   const [currentCertIndex, setCurrentCertIndex] = useState(0);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   
@@ -292,10 +308,6 @@ export const CertificationForm = () => {
   const [currentStep, setCurrentStep] = useState<'selection' | 'common-info' | 'credentials'>('selection');
   const [certificationCredentials, setCertificationCredentials] = useState<CertificationCredential[]>([]);
   
-  // Location state management - removed state fetching, only manual entry
-  
-  // Get all countries
-  const countries = getAllCountries();
   
   const {
     register,
@@ -306,11 +318,11 @@ export const CertificationForm = () => {
     reset,
   } = useForm<CertificationFormData>({
     defaultValues: {
-      fullName: "",
-      email: "",
+      fullName: user?.fullName || "",
+      email: user?.email || "",
       selectedProviders: [],
       selectedCertifications: [],
-      linkedinUrl: "",
+      linkedinUrl: user?.linkedinUrl || "",
       country: "",
       stateProvince: "",
       city: "",
@@ -321,6 +333,120 @@ export const CertificationForm = () => {
     },
     mode: "onChange", // Enable validation on change
   });
+
+  // Check if user has submitted certifications before
+  const [hasSubmittedBefore, setHasSubmittedBefore] = useState(false);
+  const [showAddNew, setShowAddNew] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+
+  // Load user certifications on mount
+  useEffect(() => {
+    if (user?.email) {
+      loadUserCertifications();
+      // Set photo preview if user has photo
+      if (user.photoUrl) {
+        setPhotoPreview(user.photoUrl);
+      }
+    }
+    
+    // Check if editing a certification from ManageCertifications page
+    const editingCertStr = sessionStorage.getItem("editingCertification");
+    if (editingCertStr) {
+      try {
+        const editingCert = JSON.parse(editingCertStr);
+        // Get all certifications (not filtered by selected providers)
+        const allCerts: SelectedCertification[] = [
+          ...AWS_CERTIFICATIONS,
+          ...AZURE_CERTIFICATIONS,
+          ...GCP_CERTIFICATIONS,
+          ...GITHUB_CERTIFICATIONS,
+          ...ORACLE_CERTIFICATIONS,
+          ...SALESFORCE_CERTIFICATIONS,
+          ...SERVICENOW_CERTIFICATIONS,
+        ];
+        
+        const matchingCert = allCerts.find(c => 
+          c.label.toLowerCase() === editingCert.certificationName?.toLowerCase() ||
+          c.code === editingCert.examCode
+        );
+        
+        if (matchingCert) {
+          // Set edit mode
+          setIsEditMode(true);
+          
+          // Set the provider first
+          const provider = matchingCert.value.split('-')[0];
+          if (provider && CERTIFICATION_PROVIDERS.find(p => p.value === provider)) {
+            setValue("selectedProviders", [provider]);
+          }
+          
+          setValue("selectedCertifications", [matchingCert.value]);
+          // Initialize credentials with the editing certification data
+          const editCredential = {
+            certificationValue: matchingCert.value,
+            certificationName: editingCert.certificationName,
+            examCode: editingCert.examCode,
+            certificationDate: editingCert.certificationDate,
+            verifiedCredential: editingCert.verifiedCredential || "",
+            additionalNotes: editingCert.additionalNotes || "",
+          };
+          setCertificationCredentials([editCredential]);
+          // Skip common-info step and go directly to credentials in edit mode
+          setCurrentStep('credentials');
+          
+          // Pre-fill the credential form
+          setTimeout(() => {
+            setCredentialValue('certificationDate', editCredential.certificationDate || '');
+            setCredentialValue('verifiedCredential', editCredential.verifiedCredential || '');
+            setCredentialValue('additionalNotes', editCredential.additionalNotes || '');
+          }, 100);
+          
+          toast({
+            title: "Edit Mode",
+            description: "Editing certification details only. Profile information will remain unchanged.",
+          });
+        }
+        
+        // Clear sessionStorage
+        sessionStorage.removeItem("editingCertification");
+      } catch (error) {
+        console.error("Error parsing editing certification:", error);
+      }
+    }
+  }, [user]);
+
+  // Load user's existing certifications - instant from cache
+  const loadUserCertifications = async () => {
+    setIsLoadingCerts(true);
+    
+    // Load from cache immediately
+    if (user?.email) {
+      const cacheKey = `yatris_user_certifications_${user.email}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      if (cachedData) {
+        try {
+          const certs = JSON.parse(cachedData);
+          setUserCertifications(certs);
+          setHasSubmittedBefore(certs.length > 0);
+          setIsLoadingCerts(false);
+        } catch (error) {
+          console.warn("Error parsing cached certifications:", error);
+        }
+      }
+    }
+    
+    // Then fetch fresh data in background
+    try {
+      const certs = await getUserCertifications();
+      setUserCertifications(certs);
+      setHasSubmittedBefore(certs.length > 0);
+    } catch (error) {
+      console.error("Error loading user certifications:", error);
+    } finally {
+      setIsLoadingCerts(false);
+    }
+  };
 
   // Separate form for certification credentials
   const {
@@ -345,8 +471,6 @@ export const CertificationForm = () => {
   const selectedProviders = watch("selectedProviders") || [];
   const selectedCertifications = watch("selectedCertifications") || [];
   const email = watch("email");
-  const selectedCountry = watch("country");
-  const countryCode = watch("countryCode");
 
   // Load existing certifications on mount for duplicate checking
   useEffect(() => {
@@ -362,15 +486,6 @@ export const CertificationForm = () => {
     loadExistingCertifications();
   }, []);
 
-  // Auto-set country code for phone number when country changes
-  useEffect(() => {
-    if (selectedCountry) {
-      const countryData = countries.find(c => c.value === selectedCountry);
-      if (countryData && countryData.phoneCode) {
-        setValue("countryCode", `+${countryData.phoneCode}`);
-      }
-    }
-  }, [selectedCountry, setValue, countries]);
 
   // Get certifications based on provider
   const getCertifications = () => {
@@ -558,26 +673,21 @@ export const CertificationForm = () => {
       });
       return;
     }
-    
-    // Validate required fields
-    if (!data.country) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a country.",
-        variant: "destructive",
-      });
-      setValue("country", "", { shouldValidate: true });
-      return;
-    }
 
-    // Validate photo
-    if (!data.photo || !photoPreview) {
+    // Validate photo (only if user hasn't submitted before AND user doesn't have a photo from signup)
+    // If user is logged in and has a photo from signup, use that instead
+    if (!hasSubmittedBefore && !user?.photoUrl && (!data.photo || !photoPreview)) {
       toast({
         title: "Validation Error",
         description: "Please upload a photo.",
         variant: "destructive",
       });
       return;
+    }
+    
+    // If user has photo from signup, ensure it's set in photoPreview
+    if (user?.photoUrl && !photoPreview) {
+      setPhotoPreview(user.photoUrl);
     }
 
     // Validate that all certifications have years
@@ -612,8 +722,8 @@ export const CertificationForm = () => {
       return;
     }
 
-    // Submit all certifications
-    await submitAllCertifications();
+    // Submit all certifications (fire and forget - it handles its own state)
+    submitAllCertifications();
   };
 
   // Handle credential field updates
@@ -630,13 +740,31 @@ export const CertificationForm = () => {
   };
 
   // Handle credential submission for current certification
-  const handleCredentialSubmit = (credentialData: { certificationDate: string; verifiedCredential: string; additionalNotes?: string }) => {
+  const handleCredentialSubmit = async (credentialData: { certificationDate: string; verifiedCredential: string; additionalNotes?: string }) => {
     const updated = [...certificationCredentials];
     updated[currentCertIndex] = {
       ...updated[currentCertIndex],
       ...credentialData,
     };
     setCertificationCredentials(updated);
+
+    // If in edit mode, update immediately and navigate back
+    if (isEditMode) {
+      const currentCert = updated[currentCertIndex];
+      if (currentCert && user?.email) {
+        // Optimistically update cache immediately
+        updateCacheOptimistically(currentCert, credentialData);
+        
+        // Submit in background
+        submitAllCertifications();
+        
+        // Navigate back immediately
+        setTimeout(() => {
+          window.location.href = '/manage-certifications';
+        }, 100);
+      }
+      return;
+    }
 
     // Move to next certification or submit all
     if (currentCertIndex < certificationCredentials.length - 1) {
@@ -652,6 +780,81 @@ export const CertificationForm = () => {
     } else {
       // All credentials collected, submit everything
       submitAllCertifications();
+    }
+  };
+  
+  // Optimistically update cache with new certifications immediately
+  const updateCacheWithNewCertifications = (credentials: CertificationCredential[], userEmail: string) => {
+    try {
+      const cacheKey = `yatris_user_certifications_${userEmail}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      
+      const newCerts = credentials.map((cred, index) => {
+        // Use the getProviderForCertification function
+        const provider = getProviderForCertification(cred.certificationValue);
+        return {
+          id: `${provider}-${cred.examCode}-${userEmail}-${Date.now()}-${index}`,
+          fullName: user?.fullName || '',
+          email: userEmail,
+          certificationProvider: provider,
+          certificationName: cred.certificationName,
+          examCode: cred.examCode,
+          certificationDate: cred.certificationDate,
+          verifiedCredential: cred.verifiedCredential || '',
+          additionalNotes: cred.additionalNotes || '',
+          linkedinUrl: user?.linkedinUrl || '',
+          photoUrl: user?.photoUrl || '',
+          country: user?.country || '',
+        };
+      });
+      
+      const existingCerts = cachedData ? JSON.parse(cachedData) : [];
+      const updatedCerts = [...existingCerts, ...newCerts];
+      
+      // Update cache immediately
+      localStorage.setItem(cacheKey, JSON.stringify(updatedCerts));
+      localStorage.setItem(`yatris_user_certifications_timestamp_${userEmail}`, Date.now().toString());
+      
+      // Dispatch custom event to update ManageCertifications page
+      window.dispatchEvent(new CustomEvent('certificationsUpdated', { detail: updatedCerts }));
+    } catch (error) {
+      console.warn("Error updating cache with new certifications:", error);
+    }
+  };
+  
+  // Optimistically update cache immediately
+  const updateCacheOptimistically = (cert: any, updatedData: any) => {
+    if (!user?.email) return;
+    
+    try {
+      const cacheKey = `yatris_user_certifications_${user.email}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      
+      if (cachedData) {
+        const certs = JSON.parse(cachedData);
+        const updatedCerts = certs.map((c: any) => {
+          // Match by exam code and provider
+          if (c.examCode === cert.examCode && 
+              c.certificationProvider?.toLowerCase() === cert.certificationProvider?.toLowerCase()) {
+            return {
+              ...c,
+              certificationDate: updatedData.certificationDate || c.certificationDate,
+              verifiedCredential: updatedData.verifiedCredential || c.verifiedCredential,
+              additionalNotes: updatedData.additionalNotes || c.additionalNotes,
+            };
+          }
+          return c;
+        });
+        
+        // Update cache immediately
+        localStorage.setItem(cacheKey, JSON.stringify(updatedCerts));
+        localStorage.setItem(`yatris_user_certifications_timestamp_${user.email}`, Date.now().toString());
+        
+        // Dispatch custom event to update ManageCertifications page
+        window.dispatchEvent(new CustomEvent('certificationsUpdated', { detail: updatedCerts }));
+      }
+    } catch (error) {
+      console.warn("Error updating cache optimistically:", error);
     }
   };
 
@@ -701,21 +904,30 @@ export const CertificationForm = () => {
 
           console.log(`📤 Submitting ${certProvider.toUpperCase()} certification: ${cred.certificationName} to ${sheetName}`);
 
+          // Always use the old API to write to separate provider sheets
+          // This ensures data appears in achievements section
+          // Use user data if available (when hasSubmittedBefore), otherwise use form data
+          // For photo: use user's photoUrl if available, otherwise use form photo
+          const photoToUse = user?.photoUrl 
+            ? null // If user has photoUrl, we'll pass it as photoUrl string (handled separately)
+            : (commonData.photo || null);
+          
           await submitCertification({
-            fullName: commonData.fullName,
-            email: commonData.email,
+            fullName: hasSubmittedBefore ? (user?.fullName || '') : (user?.fullName || commonData.fullName),
+            email: hasSubmittedBefore ? (user?.email || '') : (user?.email || commonData.email),
             certificationProvider: certProvider,
             certificationName: cred.certificationName,
             examCode: cred.examCode,
             certificationDate: cred.certificationDate,
-            linkedinUrl: commonData.linkedinUrl,
+            linkedinUrl: user?.linkedinUrl || '',
             verifiedCredential: cred.verifiedCredential,
-            country: commonData.country,
-            stateProvince: commonData.stateProvince,
-            city: commonData.city,
-            countryCode: commonData.countryCode,
-            phoneNumber: commonData.phoneNumber,
-            photo: commonData.photo,
+            country: user?.country || '',
+            stateProvince: user?.stateProvince || '',
+            city: user?.city || '',
+            countryCode: user?.countryCode || '',
+            phoneNumber: user?.phoneNumber || '',
+            photo: photoToUse,
+            photoUrl: user?.photoUrl || (photoPreview && !photoPreview.startsWith('data:') ? photoPreview : ''), // Pass photoUrl if user has one from signup
             additionalNotes: commonData.additionalNotes || '',
             sheetName,
             subSheetName,
@@ -764,11 +976,27 @@ export const CertificationForm = () => {
       setCurrentStep('selection');
       setCurrentCertIndex(0);
       setCertificationCredentials([]);
+      setShowAddNew(false); // Reset to show certifications view
       
       toast({
         title: "Success! 🎉",
         description: `Successfully submitted ${successful} of ${total} certification${total > 1 ? 's' : ''}!`,
       });
+      
+      // Optimistically update cache immediately with submitted certifications
+      if (user?.email) {
+        updateCacheWithNewCertifications(certificationCredentials, user.email);
+      }
+      
+      // Reload certifications from achievements in background (no delay)
+      (async () => {
+        const currentCerts = await fetchCertifications();
+        setExistingCertifications(currentCerts);
+        // Also reload user certifications if authenticated
+        if (user?.email) {
+          await loadUserCertifications();
+        }
+      })();
     } catch (error: any) {
       console.error("Error submitting certifications:", error);
       toast({
@@ -808,25 +1036,6 @@ export const CertificationForm = () => {
   // Handle form submission
   const onSubmit = async (data: CertificationFormData) => {
     // Validate required fields
-    // Validate location fields
-    if (!data.country) {
-      toast({
-        title: "Validation Error",
-        description: "Please select your country",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!data.city) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter your city",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!selectedProviders || selectedProviders.length === 0) {
       toast({
         title: "Validation Error",
@@ -918,22 +1127,22 @@ export const CertificationForm = () => {
         // Create sub-sheet name in format: "Exam Code: Certification Name"
         const subSheetName = `${examCode}: ${fullCertificationName}`;
 
-        // Submit to Google Sheets
+        // Submit to Google Sheets (always use old flow to write to separate provider sheets)
         return await submitCertification({
-          fullName: data.fullName,
-          email: data.email,
+          fullName: user?.fullName || data.fullName,
+          email: user?.email || data.email,
           certificationProvider: certProvider,
           certificationName: fullCertificationName,
           examCode: examCode,
           certificationDate: data.certificationDate,
-          linkedinUrl: data.linkedinUrl,
+          linkedinUrl: user?.linkedinUrl || data.linkedinUrl,
           verifiedCredential: data.verifiedCredential,
-          country: data.country,
-          stateProvince: data.stateProvince,
-          city: data.city,
-          countryCode: data.countryCode,
-          phoneNumber: data.phoneNumber,
-          photo: data.photo,
+          country: user?.country || '',
+          stateProvince: user?.stateProvince || '',
+          city: user?.city || '',
+          countryCode: user?.countryCode || '',
+          phoneNumber: user?.phoneNumber || '',
+          photo: user?.photoUrl || null,
           additionalNotes: data.additionalNotes,
           sheetName,
           subSheetName,
@@ -985,15 +1194,111 @@ export const CertificationForm = () => {
         <p className="text-muted-foreground mb-8">
           Your certification has been submitted successfully. You'll appear on the Wall of Fame soon!
         </p>
-        <Button onClick={() => setIsSuccess(false)}>Submit Another</Button>
+        <div className="flex gap-4 justify-center">
+          <Button onClick={() => {
+            setIsSuccess(false);
+            reset();
+            setCurrentStep('selection');
+            setShowAddNew(false);
+            if (user?.email) {
+              loadUserCertifications();
+            }
+          }}>Submit Another</Button>
+          {user?.email && (
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                window.location.href = "/manage-certifications";
+              }}
+            >
+              Manage Certifications
+            </Button>
+          )}
+        </div>
       </motion.div>
     );
   }
 
-  // Render step 1: Certification Selection
+  // Handle delete certification
+  // Note: Since certifications are in separate provider sheets, 
+  // deletion would require updating each provider's Apps Script.
+  // For now, we'll show a message that deletion isn't available.
+  const handleDeleteCertification = async (cert: any) => {
+    if (!confirm("Are you sure you want to delete this certification?\n\nNote: This action cannot be undone. The certification will be removed from the achievements section.")) {
+      return;
+    }
+
+    toast({
+      title: "Delete Not Available",
+      description: "Certification deletion requires updating the provider's Apps Script. Please contact support or resubmit with updated information.",
+      variant: "destructive",
+    });
+    
+    // TODO: Implement delete functionality by calling provider-specific webhook
+    // For now, we'll just reload to show current state
+    await loadUserCertifications();
+  };
+
+  // Handle edit certification
+  // Navigate to edit mode with certification data
+  const handleEditCertification = (cert: any) => {
+    // Store certification data in sessionStorage for edit mode
+    sessionStorage.setItem("editingCertification", JSON.stringify({
+      certificationName: cert.certificationName,
+      examCode: cert.examCode,
+      certificationDate: cert.certificationDate,
+      certificationProvider: cert.certificationProvider,
+      verifiedCredential: cert.verifiedCredential || "",
+      additionalNotes: cert.additionalNotes || "",
+    }));
+    
+    // Navigate to form (remove edit param to show form)
+    const url = new URL(window.location.href);
+    url.searchParams.delete('edit');
+    // Navigate to the form page without edit param
+    window.location.href = url.toString();
+  };
+
+  // Group certifications by provider
+  const groupedCerts = userCertifications.reduce((acc, cert) => {
+    const provider = cert.certificationProvider?.toLowerCase() || "other";
+    if (!acc[provider]) {
+      acc[provider] = [];
+    }
+    acc[provider].push(cert);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  const providerLabels: Record<string, string> = {
+    aws: "AWS",
+    azure: "Azure",
+    gcp: "Google Cloud",
+    github: "GitHub",
+    oracle: "Oracle",
+    salesforce: "Salesforce",
+    servicenow: "ServiceNow",
+    other: "Other",
+  };
+
+  // Check if we're editing a certification first (before redirecting)
+  const isEditingCert = sessionStorage.getItem("editingCertification");
+  
+  // If editing, don't redirect - show the edit form
+  // The edit mode useEffect will set currentStep to 'credentials' and isEditMode to true
+  if (isEditingCert || isEditMode || currentStep === 'credentials') {
+    // Let the edit mode logic handle the display - don't redirect
+  } else if (hasSubmittedBefore && !showAddNew && user?.email && !isLoadingCerts) {
+    // Redirect to manage certifications page
+    window.location.href = '/manage-certifications';
+    return null;
+  }
+
+  // Render step 1: Certification Selection (for new submissions or when showAddNew is true)
   if (currentStep === 'selection') {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto space-y-6">
+
+        {/* New Certification Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1005,44 +1310,55 @@ export const CertificationForm = () => {
           </p>
 
           <div className="space-y-6">
-          {/* Full Name */}
-          <div>
-            <Label htmlFor="fullName" className="mb-2">
-              Full Name <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="fullName"
-              {...register("fullName", { required: "Full name is required" })}
-              placeholder="yatharth chauhan"
-              className="w-full"
-            />
-            {errors.fullName && (
-              <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
-            )}
-          </div>
+            {/* Show message that profile info will be used from account if user is logged in */}
+            {(hasSubmittedBefore || showAddNew || user?.email) ? (
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                <p className="text-sm text-primary font-medium">
+                  ✓ Your profile information will be used from your account. You can update it in the Profile section.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Full Name - only show if user is not logged in */}
+                <div>
+                  <Label htmlFor="fullName" className="mb-2">
+                    Full Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="fullName"
+                    {...register("fullName", { required: "Full name is required" })}
+                    placeholder="yatharth chauhan"
+                    className="w-full"
+                  />
+                  {errors.fullName && (
+                    <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
+                  )}
+                </div>
 
-          {/* Email */}
-          <div>
-            <Label htmlFor="email" className="mb-2">
-              Email <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              {...register("email", {
-                required: "Email is required",
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
-                },
-              })}
-              placeholder="yatharth.chauhan@example.com"
-              className="w-full"
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+                {/* Email - only show if user is not logged in */}
+                <div>
+                  <Label htmlFor="email" className="mb-2">
+                    Email <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...register("email", {
+                      required: "Email is required",
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: "Invalid email address",
+                      },
+                    })}
+                    placeholder="yatharth.chauhan@example.com"
+                    className="w-full"
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+                  )}
+                </div>
+              </>
             )}
-          </div>
 
           {/* Multiple Provider Selection - Card Style */}
           <div>
@@ -1389,183 +1705,55 @@ export const CertificationForm = () => {
           )}
 
           <form onSubmit={handleSubmit(handleCommonInfoSubmit)} className="space-y-6">
-            {/* Full Name */}
-            <div>
-              <Label htmlFor="fullName" className="mb-2">
-                Full Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="fullName"
-                {...register("fullName", { required: "Full name is required" })}
-                placeholder="yatharth chauhan"
-                className="w-full"
-              />
-              {errors.fullName && (
-                <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div>
-              <Label htmlFor="email" className="mb-2">
-                Email <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
-                  },
-                })}
-                placeholder="yatharth.chauhan@example.com"
-                className="w-full"
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
-              )}
-            </div>
-
-            {/* LinkedIn URL */}
-            <div>
-              <Label htmlFor="linkedinUrl" className="mb-2">
-                LinkedIn Profile URL <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="linkedinUrl"
-                type="url"
-                {...register("linkedinUrl", {
-                  required: "LinkedIn URL is required",
-                  pattern: {
-                    value: /^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i,
-                    message: "Please enter a valid LinkedIn profile URL",
-                  },
-                })}
-                placeholder="https://linkedin.com/in/yatharth-chauhan"
-                className="w-full"
-              />
-              {errors.linkedinUrl && (
-                <p className="text-sm text-destructive mt-1">{errors.linkedinUrl.message}</p>
-              )}
-            </div>
-
-            {/* Photo Upload */}
-            <div>
-              <Label htmlFor="photo" className="mb-2">
-                Photo <span className="text-destructive">*</span>
-              </Label>
-              <div className="flex items-center gap-4">
-                {photoPreview && (
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary">
-                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <div className="flex-1">
+            {/* Show message that profile info will be used from account */}
+            {(hasSubmittedBefore || showAddNew || user?.email) ? (
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                <p className="text-sm text-primary font-medium">
+                  ✓ Your profile information will be used from your account. You can update it in the Profile section.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Full Name - only show if user is not logged in */}
+                <div>
+                  <Label htmlFor="fullName" className="mb-2">
+                    Full Name <span className="text-destructive">*</span>
+                  </Label>
                   <Input
-                    id="photo"
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoChange}
+                    id="fullName"
+                    {...register("fullName", { required: "Full name is required" })}
+                    placeholder="yatharth chauhan"
                     className="w-full"
-                    required
                   />
+                  {errors.fullName && (
+                    <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
+                  )}
                 </div>
-              </div>
-              {errors.photo && !photoPreview && (
-                <p className="text-sm text-destructive mt-1">{errors.photo.message}</p>
-              )}
-              {photoPreview && (
-                <p className="text-sm text-green-600 mt-2">✓ Photo uploaded successfully</p>
-              )}
-            </div>
 
-            {/* Location Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="country" className="mb-2">Country <span className="text-destructive">*</span></Label>
-                <Select
-                  value={selectedCountry}
-                  onValueChange={(value) => {
-                    setValue("country", value, { shouldValidate: true });
-                  }}
-                >
-                  <SelectTrigger id="country" className="w-full">
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {countries.map((country) => (
-                      <SelectItem key={country.value} value={country.value}>
-                        {country.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!selectedCountry && (
-                  <p className="text-sm text-destructive mt-1">Country is required</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="stateProvince" className="mb-2">State/Province</Label>
-                <Input
-                  id="stateProvince"
-                  {...register("stateProvince")}
-                  placeholder="Enter state/province"
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Label htmlFor="city" className="mb-2">City</Label>
-                <Input
-                  id="city"
-                  {...register("city")}
-                  placeholder="Enter city"
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            {/* Phone Number */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="countryCode" className="mb-2">Country Code <span className="text-destructive">*</span></Label>
-                <Input
-                  id="countryCode"
-                  value={countryCode || ""}
-                  readOnly
-                  className="w-full bg-muted"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phoneNumber" className="mb-2">Phone Number <span className="text-destructive">*</span></Label>
-                <Input
-                  id="phoneNumber"
-                  {...register("phoneNumber", {
-                    required: "Phone number is required",
-                    validate: (value) => {
-                      const countryCode = watch("countryCode");
-                      if (!countryCode) return "Please select country code first";
-                      const fullNumber = `${countryCode}${value}`;
-                      try {
-                        const phoneNumber = parsePhoneNumber(fullNumber);
-                        if (!phoneNumber.isValid()) {
-                          return "Please enter a valid phone number";
-                        }
-                        return true;
-                      } catch {
-                        return "Please enter a valid phone number";
-                      }
-                    }
-                  })}
-                  placeholder="Enter phone number"
-                  className="w-full"
-                />
-                {errors.phoneNumber && (
-                  <p className="text-sm text-destructive mt-1">{errors.phoneNumber.message}</p>
-                )}
-              </div>
-            </div>
+                {/* Email - only show if user is not logged in */}
+                <div>
+                  <Label htmlFor="email" className="mb-2">
+                    Email <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...register("email", {
+                      required: "Email is required",
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: "Invalid email address",
+                      },
+                    })}
+                    placeholder="yatharth.chauhan@example.com"
+                    className="w-full"
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Selected Certifications with Credential Inputs */}
             <div className="space-y-6 mt-8">
@@ -1590,17 +1778,37 @@ export const CertificationForm = () => {
                         id={`year-${cred.certificationValue}`}
                         type="text"
                         inputMode="numeric"
+                        maxLength={4}
                         value={cred.certificationDate || ''}
                         onChange={(e) => {
+                          // Allow any numeric input while typing
+                          const year = e.target.value.replace(/\D/g, "");
+                          // Only allow up to 4 digits
+                          const limitedYear = year.slice(0, 4);
+                          handleCredentialUpdate(cred.certificationValue, "certificationDate", limitedYear);
+                        }}
+                        onBlur={(e) => {
+                          // Validate on blur
                           const year = e.target.value.replace(/\D/g, "");
                           const numericYear = year ? parseInt(year, 10) : NaN;
-                          if (
-                            year === "" ||
-                            (!isNaN(numericYear) &&
-                              numericYear >= 2000 &&
-                              numericYear <= new Date().getFullYear())
-                          ) {
-                            handleCredentialUpdate(cred.certificationValue, "certificationDate", year);
+                          const currentYear = new Date().getFullYear();
+                          
+                          if (year && (!isNaN(numericYear))) {
+                            if (numericYear < 2000) {
+                              toast({
+                                title: "Invalid Year",
+                                description: `Year must be 2000 or later.`,
+                                variant: "destructive",
+                              });
+                              handleCredentialUpdate(cred.certificationValue, "certificationDate", "");
+                            } else if (numericYear > currentYear) {
+                              toast({
+                                title: "Invalid Year",
+                                description: `Year cannot be later than ${currentYear}.`,
+                                variant: "destructive",
+                              });
+                              handleCredentialUpdate(cred.certificationValue, "certificationDate", "");
+                            }
                           }
                         }}
                         placeholder="e.g., 2024"
@@ -1684,12 +1892,31 @@ export const CertificationForm = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-xl"
         >
-          <div className="mb-6">
-            <div className="text-sm text-muted-foreground mb-2">
-              Certification {currentCertIndex + 1} of {certificationCredentials.length}
+          {isEditMode && (
+            <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+              <p className="text-sm text-primary font-medium">
+                ✓ Edit Mode: Only certification details will be updated. Your profile information remains unchanged.
+              </p>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">{currentCert.certificationName}</h2>
-            <p className="text-muted-foreground">Exam Code: {currentCert.examCode}</p>
+          )}
+          
+          <div className="mb-6">
+            {!isEditMode && (
+              <div className="text-sm text-muted-foreground mb-2">
+                Certification {currentCertIndex + 1} of {certificationCredentials.length}
+              </div>
+            )}
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">
+              {isEditMode ? 'Edit Certification' : currentCert.certificationName}
+            </h2>
+            <div className="space-y-1">
+              <p className="text-muted-foreground">
+                <span className="font-semibold">Certification:</span> {currentCert.certificationName}
+              </p>
+              <p className="text-muted-foreground">
+                <span className="font-semibold">Exam Code:</span> {currentCert.examCode}
+              </p>
+            </div>
           </div>
 
           <form onSubmit={handleSubmitCredential(handleCredentialSubmit)} className="space-y-6">
@@ -1702,7 +1929,9 @@ export const CertificationForm = () => {
                 id="credential-certificationDate"
                 type="text"
                 inputMode="numeric"
-                {...registerCredential("certificationDate", { 
+                maxLength={4}
+                defaultValue={currentCert.certificationDate || ''}
+                {...registerCredential("certificationDate", {
                   required: "Year is required",
                   validate: (value) => {
                     const cleaned = (value || "").toString().replace(/\D/g, "");
@@ -1723,6 +1952,12 @@ export const CertificationForm = () => {
                     return true;
                   },
                 })}
+                onChange={(e) => {
+                  // Allow any numeric input while typing (up to 4 digits)
+                  const year = e.target.value.replace(/\D/g, "");
+                  const limitedYear = year.slice(0, 4);
+                  setCredentialValue("certificationDate", limitedYear, { shouldValidate: false });
+                }}
                 placeholder="e.g., 2024"
                 className="w-full"
               />
@@ -1744,6 +1979,7 @@ export const CertificationForm = () => {
               <Input
                 id="credential-verifiedCredential"
                 type="url"
+                defaultValue={currentCert.verifiedCredential || ''}
                 {...registerCredential("verifiedCredential", {
                   pattern: {
                     value: /^https?:\/\/.+/i,
@@ -1767,6 +2003,7 @@ export const CertificationForm = () => {
               </Label>
               <Textarea
                 id="credential-additionalNotes"
+                defaultValue={currentCert.additionalNotes || ''}
                 {...registerCredential("additionalNotes")}
                 placeholder="Any additional information about this certification..."
                 className="w-full min-h-[100px]"
@@ -1778,7 +2015,10 @@ export const CertificationForm = () => {
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  if (currentCertIndex > 0) {
+                    if (isEditMode) {
+                      // In edit mode, go back to manage certifications
+                      window.location.href = '/manage-certifications';
+                    } else if (currentCertIndex > 0) {
                     setCurrentCertIndex(currentCertIndex - 1);
                     const prevCert = certificationCredentials[currentCertIndex - 1];
                     setCredentialValue('certificationDate', prevCert.certificationDate);
@@ -1788,10 +2028,10 @@ export const CertificationForm = () => {
                   }
                 }}
               >
-                {currentCertIndex > 0 ? 'Previous' : 'Back'}
+                {isEditMode ? 'Cancel' : (currentCertIndex > 0 ? 'Previous' : 'Back')}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {currentCertIndex < certificationCredentials.length - 1 ? 'Next Certification' : 'Submit All'}
+                {isEditMode ? 'Update Certification' : (currentCertIndex < certificationCredentials.length - 1 ? 'Next Certification' : 'Submit All')}
               </Button>
             </div>
           </form>

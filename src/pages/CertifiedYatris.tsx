@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BadgeCheck, Briefcase, Zap } from "lucide-react";
+import { BadgeCheck, Briefcase, Zap, LogOut, User } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { CertificationForm } from "@/components/certified-yatris/CertificationForm";
+import { LoginSignup } from "@/components/certified-yatris/LoginSignup";
 import { fetchCertifications } from "@/lib/google-sheets";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
+import { isAuthenticated, getStoredUser, getCurrentUser, logout as logoutUser } from "@/lib/yatris-api";
+import { Button } from "@/components/ui/button";
 
 interface CertificationEntry {
   id: string;
@@ -18,10 +21,57 @@ interface CertificationEntry {
 const CertifiedYatris = () => {
   const [certifications, setCertifications] = useState<CertificationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
+    checkAuthentication();
     loadCertifications();
   }, []);
+
+  const checkAuthentication = async () => {
+    setCheckingAuth(true);
+    try {
+      // Always check stored user first (persistent login)
+      const storedUser = getStoredUser();
+      const token = localStorage.getItem('yatris_token');
+      
+      if (storedUser && token) {
+        // User is logged in, verify token is still valid
+        try {
+          const currentUser = await getCurrentUser();
+          if (currentUser) {
+            setUser(currentUser);
+            setIsAuthenticated(true);
+          } else {
+            // Token expired, but keep user logged in with stored data
+            setUser(storedUser);
+            setIsAuthenticated(true);
+          }
+        } catch (error) {
+          // If API call fails, still use stored user (persistent login)
+          setUser(storedUser);
+          setIsAuthenticated(true);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Auth check error:", error);
+      // On error, try to use stored user
+      const storedUser = getStoredUser();
+      if (storedUser) {
+        setUser(storedUser);
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
 
   const loadCertifications = async () => {
     setIsLoading(true);
@@ -35,6 +85,17 @@ const CertifiedYatris = () => {
     }
   };
 
+  const handleLoginSuccess = (userData: any) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
   // Calculate stats from actual data
   const totalCertifications = certifications.length;
   const uniqueProviders = new Set(certifications.map((c) => c.certificationProvider)).size;
@@ -43,6 +104,30 @@ const CertifiedYatris = () => {
     const now = new Date();
     return certDate.getMonth() === now.getMonth() && certDate.getFullYear() === now.getFullYear();
   }).length;
+
+  // Show login/signup if not authenticated
+  if (!isAuthenticated && !checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <SEO />
+        <Navbar />
+        <LoginSignup onSuccess={handleLoginSuccess} />
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -79,6 +164,30 @@ const CertifiedYatris = () => {
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
                 Celebrate your certification success with the Yatri Cloud community
               </p>
+
+              {/* User Info & Logout */}
+              {user && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-center gap-4 mb-6"
+                >
+                  <div className="flex items-center gap-3 px-4 py-2 bg-card border border-border rounded-lg">
+                    <User className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">{user.fullName}</span>
+                    <span className="text-muted-foreground">({user.email})</span>
+                  </div>
+                  <Button
+                    onClick={handleLogout}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </Button>
+                </motion.div>
+              )}
             </div>
           </ScrollReveal>
         </div>
@@ -92,7 +201,7 @@ const CertifiedYatris = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <CertificationForm />
+            <CertificationForm user={user} />
           </motion.div>
         </div>
       </section>

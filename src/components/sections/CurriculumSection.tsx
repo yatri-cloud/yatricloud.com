@@ -234,7 +234,7 @@ export const CurriculumSection = () => {
                     onChange={(e) => setSelectedCertification(e.target.value)}
                     className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
                   >
-                      <option value="All">All Certifications</option>
+                      <option value="All">Yatri Stars</option>
                       {availableFilters.certifications.map((cert) => (
                     <option key={cert} value={cert}>
                       {cert}

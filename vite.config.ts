@@ -20,6 +20,17 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: true,
     },
+    // Proxy API routes for local development
+    // In production, these routes are handled by Vercel serverless functions
+    // In local dev, we proxy directly to Google Apps Script to avoid CORS
+    proxy: {
+      '/api/yatris-proxy': {
+        target: process.env.VITE_YATRIS_USERS_API_URL || 'https://script.google.com/macros/s/AKfycbxHqWK2-fa7hRWf40_jZBKOUxLktgeVawx6e7pe68V83-dx9Ol34ShdqPtXTn0fNiOT5g/exec',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => '', // Remove /api/yatris-proxy, proxy to root of target
+      },
+    },
   },
   // Optimize for development
   optimizeDeps: {
