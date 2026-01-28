@@ -89,33 +89,69 @@ const AWS_CERTIFICATIONS: SelectedCertification[] = [
 
 // Azure Certifications - Only those specified
 const AZURE_CERTIFICATIONS: SelectedCertification[] = [
+  // Fundamentals
   { value: "az-900", label: "AZ-900: Azure Fundamentals", code: "AZ-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "ai-900", label: "AI-900: Azure AI Fundamentals (UPDATED)", code: "AI-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "dp-900", label: "DP-900: Azure Data Fundamentals (UPDATED Nov 2024)", code: "DP-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "ai-900", label: "AI-900: Azure AI Fundamentals", code: "AI-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "dp-900", label: "DP-900: Azure Data Fundamentals", code: "DP-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
   { value: "sc-900", label: "SC-900: Security, Compliance, and Identity Fundamentals", code: "SC-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "ab-902", label: "AB-902: Agentic AI Fundamentals (NEW - Beta Nov 2025)", code: "AB-902", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "ms-900", label: "MS-900: Microsoft 365 Fundamentals (RETIRING Dec 31 2025)", code: "MS-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "mb-910", label: "MB-910: Dynamics 365 Fundamentals CRM (RETIRING Dec 31 2025)", code: "MB-910", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "mb-920", label: "MB-920: Dynamics 365 Fundamentals ERP (RETIRING Dec 31 2025)", code: "MB-920", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "ms-900", label: "MS-900: Microsoft 365 Fundamentals", code: "MS-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-910", label: "MB-910: Dynamics 365 Fundamentals (CRM)", code: "MB-910", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-920", label: "MB-920: Dynamics 365 Fundamentals (ERP)", code: "MB-920", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+
+  // Role-based – Azure & Data
   { value: "az-104", label: "AZ-104: Azure Administrator Associate", code: "AZ-104", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
   { value: "az-204", label: "AZ-204: Azure Developer Associate", code: "AZ-204", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "az-700", label: "AZ-700: Azure Network Engineer Associate", code: "AZ-700", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "az-500", label: "AZ-500: Azure Security Engineer Associate", code: "AZ-500", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "dp-100", label: "DP-100: Azure Data Scientist Associate (UPDATED Jan 2025)", code: "DP-100", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "dp-203", label: "DP-203: Azure Data Engineer Associate", code: "DP-203", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
   { value: "dp-300", label: "DP-300: Azure Database Administrator Associate", code: "DP-300", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "ai-102", label: "AI-102: Azure AI Engineer Associate", code: "AI-102", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "sc-200", label: "SC-200: Security Operations Analyst Associate", code: "SC-200", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "dp-600", label: "DP-600: Fabric Analytics Engineer Associate", code: "DP-600", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "dp-700", label: "DP-700: Fabric Data Engineer Associate (NEW 2025)", code: "DP-700", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "pl-300", label: "PL-300: Data Analyst Associate", code: "PL-300", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "az-305", label: "AZ-305: Azure Solutions Architect Expert", code: "AZ-305", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
   { value: "az-400", label: "AZ-400: DevOps Engineer Expert", code: "AZ-400", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "sc-100", label: "SC-100: Microsoft Cybersecurity Architect Expert (UPDATED Nov 2025)", code: "SC-100", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "az-140", label: "AZ-140: Azure Virtual Desktop Specialty (UPDATED Oct 2025)", code: "AZ-140", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "az-500-sap", label: "AZ-500 SAP: Azure for SAP Workloads Specialty", code: "AZ-500-SAP", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "az-500", label: "AZ-500: Azure Security Engineer Associate", code: "AZ-500", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "az-700", label: "AZ-700: Azure Network Engineer Associate", code: "AZ-700", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "az-305", label: "AZ-305: Azure Solutions Architect Expert", code: "AZ-305", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "dp-600", label: "DP-600: Fabric Analytics Engineer Associate", code: "DP-600", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "dp-700", label: "DP-700: Fabric Data Engineer Associate", code: "DP-700", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "ai-102", label: "AI-102: Azure AI Engineer Associate", code: "AI-102", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "dp-100", label: "DP-100: Azure Data Scientist Associate", code: "DP-100", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+
+  // Role-based – Power Platform
+  { value: "pl-400", label: "PL-400: Power Platform Developer Associate", code: "PL-400", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "pl-200", label: "PL-200: Power Platform Functional Consultant Associate", code: "PL-200", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "pl-500", label: "PL-500: Power Automate RPA Developer Associate", code: "PL-500", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "pl-300", label: "PL-300: Power BI Data Analyst Associate", code: "PL-300", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "pl-600", label: "PL-600: Power Platform Solution Architect Expert", code: "PL-600", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "pl-900", label: "PL-900: Power Platform Fundamentals", code: "PL-900", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+
+  // Role-based – Security
+  { value: "sc-200", label: "SC-200: Security Operations Analyst Associate", code: "SC-200", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "sc-300", label: "SC-300: Identity and Access Administrator Associate", code: "SC-300", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "sc-400", label: "SC-400: Information Protection and Compliance Administrator Associate", code: "SC-400", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "sc-401", label: "SC-401: Information Protection and Compliance Administrator Associate", code: "SC-401", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "sc-100", label: "SC-100: Cybersecurity Architect Expert", code: "SC-100", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+
+  // Role-based – Modern Work
+  { value: "md-102", label: "MD-102: Endpoint Administrator Associate", code: "MD-102", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "ms-102", label: "MS-102: Administrator Expert", code: "MS-102", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "ms-700", label: "MS-700: Teams Administrator Associate", code: "MS-700", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "ms-721", label: "MS-721: Collaboration Communications Systems Engineer Associate", code: "MS-721", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+
+  // Role-based – Dynamics 365 Business Applications
+  { value: "mb-800", label: "MB-800: Dynamics 365 Business Central Functional Consultant Associate", code: "MB-800", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-820", label: "MB-820: Dynamics 365 Business Central Developer Associate", code: "MB-820", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-700", label: "MB-700: Dynamics 365: Finance and Operations Apps Solution Architect Expert", code: "MB-700", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-230", label: "MB-230: Dynamics 365 Customer Service Functional Consultant Associate", code: "MB-230", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-240", label: "MB-240: Dynamics 365 Field Service Functional Consultant Associate", code: "MB-240", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-280", label: "MB-280: Dynamics 365 Customer Experience Analyst Associate", code: "MB-280", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-300", label: "MB-300: Dynamics 365 Finance and Operations Apps Core", code: "MB-300", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-310", label: "MB-310: Dynamics 365 Finance Functional Consultant Associate", code: "MB-310", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-330", label: "MB-330: Dynamics 365 Supply Chain Management Functional Consultant Associate", code: "MB-330", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-335", label: "MB-335: Dynamics 365: Supply Chain Management Functional Consultant Expert", code: "MB-335", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "mb-500", label: "MB-500: Dynamics 365: Finance and Operations Apps Developer Associate", code: "MB-500", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+
+  // Specialty
+  { value: "windows-server-hybrid-admin-associate", label: "Windows Server Hybrid Administrator Associate (AZ-800 / AZ-801)", code: "AZ-800 / AZ-801", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "az-120", label: "AZ-120: Azure for SAP Workloads Specialty", code: "AZ-120", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "az-140", label: "AZ-140: Azure Virtual Desktop Specialty", code: "AZ-140", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
   { value: "az-720", label: "AZ-720: Azure Stack HCI Specialty", code: "AZ-720", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "dp-420", label: "DP-420: Azure Cosmos DB Developer Specialty (UPDATED Jan 2025)", code: "DP-420", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
-  { value: "ab-1001", label: "AB-1001: Agentic AI Business Solutions Architect (NEW - Beta Nov 2025)", code: "AB-1001", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
+  { value: "dp-420", label: "DP-420: Azure Cosmos DB Developer Specialty", code: "DP-420", logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
 ];
 
 // GCP Certifications
