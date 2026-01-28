@@ -156,18 +156,25 @@ const AZURE_CERTIFICATIONS: SelectedCertification[] = [
 
 // GCP Certifications
 const GCP_CERTIFICATIONS: SelectedCertification[] = [
-  { value: "cloud-digital-leader", label: "Cloud Digital Leader", code: "CDL", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "generative-ai-leader", label: "Generative AI Leader (NEW - May 2025)", code: "GAIL", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  // Foundational certifications
+  { value: "cloud-digital-leader", label: "Cloud Digital Leader (Foundational)", code: "CDL", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "generative-ai-leader", label: "Generative AI Leader (Foundational)", code: "GAIL", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+
+  // Associate certifications
   { value: "associate-cloud-engineer", label: "Associate Cloud Engineer", code: "ACE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-cloud-architect", label: "Professional Cloud Architect", code: "PCA", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-data-engineer", label: "Professional Data Engineer", code: "PDE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-cloud-developer", label: "Professional Cloud Developer", code: "PCD", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-cloud-devops-engineer", label: "Professional Cloud DevOps Engineer", code: "PCDE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-cloud-network-engineer", label: "Professional Cloud Network Engineer", code: "PCNE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-cloud-security-engineer", label: "Professional Cloud Security Engineer", code: "PCSE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-machine-learning-engineer", label: "Professional Machine Learning Engineer", code: "PMLE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-cloud-database-engineer", label: "Professional Cloud Database Engineer", code: "PCDBE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
-  { value: "professional-google-workspace-administrator", label: "Professional Google Workspace Administrator", code: "PGWA", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "google-workspace-administrator", label: "Google Workspace Administrator (Associate)", code: "GWA", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "data-practitioner", label: "Data Practitioner (Associate)", code: "DP", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+
+  // Professional certifications
+  { value: "professional-cloud-architect", label: "Cloud Architect (Professional)", code: "PCA", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "professional-cloud-database-engineer", label: "Cloud Database Engineer (Professional)", code: "PCDBE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "professional-cloud-developer", label: "Cloud Developer (Professional)", code: "PCD", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "professional-data-engineer", label: "Data Engineer (Professional)", code: "PDE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "professional-cloud-devops-engineer", label: "Cloud DevOps Engineer (Professional)", code: "PCDE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "professional-cloud-security-engineer", label: "Cloud Security Engineer (Professional)", code: "PCSE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "professional-cloud-network-engineer", label: "Cloud Network Engineer (Professional)", code: "PCNE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "professional-machine-learning-engineer", label: "Machine Learning Engineer (Professional)", code: "PMLE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
+  { value: "professional-security-operations-engineer", label: "Security Operations Engineer (Professional)", code: "PSOE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
 ];
 
 // GitHub Certifications
