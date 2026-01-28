@@ -1960,13 +1960,14 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
             {/* Verified Credential URL */}
             <div>
               <Label htmlFor="credential-verifiedCredential" className="mb-2">
-                Verified Credential URL
+                Verified Credential URL <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="credential-verifiedCredential"
                 type="url"
                 defaultValue={currentCert.verifiedCredential || ''}
                 {...registerCredential("verifiedCredential", {
+                  required: "Verified Credential URL is required",
                   pattern: {
                     value: /^https?:\/\/.+/i,
                     message: "Please enter a valid URL",
