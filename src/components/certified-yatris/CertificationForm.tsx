@@ -186,32 +186,142 @@ const GITHUB_CERTIFICATIONS: SelectedCertification[] = [
   { value: "gh-300", label: "GitHub Administration GH-300", code: "GH-300", logo: `${LOGO_BASE_URL}/github-white-icon.webp`, logoLight: `${LOGO_BASE_URL}/github-white-icon.webp` },
 ];
 
-// Oracle Certifications
+// Oracle Certifications (curated from Oracle 2025 catalog)
 const ORACLE_CERTIFICATIONS: SelectedCertification[] = [
-  { value: "oci-foundations-associate", label: "OCI Foundations Associate 1Z0-1085-25", code: "1Z0-1085-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-database-foundations", label: "Oracle Database Foundations 1Z0-006", code: "1Z0-006", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "java-foundations-junior-associate", label: "Java Foundations Certified Junior Associate 1Z0-811", code: "1Z0-811", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-ai-foundations-specialist", label: "Oracle AI Foundations Specialist (NEW Beta)", code: "OAI-FS", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-fusion-cloud-applications-fundamentals", label: "Oracle Fusion Cloud Applications Fundamentals", code: "OFCAF", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-mysql-database-fundamentals", label: "Oracle MySQL Database Fundamentals (NEW 2025)", code: "OMDF", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-architect-associate", label: "OCI Architect Associate 1Z0-1072-25", code: "1Z0-1072-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-developer-associate", label: "OCI Developer Associate 1Z0-1084-25", code: "1Z0-1084-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-data-management-foundations-associate", label: "OCI Data Management Foundations Associate 1Z0-1088-25", code: "1Z0-1088-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-multicloud-architect-associate", label: "OCI Multicloud Architect Associate 1Z0-1115-25", code: "1Z0-1115-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-database-sql-certified-associate", label: "Oracle Database SQL Certified Associate 1Z0-071", code: "1Z0-071", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-architect-professional", label: "OCI Architect Professional 1Z0-997-25", code: "1Z0-997-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-data-science-professional", label: "OCI Data Science Professional 1Z0-1090-25", code: "1Z0-1090-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-application-integration-professional", label: "OCI Application Integration Professional 1Z0-1042-24", code: "1Z0-1042-24", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-autonomous-database-cloud-professional", label: "Oracle Autonomous Database Cloud Professional 1Z0-1105-25", code: "1Z0-1105-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-cloud-database-aws-architect-professional", label: "Oracle Cloud Database@AWS Architect Professional (NEW)", code: "OCD-AWS", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-certified-professional-java-se-21-developer", label: "Oracle Certified Professional Java SE 21 Developer 1Z0-830", code: "1Z0-830", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-certified-professional-java-se-17-developer", label: "Oracle Certified Professional Java SE 17 Developer 1Z0-829", code: "1Z0-829", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-certified-professional-java-se-11-developer", label: "Oracle Certified Professional Java SE 11 Developer 1Z0-819", code: "1Z0-819", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-ai-cloud-database-services-2025-professional", label: "Oracle AI Cloud Database Services 2025 Professional (NEW)", code: "OAICDS-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-analytics-cloud-2024-professional", label: "Oracle Analytics Cloud 2024 Professional 1Z0-1105-24", code: "1Z0-1105-24", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oracle-ai-agent-studio-fusion-applications-developer-2025", label: "Oracle AI Agent Studio for Fusion Applications Developer 2025 (NEW)", code: "OAIAS-FAD-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-database-migration-integration-specialist", label: "OCI Database Migration & Integration Specialist 1Z0-1093-25", code: "1Z0-1093-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
-  { value: "oci-data-integration-specialist", label: "OCI Data Integration Specialist 1Z0-1094-25", code: "1Z0-1094-25", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  // Oracle Cloud Infrastructure – 2025 core
+  { value: "oci-2025-foundations-associate", label: "Oracle Cloud Infrastructure 2025 Foundations Associate", code: "OCI-FOUND-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-data-platform-2025-foundations-associate", label: "Oracle Data Platform 2025 Foundations Associate", code: "ODP-FOUND-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-ai-foundations-associate", label: "Oracle Cloud Infrastructure 2025 AI Foundations Associate", code: "OCI-AI-FOUND-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-architect-associate", label: "Oracle Cloud Infrastructure 2025 Architect Associate", code: "OCI-ARCH-ASSOC-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-redwood-application-2025-developer-associate", label: "Oracle Redwood Application 2025 Developer Associate", code: "REDWOOD-DEV-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-architect-professional", label: "Oracle Cloud Infrastructure 2025 Architect Professional", code: "OCI-ARCH-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-ai-vector-search-professional", label: "Oracle AI Vector Search Professional", code: "OAIVS-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-multicloud-architect-professional", label: "Oracle Cloud Infrastructure 2025 Multicloud Architect Professional", code: "OCI-MULTI-ARCH-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-networking-professional", label: "Oracle Cloud Infrastructure 2025 Networking Professional", code: "OCI-NET-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-developer-professional", label: "Oracle Cloud Infrastructure 2025 Developer Professional", code: "OCI-DEV-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-devops-professional", label: "Oracle Cloud Infrastructure 2025 DevOps Professional", code: "OCI-DEVOPS-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-analytics-cloud-2025-professional", label: "Oracle Analytics Cloud 2025 Professional", code: "OAC-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-apex-cloud-developer-professional", label: "Oracle APEX Cloud Developer Professional", code: "APEX-CLOUD-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-security-professional", label: "Oracle Cloud Infrastructure 2025 Security Professional", code: "OCI-SEC-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-cloud-operations-professional", label: "Oracle Cloud Infrastructure 2025 Cloud Operations Professional", code: "OCI-OPS-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-observability-professional", label: "Oracle Cloud Infrastructure 2025 Observability Professional", code: "OCI-OBS-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-migration-architect-professional", label: "Oracle Cloud Infrastructure 2025 Migration Architect Professional", code: "OCI-MIG-ARCH-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-generative-ai-professional", label: "Oracle Cloud Infrastructure 2025 Generative AI Professional", code: "OCI-GENAI-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-data-science-professional", label: "Oracle Cloud Infrastructure 2025 Data Science Professional", code: "OCI-DS-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-2025-application-integration-professional", label: "Oracle Cloud Infrastructure 2025 Application Integration Professional", code: "OCI-APP-INT-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-ai-cloud-database-services-2025-professional", label: "Oracle AI Cloud Database Services 2025 Professional", code: "OAICDS-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-ai-autonomous-database-2025-professional", label: "Oracle AI Autonomous Database 2025 Professional", code: "OAIADB-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-aws-architect-professional", label: "Oracle Database@AWS Architect Professional", code: "ODB-AWS-ARCH-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oci-sunbird-ed-specialty", label: "Oracle Cloud Infrastructure for Sunbird ED Specialty", code: "OCI-SUNBIRD-ED", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Database – core & AI
+  { value: "oracle-database-administration-i", label: "Oracle Database Administration I", code: "DBA-I", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-administration-ii", label: "Oracle Database Administration II", code: "DBA-II", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-19c-performance-management-and-tuning", label: "Oracle Database 19c: Performance Management and Tuning", code: "DB-19C-PERF", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-19c-data-guard-administration", label: "Oracle Database 19c: Data Guard Administration", code: "DB-19C-DG", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-19c-rac-asm-grid", label: "Oracle Database 19c: RAC, ASM, and Grid Infrastructure Administration", code: "DB-19C-RAC-ASM", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-sql", label: "Oracle Database SQL", code: "1Z0-071", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-program-with-plsql", label: "Oracle Database Program with PL/SQL", code: "1Z0-149", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-apex-cloud-developer-professional-db", label: "Oracle APEX Cloud Developer Professional", code: "APEX-CLOUD-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-security-administration", label: "Oracle Database Security Administration", code: "DB-SEC-ADMIN", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-foundations", label: "Oracle Database Foundations", code: "1Z0-006", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-ai-database-administration-associate", label: "Oracle AI Database Administration Associate", code: "OAI-DBA-ASSOC", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-ai-database-administration-professional", label: "Oracle AI Database Administration Professional", code: "OAI-DBA-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-ai-database-sql-associate", label: "Oracle AI Database SQL Associate", code: "OAI-SQL-ASSOC", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-ai-vector-search-professional-db", label: "Oracle AI Vector Search Professional", code: "OAIVS-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-database-aws-architect-professional-db", label: "Oracle Database@AWS Architect Professional", code: "ODB-AWS-ARCH-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Java & Helidon
+  { value: "java-ee-7-application-developer", label: "Java EE 7 Application Developer", code: "1Z0-900", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "java-se-8-programmer-i", label: "Java SE 8 Programmer I", code: "1Z0-808", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "java-se-8-programmer-ii", label: "Java SE 8 Programmer II", code: "1Z0-809", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "java-foundations", label: "Java Foundations", code: "1Z0-811", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "java-se-11-developer", label: "Java SE 11 Developer", code: "1Z0-819", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "java-se-17-developer", label: "Java SE 17 Developer", code: "1Z0-829", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "java-se-21-developer-professional", label: "Java SE 21 Developer Professional", code: "1Z0-830", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "helidon-microservices-developer", label: "Helidon Microservices Developer", code: "1Z0-1113", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // MySQL
+  { value: "mysql-8-database-administrator", label: "MySQL 8.0 Database Administrator", code: "MYSQL-8-DBA", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "mysql-heatwave-implementation-associate-rel1", label: "MySQL HeatWave Implementation Associate Rel 1", code: "MYSQL-HW-ASSOC-1", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "mysql-8-database-developer", label: "MySQL 8.0 Database Developer", code: "MYSQL-8-DEV", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "mysql-implementation-associate", label: "MySQL Implementation Associate", code: "MYSQL-IMPL-ASSOC", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Communications
+  { value: "oracle-communications-sbc-implementation", label: "Oracle Communications Session Border Controller Implementation", code: "OC-SBC-IMPL", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-communications-sbc-troubleshooting", label: "Oracle Communications Session Border Controller Troubleshooting", code: "OC-SBC-TSHOOT", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Utilities
+  { value: "oracle-utilities-work-asset-cloud-2024-impl-pro", label: "Oracle Utilities Work and Asset Cloud 2024 Implementation Professional", code: "UTIL-WAC-2024-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-utilities-meter-solution-cloud-2024-impl-pro", label: "Oracle Utilities Meter Solution Cloud Service 2024 Implementation Professional", code: "UTIL-MTR-2024-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-utilities-c2m-customer-cloud-2025-impl-pro", label: "Oracle Utilities Customer to Meter and Customer Cloud Service 2025 Implementation Professional", code: "UTIL-C2M-2025-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Construction and Engineering
+  { value: "primavera-p6-eppm-professional", label: "Primavera P6 Enterprise Project Portfolio Management Professional", code: "P6-EPPM-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "primavera-unifier-administration-professional", label: "Primavera Unifier Administration Professional", code: "UNIFIER-ADMIN-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle E-Business Suite
+  { value: "ebs-r12-1-gl-essentials", label: "Oracle E-Business Suite R12.1 General Ledger Essentials", code: "EBS-R12-GL", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "ebs-r12-1-payables-essentials", label: "Oracle E-Business Suite R12.1 Payables Essentials", code: "EBS-R12-PAY", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "ebs-r12-1-receivables-essentials", label: "Oracle E-Business Suite R12.1 Receivables Essentials", code: "EBS-R12-REC", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "ebs-r12-hcm-essentials", label: "Oracle E-Business Suite (EBS) R12 Human Capital Management Essentials", code: "EBS-R12-HCM", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "ebs-r12-1-purchasing-essentials", label: "Oracle E-Business Suite R12.1 Purchasing Essentials", code: "EBS-R12-PUR", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "ebs-r12-project-essentials", label: "Oracle E-Business Suite (EBS) R12 Project Essentials", code: "EBS-R12-PROJ", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "ebs-r12-1-inventory-essentials", label: "Oracle E-Business Suite R12.1 Inventory Essentials", code: "EBS-R12-INV", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "ebs-r12-1-order-management-essentials", label: "Oracle E-Business Suite R12.1 Order Management Essentials", code: "EBS-R12-OM", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // JD Edwards
+  { value: "jde-e1-financial-mgmt-9-2-impl-essentials", label: "JD Edwards EnterpriseOne Financial Management 9.2 Implementation Essentials", code: "JDE-FIN-9-2", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "jde-e1-distribution-9-2-impl-essentials", label: "JD Edwards EnterpriseOne Distribution 9.2 Implementation Essentials", code: "JDE-DIST-9-2", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "jde-e1-cnc-9-2-impl-essentials", label: "JD Edwards EnterpriseOne Configurable Network Computing 9.2 Implementation Essentials", code: "JDE-CNC-9-2", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Hyperion
+  { value: "oracle-hyperion-planning-11-essentials", label: "Oracle Hyperion Planning 11 Essentials", code: "HYP-PLAN-11", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-hyperion-fm-11-essentials", label: "Oracle Hyperion Financial Management 11 Essentials", code: "HYP-FM-11", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-hyperion-drm-essentials", label: "Oracle Hyperion Data Relationship Management Essentials", code: "HYP-DRM", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle WebLogic Server
+  { value: "oracle-weblogic-12c-admin-i", label: "Oracle WebLogic Server 12c: Administration I", code: "WLS-12C-ADMIN-I", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-weblogic-12c-advanced-admin-ii", label: "Oracle WebLogic Server 12c: Advanced Administrator II", code: "WLS-12C-ADMIN-II", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-weblogic-12c-essentials", label: "Oracle WebLogic Server 12c Essentials", code: "WLS-12C-ESS", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-weblogic-14c-admin-pro", label: "Oracle WebLogic Server 14c Administrator Professional", code: "WLS-14C-ADMIN-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle SOA Suite & BPM
+  { value: "oracle-soa-suite-12c-essentials", label: "Oracle SOA Suite 12c Essentials", code: "SOA-12C-ESS", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-bpm-12c-essentials", label: "Oracle Business Process Management Suite 12c Essentials", code: "BPM-12C-ESS", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Data Integrator
+  { value: "oracle-data-integrator-12c-essentials", label: "Oracle Data Integrator 12c Essentials", code: "ODI-12C-ESS", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle GoldenGate
+  { value: "oracle-goldengate-12c-impl-essentials", label: "Oracle GoldenGate 12c Implementation Essentials", code: "OGG-12C-IMPL", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-goldengate-19c-impl-pro", label: "Oracle GoldenGate 19c Implementation Certified Professional", code: "OGG-19C-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-goldengate-23ai-impl-associate", label: "Oracle GoldenGate 23ai Implementation Associate", code: "OGG-23AI-ASSOC", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Linux
+  { value: "oracle-linux-8-advanced-sysadmin", label: "Oracle Linux 8 Advanced System Administration", code: "OL-8-ADV-SYSADMIN", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-linux-virtualization-manager-assoc", label: "Oracle Linux Virtualization Manager Associate", code: "OL-VIRT-MGR-ASSOC", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Solaris
+  { value: "oracle-solaris-11-system-admin", label: "Oracle Solaris 11 System Administration", code: "SOL-11-SYSADMIN", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-solaris-11-advanced-system-admin", label: "Oracle Solaris 11 Advanced System Administration", code: "SOL-11-ADV-SYSADMIN", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-solaris-11-install-config-essentials", label: "Oracle Solaris 11 Installation and Configuration Essentials", code: "SOL-11-INST-CONF", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-solaris-11-upgrade-sysadmin", label: "Upgrade to Oracle Solaris 11 System Administrator", code: "SOL-11-UPGRADE", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Engineered Systems
+  { value: "oracle-exadata-x9m-impl-essentials", label: "Oracle Exadata Database Machine X9M Implementation Essentials", code: "EXADATA-X9M-IMPL", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle VM
+  { value: "oracle-vm-3-x86-essentials", label: "Oracle VM 3.0 for x86 Essentials", code: "OVM-3-X86-ESS", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Analytics & Financial Services
+  { value: "oracle-analytics-cloud-2025-professional-dup", label: "Oracle Analytics Cloud 2025 Professional", code: "OAC-PRO-2025", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-fusion-data-intelligence-2024-impl-pro", label: "Oracle Fusion Data Intelligence 2024 Implementation Professional", code: "FDI-2024-IMPL-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-fccm-applications-professional", label: "Financial Crime and Compliance Management (FCCM) Applications Professional", code: "FCCM-APPS-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+
+  // Oracle Siebel CRM
+  { value: "oracle-siebel-crm-foundations-assoc", label: "Oracle Siebel CRM Foundations Associate", code: "SIEBEL-FOUND-ASSOC", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  { value: "oracle-siebel-crm-professional", label: "Oracle Siebel CRM Professional", code: "SIEBEL-PRO", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
 ];
 
 // Salesforce Certifications
