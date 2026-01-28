@@ -337,12 +337,25 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
 
   // Check if user has submitted certifications before
   const [hasSubmittedBefore, setHasSubmittedBefore] = useState(false);
-  const [showAddNew, setShowAddNew] = useState(false);
+  const [showAddNew, setShowAddNew] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    const addNewParam = params.get("addNew");
+    return addNewParam === "true" || addNewParam === "1";
+  });
   const [isEditMode, setIsEditMode] = useState(false);
 
 
   // Load user certifications on mount
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const addNewParam = params.get("addNew");
+      if (addNewParam === "true" || addNewParam === "1") {
+        setShowAddNew(true);
+      }
+    }
+
     if (user?.email) {
       loadUserCertifications();
       // Set photo preview if user has photo

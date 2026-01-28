@@ -229,10 +229,10 @@ const ManageCertifications = () => {
                   >
                     Edit Profile
                   </Button>
-                  <Button
-                    onClick={() => navigate("/certifiedyatris")}
-                    className="gap-2"
-                  >
+                <Button
+                  onClick={() => navigate("/certifiedyatris?addNew=true")}
+                  className="gap-2"
+                >
                     <Upload className="w-4 h-4" />
                     Add More Certifications
                   </Button>
@@ -253,7 +253,7 @@ const ManageCertifications = () => {
                     <p className="text-muted-foreground mb-4">
                       No certifications submitted yet.
                     </p>
-                    <Button onClick={() => navigate("/certifiedyatris")}>
+                    <Button onClick={() => navigate("/certifiedyatris?addNew=true")}>
                       Submit Certification
                     </Button>
                   </CardContent>
