@@ -57,6 +57,9 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   oracle: { logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
   salesforce: { logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg` },
   servicenow: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
+  openai: { logo: "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" },
+  hashicorp: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
+  kubernetes: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
 };
 
 // Only include providers that have logos available
@@ -68,6 +71,9 @@ const CERTIFICATION_PROVIDERS = [
   { value: "oracle", label: "Oracle", logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
   { value: "salesforce", label: "Salesforce", logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg` },
   { value: "servicenow", label: "ServiceNow", logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
+  { value: "openai", label: "OpenAI", logo: "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" },
+  { value: "hashicorp", label: "HashiCorp Certified", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
+  { value: "kubernetes", label: "Kubernetes Certified", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
 ];
 
 // AWS Certifications - Only those specified
@@ -177,6 +183,31 @@ const GCP_CERTIFICATIONS: SelectedCertification[] = [
   { value: "professional-security-operations-engineer", label: "Security Operations Engineer (Professional)", code: "PSOE", logo: `${LOGO_BASE_URL}/google_cloud.svg` },
 ];
 
+// OpenAI Certifications
+const OPENAI_CERTIFICATIONS: SelectedCertification[] = [
+  { value: "chatgpt-foundations-teachers", label: "ChatGPT Foundations for Teachers", code: "CGFT", logo: "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" },
+];
+
+// HashiCorp Certifications (Terraform, Vault, Consul)
+const HASHICORP_CERTIFICATIONS: SelectedCertification[] = [
+  // Terraform
+  { value: "terraform-associate", label: "Terraform Associate", code: "TA", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
+  { value: "terraform-authoring-operations-professional", label: "Terraform Authoring and Operations Professional", code: "TAOP", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
+  // Vault
+  { value: "vault-associate", label: "Vault Associate", code: "VA", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
+  { value: "vault-operations-professional", label: "Vault Operations Professional", code: "VOP", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
+  // Consul
+  { value: "consul-associate", label: "Consul Associate", code: "CA", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
+];
+
+// Kubernetes Certifications
+const KUBERNETES_CERTIFICATIONS: SelectedCertification[] = [
+  { value: "kcna", label: "Kubernetes and Cloud Native Associate (KCNA)", code: "KCNA", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
+  { value: "kcsa", label: "Kubernetes and Cloud Native Security Associate (KCSA)", code: "KCSA", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
+  { value: "ckad", label: "Certified Kubernetes Application Developer (CKAD)", code: "CKAD", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
+  { value: "cka", label: "Certified Kubernetes Administrator (CKA)", code: "CKA", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
+  { value: "cks", label: "Certified Kubernetes Security Specialist (CKS)", code: "CKS", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
+];
 // GitHub Certifications
 const GITHUB_CERTIFICATIONS: SelectedCertification[] = [
   { value: "gh-900", label: "GitHub Foundations GH-900", code: "GH-900", logo: `${LOGO_BASE_URL}/github-white-icon.webp`, logoLight: `${LOGO_BASE_URL}/github-white-icon.webp` },
@@ -775,6 +806,15 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     if (selectedProviders.includes("servicenow")) {
       allCerts.push(...SERVICENOW_CERTIFICATIONS);
     }
+    if (selectedProviders.includes("openai")) {
+      allCerts.push(...OPENAI_CERTIFICATIONS);
+    }
+    if (selectedProviders.includes("hashicorp")) {
+      allCerts.push(...HASHICORP_CERTIFICATIONS);
+    }
+    if (selectedProviders.includes("kubernetes")) {
+      allCerts.push(...KUBERNETES_CERTIFICATIONS);
+    }
     return allCerts;
   };
 
@@ -787,6 +827,9 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     if (ORACLE_CERTIFICATIONS.some(c => c.value === certValue)) return "oracle";
     if (SALESFORCE_CERTIFICATIONS.some(c => c.value === certValue)) return "salesforce";
     if (SERVICENOW_CERTIFICATIONS.some(c => c.value === certValue)) return "servicenow";
+     if (OPENAI_CERTIFICATIONS.some(c => c.value === certValue)) return "openai";
+     if (HASHICORP_CERTIFICATIONS.some(c => c.value === certValue)) return "hashicorp";
+     if (KUBERNETES_CERTIFICATIONS.some(c => c.value === certValue)) return "kubernetes";
     return "other";
   };
 
@@ -817,6 +860,9 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     if (provider === "oracle") return ORACLE_CERTIFICATIONS;
     if (provider === "salesforce") return SALESFORCE_CERTIFICATIONS;
     if (provider === "servicenow") return SERVICENOW_CERTIFICATIONS;
+    if (provider === "openai") return OPENAI_CERTIFICATIONS;
+    if (provider === "hashicorp") return HASHICORP_CERTIFICATIONS;
+    if (provider === "kubernetes") return KUBERNETES_CERTIFICATIONS;
     return [];
   };
 
@@ -1740,18 +1786,18 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                       className="h-8 text-xs"
                     />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm text-muted-foreground">Sort:</Label>
-                    <Select value={sortOrder} onValueChange={(value: 'a-z' | 'z-a' | 'default') => setSortOrder(value)}>
-                      <SelectTrigger className="w-[120px] h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="a-z">A to Z</SelectItem>
-                        <SelectItem value="z-a">Z to A</SelectItem>
-                        <SelectItem value="default">Default</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm text-muted-foreground">Sort:</Label>
+                  <Select value={sortOrder} onValueChange={(value: 'a-z' | 'z-a' | 'default') => setSortOrder(value)}>
+                    <SelectTrigger className="w-[120px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="a-z">A to Z</SelectItem>
+                      <SelectItem value="z-a">Z to A</SelectItem>
+                      <SelectItem value="default">Default</SelectItem>
+                    </SelectContent>
+                  </Select>
                   </div>
                 </div>
               </div>
@@ -1772,6 +1818,9 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                     oracle: "text-red-600 dark:text-red-400 border-red-200 dark:border-red-800",
                     salesforce: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
                     servicenow: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
+                    openai: "text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
+                    hashicorp: "text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800",
+                    kubernetes: "text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800",
                     other: "text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800"
                   };
                   const colorClass = providerColors[providerValue] || providerColors.other;
