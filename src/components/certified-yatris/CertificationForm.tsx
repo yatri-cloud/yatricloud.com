@@ -1797,7 +1797,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                 const cert = getCertifications().find(c => c.value === cred.certificationValue);
                 if (!cert) return null;
                 
-                return (
+                              return (
                   <div key={cred.certificationValue} className="p-6 bg-muted/30 border border-border rounded-lg space-y-4">
                     <div className="pb-3 border-b border-border">
                       <h4 className="text-lg font-semibold">{cert.label}</h4>
@@ -1808,7 +1808,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                     {/* Verified Credential URL */}
                     <div>
                       <Label htmlFor={`verified-${cred.certificationValue}`} className="mb-2">
-                        Verified Credential URL
+                        Verified Credential URL <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id={`verified-${cred.certificationValue}`}
@@ -1817,6 +1817,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                         onChange={(e) => handleCredentialUpdate(cred.certificationValue, 'verifiedCredential', e.target.value)}
                         placeholder="https://www.credly.com/badges/... or https://learn.microsoft.com/..."
                         className="w-full"
+                        required
                       />
                     </div>
 
@@ -1838,6 +1839,19 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
               />
             </div>
 
+            {/* Validation message if any credentials are missing */}
+            {addedCertifications.some(cred => !cred.verifiedCredential?.trim()) && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+              >
+                <p className="text-sm text-destructive font-medium">
+                  ⚠️ Please fill in the Verified Credential URL for all certifications before submitting
+                </p>
+              </motion.div>
+            )}
+
             <div className="flex justify-between pt-4">
               <Button
                 type="button"
@@ -1846,7 +1860,11 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
               >
                 Back
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="px-8">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || addedCertifications.some(cred => !cred.verifiedCredential?.trim())} 
+                className="px-8"
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
@@ -1960,7 +1978,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
             {/* Verified Credential URL */}
             <div>
               <Label htmlFor="credential-verifiedCredential" className="mb-2">
-                Verified Credential URL <span className="text-destructive">*</span>
+                Verified Credential URL <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="credential-verifiedCredential"
