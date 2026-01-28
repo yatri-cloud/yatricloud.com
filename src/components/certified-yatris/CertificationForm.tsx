@@ -304,6 +304,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
   const [currentCertIndex, setCurrentCertIndex] = useState(0);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [sortOrder, setSortOrder] = useState<'a-z' | 'z-a' | 'default'>('a-z');
+  const [certSearchQuery, setCertSearchQuery] = useState('');
   
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState<'selection' | 'common-info' | 'credentials'>('selection');
@@ -1480,18 +1481,29 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                 <Label className="block text-base font-semibold">
                   Step 2: Select Your Certifications <span className="text-destructive">*</span>
                 </Label>
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm text-muted-foreground">Sort:</Label>
-                  <Select value={sortOrder} onValueChange={(value: 'a-z' | 'z-a' | 'default') => setSortOrder(value)}>
-                    <SelectTrigger className="w-[120px] h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="a-z">A to Z</SelectItem>
-                      <SelectItem value="z-a">Z to A</SelectItem>
-                      <SelectItem value="default">Default</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="w-full sm:w-64">
+                    <Input
+                      type="text"
+                      value={certSearchQuery}
+                      onChange={(e) => setCertSearchQuery(e.target.value)}
+                      placeholder="Search certifications by name or code..."
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-muted-foreground">Sort:</Label>
+                    <Select value={sortOrder} onValueChange={(value: 'a-z' | 'z-a' | 'default') => setSortOrder(value)}>
+                      <SelectTrigger className="w-[120px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="a-z">A to Z</SelectItem>
+                        <SelectItem value="z-a">Z to A</SelectItem>
+                        <SelectItem value="default">Default</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
@@ -1523,7 +1535,16 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                         </h4>
                       </div>
                       <div className="grid grid-cols-1 gap-2 ml-2">
-                        {[...providerCerts].sort((a, b) => {
+                        {[...providerCerts]
+                          .filter((cert) => {
+                            if (!certSearchQuery) return true;
+                            const query = certSearchQuery.toLowerCase();
+                            return (
+                              cert.label.toLowerCase().includes(query) ||
+                              cert.code.toLowerCase().includes(query)
+                            );
+                          })
+                          .sort((a, b) => {
                           if (sortOrder === 'a-z') {
                             return a.label.localeCompare(b.label);
                           } else if (sortOrder === 'z-a') {
