@@ -1,9 +1,0 @@
-{
-  "extends": ["tailwindcss"],
-  "plugins": ["tailwindcss"],
-  "rules": {
-    "@tailwindcss/classnames-order": "warn",
-    "@tailwindcss/enforces-negative-arbitrary-values": "warn",
-    "@tailwindcss/enforces-prefix-isolation": "warn"
-  }
-}

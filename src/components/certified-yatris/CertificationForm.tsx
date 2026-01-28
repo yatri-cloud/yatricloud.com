@@ -304,6 +304,8 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
   const [currentCertIndex, setCurrentCertIndex] = useState(0);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [sortOrder, setSortOrder] = useState<'a-z' | 'z-a' | 'default'>('a-z');
+
+  const isValidHttpUrl = (value: string) => /^https?:\/\/\S+/i.test((value || "").trim());
   
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState<'selection' | 'common-info' | 'credentials'>('selection');
@@ -337,12 +339,25 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
 
   // Check if user has submitted certifications before
   const [hasSubmittedBefore, setHasSubmittedBefore] = useState(false);
-  const [showAddNew, setShowAddNew] = useState(false);
+  const [showAddNew, setShowAddNew] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    const addNewParam = params.get("addNew");
+    return addNewParam === "true" || addNewParam === "1";
+  });
   const [isEditMode, setIsEditMode] = useState(false);
 
 
   // Load user certifications on mount
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const addNewParam = params.get("addNew");
+      if (addNewParam === "true" || addNewParam === "1") {
+        setShowAddNew(true);
+      }
+    }
+
     if (user?.email) {
       loadUserCertifications();
       // Set photo preview if user has photo
@@ -704,6 +719,31 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       });
       return;
     }
+
+    // Verified Credential URL must be provided (and valid) for every certification
+    const missingVerifiedUrls = certificationCredentials.filter(
+      (cred) => !cred.verifiedCredential || cred.verifiedCredential.trim() === ''
+    );
+    if (missingVerifiedUrls.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: `Verified Credential URL is required for all ${missingVerifiedUrls.length} certification(s).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const invalidVerifiedUrls = certificationCredentials.filter(
+      (cred) => !isValidHttpUrl(cred.verifiedCredential || "")
+    );
+    if (invalidVerifiedUrls.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: `Please enter a valid Verified Credential URL (must start with http:// or https://) for all ${invalidVerifiedUrls.length} certification(s).`,
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (false) {
       toast({
@@ -855,6 +895,20 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     setIsSubmitting(true);
     try {
       const commonData = watch();
+
+      // Hard guard - Verified Credential URL is mandatory and must be valid
+      const missingOrInvalidVerified = certificationCredentials.filter(
+        (cred) => !cred.verifiedCredential || !isValidHttpUrl(cred.verifiedCredential)
+      );
+      if (missingOrInvalidVerified.length > 0) {
+        toast({
+          title: "Validation Error",
+          description: "Verified Credential URL is required (and must be a valid http(s) URL) for all certifications before submitting.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
       const submissionPromises = certificationCredentials.map(async (cred) => {
         try {
@@ -1795,11 +1849,12 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                     {/* Verified Credential URL */}
                     <div>
                       <Label htmlFor={`verified-${cred.certificationValue}`} className="mb-2">
-                        Verified Credential URL
+                        Verified Credential URL <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id={`verified-${cred.certificationValue}`}
                         type="url"
+                        required
                         value={cred.verifiedCredential || ''}
                         onChange={(e) => handleCredentialUpdate(cred.certificationValue, 'verifiedCredential', e.target.value)}
                         placeholder="https://www.credly.com/badges/... or https://learn.microsoft.com/..."
@@ -1947,13 +2002,14 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
             {/* Verified Credential URL */}
             <div>
               <Label htmlFor="credential-verifiedCredential" className="mb-2">
-                Verified Credential URL
+                Verified Credential URL <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="credential-verifiedCredential"
                 type="url"
                 defaultValue={currentCert.verifiedCredential || ''}
                 {...registerCredential("verifiedCredential", {
+                  required: "Verified Credential URL is required",
                   pattern: {
                     value: /^https?:\/\/.+/i,
                     message: "Please enter a valid URL",
