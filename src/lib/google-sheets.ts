@@ -21,6 +21,9 @@ const GITHUB_CERTIFICATIONS_WEBHOOK_URL = import.meta.env.VITE_GITHUB_CERTIFICAT
 const ORACLE_CERTIFICATIONS_WEBHOOK_URL = import.meta.env.VITE_ORACLE_CERTIFICATIONS_WEBHOOK_URL || "";
 const SALESFORCE_CERTIFICATIONS_WEBHOOK_URL = import.meta.env.VITE_SALESFORCE_CERTIFICATIONS_WEBHOOK_URL || "";
 const SERVICENOW_CERTIFICATIONS_WEBHOOK_URL = import.meta.env.VITE_SERVICENOW_CERTIFICATIONS_WEBHOOK_URL || "";
+const OPENAI_CERTIFICATIONS_WEBHOOK_URL = import.meta.env.VITE_OPENAI_CERTIFICATIONS_WEBHOOK_URL || "";
+const HASHICORP_CERTIFICATIONS_WEBHOOK_URL = import.meta.env.VITE_HASHICORP_CERTIFICATIONS_WEBHOOK_URL || "";
+const KUBERNETES_CERTIFICATIONS_WEBHOOK_URL = import.meta.env.VITE_KUBERNETES_CERTIFICATIONS_WEBHOOK_URL || "";
 
 /**
  * Get the appropriate webhook URL based on certification provider
@@ -54,6 +57,15 @@ function getWebhookUrl(provider: string): string {
     case 'servicenow':
       console.log(`🔗 ServiceNow webhook URL: ${SERVICENOW_CERTIFICATIONS_WEBHOOK_URL ? 'CONFIGURED' : 'NOT CONFIGURED'}`);
       return SERVICENOW_CERTIFICATIONS_WEBHOOK_URL || '';
+    case 'openai':
+      console.log(`🔗 OpenAI webhook URL: ${OPENAI_CERTIFICATIONS_WEBHOOK_URL ? 'CONFIGURED' : 'NOT CONFIGURED'}`);
+      return OPENAI_CERTIFICATIONS_WEBHOOK_URL || '';
+    case 'hashicorp':
+      console.log(`🔗 HashiCorp webhook URL: ${HASHICORP_CERTIFICATIONS_WEBHOOK_URL ? 'CONFIGURED' : 'NOT CONFIGURED'}`);
+      return HASHICORP_CERTIFICATIONS_WEBHOOK_URL || '';
+    case 'kubernetes':
+      console.log(`🔗 Kubernetes webhook URL: ${KUBERNETES_CERTIFICATIONS_WEBHOOK_URL ? 'CONFIGURED' : 'NOT CONFIGURED'}`);
+      return KUBERNETES_CERTIFICATIONS_WEBHOOK_URL || '';
     default:
       console.log(`🔗 Using general webhook URL for ${providerLower}`);
       return GOOGLE_SHEETS_WEBHOOK_URL;

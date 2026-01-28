@@ -11,6 +11,9 @@ This document outlines the setup for each certification provider's Google Apps S
 5. **Oracle** - `certified-oracle-yatris`
 6. **Salesforce** - `certified-salesforce-yatris`
 7. **ServiceNow** - `certified-servicenow-yatris`
+8. **OpenAI** - `certified-openai-yatris`
+9. **HashiCorp** - `certified-hashicorp-yatris`
+10. **Kubernetes** - `certified-kubernetes-yatris`
 
 ## Environment Variables
 
@@ -38,7 +41,16 @@ VITE_SALESFORCE_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/YO
 # ServiceNow Certifications
 VITE_SERVICENOW_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_SERVICENOW_WEBHOOK_URL/exec
 
-# General/Default (fallback for Azure)
+# OpenAI Certifications
+VITE_OPENAI_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_OPENAI_WEBHOOK_URL/exec
+
+# HashiCorp Certifications
+VITE_HASHICORP_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_HASHICORP_WEBHOOK_URL/exec
+
+# Kubernetes Certifications
+VITE_KUBERNETES_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_KUBERNETES_WEBHOOK_URL/exec
+
+# General/Default (fallback)
 VITE_GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_GENERAL_WEBHOOK_URL/exec
 ```
 

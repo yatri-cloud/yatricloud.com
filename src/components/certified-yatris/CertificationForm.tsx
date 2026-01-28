@@ -1187,6 +1187,12 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
             ? "certified-salesforce-yatris"
             : certProvider === "servicenow"
             ? "certified-servicenow-yatris"
+            : certProvider === "openai"
+            ? "certified-openai-yatris"
+            : certProvider === "hashicorp"
+            ? "certified-hashicorp-yatris"
+            : certProvider === "kubernetes"
+            ? "certified-kubernetes-yatris"
             : "certified-other-yatris";
 
           console.log(`📊 Target sheet: ${sheetName}`);

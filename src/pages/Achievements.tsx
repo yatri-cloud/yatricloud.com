@@ -35,7 +35,7 @@ const LOGO_BASE_URL = "https://raw.githubusercontent.com/yatricloud/yatri-images
 
 // Provider logo mapping
 const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
-  AWS: { 
+  AWS: {
     logo: `https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/logo/certifications/aws-light.png`, // Dark mode
     logoLight: `https://raw.githubusercontent.com/yatricloud/yatri-images/9ee0e0a7c0c59ce45631091027b84069b3c4574f/certification.yatricloud.com/logo/certifications/aws.svg` // Light mode
   },
@@ -158,55 +158,55 @@ const COUNTRY_COORDINATES: Record<string, [number, number]> = {
 
 // Provider color mapping for exam code badges
 const PROVIDER_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  AWS: { 
-    bg: 'bg-orange-100 dark:bg-orange-950/30', 
-    text: 'text-orange-700 dark:text-orange-400', 
-    border: 'border-orange-300 dark:border-orange-800' 
+  AWS: {
+    bg: 'bg-orange-100 dark:bg-orange-950/30',
+    text: 'text-orange-700 dark:text-orange-400',
+    border: 'border-orange-300 dark:border-orange-800'
   },
-  AZURE: { 
-    bg: 'bg-blue-100 dark:bg-blue-950/30', 
-    text: 'text-blue-700 dark:text-blue-400', 
-    border: 'border-blue-300 dark:border-blue-800' 
+  AZURE: {
+    bg: 'bg-blue-100 dark:bg-blue-950/30',
+    text: 'text-blue-700 dark:text-blue-400',
+    border: 'border-blue-300 dark:border-blue-800'
   },
-  GCP: { 
-    bg: 'bg-blue-50 dark:bg-blue-950/30', 
-    text: 'text-blue-600 dark:text-blue-400', 
-    border: 'border-blue-200 dark:border-blue-800' 
+  GCP: {
+    bg: 'bg-blue-50 dark:bg-blue-950/30',
+    text: 'text-blue-600 dark:text-blue-400',
+    border: 'border-blue-200 dark:border-blue-800'
   },
-  GOOGLE: { 
-    bg: 'bg-blue-50 dark:bg-blue-950/30', 
-    text: 'text-blue-600 dark:text-blue-400', 
-    border: 'border-blue-200 dark:border-blue-800' 
+  GOOGLE: {
+    bg: 'bg-blue-50 dark:bg-blue-950/30',
+    text: 'text-blue-600 dark:text-blue-400',
+    border: 'border-blue-200 dark:border-blue-800'
   },
-  GITHUB: { 
-    bg: 'bg-gray-100 dark:bg-gray-800/30', 
-    text: 'text-gray-700 dark:text-gray-300', 
-    border: 'border-gray-300 dark:border-gray-700' 
+  GITHUB: {
+    bg: 'bg-gray-100 dark:bg-gray-800/30',
+    text: 'text-gray-700 dark:text-gray-300',
+    border: 'border-gray-300 dark:border-gray-700'
   },
-  ORACLE: { 
-    bg: 'bg-red-100 dark:bg-red-950/30', 
-    text: 'text-red-700 dark:text-red-400', 
-    border: 'border-red-300 dark:border-red-800' 
+  ORACLE: {
+    bg: 'bg-red-100 dark:bg-red-950/30',
+    text: 'text-red-700 dark:text-red-400',
+    border: 'border-red-300 dark:border-red-800'
   },
-  SALESFORCE: { 
-    bg: 'bg-blue-100 dark:bg-blue-950/30', 
-    text: 'text-blue-700 dark:text-blue-400', 
-    border: 'border-blue-300 dark:border-blue-800' 
+  SALESFORCE: {
+    bg: 'bg-blue-100 dark:bg-blue-950/30',
+    text: 'text-blue-700 dark:text-blue-400',
+    border: 'border-blue-300 dark:border-blue-800'
   },
-  SERVICENOW: { 
-    bg: 'bg-blue-100 dark:bg-blue-950/30', 
-    text: 'text-blue-700 dark:text-blue-400', 
-    border: 'border-blue-300 dark:border-blue-800' 
+  SERVICENOW: {
+    bg: 'bg-blue-100 dark:bg-blue-950/30',
+    text: 'text-blue-700 dark:text-blue-400',
+    border: 'border-blue-300 dark:border-blue-800'
   },
-  KUBERNETES: { 
-    bg: 'bg-blue-100 dark:bg-blue-950/30', 
-    text: 'text-blue-700 dark:text-blue-400', 
-    border: 'border-blue-300 dark:border-blue-800' 
+  KUBERNETES: {
+    bg: 'bg-blue-100 dark:bg-blue-950/30',
+    text: 'text-blue-700 dark:text-blue-400',
+    border: 'border-blue-300 dark:border-blue-800'
   },
-  TERRAFORM: { 
-    bg: 'bg-purple-100 dark:bg-purple-950/30', 
-    text: 'text-purple-700 dark:text-purple-400', 
-    border: 'border-purple-300 dark:border-purple-800' 
+  TERRAFORM: {
+    bg: 'bg-purple-100 dark:bg-purple-950/30',
+    text: 'text-purple-700 dark:text-purple-400',
+    border: 'border-purple-300 dark:border-purple-800'
   },
 };
 
@@ -301,9 +301,9 @@ interface CertificationEntry {
 // Function to get country flag emoji from ISO country code or country name
 const getCountryFlag = (countryValue?: string): string => {
   if (!countryValue || countryValue.trim() === '') return "🌍";
-  
+
   const trimmed = countryValue.trim();
-  
+
   // If it's already a 2-letter country code (like "US", "IN")
   if (trimmed.length === 2) {
     try {
@@ -317,7 +317,7 @@ const getCountryFlag = (countryValue?: string): string => {
       return "🌍";
     }
   }
-  
+
   // If it's a country name, try to find the code
   const countryNameToCode: Record<string, string> = {
     "United States": "US", "India": "IN", "United Kingdom": "GB", "Canada": "CA",
@@ -334,7 +334,7 @@ const getCountryFlag = (countryValue?: string): string => {
     "Chile": "CL", "Colombia": "CO", "Peru": "PE", "Pakistan": "PK",
     "Bangladesh": "BD", "Sri Lanka": "LK", "Nepal": "NP"
   };
-  
+
   const code = countryNameToCode[trimmed] || trimmed.substring(0, 2).toUpperCase();
   if (code && code.length === 2) {
     try {
@@ -346,14 +346,14 @@ const getCountryFlag = (countryValue?: string): string => {
       console.warn('Failed to generate flag for code:', code, e);
     }
   }
-  
+
   return "🌍";
 };
 
 // Function to get country name from code or name
 const getCountryName = (countryValue?: string): string => {
   if (!countryValue) return "Unknown";
-  
+
   // If it's already a country name, return it
   const countryNames: Record<string, string> = {
     "US": "United States", "IN": "India", "GB": "United Kingdom", "CA": "Canada",
@@ -370,12 +370,12 @@ const getCountryName = (countryValue?: string): string => {
     "CL": "Chile", "CO": "Colombia", "PE": "Peru", "PK": "Pakistan",
     "BD": "Bangladesh", "LK": "Sri Lanka", "NP": "Nepal"
   };
-  
+
   // If it's a 2-letter code, look it up
   if (countryValue.length === 2) {
     return countryNames[countryValue.toUpperCase()] || countryValue;
   }
-  
+
   // If it's already a country name, return it as-is
   return countryValue;
 };
@@ -400,7 +400,7 @@ const Achievements = () => {
   const [selectedPerson, setSelectedPerson] = useState<GroupedPerson | null>(null);
   const [useCanva, setUseCanva] = useState(false);
   const { theme } = useTheme();
-  
+
   // Canva template ID - Set this to your Canva template ID
   // Get it from your Canva template URL or Canva API
   // Get template ID from environment variable
@@ -417,13 +417,13 @@ const Achievements = () => {
     const cacheKey = 'yatri_certifications_cache';
     const cacheTimestampKey = 'yatri_certifications_cache_timestamp';
     const cacheMaxAge = 10 * 60 * 1000; // 10 minutes (increased for better persistence)
-    
+
     // Load from cache FIRST - this ensures instant display
     let cacheLoaded = false;
     try {
       const cachedData = localStorage.getItem(cacheKey);
       const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
-      
+
       if (cachedData) {
         try {
           const parsedData = JSON.parse(cachedData);
@@ -455,7 +455,7 @@ const Achievements = () => {
     setError(null);
     try {
       const data = await fetchCertifications();
-      
+
       // Cache the fresh data
       try {
         localStorage.setItem(cacheKey, JSON.stringify(data));
@@ -463,11 +463,11 @@ const Achievements = () => {
       } catch (cacheError) {
         console.warn("⚠️ Error caching data:", cacheError);
       }
-      
+
       // Update with fresh data
       setCertifications(data);
       setIsLoading(false);
-      
+
       // If no data and no error, check if it's a CORS issue
       if (data.length === 0 && !cacheLoaded) {
         // Check console for CORS errors
@@ -560,7 +560,7 @@ const Achievements = () => {
     const personCountry = person.country || person.certifications[0]?.country || '';
     const countryName = getCountryName(personCountry);
     if (!countryName || countryName === 'Unknown') return acc;
-    
+
     if (!acc[countryName]) {
       acc[countryName] = [];
     }
@@ -570,7 +570,7 @@ const Achievements = () => {
 
   // Get unique countries
   const countries = Object.keys(groupedByCountry).sort();
-  
+
   // Debug: Log countries for troubleshooting
   console.log('🌍 Countries found:', countries);
   console.log('🌍 Grouped by country:', groupedByCountry);
@@ -587,7 +587,7 @@ const Achievements = () => {
   // Filter based on selected provider
   // For "all", show unique persons (not grouped by provider)
   // For specific provider, show persons filtered by that provider
-  const displayGroups = selectedProvider === "all" 
+  const displayGroups = selectedProvider === "all"
     ? { "All": filteredPersons } // Show all unique persons (filtered by country if selected)
     : { [selectedProvider]: filteredPersons };
 
@@ -612,14 +612,14 @@ const Achievements = () => {
     const state = cert.stateProvince || '';
     const city = cert.city || '';
     const provider = cert.certificationProvider?.toUpperCase() || 'OTHER';
-    
+
     // Create a unique key: country-state-city-provider or just country-provider
-    const locationKey = state && city 
+    const locationKey = state && city
       ? `${countryName}-${state}-${city}-${provider}`
-      : state 
+      : state
         ? `${countryName}-${state}-${provider}`
         : `${countryName}-${provider}`;
-    
+
     if (!acc[locationKey]) {
       acc[locationKey] = {
         country: countryName,
@@ -638,12 +638,12 @@ const Achievements = () => {
   const allMapMarkers = Object.entries(locationCounts)
     .map(([locationKey, location], index) => {
       if (!location.coordinates) return null;
-      
+
       // Add slight random offset for locations in the same country to avoid overlap
       const [lon, lat] = location.coordinates;
       const offsetLon = location.state ? (Math.random() - 0.5) * 3 : 0;
       const offsetLat = location.state ? (Math.random() - 0.5) * 2 : 0;
-      
+
       return {
         country: location.country,
         state: location.state,
@@ -657,15 +657,15 @@ const Achievements = () => {
     .filter((marker): marker is { country: string; state: string; city: string; provider: string; count: number; coordinates: [number, number]; color: string } => marker !== null);
 
   // Filter map markers based on selected map provider (separate from achievements filter)
-  const mapMarkers = selectedMapProvider === "all" 
-    ? allMapMarkers 
+  const mapMarkers = selectedMapProvider === "all"
+    ? allMapMarkers
     : allMapMarkers.filter(marker => marker.provider === selectedMapProvider);
 
   // Get unique providers for map filter
   const mapProviders = Array.from(new Set(allMapMarkers.map(m => m.provider))).sort();
 
   // Get max count for sizing dots (based on filtered markers)
-  const maxCount = mapMarkers.length > 0 
+  const maxCount = mapMarkers.length > 0
     ? Math.max(...mapMarkers.map(m => m.count), 1)
     : 1;
 
@@ -715,7 +715,7 @@ const Achievements = () => {
           return acc;
         }, {} as Record<string, number>);
         const uniqueProviders = Object.keys(providerCounts).sort();
-        const providerCertList = uniqueProviders.map(provider => 
+        const providerCertList = uniqueProviders.map(provider =>
           `${providerCounts[provider]}x ${provider}`
         ).join(' • ');
 
@@ -803,7 +803,7 @@ const Achievements = () => {
         if (!logoUrl) return '';
         const providerKey = provider.toUpperCase();
         const bgColor = providerColors[providerKey] || '#666666';
-        
+
         return `
           <div style="
             width: 70px;
@@ -920,9 +920,9 @@ const Achievements = () => {
               line-height: 1.4;
             ">
               ${uniqueProviders.map((provider, idx) => {
-                const count = providerCounts[provider];
-                return `${count}<span style="font-size: 0.65em; vertical-align: super; line-height: 0; position: relative; top: -0.1em;">x</span> ${provider}${idx < uniqueProviders.length - 1 ? ' <span style="margin: 0 14px; font-weight: 300; opacity: 0.8;">|</span> ' : ''}`;
-              }).join('')}
+        const count = providerCounts[provider];
+        return `${count}<span style="font-size: 0.65em; vertical-align: super; line-height: 0; position: relative; top: -0.1em;">x</span> ${provider}${idx < uniqueProviders.length - 1 ? ' <span style="margin: 0 14px; font-weight: 300; opacity: 0.8;">|</span> ' : ''}`;
+      }).join('')}
             </div>
 
             <!-- Provider Logos -->
@@ -1031,760 +1031,745 @@ const Achievements = () => {
       <SEO />
       <div className="noise-overlay" />
       <Navbar />
-      
+
       <main>
-      {/* Hero Section */}
-      <section className="relative pt-28 md:pt-40 pb-20 overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <ScrollReveal>
-            <div className="text-center mb-12">
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="inline-flex items-center justify-center mb-8"
-              >
-                <img
-                  src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/All/yatri-certified.png"
-                  alt="Yatri Certified"
-                  className="w-auto h-20 md:h-28 object-contain"
-                />
-              </motion.div>
-              
-              <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                Our <span className="gradient-text">Achievements</span>
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                Celebrating the success of our certified Yatris (In Testing Mode)
-              </p>
+        {/* Hero Section */}
+        <section className="relative pt-28 md:pt-40 pb-20 overflow-hidden">
+          {/* Background Elements */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
 
-              {/* Stats */}
-              <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-12 max-w-5xl mx-auto">
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
+            <ScrollReveal>
+              <div className="text-center mb-12">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/5 border border-amber-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-amber-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                  transition={{ duration: 0.6 }}
+                  className="inline-flex items-center justify-center mb-8"
                 >
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <BadgeCheck className="w-8 h-8 text-amber-500" strokeWidth={2.5} />
-                  </div>
-                  <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center gap-1.5">
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-amber-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
-                        />
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-orange-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
-                        />
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-red-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
-                        />
-                      </div>
-                    ) : (
-                      totalCertifications
-                    )}
-                  </div>
-                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Total Achievements</div>
+                  <img
+                    src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/All/yatri-certified.png"
+                    alt="Yatri Certified"
+                    className="w-auto h-20 md:h-28 object-contain"
+                  />
                 </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-indigo-500/5 border border-blue-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-blue-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
-                >
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <GraduationCap className="w-8 h-8 text-blue-500" strokeWidth={2.5} />
-                  </div>
-                  <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-500 bg-clip-text text-transparent">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center gap-1.5">
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-blue-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
-                        />
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-cyan-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
-                        />
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-indigo-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
-                        />
-                      </div>
-                    ) : (
-                      uniquePersons
-                    )}
-                  </div>
-                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certified Yatris</div>
-                </motion.div>
+                <h1 className="text-4xl md:text-6xl font-bold mb-4">
+                  Our <span className="gradient-text">Achievements</span>
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                  Celebrating the success of our certified Yatris (In Testing Mode)
+                </p>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  className="bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-violet-500/5 border border-purple-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
-                >
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <Briefcase className="w-8 h-8 text-purple-500" strokeWidth={2.5} />
-                  </div>
-                  <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-purple-500 via-pink-500 to-violet-500 bg-clip-text text-transparent">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center gap-1.5">
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-purple-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
-                        />
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-pink-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
-                        />
-                        <motion.span
-                          className="w-2.5 h-2.5 rounded-full bg-violet-500"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
-                        />
-                      </div>
-                    ) : (
-                      uniqueProviders
-                    )}
-                  </div>
-                  <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certification Providers</div>
-                </motion.div>
-
-                {thisMonth > 0 && (
+                {/* Stats */}
+                <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-12 max-w-5xl mx-auto">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                    className="bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-green-500/5 border border-emerald-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/5 border border-amber-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-amber-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Zap className="w-8 h-8 text-emerald-500" strokeWidth={2.5} />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <BadgeCheck className="w-8 h-8 text-amber-500" strokeWidth={2.5} />
                     </div>
-                    <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 bg-clip-text text-transparent">
-                      {thisMonth}
-                    </div>
-                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">This Month</div>
-                  </motion.div>
-                )}
-              </div>
-            </div>
-          </ScrollReveal>
-
-          {/* Provider Filter */}
-          {providers.length > 1 && (
-            <ScrollReveal delay={0.1}>
-              <div className="flex justify-center mb-6">
-                <div className="inline-flex bg-muted rounded-xl p-1 border border-border max-w-full overflow-x-auto scrollbar-hide">
-                  <div className="inline-flex min-w-max">
-                  <button
-                    onClick={() => setSelectedProvider("all")}
-                    className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${
-                      selectedProvider === "all"
-                        ? "bg-primary text-primary-foreground shadow-lg"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <BadgeCheck className="w-4 h-4" />
-                    All ({certifications.length})
-                  </button>
-                    {providers.map((provider) => {
-                      const providerLogo = PROVIDER_LOGOS[provider];
-                      if (!providerLogo) return null;
-                      
-                      const logoSrc = provider === 'AWS'
-                        ? (theme === 'dark' 
-                            ? providerLogo.logo  // aws-light.png for dark mode
-                            : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                        : (theme === 'dark' 
-                            ? (providerLogo.logoLight || providerLogo.logo)
-                            : (provider === 'GITHUB' 
-                                ? providerLogo.logo 
-                                : (providerLogo.logoLight || providerLogo.logo)));
-                      
-                      return (
-                        <button
-                          key={provider}
-                          onClick={() => setSelectedProvider(provider)}
-                          className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${
-                            selectedProvider === provider
-                              ? "bg-primary text-primary-foreground shadow-lg"
-                              : "text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          <img
-                            src={logoSrc}
-                            alt={provider}
-                            className={`object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''} ${
-                              provider === 'ORACLE' || provider === 'SERVICENOW' 
-                                ? 'w-7 h-7' 
-                                : 'w-5 h-5'
-                            }`}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
+                    <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-amber-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
                           />
-                          <span className="hidden sm:inline">
-                            {provider} ({groupedByProvider[provider]?.reduce((sum, person) => sum + person.certifications.length, 0) || 0})
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
-          )}
-
-        </div>
-      </section>
-
-      {/* Achievements Content */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4 md:px-6 max-w-[1600px]">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-24">
-              <div className="text-center">
-                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">Loading achievements...</p>
-              </div>
-            </div>
-          ) : error ? (
-            <ScrollReveal delay={0.2}>
-              <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-8 text-center max-w-2xl mx-auto">
-                <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c3.231 0 5.982-2.35 6.544-5.411.563-3.061-1.694-6.01-4.797-6.01v-.01C13.93 2.5 12 4.5 12 7h-2c0-2.5-1.93-4.5-4.315-4.5-3.103 0-5.36 2.949-4.797 6.01C1.982 11.65 4.733 14 7.964 14h13.856z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-destructive mb-2">Error Loading Certifications</h3>
-                <p className="text-muted-foreground mb-4">{error}</p>
-                <button
-                  onClick={loadCertifications}
-                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  Try Again
-                </button>
-                <p className="text-sm text-muted-foreground mt-4">
-                  💡 Check <code className="bg-muted px-2 py-1 rounded">FIX_CORS_GET_REQUEST.md</code> for setup instructions
-                </p>
-              </div>
-            </ScrollReveal>
-          ) : certifications.length === 0 ? (
-            <ScrollReveal delay={0.2}>
-              <div className="text-center py-24">
-                <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No achievements yet</h3>
-                <p className="text-muted-foreground">
-                  Be the first to share your certification success!
-                </p>
-              </div>
-            </ScrollReveal>
-          ) : (
-            <div className="space-y-20">
-              {Object.entries(displayGroups).map(([provider, certs], groupIndex) => {
-                const isAllView = provider === "All";
-                
-                return (
-                <ScrollReveal key={provider} delay={0.1 + groupIndex * 0.1}>
-                  <div className="mb-16">
-                    {/* Provider Header */}
-                    <div className="mb-12">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
-                        <div>
-                          <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
-                            {isAllView ? "Yatri Stars" : `${provider} Certifications`}
-                          </h3>
-                          <p className="text-lg text-muted-foreground">
-                            {certs.length} {certs.length === 1 ? "yatri" : "yatris"} certified
-                          </p>
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-orange-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
+                          />
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-red-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
+                          />
                         </div>
-                        {/* Country Filter - Only show for "All" view */}
-                        {isAllView && countries.length > 0 && (
-                          <div className="flex-shrink-0">
-                            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                              <SelectTrigger className="w-[280px] bg-muted border-border">
-                                <SelectValue placeholder="All Countries">
-                                  {selectedCountry === "all" 
-                                    ? `All (${providerFilteredPersons.length})`
-                                    : `${getCountryFlag(countries.find(c => c === selectedCountry) || '')} ${selectedCountry} (${groupedByCountry[selectedCountry]?.length || 0})`
-                                  }
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">
-                                  <span className="flex items-center gap-2">
-                                    <BadgeCheck className="w-4 h-4" />
-                                    All ({providerFilteredPersons.length})
-                                  </span>
-                                </SelectItem>
-                                {countries.map((country) => {
-                                  const countryCount = groupedByCountry[country]?.length || 0;
-                                  // Find a certification from this country to get the flag
-                                  const countryCert = certifications.find(c => getCountryName(c.country) === country);
-                                  const countryFlag = countryCert ? getCountryFlag(countryCert.country) : getCountryFlag(country);
-                                  return (
-                                    <SelectItem key={country} value={country}>
-                                      <span className="flex items-center gap-2">
-                                        <span className="text-lg">{countryFlag}</span>
-                                        {country} ({countryCount})
-                                      </span>
-                                    </SelectItem>
-                                  );
-                                })}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
-                      </div>
+                      ) : (
+                        totalCertifications
+                      )}
                     </div>
+                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Total Achievements</div>
+                  </motion.div>
 
-                    {/* Achievements Grid - 4 Column Layout */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
-                      {certs.map((person, index) => {
-                        const providerCertCount = person.certifications.length; // Count for this provider
-                        const totalCertCount = isAllView ? person.certifications.length : ((person as any).totalCertifications || person.certifications.length); // Total across all providers
-                        const currentProvider = isAllView ? "" : provider; // Current provider being displayed
-                        
-                        // Get ALL certifications for this person (not just current view)
-                        // Look up the person in the original persons array to get all their certifications
-                        const allPersonCerts = persons.find(p => p.id === person.id)?.certifications || person.certifications;
-                        
-                        // Get unique providers from ALL person's certifications with counts
-                        const providerCounts = allPersonCerts.reduce((acc, cert) => {
-                          const provider = cert.certificationProvider.toUpperCase();
-                          acc[provider] = (acc[provider] || 0) + 1;
-                          return acc;
-                        }, {} as Record<string, number>);
-                        const uniqueProviders = Object.keys(providerCounts);
-                        const { theme } = useTheme();
-                        
-                        // Determine card background color based on providers
-                        // Single provider = brand color, Multiple providers = primary blue
-                        const getCardColor = () => {
-                          if (uniqueProviders.length === 1) {
-                            const singleProvider = uniqueProviders[0];
-                            const brandColor = PROVIDER_BRAND_COLORS[singleProvider] || PROVIDER_BRAND_COLORS.MULTIPLE;
-                            return brandColor;
-                          } else {
-                            // Multiple providers - use primary blue
-                            return PROVIDER_BRAND_COLORS.MULTIPLE;
-                          }
-                        };
-                        const cardColor = getCardColor();
-                        
-                        // Special styling for Yatharth Chauhan and Nensi Ravaliya
-                        const isSpecialPerson = person.fullName === "Yatharth Chauhan" || person.fullName === "Nensi Ravaliya";
-                        const specialCardClasses = isSpecialPerson 
-                          ? "bg-black/80 dark:bg-white/80 backdrop-blur-sm border-yellow-500 border-4" 
-                          : `bg-gradient-to-br ${cardColor.from} ${cardColor.via} ${cardColor.to} backdrop-blur-sm border ${cardColor.border}`;
-                        
-                        return (
-                        <motion.div
-                          key={person.id}
-                          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{ delay: index * 0.08, duration: 0.5, ease: "easeOut" }}
-                          whileHover={{ y: -8, scale: 1.02 }}
-                          className={`group relative flex flex-col ${specialCardClasses} rounded-2xl p-6 hover:border-opacity-60 transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer`}
-                          onClick={() => openPersonModal(person)}
-                        >
-                          {/* Animated gradient background */}
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            transition={{ duration: 0.3 }}
-                            className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5"
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-indigo-500/5 border border-blue-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-blue-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                  >
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <GraduationCap className="w-8 h-8 text-blue-500" strokeWidth={2.5} />
+                    </div>
+                    <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-500 bg-clip-text text-transparent">
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-blue-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
                           />
-
-                          {/* Photo */}
-                          <div className="relative mb-6 z-10 flex justify-center">
-                            <motion.div
-                              className={`relative overflow-visible rounded-full border-4 shadow-xl transition-all duration-300 ${
-                                isSpecialPerson 
-                                  ? "border-yellow-500 group-hover:border-yellow-400" 
-                                  : "border-primary/20 group-hover:border-primary/40"
-                              }`}
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              <img
-                                src={person.photoUrl || "https://via.placeholder.com/200"}
-                                alt={person.fullName}
-                                className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-full"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = "https://via.placeholder.com/200";
-                                }}
-                              />
-                              {/* Certification Count Badge - On the circular border, bottom right */}
-                              <motion.div
-                                className={`absolute bottom-0 right-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 shadow-lg z-20 ${
-                                  isSpecialPerson 
-                                    ? "bg-yellow-500 border-yellow-600" 
-                                    : "bg-gradient-to-br from-primary to-primary/80 border-background"
-                                }`}
-                                style={{
-                                  transform: 'translate(10%, 25%)'
-                                }}
-                              >
-                                <span className={`text-xs md:text-sm font-bold leading-none ${
-                                  isSpecialPerson 
-                                    ? "text-black" 
-                                    : "text-primary-foreground"
-                                }`}>
-                                  {totalCertCount}x
-                                </span>
-                              </motion.div>
-                            </motion.div>
-                          </div>
-
-                          {/* Name */}
-                          <h4 className={`text-xl md:text-2xl font-bold mb-4 text-center relative z-10 transition-colors ${
-                            isSpecialPerson 
-                              ? "text-white dark:text-black group-hover:text-yellow-300 dark:group-hover:text-yellow-600" 
-                              : "text-foreground group-hover:text-primary"
-                          }`}>
-                            {person.fullName}
-                          </h4>
-
-                          {/* Certification Logos Horizontal Row */}
-                          <div className="flex flex-col items-center gap-2 mb-4 relative z-10">
-                            <div className="flex items-center justify-center gap-2 flex-wrap">
-                              {uniqueProviders.map((providerName) => {
-                                const providerLogo = PROVIDER_LOGOS[providerName];
-                                const count = providerCounts[providerName];
-                                
-                                if (!providerLogo) return null;
-                                
-                                // Special AWS logo alternation for Yatharth and Nensi (theme-dependent)
-                                let logoSrc;
-                                if (providerName === 'AWS' && isSpecialPerson) {
-                                  // Alternate AWS logos based on theme: swaps when theme changes
-                                  if (person.fullName === "Yatharth Chauhan") {
-                                    // Yatharth: logoLight in light mode, logo in dark mode
-                                    logoSrc = theme === 'dark' 
-                                      ? providerLogo.logo  // aws-light.png in dark mode
-                                      : (providerLogo.logoLight || providerLogo.logo); // aws.svg in light mode
-                                  } else if (person.fullName === "Nensi Ravaliya") {
-                                    // Nensi: logo in light mode, logoLight in dark mode (opposite of Yatharth)
-                                    logoSrc = theme === 'dark' 
-                                      ? (providerLogo.logoLight || providerLogo.logo) // aws.svg in dark mode
-                                      : providerLogo.logo; // aws-light.png in light mode
-                                  } else {
-                                    logoSrc = theme === 'dark' 
-                                      ? providerLogo.logo 
-                                      : (providerLogo.logoLight || providerLogo.logo);
-                                  }
-                                } else {
-                                  // Normal logo selection for other providers or non-special persons
-                                  logoSrc = providerName === 'AWS'
-                                    ? (theme === 'dark' 
-                                        ? providerLogo.logo  // aws-light.png for dark mode
-                                        : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                                    : (theme === 'dark' 
-                                        ? (providerLogo.logoLight || providerLogo.logo)
-                                        : (providerName === 'GITHUB' 
-                                            ? providerLogo.logo 
-                                            : (providerLogo.logoLight || providerLogo.logo)));
-                                }
-                                
-                                return (
-                                  <motion.div
-                                    key={providerName}
-                                    whileHover={{ scale: 1.15, y: -2 }}
-                                    className="flex items-center gap-1"
-                                  >
-                                    {/* Certification count before logo - only show if NOT in "All" view */}
-                                    {!isAllView && (
-                                      <span className={`text-xs font-bold ${
-                                        isSpecialPerson 
-                                          ? "text-white dark:text-black" 
-                                          : "text-foreground/80"
-                                      }`}>
-                                        {count}x
-                                      </span>
-                                    )}
-                                    <div className={`flex items-center justify-center rounded-lg border p-1 ${
-                                      providerName === 'ORACLE' || providerName === 'SERVICENOW' 
-                                        ? 'w-12 h-12' 
-                                        : 'w-8 h-8'
-                                    } ${
-                                      isSpecialPerson 
-                                        ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40" 
-                                        : "bg-background/50 border-border/40"
-                                    }`}>
-                                      <img
-                                        src={logoSrc}
-                                        alt={providerName}
-                                        className={`w-full h-full object-contain ${providerName === 'GITHUB' && theme === 'light' ? 'invert' : ''}`}
-                                        onError={(e) => {
-                                          (e.target as HTMLImageElement).style.display = 'none';
-                                        }}
-                                      />
-                                    </div>
-                                  </motion.div>
-                                );
-                              })}
-                            </div>
-                            {/* Country Flag at center bottom with name */}
-                            {person.country && (
-                              <motion.div
-                                whileHover={{ scale: 1.1 }}
-                                className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${
-                                  isSpecialPerson 
-                                    ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40" 
-                                    : "bg-background/50 border-border/40"
-                                }`}
-                                title={getCountryName(person.country)}
-                              >
-                                <span className="text-lg leading-none">
-                                  {getCountryFlag(person.country)}
-                                </span>
-                                <span className={`text-xs font-medium ${
-                                  isSpecialPerson 
-                                    ? "text-white dark:text-black font-semibold" 
-                                    : "text-foreground/80"
-                                }`}>
-                                  {getCountryName(person.country)}
-                                </span>
-                              </motion.div>
-                            )}
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex items-center justify-center gap-2 mt-auto relative z-10">
-                            <a
-                              href={person.linkedinUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all group/linkedin"
-                            >
-                              <svg className="w-4 h-4 group-hover/linkedin:scale-110" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                              </svg>
-                            </a>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-sm font-semibold transition-all"
-                            >
-                              <BadgeCheck className="w-4 h-4" />
-                              <span>View</span>
-                            </motion.button>
-                          </div>
-                        </motion.div>
-                      );
-                      })}
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-cyan-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
+                          />
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-indigo-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
+                          />
+                        </div>
+                      ) : (
+                        uniquePersons
+                      )}
                     </div>
-                  </div>
-                </ScrollReveal>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
+                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certified Yatris</div>
+                  </motion.div>
 
-      {/* World Map Section */}
-      {allMapMarkers.length > 0 && (
-        <section className="py-14 md:py-24 bg-muted/30">
-          <div className="container mx-auto px-4 md:px-6 max-w-[1600px]">
-            <ScrollReveal delay={0.2}>
-              <div className="mb-8">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                    Your <span className="gradient-text">Reach</span>
-                  </h2>
-                  <p className="text-muted-foreground text-lg">
-                    See our certified Yatris locations around the world
-                  </p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-violet-500/5 border border-purple-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                  >
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Briefcase className="w-8 h-8 text-purple-500" strokeWidth={2.5} />
+                    </div>
+                    <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-purple-500 via-pink-500 to-violet-500 bg-clip-text text-transparent">
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-purple-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
+                          />
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-pink-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
+                          />
+                          <motion.span
+                            className="w-2.5 h-2.5 rounded-full bg-violet-500"
+                            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
+                          />
+                        </div>
+                      ) : (
+                        uniqueProviders
+                      )}
+                    </div>
+                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certification Providers</div>
+                  </motion.div>
+
+                  {thisMonth > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      className="bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-green-500/5 border border-emerald-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                    >
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <Zap className="w-8 h-8 text-emerald-500" strokeWidth={2.5} />
+                      </div>
+                      <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 bg-clip-text text-transparent">
+                        {thisMonth}
+                      </div>
+                      <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">This Month</div>
+                    </motion.div>
+                  )}
                 </div>
+              </div>
+            </ScrollReveal>
 
-                {/* Map Provider Filter */}
+            {/* Provider Filter */}
+            {providers.length > 1 && (
+              <ScrollReveal delay={0.1}>
                 <div className="flex justify-center mb-6">
                   <div className="inline-flex bg-muted rounded-xl p-1 border border-border max-w-full overflow-x-auto scrollbar-hide">
                     <div className="inline-flex min-w-max">
-                    <button
-                      onClick={() => setSelectedMapProvider("all")}
-                      className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${
-                        selectedMapProvider === "all"
-                          ? "bg-primary text-primary-foreground shadow-lg"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <BadgeCheck className="w-4 h-4" />
-                      All ({allMapMarkers.length})
-                    </button>
-                    {mapProviders.map((provider) => {
-                      const providerLogo = PROVIDER_LOGOS[provider];
-                      if (!providerLogo) return null;
-                      
-                      const providerCount = allMapMarkers.filter(m => m.provider === provider).length;
-                      const logoSrc = provider === 'AWS'
-                        ? (theme === 'dark' 
+                      <button
+                        onClick={() => setSelectedProvider("all")}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedProvider === "all"
+                            ? "bg-primary text-primary-foreground shadow-lg"
+                            : "text-muted-foreground hover:text-foreground"
+                          }`}
+                      >
+                        <BadgeCheck className="w-4 h-4" />
+                        All ({certifications.length})
+                      </button>
+                      {providers.map((provider) => {
+                        const providerLogo = PROVIDER_LOGOS[provider];
+                        if (!providerLogo) return null;
+
+                        const logoSrc = provider === 'AWS'
+                          ? (theme === 'dark'
                             ? providerLogo.logo  // aws-light.png for dark mode
                             : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                        : (theme === 'dark' 
+                          : (theme === 'dark'
                             ? (providerLogo.logoLight || providerLogo.logo)
-                            : (provider === 'GITHUB' 
-                                ? providerLogo.logo 
-                                : (providerLogo.logoLight || providerLogo.logo)));
-                      
-                      return (
-                        <button
-                          key={provider}
-                          onClick={() => setSelectedMapProvider(provider)}
-                          className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${
-                            selectedMapProvider === provider
-                              ? "bg-primary text-primary-foreground shadow-lg"
-                              : "text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          <img
-                            src={logoSrc}
-                            alt={provider}
-                            className={`object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''} ${
-                              provider === 'ORACLE' || provider === 'SERVICENOW' 
-                                ? 'w-7 h-7' 
-                                : 'w-5 h-5'
-                            }`}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                          <span className="hidden sm:inline">
-                            {provider} ({providerCount})
-                          </span>
-                        </button>
-                      );
-                    })}
+                            : (provider === 'GITHUB'
+                              ? providerLogo.logo
+                              : (providerLogo.logoLight || providerLogo.logo)));
+
+                        return (
+                          <button
+                            key={provider}
+                            onClick={() => setSelectedProvider(provider)}
+                            className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedProvider === provider
+                                ? "bg-primary text-primary-foreground shadow-lg"
+                                : "text-muted-foreground hover:text-foreground"
+                              }`}
+                          >
+                            <img
+                              src={logoSrc}
+                              alt={provider}
+                              className={`object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''} ${provider === 'ORACLE' || provider === 'SERVICENOW'
+                                  ? 'w-7 h-7'
+                                  : 'w-5 h-5'
+                                }`}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                            <span className="hidden sm:inline">
+                              {provider} ({groupedByProvider[provider]?.reduce((sum, person) => sum + person.certifications.length, 0) || 0})
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
+              </ScrollReveal>
+            )}
 
-                <div className="bg-background rounded-2xl p-4 md:p-8 border border-border overflow-hidden">
-                  <div className="w-full" style={{ height: '500px', minHeight: '500px', position: 'relative' }}>
-                    <ComposableMap
-                      projection="geoEquirectangular"
-                      projectionConfig={{
-                        scale: 147,
-                      }}
-                      style={{ width: '100%', height: '100%' }}
-                      className="w-full h-full"
-                    >
-                      <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json">
-                        {({ geographies }) => {
-                          // Theme-based colors
-                          const isDark = theme === 'dark';
-                          const fillColor = isDark ? "#374151" : "#e5e7eb"; // Dark gray in dark mode, light gray in light mode
-                          const strokeColor = isDark ? "#4b5563" : "#9ca3af"; // Darker gray border in dark mode
-                          const hoverFill = isDark ? "#4b5563" : "#d1d5db"; // Slightly lighter on hover
-                          
-                          return geographies.map((geo) => {
-                            // Get country name from geography properties
-                            const countryName = geo.properties?.NAME || geo.properties?.name || geo.properties?.NAME_LONG || '';
-                            
-                            return (
-                              <Geography
-                                key={geo.rsmKey}
-                                geography={geo}
-                                fill={fillColor}
-                                stroke={strokeColor}
-                                style={{
-                                  default: {
-                                    fill: fillColor,
-                                    stroke: strokeColor,
-                                    strokeWidth: 0.6,
-                                    outline: "none",
-                                  },
-                                  hover: {
-                                    fill: hoverFill,
-                                    stroke: strokeColor,
-                                    strokeWidth: 0.6,
-                                    outline: "none",
-                                  },
-                                  pressed: {
-                                    fill: hoverFill,
-                                    stroke: strokeColor,
-                                    strokeWidth: 0.6,
-                                    outline: "none",
-                                  },
-                                }}
-                              >
-                                {countryName && (
-                                  <title>{countryName}</title>
-                                )}
-                              </Geography>
-                            );
-                          });
-                        }}
-                      </Geographies>
-                      {mapMarkers.map(({ country, state, city, provider, count, coordinates, color }, index) => {
-                        // Very small dots: min 3px, max 8px for better visibility of all states
-                        const size = Math.max(3, Math.min(8, (count / maxCount) * 8));
-                        const locationLabel = state && city 
-                          ? `${city}, ${state}, ${country}`
-                          : state 
-                            ? `${state}, ${country}`
-                            : country;
-                        return (
-                          <Marker key={`${country}-${state}-${city}-${provider}-${index}`} coordinates={coordinates}>
-                            <g>
-                              <title>{provider}</title>
-                              <motion.circle
-                                r={size}
-                                fill={color}
-                                stroke="#ffffff"
-                                strokeWidth={0.8}
-                                opacity={0.9}
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ duration: 0.5, delay: index * 0.05 }}
-                                className="cursor-pointer"
-                              />
-                            </g>
-                          </Marker>
-                        );
-                      })}
-                    </ComposableMap>
-                  </div>
-                  {/* Legend */}
-                  <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-                    {Object.entries(PROVIDER_MAP_COLORS).map(([provider, color]) => {
-                      const providerCount = mapMarkers.filter(m => m.provider === provider).length;
-                      if (providerCount === 0) return null;
-                      return (
-                        <div key={provider} className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color, opacity: 0.9 }} />
-                          <span>{provider}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
           </div>
         </section>
-      )}
+
+        {/* Achievements Content */}
+        <section className="py-16 md:py-24">
+          <div className="container mx-auto px-4 md:px-6 max-w-[1600px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <div className="text-center">
+                  <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-muted-foreground">Loading achievements...</p>
+                </div>
+              </div>
+            ) : error ? (
+              <ScrollReveal delay={0.2}>
+                <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-8 text-center max-w-2xl mx-auto">
+                  <div className="w-16 h-16 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c3.231 0 5.982-2.35 6.544-5.411.563-3.061-1.694-6.01-4.797-6.01v-.01C13.93 2.5 12 4.5 12 7h-2c0-2.5-1.93-4.5-4.315-4.5-3.103 0-5.36 2.949-4.797 6.01C1.982 11.65 4.733 14 7.964 14h13.856z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-destructive mb-2">Error Loading Certifications</h3>
+                  <p className="text-muted-foreground mb-4">{error}</p>
+                  <button
+                    onClick={loadCertifications}
+                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Try Again
+                  </button>
+                  <p className="text-sm text-muted-foreground mt-4">
+                    💡 Check <code className="bg-muted px-2 py-1 rounded">FIX_CORS_GET_REQUEST.md</code> for setup instructions
+                  </p>
+                </div>
+              </ScrollReveal>
+            ) : certifications.length === 0 ? (
+              <ScrollReveal delay={0.2}>
+                <div className="text-center py-24">
+                  <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No achievements yet</h3>
+                  <p className="text-muted-foreground">
+                    Be the first to share your certification success!
+                  </p>
+                </div>
+              </ScrollReveal>
+            ) : (
+              <div className="space-y-20">
+                {Object.entries(displayGroups).map(([provider, certs], groupIndex) => {
+                  const isAllView = provider === "All";
+
+                  return (
+                    <ScrollReveal key={provider} delay={0.1 + groupIndex * 0.1}>
+                      <div className="mb-16">
+                        {/* Provider Header */}
+                        <div className="mb-12">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+                            <div>
+                              <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
+                                {isAllView ? "Yatri Stars" : `${provider} Certifications`}
+                              </h3>
+                              <p className="text-lg text-muted-foreground">
+                                {certs.length} {certs.length === 1 ? "yatri" : "yatris"} certified
+                              </p>
+                            </div>
+                            {/* Country Filter - Only show for "All" view */}
+                            {isAllView && countries.length > 0 && (
+                              <div className="flex-shrink-0">
+                                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                                  <SelectTrigger className="w-[280px] bg-muted border-border">
+                                    <SelectValue placeholder="All Countries">
+                                      {selectedCountry === "all"
+                                        ? `All (${providerFilteredPersons.length})`
+                                        : `${getCountryFlag(countries.find(c => c === selectedCountry) || '')} ${selectedCountry} (${groupedByCountry[selectedCountry]?.length || 0})`
+                                      }
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">
+                                      <span className="flex items-center gap-2">
+                                        <BadgeCheck className="w-4 h-4" />
+                                        All ({providerFilteredPersons.length})
+                                      </span>
+                                    </SelectItem>
+                                    {countries.map((country) => {
+                                      const countryCount = groupedByCountry[country]?.length || 0;
+                                      // Find a certification from this country to get the flag
+                                      const countryCert = certifications.find(c => getCountryName(c.country) === country);
+                                      const countryFlag = countryCert ? getCountryFlag(countryCert.country) : getCountryFlag(country);
+                                      return (
+                                        <SelectItem key={country} value={country}>
+                                          <span className="flex items-center gap-2">
+                                            <span className="text-lg">{countryFlag}</span>
+                                            {country} ({countryCount})
+                                          </span>
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Achievements Grid - 4 Column Layout */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+                          {certs.map((person, index) => {
+                            const providerCertCount = person.certifications.length; // Count for this provider
+                            const totalCertCount = isAllView ? person.certifications.length : ((person as any).totalCertifications || person.certifications.length); // Total across all providers
+                            const currentProvider = isAllView ? "" : provider; // Current provider being displayed
+
+                            // Get ALL certifications for this person (not just current view)
+                            // Look up the person in the original persons array to get all their certifications
+                            const allPersonCerts = persons.find(p => p.id === person.id)?.certifications || person.certifications;
+
+                            // Get unique providers from ALL person's certifications with counts
+                            const providerCounts = allPersonCerts.reduce((acc, cert) => {
+                              const provider = cert.certificationProvider.toUpperCase();
+                              acc[provider] = (acc[provider] || 0) + 1;
+                              return acc;
+                            }, {} as Record<string, number>);
+                            const uniqueProviders = Object.keys(providerCounts);
+                            const { theme } = useTheme();
+
+                            // Determine card background color based on providers
+                            // Single provider = brand color, Multiple providers = primary blue
+                            const getCardColor = () => {
+                              if (uniqueProviders.length === 1) {
+                                const singleProvider = uniqueProviders[0];
+                                const brandColor = PROVIDER_BRAND_COLORS[singleProvider] || PROVIDER_BRAND_COLORS.MULTIPLE;
+                                return brandColor;
+                              } else {
+                                // Multiple providers - use primary blue
+                                return PROVIDER_BRAND_COLORS.MULTIPLE;
+                              }
+                            };
+                            const cardColor = getCardColor();
+
+                            // Special styling for Yatharth Chauhan and Nensi Ravaliya
+                            const isSpecialPerson = person.fullName === "Yatharth Chauhan" || person.fullName === "Nensi Ravaliya";
+                            const specialCardClasses = isSpecialPerson
+                              ? "bg-black/80 dark:bg-white/80 backdrop-blur-sm border-yellow-500 border-4"
+                              : `bg-gradient-to-br ${cardColor.from} ${cardColor.via} ${cardColor.to} backdrop-blur-sm border ${cardColor.border}`;
+
+                            return (
+                              <motion.div
+                                key={person.id}
+                                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ delay: index * 0.08, duration: 0.5, ease: "easeOut" }}
+                                whileHover={{ y: -8, scale: 1.02 }}
+                                className={`group relative flex flex-col ${specialCardClasses} rounded-2xl p-6 hover:border-opacity-60 transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer`}
+                                onClick={() => openPersonModal(person)}
+                              >
+                                {/* Animated gradient background */}
+                                <motion.div
+                                  initial={{ opacity: 0 }}
+                                  whileHover={{ opacity: 1 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5"
+                                />
+
+                                {/* Photo */}
+                                <div className="relative mb-6 z-10 flex justify-center">
+                                  <motion.div
+                                    className={`relative overflow-visible rounded-full border-4 shadow-xl transition-all duration-300 ${isSpecialPerson
+                                        ? "border-yellow-500 group-hover:border-yellow-400"
+                                        : "border-primary/20 group-hover:border-primary/40"
+                                      }`}
+                                    whileHover={{ scale: 1.05 }}
+                                  >
+                                    <img
+                                      src={person.photoUrl || "https://via.placeholder.com/200"}
+                                      alt={person.fullName}
+                                      className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-full"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = "https://via.placeholder.com/200";
+                                      }}
+                                    />
+                                    {/* Certification Count Badge - On the circular border, bottom right */}
+                                    <motion.div
+                                      className={`absolute bottom-0 right-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 shadow-lg z-20 ${isSpecialPerson
+                                          ? "bg-yellow-500 border-yellow-600"
+                                          : "bg-gradient-to-br from-primary to-primary/80 border-background"
+                                        }`}
+                                      style={{
+                                        transform: 'translate(10%, 25%)'
+                                      }}
+                                    >
+                                      <span className={`text-xs md:text-sm font-bold leading-none ${isSpecialPerson
+                                          ? "text-black"
+                                          : "text-primary-foreground"
+                                        }`}>
+                                        {totalCertCount}x
+                                      </span>
+                                    </motion.div>
+                                  </motion.div>
+                                </div>
+
+                                {/* Name */}
+                                <h4 className={`text-xl md:text-2xl font-bold mb-4 text-center relative z-10 transition-colors ${isSpecialPerson
+                                    ? "text-white dark:text-black group-hover:text-yellow-300 dark:group-hover:text-yellow-600"
+                                    : "text-foreground group-hover:text-primary"
+                                  }`}>
+                                  {person.fullName}
+                                </h4>
+
+                                {/* Certification Logos Horizontal Row */}
+                                <div className="flex flex-col items-center gap-2 mb-4 relative z-10">
+                                  <div className="flex items-center justify-center gap-2 flex-wrap">
+                                    {uniqueProviders.map((providerName) => {
+                                      const providerLogo = PROVIDER_LOGOS[providerName];
+                                      const count = providerCounts[providerName];
+
+                                      if (!providerLogo) return null;
+
+                                      // Special AWS logo alternation for Yatharth and Nensi (theme-dependent)
+                                      let logoSrc;
+                                      if (providerName === 'AWS' && isSpecialPerson) {
+                                        // Alternate AWS logos based on theme: swaps when theme changes
+                                        if (person.fullName === "Yatharth Chauhan") {
+                                          // Yatharth: logoLight in light mode, logo in dark mode
+                                          logoSrc = theme === 'dark'
+                                            ? providerLogo.logo  // aws-light.png in dark mode
+                                            : (providerLogo.logoLight || providerLogo.logo); // aws.svg in light mode
+                                        } else if (person.fullName === "Nensi Ravaliya") {
+                                          // Nensi: logo in light mode, logoLight in dark mode (opposite of Yatharth)
+                                          logoSrc = theme === 'dark'
+                                            ? (providerLogo.logoLight || providerLogo.logo) // aws.svg in dark mode
+                                            : providerLogo.logo; // aws-light.png in light mode
+                                        } else {
+                                          logoSrc = theme === 'dark'
+                                            ? providerLogo.logo
+                                            : (providerLogo.logoLight || providerLogo.logo);
+                                        }
+                                      } else {
+                                        // Normal logo selection for other providers or non-special persons
+                                        logoSrc = providerName === 'AWS'
+                                          ? (theme === 'dark'
+                                            ? providerLogo.logo  // aws-light.png for dark mode
+                                            : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
+                                          : (theme === 'dark'
+                                            ? (providerLogo.logoLight || providerLogo.logo)
+                                            : (providerName === 'GITHUB'
+                                              ? providerLogo.logo
+                                              : (providerLogo.logoLight || providerLogo.logo)));
+                                      }
+
+                                      return (
+                                        <motion.div
+                                          key={providerName}
+                                          whileHover={{ scale: 1.15, y: -2 }}
+                                          className="flex items-center gap-1"
+                                        >
+                                          {/* Certification count before logo - only show if NOT in "All" view */}
+                                          {!isAllView && (
+                                            <span className={`text-xs font-bold ${isSpecialPerson
+                                                ? "text-white dark:text-black"
+                                                : "text-foreground/80"
+                                              }`}>
+                                              {count}x
+                                            </span>
+                                          )}
+                                          <div className={`flex items-center justify-center rounded-lg border p-1 ${providerName === 'ORACLE' || providerName === 'SERVICENOW'
+                                              ? 'w-12 h-12'
+                                              : 'w-8 h-8'
+                                            } ${isSpecialPerson
+                                              ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40"
+                                              : "bg-background/50 border-border/40"
+                                            }`}>
+                                            <img
+                                              src={logoSrc}
+                                              alt={providerName}
+                                              className={`w-full h-full object-contain ${providerName === 'GITHUB' && theme === 'light' ? 'invert' : ''}`}
+                                              onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                              }}
+                                            />
+                                          </div>
+                                        </motion.div>
+                                      );
+                                    })}
+                                  </div>
+                                  {/* Country Flag at center bottom with name */}
+                                  {person.country && (
+                                    <motion.div
+                                      whileHover={{ scale: 1.1 }}
+                                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${isSpecialPerson
+                                          ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40"
+                                          : "bg-background/50 border-border/40"
+                                        }`}
+                                      title={getCountryName(person.country)}
+                                    >
+                                      <span className="text-lg leading-none">
+                                        {getCountryFlag(person.country)}
+                                      </span>
+                                      <span className={`text-xs font-medium ${isSpecialPerson
+                                          ? "text-white dark:text-black font-semibold"
+                                          : "text-foreground/80"
+                                        }`}>
+                                        {getCountryName(person.country)}
+                                      </span>
+                                    </motion.div>
+                                  )}
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center justify-center gap-2 mt-auto relative z-10">
+                                  <a
+                                    href={person.linkedinUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all group/linkedin"
+                                  >
+                                    <svg className="w-4 h-4 group-hover/linkedin:scale-110" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                                    </svg>
+                                  </a>
+                                  <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-sm font-semibold transition-all"
+                                  >
+                                    <BadgeCheck className="w-4 h-4" />
+                                    <span>View</span>
+                                  </motion.button>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </ScrollReveal>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* World Map Section */}
+        {allMapMarkers.length > 0 && (
+          <section className="py-14 md:py-24 bg-muted/30">
+            <div className="container mx-auto px-4 md:px-6 max-w-[1600px]">
+              <ScrollReveal delay={0.2}>
+                <div className="mb-8">
+                  <div className="text-center mb-8">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                      Your <span className="gradient-text">Reach</span>
+                    </h2>
+                    <p className="text-muted-foreground text-lg">
+                      See our certified Yatris locations around the world
+                    </p>
+                  </div>
+
+                  {/* Map Provider Filter */}
+                  <div className="flex justify-center mb-6">
+                    <div className="inline-flex bg-muted rounded-xl p-1 border border-border max-w-full overflow-x-auto scrollbar-hide">
+                      <div className="inline-flex min-w-max">
+                        <button
+                          onClick={() => setSelectedMapProvider("all")}
+                          className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === "all"
+                              ? "bg-primary text-primary-foreground shadow-lg"
+                              : "text-muted-foreground hover:text-foreground"
+                            }`}
+                        >
+                          <BadgeCheck className="w-4 h-4" />
+                          All ({allMapMarkers.length})
+                        </button>
+                        {mapProviders.map((provider) => {
+                          const providerLogo = PROVIDER_LOGOS[provider];
+                          if (!providerLogo) return null;
+
+                          const providerCount = allMapMarkers.filter(m => m.provider === provider).length;
+                          const logoSrc = provider === 'AWS'
+                            ? (theme === 'dark'
+                              ? providerLogo.logo  // aws-light.png for dark mode
+                              : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
+                            : (theme === 'dark'
+                              ? (providerLogo.logoLight || providerLogo.logo)
+                              : (provider === 'GITHUB'
+                                ? providerLogo.logo
+                                : (providerLogo.logoLight || providerLogo.logo)));
+
+                          return (
+                            <button
+                              key={provider}
+                              onClick={() => setSelectedMapProvider(provider)}
+                              className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === provider
+                                  ? "bg-primary text-primary-foreground shadow-lg"
+                                  : "text-muted-foreground hover:text-foreground"
+                                }`}
+                            >
+                              <img
+                                src={logoSrc}
+                                alt={provider}
+                                className={`object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''} ${provider === 'ORACLE' || provider === 'SERVICENOW'
+                                    ? 'w-7 h-7'
+                                    : 'w-5 h-5'
+                                  }`}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                              <span className="hidden sm:inline">
+                                {provider} ({providerCount})
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-background rounded-2xl p-4 md:p-8 border border-border overflow-hidden">
+                    <div className="w-full" style={{ height: '500px', minHeight: '500px', position: 'relative' }}>
+                      <ComposableMap
+                        projection="geoEquirectangular"
+                        projectionConfig={{
+                          scale: 147,
+                        }}
+                        style={{ width: '100%', height: '100%' }}
+                        className="w-full h-full"
+                      >
+                        <Geographies geography="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json">
+                          {({ geographies }) => {
+                            // Theme-based colors
+                            const isDark = theme === 'dark';
+                            const fillColor = isDark ? "#374151" : "#e5e7eb"; // Dark gray in dark mode, light gray in light mode
+                            const strokeColor = isDark ? "#4b5563" : "#9ca3af"; // Darker gray border in dark mode
+                            const hoverFill = isDark ? "#4b5563" : "#d1d5db"; // Slightly lighter on hover
+
+                            return geographies.map((geo) => {
+                              // Get country name from geography properties
+                              const countryName = geo.properties?.NAME || geo.properties?.name || geo.properties?.NAME_LONG || '';
+
+                              return (
+                                <Geography
+                                  key={geo.rsmKey}
+                                  geography={geo}
+                                  fill={fillColor}
+                                  stroke={strokeColor}
+                                  style={{
+                                    default: {
+                                      fill: fillColor,
+                                      stroke: strokeColor,
+                                      strokeWidth: 0.6,
+                                      outline: "none",
+                                    },
+                                    hover: {
+                                      fill: hoverFill,
+                                      stroke: strokeColor,
+                                      strokeWidth: 0.6,
+                                      outline: "none",
+                                    },
+                                    pressed: {
+                                      fill: hoverFill,
+                                      stroke: strokeColor,
+                                      strokeWidth: 0.6,
+                                      outline: "none",
+                                    },
+                                  }}
+                                >
+                                  {countryName && (
+                                    <title>{countryName}</title>
+                                  )}
+                                </Geography>
+                              );
+                            });
+                          }}
+                        </Geographies>
+                        {mapMarkers.map(({ country, state, city, provider, count, coordinates, color }, index) => {
+                          // Very small dots: min 3px, max 8px for better visibility of all states
+                          const size = Math.max(3, Math.min(8, (count / maxCount) * 8));
+                          const locationLabel = state && city
+                            ? `${city}, ${state}, ${country}`
+                            : state
+                              ? `${state}, ${country}`
+                              : country;
+                          return (
+                            <Marker key={`${country}-${state}-${city}-${provider}-${index}`} coordinates={coordinates}>
+                              <g>
+                                <title>{provider}</title>
+                                <motion.circle
+                                  r={size}
+                                  fill={color}
+                                  stroke="#ffffff"
+                                  strokeWidth={0.8}
+                                  opacity={0.9}
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                                  className="cursor-pointer"
+                                />
+                              </g>
+                            </Marker>
+                          );
+                        })}
+                      </ComposableMap>
+                    </div>
+                    {/* Legend */}
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+                      {Object.entries(PROVIDER_MAP_COLORS).map(([provider, color]) => {
+                        const providerCount = mapMarkers.filter(m => m.provider === provider).length;
+                        if (providerCount === 0) return null;
+                        return (
+                          <div key={provider} className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color, opacity: 0.9 }} />
+                            <span>{provider}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Certifications Modal */}
@@ -1801,11 +1786,10 @@ const Achievements = () => {
                         <img
                           src={selectedPerson.photoUrl || "https://via.placeholder.com/150"}
                           alt={selectedPerson.fullName}
-                          className={`w-20 h-20 rounded-full object-cover border-4 ${
-                            isSpecialPerson 
-                              ? "border-yellow-500" 
+                          className={`w-20 h-20 rounded-full object-cover border-4 ${isSpecialPerson
+                              ? "border-yellow-500"
                               : "border-primary/30"
-                          }`}
+                            }`}
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = "https://via.placeholder.com/150";
                           }}
@@ -1844,7 +1828,7 @@ const Achievements = () => {
                         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                         </svg>
                         <span className="text-sm font-semibold">LinkedIn</span>
                       </a>
@@ -1864,53 +1848,52 @@ const Achievements = () => {
                           const uniqueProviders = Array.from(new Set(selectedPerson.certifications.map(c => c.certificationProvider.toUpperCase())));
                           const { theme } = useTheme();
                           const isSpecialPerson = selectedPerson.fullName === "Yatharth Chauhan" || selectedPerson.fullName === "Nensi Ravaliya";
-                          
+
                           return (
                             <div className="flex items-center gap-1 ml-2">
                               {uniqueProviders.map((providerName) => {
                                 const providerLogo = PROVIDER_LOGOS[providerName];
                                 if (!providerLogo) return null;
-                                
+
                                 // Special AWS logo alternation for Yatharth and Nensi (theme-dependent)
                                 let logoSrc;
                                 if (providerName === 'AWS' && isSpecialPerson) {
                                   // Alternate AWS logos based on theme: swaps when theme changes
                                   if (selectedPerson.fullName === "Yatharth Chauhan") {
                                     // Yatharth: logoLight in light mode, logo in dark mode
-                                    logoSrc = theme === 'dark' 
+                                    logoSrc = theme === 'dark'
                                       ? providerLogo.logo  // aws-light.png in dark mode
                                       : (providerLogo.logoLight || providerLogo.logo); // aws.svg in light mode
                                   } else if (selectedPerson.fullName === "Nensi Ravaliya") {
                                     // Nensi: logo in light mode, logoLight in dark mode (opposite of Yatharth)
-                                    logoSrc = theme === 'dark' 
+                                    logoSrc = theme === 'dark'
                                       ? (providerLogo.logoLight || providerLogo.logo) // aws.svg in dark mode
                                       : providerLogo.logo; // aws-light.png in light mode
                                   } else {
-                                    logoSrc = theme === 'dark' 
-                                      ? providerLogo.logo 
+                                    logoSrc = theme === 'dark'
+                                      ? providerLogo.logo
                                       : (providerLogo.logoLight || providerLogo.logo);
                                   }
                                 } else {
                                   // Normal logo selection for other providers or non-special persons
                                   logoSrc = providerName === 'AWS'
-                                    ? (theme === 'dark' 
-                                        ? providerLogo.logo  // aws-light.png for dark mode
-                                        : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                                    : (theme === 'dark' 
-                                        ? (providerLogo.logoLight || providerLogo.logo)
-                                        : (providerName === 'GITHUB' 
-                                            ? providerLogo.logo 
-                                            : (providerLogo.logoLight || providerLogo.logo)));
+                                    ? (theme === 'dark'
+                                      ? providerLogo.logo  // aws-light.png for dark mode
+                                      : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
+                                    : (theme === 'dark'
+                                      ? (providerLogo.logoLight || providerLogo.logo)
+                                      : (providerName === 'GITHUB'
+                                        ? providerLogo.logo
+                                        : (providerLogo.logoLight || providerLogo.logo)));
                                 }
-                                
+
                                 return (
                                   <div
                                     key={providerName}
-                                    className={`flex items-center justify-center bg-background/50 rounded border border-border/40 p-0.5 ${
-                                      providerName === 'ORACLE' || providerName === 'SERVICENOW' 
-                                        ? 'w-7 h-7' 
+                                    className={`flex items-center justify-center bg-background/50 rounded border border-border/40 p-0.5 ${providerName === 'ORACLE' || providerName === 'SERVICENOW'
+                                        ? 'w-7 h-7'
                                         : 'w-5 h-5'
-                                    }`}
+                                      }`}
                                   >
                                     <img
                                       src={logoSrc}
@@ -1949,113 +1932,112 @@ const Achievements = () => {
                       {Object.entries(certsByProvider).map(([provider, certs]) => {
                         const providerLogo = PROVIDER_LOGOS[provider];
                         const { theme } = useTheme();
-                        const logoSrc = providerLogo 
+                        const logoSrc = providerLogo
                           ? (provider === 'AWS'
-                              ? (theme === 'dark' 
-                                  ? providerLogo.logo  // aws-light.png for dark mode
-                                  : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                              : (theme === 'dark' 
-                                  ? (providerLogo.logoLight || providerLogo.logo)
-                                  : (provider === 'GITHUB' 
-                                      ? providerLogo.logo 
-                                      : (providerLogo.logoLight || providerLogo.logo))))
+                            ? (theme === 'dark'
+                              ? providerLogo.logo  // aws-light.png for dark mode
+                              : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
+                            : (theme === 'dark'
+                              ? (providerLogo.logoLight || providerLogo.logo)
+                              : (provider === 'GITHUB'
+                                ? providerLogo.logo
+                                : (providerLogo.logoLight || providerLogo.logo))))
                           : null;
-                        
+
                         return (
-                        <div key={provider} className="space-y-4 mb-8">
-                          {/* Provider Header with Logo */}
-                          <div className="flex items-center gap-3 pb-3 border-b-2 border-border/60">
-                            {logoSrc && (
-                              <div className="w-11 h-11 bg-background rounded-lg border-2 border-primary/30 p-2 flex items-center justify-center shadow-sm">
-                                <img
-                                  src={logoSrc}
-                                  alt={provider}
-                                  className={`w-full h-full object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''}`}
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                  }}
-                                />
+                          <div key={provider} className="space-y-4 mb-8">
+                            {/* Provider Header with Logo */}
+                            <div className="flex items-center gap-3 pb-3 border-b-2 border-border/60">
+                              {logoSrc && (
+                                <div className="w-11 h-11 bg-background rounded-lg border-2 border-primary/30 p-2 flex items-center justify-center shadow-sm">
+                                  <img
+                                    src={logoSrc}
+                                    alt={provider}
+                                    className={`w-full h-full object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''}`}
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              )}
+                              <div>
+                                <h3 className="text-xl font-bold text-foreground mb-0.5">
+                                  {provider} Certifications
+                                </h3>
+                                <p className="text-xs text-muted-foreground font-medium">
+                                  {certs.length} {certs.length === 1 ? 'certification' : 'certifications'}
+                                </p>
                               </div>
-                            )}
-                            <div>
-                              <h3 className="text-xl font-bold text-foreground mb-0.5">
-                                {provider} Certifications
-                              </h3>
-                              <p className="text-xs text-muted-foreground font-medium">
-                                {certs.length} {certs.length === 1 ? 'certification' : 'certifications'}
-                              </p>
+                            </div>
+
+                            {/* Certifications Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {certs.map((cert, index) => {
+                                const providerName = cert.certificationProvider.toUpperCase();
+                                const certProviderLogo = PROVIDER_LOGOS[providerName];
+
+                                const certLogoSrc = certProviderLogo
+                                  ? (providerName === 'AWS'
+                                    ? (theme === 'dark'
+                                      ? certProviderLogo.logo  // aws-light.png for dark mode
+                                      : (certProviderLogo.logoLight || certProviderLogo.logo))  // aws.svg for light mode
+                                    : (theme === 'dark'
+                                      ? (certProviderLogo.logoLight || certProviderLogo.logo)
+                                      : (providerName === 'GITHUB'
+                                        ? certProviderLogo.logo
+                                        : (certProviderLogo.logoLight || certProviderLogo.logo))))
+                                  : null;
+
+                                return (
+                                  <motion.div
+                                    key={cert.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className="group relative p-4 bg-card rounded-lg border-2 border-border/60 hover:border-primary/60 transition-all duration-200 hover:shadow-md"
+                                  >
+                                    {/* Certification Name */}
+                                    <h4 className="font-semibold text-sm text-foreground mb-2.5 line-clamp-2 group-hover:text-primary transition-colors">
+                                      {cert.certificationName}
+                                    </h4>
+
+                                    {/* Exam Code and Verified */}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold border ${PROVIDER_COLORS[providerName]
+                                          ? `${PROVIDER_COLORS[providerName].bg} ${PROVIDER_COLORS[providerName].text} ${PROVIDER_COLORS[providerName].border}`
+                                          : 'bg-primary/20 text-primary border-primary/30'
+                                        }`}>
+                                        {cert.examCode}
+                                      </div>
+                                      {cert.verifiedCredential && cert.verifiedCredential.trim() !== '' && (
+                                        <>
+                                          <span className="text-xs text-muted-foreground">•</span>
+                                          <a
+                                            href={cert.verifiedCredential}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-950/50 text-green-700 dark:text-green-400 transition-colors text-xs font-medium"
+                                          >
+                                            <span>Verified</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                        </>
+                                      )}
+                                    </div>
+
+                                    {/* Additional Notes */}
+                                    {cert.additionalNotes && (
+                                      <div className="mt-2.5 pt-2.5 border-t border-border/50">
+                                        <p className="text-xs text-muted-foreground italic leading-relaxed line-clamp-2" title={cert.additionalNotes}>
+                                          "{cert.additionalNotes}"
+                                        </p>
+                                      </div>
+                                    )}
+                                  </motion.div>
+                                );
+                              })}
                             </div>
                           </div>
-
-                          {/* Certifications Grid */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {certs.map((cert, index) => {
-                              const providerName = cert.certificationProvider.toUpperCase();
-                              const certProviderLogo = PROVIDER_LOGOS[providerName];
-                              
-                              const certLogoSrc = certProviderLogo 
-                                ? (providerName === 'AWS'
-                                    ? (theme === 'dark' 
-                                        ? certProviderLogo.logo  // aws-light.png for dark mode
-                                        : (certProviderLogo.logoLight || certProviderLogo.logo))  // aws.svg for light mode
-                                    : (theme === 'dark' 
-                                        ? (certProviderLogo.logoLight || certProviderLogo.logo)
-                                        : (providerName === 'GITHUB' 
-                                            ? certProviderLogo.logo 
-                                            : (certProviderLogo.logoLight || certProviderLogo.logo))))
-                                : null;
-                              
-                              return (
-                              <motion.div
-                                key={cert.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                className="group relative p-4 bg-card rounded-lg border-2 border-border/60 hover:border-primary/60 transition-all duration-200 hover:shadow-md"
-                              >
-                                {/* Certification Name */}
-                                <h4 className="font-semibold text-sm text-foreground mb-2.5 line-clamp-2 group-hover:text-primary transition-colors">
-                                  {cert.certificationName}
-                                </h4>
-                                
-                                {/* Exam Code and Verified */}
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold border ${
-                                    PROVIDER_COLORS[providerName] 
-                                      ? `${PROVIDER_COLORS[providerName].bg} ${PROVIDER_COLORS[providerName].text} ${PROVIDER_COLORS[providerName].border}`
-                                      : 'bg-primary/20 text-primary border-primary/30'
-                                  }`}>
-                                    {cert.examCode}
-                                  </div>
-                                  {cert.verifiedCredential && cert.verifiedCredential.trim() !== '' && (
-                                    <>
-                                      <span className="text-xs text-muted-foreground">•</span>
-                                      <a
-                                        href={cert.verifiedCredential}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-950/50 text-green-700 dark:text-green-400 transition-colors text-xs font-medium"
-                                      >
-                                        <span>Verified</span>
-                                        <ExternalLink className="w-3 h-3" />
-                                      </a>
-                                    </>
-                                  )}
-                                </div>
-
-                                {/* Additional Notes */}
-                                {cert.additionalNotes && (
-                                  <div className="mt-2.5 pt-2.5 border-t border-border/50">
-                                    <p className="text-xs text-muted-foreground italic leading-relaxed line-clamp-2" title={cert.additionalNotes}>
-                                      "{cert.additionalNotes}"
-                                    </p>
-                                  </div>
-                                )}
-                              </motion.div>
-                              );
-                            })}
-                          </div>
-                        </div>
                         );
                       })}
                     </>
