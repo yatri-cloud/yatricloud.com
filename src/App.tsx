@@ -1,3 +1,4 @@
+import Review from "./pages/Review";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,28 +21,29 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <ThemeProvider defaultTheme="dark">
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
-          <Route path="/certifiedyatris" element={<CertifiedYatris />} />
-          <Route path="/manage-certifications" element={<ManageCertifications />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/udemy" element={<Udemy />} />
-          <Route path="/yatristore" element={<YatriStore />} />
-          <Route path="/addproduct" element={<AddProduct />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            <Route path="/certifiedyatris" element={<CertifiedYatris />} />
+            <Route path="/manage-certifications" element={<ManageCertifications />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/achievements" element={<Achievements />} />
+            <Route path="/udemy" element={<Udemy />} />
+            <Route path="/yatristore" element={<YatriStore />} />
+            <Route path="/addproduct" element={<AddProduct />} />
+            <Route path="/review" element={<Review />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   </ThemeProvider>
 );
 
