@@ -251,6 +251,14 @@ How may I help you today?`,
 
   return (
     <>
+      {/* Blur Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 transition-all duration-300"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
       {/* Chat Button with Tooltip */}
       <div className="fixed bottom-6 right-6 z-40">
         {/* Tooltip Popup */}
@@ -258,11 +266,11 @@ How may I help you today?`,
           className={`absolute bottom-full right-0 mb-2 transition-all duration-500 ${showTooltip ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
             }`}
         >
-          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-3 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-center leading-snug">
-              Hello Yatris 👋<br />
-              Want to Get Certified?
-            </p>
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-5 py-3 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 min-w-max">
+            <div className="text-sm font-medium text-center">
+              <div>Hello Yatris 👋</div>
+              <div>Want to Get Certified?</div>
+            </div>
           </div>
           {/* Arrow pointing down */}
           <div className="absolute top-full right-6 -mt-2">
