@@ -184,6 +184,14 @@ export const YatriAI = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Suggestions based on generic "business" context + possibly page context in future
+  const [suggestions] = useState([
+    "What is Yatri Cloud?",
+    "Certification Paths",
+    "Pricing & Plans",
+    "Contact Support"
+  ]);
+
   const handleStopGeneration = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -192,22 +200,23 @@ export const YatriAI = () => {
     }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const handleSendMessage = async (e?: React.FormEvent, customText?: string) => {
+    if (e) e.preventDefault();
+
+    const messageText = customText || input;
+    if (!messageText.trim()) return;
 
     // Reset scroll state to ensure we scroll to bottom for new interaction
     setUserScrolledUp(false);
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: input,
+      text: messageText,
       sender: 'user',
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    const messageText = input;
     setInput('');
     setIsLoading(true);
 
@@ -424,12 +433,28 @@ export const YatriAI = () => {
                   </div>
                 </div>
               ))}
+
+              {/* Suggestions Chips (shown only when messages length is 1 i.e., greeting only, or at bottom) */}
+              {messages.length < 3 && !isLoading && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSendMessage(undefined, suggestion)}
+                      className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-full transition-colors border border-gray-200 dark:border-gray-700"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div ref={scrollRef} />
             </div>
           </ScrollArea>
 
           {/* Input Area */}
-          <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 dark:border-slate-800 flex gap-2">
+          <form onSubmit={(e) => handleSendMessage(e)} className="p-4 border-t border-gray-200 dark:border-slate-800 flex gap-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
