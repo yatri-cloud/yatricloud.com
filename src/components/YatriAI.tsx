@@ -115,7 +115,7 @@ export const YatriAI = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: `Hello Yatris 👋
+      text: `Hi Yatri 👋
 
 How may I help you today?`,
       sender: 'ai',
