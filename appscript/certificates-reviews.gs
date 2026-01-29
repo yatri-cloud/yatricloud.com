@@ -148,9 +148,24 @@ function getReviews(options = {}) {
       filtered = filtered.filter(r => r.rating <= options.maxRating);
     }
 
+    // Sort: Higher ratings (4.5–5) first, then lower ratings; within each tier, latest timestamp first
+    filtered.sort((a, b) => {
+      const ratingA = parseFloat(a.rating);
+      const ratingB = parseFloat(b.rating);
+      const timestampA = new Date(a.timestamp).getTime();
+      const timestampB = new Date(b.timestamp).getTime();
+
+      // Sort by rating descending (higher first)
+      if (ratingA !== ratingB) {
+        return ratingB - ratingA;
+      }
+      // Within same rating, sort by timestamp descending (latest first)
+      return timestampB - timestampA;
+    });
+
     // Apply limit
     if (options.limit) {
-      filtered = filtered.slice(-options.limit); // Last N reviews
+      filtered = filtered.slice(0, options.limit); // First N reviews after sorting
     }
 
     return filtered;
