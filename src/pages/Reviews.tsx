@@ -230,46 +230,46 @@ const Reviews = () => {
                         : undefined;
                     return (
                       <article key={r.id ?? Math.random()} className="bg-card border border-border rounded-2xl p-6 shadow hover:shadow-lg transition">
-                        <div className="flex items-start justify-between gap-4 mb-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-semibold text-lg">{r.name}</h4>
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <h4 className="font-semibold text-lg truncate">{r.name}</h4>
                               {r.linkedinProfile && (
                                 <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="flex-shrink-0 hover:opacity-80 transition">
-                                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png" alt="LinkedIn" className="w-4 h-4 object-contain" width={16} height={16} />
+                                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png" alt="LinkedIn" className="w-3 h-3 object-contain" width={12} height={12} />
                                 </a>
                               )}
                             </div>
-                            {/* Provider on left */}
-                            {providerInfo && (
-                              <div className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm w-fit">
-                                {logoUrl && (
-                                  <img
-                                    src={logoUrl}
-                                    alt=""
-                                    className="w-5 h-5 object-contain flex-shrink-0"
-                                    width={20}
-                                    height={20}
-                                  />
-                                )}
-                                <span>{providerInfo.label}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+
                             <div className="flex items-center gap-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <svg key={i} viewBox="0 0 24 24" width={18} height={18} className={i < Number(r.rating) ? "text-amber-400" : "text-muted-foreground"} fill={i < Number(r.rating) ? "currentColor" : "none"} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                              </svg>
-                            ))}
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <svg key={i} viewBox="0 0 24 24" width={18} height={18} className={i < Number(r.rating) ? "text-amber-400" : "text-muted-foreground"} fill={i < Number(r.rating) ? "currentColor" : "none"} stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                              ))}
                             </div>
-                            {r.country && (
-                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/60 border border-border/60 text-sm" title={getCountryName(r.country)}>
-                                <span className="text-lg leading-none">{getCountryFlag(r.country)}</span>
-                                <span className="text-muted-foreground">{getCountryName(r.country) || r.country}</span>
-                              </div>
-                            )}
+                          </div>
+
+                          <div className="mt-2 flex items-center justify-between">
+                            <div>
+                              {providerInfo && (
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm w-fit">
+                                  {logoUrl && (
+                                    <img src={logoUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" width={20} height={20} />
+                                  )}
+                                  <span>{providerInfo.label}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              {r.country && (
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/60 border border-border/60 text-sm" title={getCountryName(r.country)}>
+                                  <span className="text-lg leading-none">{getCountryFlag(r.country)}</span>
+                                  <span className="text-muted-foreground">{getCountryName(r.country) || r.country}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
 
