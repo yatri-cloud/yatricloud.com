@@ -125,17 +125,20 @@ export const YatriAI = () => {
   useEffect(() => {
     const hour = new Date().getHours();
     let greeting = 'Good Morning';
+    let subMessage = 'Ready to start your learning journey?';
 
     if (hour >= 12 && hour < 17) {
       greeting = 'Good Afternoon';
+      subMessage = 'Hope your day is going well! What shall we learn?';
     } else if (hour >= 17) {
       greeting = 'Good Evening';
+      subMessage = 'Late night study session? I\'m here to help!';
     }
 
     setMessages([
       {
         id: '1',
-        text: `Hi, ${greeting} Yatri 👋\n\nHow may I help you today?`,
+        text: `Hi, ${greeting} Yatri 👋\n\n${subMessage}`,
         sender: 'ai',
         timestamp: new Date(),
       },
