@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, StopCircle } from 'lucide-react';
+import { MessageCircle, X, Send, StopCircle, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,6 +10,31 @@ interface Message {
   sender: 'user' | 'ai';
   timestamp: Date;
 }
+
+// Copy Button Component
+const CopyButton = ({ text }: { text: string }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors opacity-0 group-hover:opacity-100"
+      title="Copy to clipboard"
+    >
+      {isCopied ? <Check size={14} /> : <Copy size={14} />}
+    </button>
+  );
+};
 
 // Enhanced markdown rendering for beautiful formatting
 const renderMarkdown = (text: string) => {
@@ -26,9 +51,14 @@ const renderMarkdown = (text: string) => {
       if (inCodeBlock) {
         // End code block
         elements.push(
-          <pre key={`code-${idx}`} className="bg-gray-800 text-gray-100 p-3 rounded mt-2 mb-2 overflow-x-auto">
-            <code className="text-sm">{codeContent}</code>
-          </pre>
+          <div key={`code-wrapper-${idx}`} className="relative group">
+            <pre className="bg-gray-800 text-gray-100 p-3 rounded mt-2 mb-2 overflow-x-auto">
+              <code className="text-sm">{codeContent}</code>
+            </pre>
+            <div className="absolute top-2 right-2">
+              <CopyButton text={codeContent} />
+            </div>
+          </div>
         );
         codeContent = '';
       }
@@ -96,13 +126,40 @@ How may I help you today?`,
   const [isLoading, setIsLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
 
+  // Handle scroll events to detect if user is at bottom
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    // We use onScrollCapture on the ScrollArea Root, so e.target is the Viewport that actually scrolls
+    const target = e.target as HTMLDivElement;
+
+    // Ignore if the target doesn't look like a scrolling container (safety check)
+    if (!target.scrollHeight) return;
+
+    const isAtBottom = Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) < 50;
+
+    if (isAtBottom) {
+      setUserScrolledUp(false);
+    } else {
+      setUserScrolledUp(true);
+    }
+  };
+
+  // Auto-scroll only if user hasn't scrolled up or it's a fresh message start
   useEffect(() => {
-    if (scrollRef.current) {
+    if (!userScrolledUp && scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, userScrolledUp]);
+
+  // Force scroll to bottom when opening chat or sending new message
+  useEffect(() => {
+    if (isLoading && !userScrolledUp && scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isLoading]);
 
   // Auto-show tooltip for 5 seconds on page load
   useEffect(() => {
@@ -123,6 +180,9 @@ How may I help you today?`,
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    // Reset scroll state to ensure we scroll to bottom for new interaction
+    setUserScrolledUp(false);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -311,7 +371,7 @@ How may I help you today?`,
           </div>
 
           {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4" onScrollCapture={handleScroll}>
             <div className="space-y-4">
               {messages.map((msg) => (
                 <div
@@ -319,11 +379,18 @@ How may I help you today?`,
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs px-4 py-3 rounded-lg ${msg.sender === 'user'
+                    className={`relative max-w-xs px-4 py-3 rounded-lg group ${msg.sender === 'user'
                       ? 'bg-blue-500 text-white rounded-br-none'
-                      : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 rounded-bl-none'
+                      : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 rounded-bl-none pr-8'
                       }`}
                   >
+                    {/* Copy Button for AI messages */}
+                    {msg.sender === 'ai' && msg.text && !isLoading && (
+                      <div className="absolute top-1 right-1">
+                        <CopyButton text={msg.text} />
+                      </div>
+                    )}
+
                     {msg.sender === 'ai' && !msg.text && isLoading ? (
                       <div className="flex space-x-1.5 items-center h-4">
                         <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -380,3 +447,4 @@ How may I help you today?`,
     </>
   );
 };
+
