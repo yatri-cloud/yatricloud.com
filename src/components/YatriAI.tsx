@@ -11,17 +11,73 @@ interface Message {
   timestamp: Date;
 }
 
-// Simple markdown rendering for common formatting
+// Enhanced markdown rendering for beautiful formatting
 const renderMarkdown = (text: string) => {
-  return text
-    .split('\n')
-    .map((line, idx) => {
-      // Bold text
-      let rendered = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      // Italic text
-      rendered = rendered.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      return <div key={idx} dangerouslySetInnerHTML={{ __html: rendered }} className="mb-1" />;
-    });
+  if (!text) return null;
+
+  const lines = text.split('\n');
+  const elements: JSX.Element[] = [];
+  let inCodeBlock = false;
+  let codeContent = '';
+
+  lines.forEach((line, idx) => {
+    // Code blocks
+    if (line.trim().startsWith('```')) {
+      if (inCodeBlock) {
+        // End code block
+        elements.push(
+          <pre key={`code-${idx}`} className="bg-gray-800 text-gray-100 p-3 rounded mt-2 mb-2 overflow-x-auto">
+            <code className="text-sm">{codeContent}</code>
+          </pre>
+        );
+        codeContent = '';
+      }
+      inCodeBlock = !inCodeBlock;
+      return;
+    }
+
+    if (inCodeBlock) {
+      codeContent += line + '\n';
+      return;
+    }
+
+    // Headings
+    if (line.startsWith('### ')) {
+      const text = line.slice(4);
+      elements.push(<h3 key={idx} className="font-bold text-base mt-3 mb-2">{text}</h3>);
+      return;
+    }
+    if (line.startsWith('## ')) {
+      const text = line.slice(3);
+      elements.push(<h2 key={idx} className="font-bold text-lg mt-3 mb-2">{text}</h2>);
+      return;
+    }
+
+    // Empty lines for spacing
+    if (!line.trim()) {
+      elements.push(<div key={`space-${idx}`} className="h-2" />);
+      return;
+    }
+
+    // Regular text with inline formatting
+    let rendered = line;
+    // Bold text
+    rendered = rendered.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
+    // Italic text  
+    rendered = rendered.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
+    // Inline code
+    rendered = rendered.replace(/`([^`]+)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>');
+
+    elements.push(
+      <div
+        key={idx}
+        dangerouslySetInnerHTML={{ __html: rendered }}
+        className="leading-relaxed"
+      />
+    );
+  });
+
+  return <div className="space-y-1">{elements}</div>;
 };
 
 export const YatriAI = () => {
@@ -141,6 +197,7 @@ How may I help you today?`,
               if (parsed.token) {
                 // Add token to accumulated text
                 accumulatedText += parsed.token;
+                console.log('📝 Token received:', parsed.token, '| Total:', accumulatedText.substring(0, 50));
 
                 // Update message immediately for smooth streaming
                 setMessages((prev) =>
@@ -224,28 +281,25 @@ How may I help you today?`,
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs px-4 py-2 rounded-lg ${msg.sender === 'user'
+                    className={`max-w-xs px-4 py-3 rounded-lg ${msg.sender === 'user'
                       ? 'bg-blue-500 text-white rounded-br-none'
                       : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100 rounded-bl-none'
                       }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">
-                      {msg.sender === 'ai' ? renderMarkdown(msg.text) : msg.text}
-                    </p>
+                    {msg.sender === 'ai' && !msg.text && isLoading ? (
+                      <div className="flex space-x-1.5 items-center h-4">
+                        <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    ) : (
+                      <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                        {msg.sender === 'ai' ? renderMarkdown(msg.text) : msg.text}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-              {isLoading && !messages[messages.length - 1]?.text && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-slate-800 px-4 py-2 rounded-lg rounded-bl-none">
-                    <div className="flex space-x-2">
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100" />
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200" />
-                    </div>
-                  </div>
-                </div>
-              )}
               <div ref={scrollRef} />
             </div>
           </ScrollArea>
