@@ -6,11 +6,10 @@
  *
  * SHEET STRUCTURE (row 1 headers, exact order):
  *   A: timestamp   B: name   C: feedback   D: rating
- *   E: linkedinProfile   F: provider   G: source
+ *   E: linkedinProfile   F: provider   G: country   H: source
  *
- * If your sheet has "source" twice or is missing "provider", fix row 1 to:
- *   timestamp | name | feedback | rating | linkedinProfile | provider | source
- * The script will also auto-fix headers on next doGet/doPost.
+ * Fix row 1 to: timestamp | name | feedback | rating | linkedinProfile | provider | country | source
+ * The script will auto-fix headers on next doGet/doPost.
  * ====================================================================
  */
 
@@ -18,9 +17,8 @@
 const SPREADSHEET_ID = '1G2A3f-6FU76c8PoE9ZtZaQKUjAlypW5DURWunWYh89k';
 const SHEET_NAME = 'certificates-reviews';
 
-// Expected header columns (order matters: add "provider" between linkedinProfile and source)
-// Sheet row 1 must be: timestamp | name | feedback | rating | linkedinProfile | provider | source
-const HEADERS = ['timestamp', 'name', 'feedback', 'rating', 'linkedinProfile', 'provider', 'source'];
+// Expected header columns (order matters)
+const HEADERS = ['timestamp', 'name', 'feedback', 'rating', 'linkedinProfile', 'provider', 'country', 'source'];
 
 /**
  * Initialize or get the sheet, ensuring headers exist.
@@ -62,7 +60,7 @@ function initializeHeaders(sheet) {
 
 /**
  * Add a single review to the sheet.
- * @param {Object} data - Review data { name, feedback, rating, linkedinProfile, source }
+ * @param {Object} data - Review data { name, feedback, rating, linkedinProfile, provider, country, source }
  * @returns {Object} { success: boolean, message: string }
  */
 function addReview(data) {
@@ -91,6 +89,10 @@ function addReview(data) {
       }
     }
 
+    if (!data.country || !data.country.trim()) {
+      return { success: false, message: 'Country is required' };
+    }
+
     const sheet = getSheet();
     const row = [
       new Date(),
@@ -99,6 +101,7 @@ function addReview(data) {
       rating,
       data.linkedinProfile ? data.linkedinProfile.trim() : '',
       data.provider ? data.provider.trim() : '',
+      data.country ? data.country.trim() : '',
       data.source ? data.source.trim() : 'web'
     ];
 
@@ -123,7 +126,7 @@ function getReviews(options = {}) {
 
     if (data.length <= 1) return [];
 
-    // Skip header row. Support old 6-column rows (no provider): timestamp,name,feedback,rating,linkedinProfile,source
+    // Skip header row. Support 8 cols (with country), 7 (no country), 6 (no provider)
     const reviews = data.slice(1).map((row, idx) => ({
       id: idx + 2,
       timestamp: row[0],
@@ -131,8 +134,9 @@ function getReviews(options = {}) {
       feedback: row[2],
       rating: row[3],
       linkedinProfile: row[4],
-      provider: (row.length > 6 ? row[5] : '') || '',
-      source: (row.length > 6 ? row[6] : row[5]) || 'web'
+      provider: (row.length >= 6 ? row[5] : '') || '',
+      country: (row.length >= 8 ? row[6] : '') || '',
+      source: (row.length >= 8 ? row[7] : row.length >= 7 ? row[6] : row[5]) || 'web'
     }));
 
     // Apply filters

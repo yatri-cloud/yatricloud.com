@@ -5,6 +5,7 @@ import {
   CERTIFICATION_PROVIDER_LOGOS,
   getCertificationLogoUrl,
 } from "@/lib/certification-logos";
+import { getCountryFlag, getCountryName } from "@/lib/country-flag";
 import { useReviews } from "@/hooks/use-reviews";
 import { Button } from "@/components/ui/button";
 
@@ -56,11 +57,19 @@ export const HomeReviewsSection = () => {
                 return (
                   <ScrollReveal key={r.id ?? Math.random()} delay={0.1}>
                     <article className="bg-card border border-border rounded-2xl p-6 shadow hover:shadow-lg transition h-full flex flex-col">
-                      <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-start justify-between gap-4 mb-2">
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-lg text-foreground truncate">
-                            {r.name}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-lg text-foreground truncate">
+                              {r.name}
+                            </h4>
+                            {r.linkedinProfile && (
+                              <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="flex-shrink-0 hover:opacity-80 transition">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png" alt="LinkedIn" className="w-5 h-5 object-contain" width={20} height={20} />
+                              </a>
+                            )}
+                          </div>
+                          {/* Provider on left */}
                           {providerInfo && (
                             <div className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm w-fit">
                               {logoUrl && (
@@ -78,7 +87,8 @@ export const HomeReviewsSection = () => {
                             </div>
                           )}
                         </div>
-                        <div className="flex items-center gap-0.5 flex-shrink-0 ml-2">
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <div className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <svg
                               key={i}
@@ -104,35 +114,18 @@ export const HomeReviewsSection = () => {
                             </svg>
                           ))}
                         </div>
+                        {r.country && (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/60 border border-border/60 text-sm" title={getCountryName(r.country)}>
+                            <span className="text-lg leading-none">{getCountryFlag(r.country)}</span>
+                            <span className="text-muted-foreground">{getCountryName(r.country) || r.country}</span>
+                          </div>
+                        )}
+                        </div>
                       </div>
 
                       <p className="mt-4 text-foreground text-sm flex-1 line-clamp-3">
                         {r.feedback}
                       </p>
-
-                      <div className="mt-4 flex items-center justify-between">
-                        {r.linkedinProfile ? (
-                          <a
-                            href={r.linkedinProfile}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="LinkedIn profile"
-                            className="hover:opacity-70 transition"
-                          >
-                            <svg
-                              viewBox="0 0 24 24"
-                              width={20}
-                              height={20}
-                              className="text-[#0A66C2]"
-                              fill="currentColor"
-                            >
-                              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                            </svg>
-                          </a>
-                        ) : (
-                          <span />
-                        )}
-                      </div>
                     </article>
                   </ScrollReveal>
                 );

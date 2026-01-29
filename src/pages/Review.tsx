@@ -9,6 +9,7 @@ import { Footer } from "@/components/sections/Footer";
 // Removed dropdown Select import — using star-based UI instead
 import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
+import { COUNTRY_OPTIONS, getCountryFlag } from "@/lib/country-flag";
 
 type ReviewFormData = {
   name: string;
@@ -16,6 +17,7 @@ type ReviewFormData = {
   rating: string;
   linkedinProfile?: string;
   provider?: string;
+  country?: string;
 };
 
 const RATINGS = [1, 2, 3, 4, 5];
@@ -50,6 +52,7 @@ const Review = () => {
       rating: "",
       linkedinProfile: "",
       provider: "",
+      country: "",
     },
   });
 
@@ -74,6 +77,7 @@ const Review = () => {
           rating: data.rating,
           linkedinProfile: data.linkedinProfile || "",
           provider: data.provider || "",
+          country: data.country || "",
           source: "web",
         }),
       });
@@ -167,6 +171,28 @@ const Review = () => {
                     </select>
                     {errors.provider && (
                       <p className="text-sm text-destructive">{errors.provider.message}</p>
+                    )}
+                  </div>
+
+                  {/* Country */}
+                  <div className="space-y-2">
+                    <Label htmlFor="country">
+                      Country <span className="text-destructive">*</span>
+                    </Label>
+                    <select
+                      id="country"
+                      {...register("country", { required: "Please select your country" })}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">-- Select country --</option>
+                      {COUNTRY_OPTIONS.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {getCountryFlag(c.value)} {c.label}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.country && (
+                      <p className="text-sm text-destructive">{errors.country.message}</p>
                     )}
                   </div>
 

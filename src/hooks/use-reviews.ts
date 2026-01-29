@@ -8,6 +8,7 @@ export type Review = {
   rating: number;
   linkedinProfile?: string;
   provider?: string;
+  country?: string;
   source?: string;
 };
 

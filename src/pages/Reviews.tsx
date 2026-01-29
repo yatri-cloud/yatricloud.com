@@ -2,26 +2,42 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   CERTIFICATION_PROVIDER_LOGOS,
   getCertificationLogoUrl,
 } from "@/lib/certification-logos";
+import { getCountryFlag, getCountryName } from "@/lib/country-flag";
 import { useReviews } from "@/hooks/use-reviews";
 
 const Reviews = () => {
   const { theme } = useTheme();
   const { reviews, loading, error } = useReviews(200);
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
+  const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const resolvedTheme = theme;
 
   const avg = reviews.length
     ? (reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / reviews.length).toFixed(1)
     : "0";
 
-  const filteredReviews = selectedProvider === 'all' 
-    ? reviews 
-    : reviews.filter(r => r.provider === selectedProvider);
+  const filteredByProvider =
+    selectedProvider === "all"
+      ? reviews
+      : reviews.filter((r) => r.provider === selectedProvider);
+  const filteredReviews =
+    selectedCountry === "all"
+      ? filteredByProvider
+      : filteredByProvider.filter(
+          (r) => r.country && getCountryName(r.country) === selectedCountry
+        );
 
   // Only show known certificate providers in the filter (exclude "web" / source)
   const providers = Array.from(
@@ -31,6 +47,15 @@ const Reviews = () => {
         .filter((p) => p && p in CERTIFICATION_PROVIDER_LOGOS)
     )
   ) as string[];
+
+  // Unique countries (by display name) from reviews, for filter
+  const countries = Array.from(
+    new Set(
+      filteredByProvider
+        .map((r) => r.country && getCountryName(r.country))
+        .filter(Boolean)
+    )
+  ).sort() as string[];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -76,42 +101,122 @@ const Reviews = () => {
 
               {!loading && !error && (
                 <>
-                  {/* Provider Filter */}
-                  {providers.length > 0 && (
-                    <div className="mb-8 flex flex-wrap gap-2">
-                      <button
-                        onClick={() => setSelectedProvider('all')}
-                        className={`px-4 py-2 rounded-full font-medium transition ${selectedProvider === 'all' ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-foreground hover:bg-muted'}`}
-                      >
-                        All Certifications ({reviews.length})
-                      </button>
-                      {providers.map((p) => {
-                        const count = reviews.filter((r) => r.provider === p).length;
-                        const providerInfo = CERTIFICATION_PROVIDER_LOGOS[p];
-                        const logoUrl = getCertificationLogoUrl(p, resolvedTheme);
-                        if (!providerInfo) return null;
-                        return (
-                          <button
-                            key={p}
-                            onClick={() => setSelectedProvider(p)}
-                            className={`px-4 py-2 rounded-full font-medium transition flex items-center gap-2 ${selectedProvider === p ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground hover:bg-muted"}`}
-                          >
-                            {logoUrl && (
-                              <img
-                                src={logoUrl}
-                                alt=""
-                                className="w-5 h-5 object-contain flex-shrink-0"
-                                width={20}
-                                height={20}
-                              />
+                  {/* Certification + Country Filters (dropdowns) */}
+                  <div className="mb-8 flex flex-wrap items-center gap-3">
+                    {/* Certification dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="min-w-[200px] justify-between gap-2 bg-card border-border hover:bg-muted"
+                        >
+                          <span className="flex items-center gap-2 truncate">
+                            {selectedProvider === "all" ? (
+                              "Certification"
+                            ) : (
+                              <>
+                                {(() => {
+                                  const info = CERTIFICATION_PROVIDER_LOGOS[selectedProvider];
+                                  const logoUrl = getCertificationLogoUrl(selectedProvider, resolvedTheme);
+                                  return (
+                                    <>
+                                      {logoUrl && (
+                                        <img src={logoUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" width={20} height={20} />
+                                      )}
+                                      {info?.label ?? selectedProvider}
+                                    </>
+                                  );
+                                })()}
+                              </>
                             )}
-                            <span>{providerInfo.label}</span>
-                            <span className="opacity-80">({count})</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                          </span>
+                          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-[200px] max-h-[300px] overflow-y-auto">
+                        <DropdownMenuItem onClick={() => setSelectedProvider("all")}>
+                          <span className={selectedProvider === "all" ? "font-semibold" : ""}>
+                            All ({reviews.length})
+                          </span>
+                        </DropdownMenuItem>
+                        {providers.map((p) => {
+                          const count = reviews.filter((r) => r.provider === p).length;
+                          const providerInfo = CERTIFICATION_PROVIDER_LOGOS[p];
+                          const logoUrl = getCertificationLogoUrl(p, resolvedTheme);
+                          if (!providerInfo) return null;
+                          return (
+                            <DropdownMenuItem key={p} onClick={() => setSelectedProvider(p)}>
+                              <span className="flex items-center gap-2 flex-1">
+                                {logoUrl && (
+                                  <img src={logoUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" width={20} height={20} />
+                                )}
+                                <span className={selectedProvider === p ? "font-semibold" : ""}>
+                                  {providerInfo.label}
+                                </span>
+                                <span className="opacity-70 ml-auto">({count})</span>
+                              </span>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Country dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="min-w-[200px] justify-between gap-2 bg-card border-border hover:bg-muted"
+                        >
+                          <span className="flex items-center gap-2 truncate">
+                            {selectedCountry === "all" ? (
+                              "Country"
+                            ) : (
+                              <>
+                                <span className="text-lg leading-none">
+                                  {(() => {
+                                    const r = filteredByProvider.find((x) => getCountryName(x.country) === selectedCountry);
+                                    return r?.country ? getCountryFlag(r.country) : "🌍";
+                                  })()}
+                                </span>
+                                {selectedCountry}
+                              </>
+                            )}
+                          </span>
+                          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-[200px] max-h-[300px] overflow-y-auto">
+                        <DropdownMenuItem onClick={() => setSelectedCountry("all")}>
+                          <span className={selectedCountry === "all" ? "font-semibold" : ""}>
+                            All countries
+                          </span>
+                        </DropdownMenuItem>
+                        {countries.map((countryName) => {
+                          const count = filteredByProvider.filter(
+                            (r) => r.country && getCountryName(r.country) === countryName
+                          ).length;
+                          const flagRow = filteredByProvider.find((r) => getCountryName(r.country) === countryName);
+                          return (
+                            <DropdownMenuItem
+                              key={countryName}
+                              onClick={() => setSelectedCountry(countryName)}
+                            >
+                              <span className="flex items-center gap-2 flex-1">
+                                <span className="text-lg leading-none">
+                                  {flagRow?.country ? getCountryFlag(flagRow.country) : "🌍"}
+                                </span>
+                                <span className={selectedCountry === countryName ? "font-semibold" : ""}>
+                                  {countryName}
+                                </span>
+                                <span className="opacity-70 ml-auto">({count})</span>
+                              </span>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
 
                   {/* Reviews Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -125,11 +230,19 @@ const Reviews = () => {
                         : undefined;
                     return (
                       <article key={r.id ?? Math.random()} className="bg-card border border-border rounded-2xl p-6 shadow hover:shadow-lg transition">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-lg">{r.name}</h4>
+                        <div className="flex items-start justify-between gap-4 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-semibold text-lg">{r.name}</h4>
+                              {r.linkedinProfile && (
+                                <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="flex-shrink-0 hover:opacity-80 transition">
+                                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png" alt="LinkedIn" className="w-4 h-4 object-contain" width={16} height={16} />
+                                </a>
+                              )}
+                            </div>
+                            {/* Provider on left */}
                             {providerInfo && (
-                              <div className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm">
+                              <div className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm w-fit">
                                 {logoUrl && (
                                   <img
                                     src={logoUrl}
@@ -143,26 +256,24 @@ const Reviews = () => {
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                            <div className="flex items-center gap-1">
                             {Array.from({ length: 5 }).map((_, i) => (
-                              <svg key={i} viewBox="0 0 24 24" width={18} height={18} className={i < Number(r.rating) ? 'text-amber-400' : 'text-muted-foreground'} fill={i < Number(r.rating) ? 'currentColor' : 'none'} stroke="currentColor">
+                              <svg key={i} viewBox="0 0 24 24" width={18} height={18} className={i < Number(r.rating) ? "text-amber-400" : "text-muted-foreground"} fill={i < Number(r.rating) ? "currentColor" : "none"} stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                               </svg>
                             ))}
+                            </div>
+                            {r.country && (
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/60 border border-border/60 text-sm" title={getCountryName(r.country)}>
+                                <span className="text-lg leading-none">{getCountryFlag(r.country)}</span>
+                                <span className="text-muted-foreground">{getCountryName(r.country) || r.country}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
                         <p className="mt-4 text-foreground">{r.feedback}</p>
-
-                        <div className="mt-4 flex items-center justify-start">
-                          {r.linkedinProfile ? (
-                            <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="hover:opacity-70 transition">
-                              <svg viewBox="0 0 24 24" width={20} height={20} className="text-blue-600" fill="currentColor">
-                                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                              </svg>
-                            </a>
-                          ) : null}
-                        </div>
                       </article>
                     );
                   })}

@@ -16,8 +16,8 @@ export type CertificationLogoInfo = {
 export const CERTIFICATION_PROVIDER_LOGOS: Record<string, CertificationLogoInfo> = {
   aws: {
     label: "AWS",
-    logo: `${LOGO_BASE_URL}/aws.svg`,
-    logoLight: `${LOGO_BASE_URL}/aws-light.png`,
+    logo: "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/logo/certifications/aws-light.png",
+    logoLight: "https://raw.githubusercontent.com/yatricloud/yatri-images/9ee0e0a7c0c59ce45631091027b84069b3c4574f/certification.yatricloud.com/logo/certifications/aws.svg",
   },
   azure: {
     label: "Azure",
@@ -48,8 +48,8 @@ export const CERTIFICATION_PROVIDER_LOGOS: Record<string, CertificationLogoInfo>
   },
   github: {
     label: "GitHub",
-    logo: `${LOGO_BASE_URL}/github-white-icon.webp`,
-    logoLight: `${LOGO_BASE_URL}/github-white-icon.webp`,
+    logo: "https://cdn.simpleicons.org/github/white",
+    logoLight: "https://cdn.simpleicons.org/github/000000",
   },
   salesforce: {
     label: "Salesforce",
@@ -69,13 +69,13 @@ export const CERTIFICATION_PROVIDER_LOGOS: Record<string, CertificationLogoInfo>
   },
 };
 
-/** Resolve logo URL for a provider by theme (same as Certified Yatris: dark uses logoLight when available). */
+/** Resolve logo URL for a provider by theme (light theme uses logoLight when available). */
 export function getCertificationLogoUrl(
   providerId: string,
   theme: "light" | "dark"
 ): string | undefined {
   const info = CERTIFICATION_PROVIDER_LOGOS[providerId];
   if (!info) return undefined;
-  if (theme === "dark" && info.logoLight) return info.logoLight;
+  if (theme === "light" && info.logoLight) return info.logoLight;
   return info.logo;
 }
