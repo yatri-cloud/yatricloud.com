@@ -291,7 +291,7 @@ How may I help you today?`,
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-40 w-96 h-96 bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-lg shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 z-50 sm:z-40 w-full h-full sm:w-96 sm:h-[32rem] bg-white dark:bg-slate-950 border-none sm:border border-gray-200 dark:border-slate-800 rounded-none sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2">
           {/* Header */}
           <div className="bg-blue-500 text-white p-4 flex justify-between items-center">
             <div className="flex items-center gap-2">

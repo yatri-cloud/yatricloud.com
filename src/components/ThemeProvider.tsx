@@ -23,7 +23,7 @@ interface ThemeProviderProps {
   defaultTheme?: Theme;
 }
 
-export const ThemeProvider = ({ children, defaultTheme = "dark" }: ThemeProviderProps) => {
+export const ThemeProvider = ({ children, defaultTheme = "light" }: ThemeProviderProps) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     // Check localStorage first - if user has set a preference, use it
     if (typeof window !== "undefined") {
@@ -49,7 +49,7 @@ export const ThemeProvider = ({ children, defaultTheme = "dark" }: ThemeProvider
       // Always default to dark mode (ignore system preference)
       return defaultTheme;
     })();
-    
+
     if (initialTheme === "dark") {
       root.classList.add("dark");
     } else {

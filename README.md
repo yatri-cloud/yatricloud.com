@@ -1,139 +1,70 @@
-# certification.yatricloud.com
+# Documentation Index
 
-Yatri Cloud Certification Practice Hub - Free practice tests and exam preparation resources for cloud certifications.
+This directory contains all project documentation organized by category.
 
-## Features
+## 📁 Documentation Categories
 
-- 🎯 **Free Practice Tests** - Access practice tests for AWS, Azure, GCP, and more
-- 📚 **Exam Guides** - Step-by-step certification roadmaps
-- 📖 **Study Materials** - Curated notes and cheat sheets
-- 🎥 **Video Tutorials** - In-depth concept explanations
-- 👥 **Expert Instructors** - Learn from certified cloud professionals
-- 🔄 **Updated Weekly** - Fresh content regularly
+### 📊 [Google Sheets](./google-sheets/)
+Documentation related to Google Sheets integration and Apps Script setup.
 
-## Tech Stack
+- `GOOGLE_SHEET_STRUCTURE.md` - Google Sheet structure and column definitions
+- `GOOGLE_APPS_SCRIPT_SETUP.md` - Google Apps Script setup guide
+- `GOOGLE_APPS_SCRIPT_SETUP_NEW.md` - Updated Apps Script setup guide
+- `NEW_SHEET_STRUCTURE.md` - New sheet structure documentation
+- `CERTIFIED_YATRIS_SETUP.md` - Certified Yatris feature setup
+- `appscript-README.md` - Apps Script directory README
 
-- **Frontend**: React + TypeScript + Vite
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Animations**: Framer Motion
-- **Backend**: Express.js (Proxy server for Udemy API)
-- **State Management**: React Query
+### ⚙️ [Setup](./setup/)
+Configuration and setup guides for various services and APIs.
 
-## Setup
+- `SETUP_ENV.md` - Environment variables setup
+- `SETUP_PROXY.md` - Proxy server setup
+- `SETUP_WITH_TOKEN.md` - Setup with authentication token
+- `UDEMY_API_SETUP.md` - Udemy API integration setup
+- `INSTRUCTOR_API_SETUP.md` - Instructor API setup
+- `SEO_SETUP.md` - SEO configuration guide
 
-### Prerequisites
+### 🚀 [Deployment](./deployment/)
+Deployment guides for different platforms.
 
-- Node.js 18+ and npm
-- Udemy Instructor API tokens (for course data)
+- `DEPLOYMENT.md` - General deployment guide
+- `VERCEL_DEPLOYMENT.md` - Vercel deployment guide
+- `QUICK_START_VERCEL.md` - Quick start for Vercel
 
-### Installation
+### 🔧 [CORS Fixes](./cors-fixes/)
+Troubleshooting guides for CORS and error fixes.
 
-#### Linux Installation
+- `FIX_CORS_GET_REQUEST.md` - Fix CORS issues with GET requests
+- `FIX_401_ERROR.md` - Fix 401 Unauthorized errors
+- `CORS_FIX_INSTRUCTIONS.md` - CORS fix instructions
+- `DEBUGGING_GUIDE.md` - General debugging guide
 
-```bash
-# Update system packages
-sudo apt update
+### 🏃 [Quick Start](./quick-start/)
+Quick start guides and getting started documentation.
 
-# Install Node.js and npm
-sudo apt install -y npm nodejs
+- `QUICK_START.md` - Quick start guide
+- `READY_TO_RUN.md` - Ready to run checklist
+- `START_SERVER.md` - Server startup guide
+- `QUICK_FIX.md` - Quick fixes for common issues
 
-# Verify installation
-npm --version
-node --version
+### 📖 [General](./general/)
+General project documentation.
 
-# Verify versions installed
-# npm: v9.2.0
-# node: v18.19.1
+- `README.md` - Main project README (copy)
+- `TROUBLESHOOTING.md` - Troubleshooting guide
+- `IMPLEMENTATION_SUMMARY.md` - Implementation summary
 
-# Clone the repository
-git clone https://github.com/yatricloud/certification.yatricloud.com.git
-cd certification.yatricloud.com
+### 🛍️ [Yatri Store](./yatri-store/)
+E-commerce store for certification vouchers.
 
-# Install dependencies
-npm install
+- `YATRI_STORE.md` - Complete Yatri Store documentation and setup guide
 
-# Set up environment variables
-cp .env.example .env
-# Add your Udemy API tokens to .env
-```
+## 🔍 Quick Links
 
-#### macOS/Windows Installation
+- **Main README**: See root `README.md` for project overview
+- **Google Sheets Setup**: Start with `google-sheets/GOOGLE_APPS_SCRIPT_SETUP.md`
+- **Environment Setup**: See `setup/SETUP_ENV.md`
+- **Deployment**: See `deployment/DEPLOYMENT.md`
+- **Yatri Store**: See `yatri-store/YATRI_STORE.md` for store documentation
+- **Troubleshooting**: See `cors-fixes/DEBUGGING_GUIDE.md` or `general/TROUBLESHOOTING.md`
 
-```bash
-# Clone the repository
-git clone https://github.com/yatricloud/certification.yatricloud.com.git
-cd certification.yatricloud.com
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env
-# Add your Udemy API tokens to .env
-```
-
-### Environment Variables
-
-Create a `.env` file with:
-
-```env
-UDEMY_INSTRUCTOR_TOKEN=your_yatharth_token
-UDEMY_INSTRUCTOR_TOKEN_NENSI=your_nensi_token
-```
-
-### Development
-
-```bash
-# Start frontend dev server
-npm run dev
-
-# Start backend proxy server (in separate terminal)
-npm run server
-
-# Or run both concurrently
-npm run dev:all
-```
-
-## Deployment
-
-### Render (Recommended)
-
-1. Connect your GitHub repository to Render
-2. Create a new **Web Service**
-3. Build Command: `npm install && npm run build`
-4. Start Command: `npm run preview` (for frontend only)
-5. Add environment variables in Render dashboard
-
-**Note**: For full functionality, you'll need to deploy the backend proxy server separately or use Render's background worker.
-
-### Vercel (Alternative)
-
-1. Import your GitHub repository to Vercel
-2. Framework Preset: Vite
-3. Build Command: `npm run build`
-4. Output Directory: `dist`
-5. Add environment variables
-
-### Netlify (Alternative)
-
-1. Connect repository to Netlify
-2. Build command: `npm run build`
-3. Publish directory: `dist`
-4. Add environment variables
-
-## Project Structure
-
-```
-├── src/
-│   ├── components/       # React components
-│   ├── pages/            # Page components
-│   ├── hooks/            # Custom React hooks
-│   ├── lib/              # Utility functions
-│   └── data/             # Static data
-├── server.js             # Backend proxy server
-└── package.json
-```
-
-## License
-
-© 2025 Yatri Cloud. All rights reserved.
