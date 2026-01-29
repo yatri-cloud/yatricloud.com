@@ -85,7 +85,7 @@ const renderMarkdown = (text: string) => {
 
     // Empty lines for spacing
     if (!line.trim()) {
-      elements.push(<div key={`space-${idx}`} className="h-2" />);
+      elements.push(<div key={`space-${idx}`} className="h-4">&nbsp;</div>);
       return;
     }
 
