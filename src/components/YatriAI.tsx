@@ -135,7 +135,7 @@ export const YatriAI = () => {
     setMessages([
       {
         id: '1',
-        text: `${greeting} Yatri 👋\n\nHow may I help you today?`,
+        text: `Hi, ${greeting} Yatri 👋\n\nHow may I help you today?`,
         sender: 'ai',
         timestamp: new Date(),
       },
