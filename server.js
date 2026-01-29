@@ -146,15 +146,15 @@ async function fetchAllInstructorCourses(token) {
 app.get('/api/udemy/courses', async (req, res) => {
   try {
     const { creator } = req.query;
-    
+
     console.log('📡 Fetching courses from all instructors...');
 
     // Fetch from all instructors in parallel
     const fetchPromises = [];
-    
+
     // Yatharth's courses
-    const yatharthToken = UDEMY_INSTRUCTOR_TOKEN.startsWith('bearer ') 
-      ? UDEMY_INSTRUCTOR_TOKEN 
+    const yatharthToken = UDEMY_INSTRUCTOR_TOKEN.startsWith('bearer ')
+      ? UDEMY_INSTRUCTOR_TOKEN
       : `bearer ${UDEMY_INSTRUCTOR_TOKEN}`;
     fetchPromises.push(fetchAllInstructorCourses(yatharthToken).then(courses => ({
       courses,
@@ -163,8 +163,8 @@ app.get('/api/udemy/courses', async (req, res) => {
 
     // Nensi's courses (if token available)
     if (UDEMY_INSTRUCTOR_TOKEN_NENSI) {
-      const nensiToken = UDEMY_INSTRUCTOR_TOKEN_NENSI.startsWith('bearer ') 
-        ? UDEMY_INSTRUCTOR_TOKEN_NENSI 
+      const nensiToken = UDEMY_INSTRUCTOR_TOKEN_NENSI.startsWith('bearer ')
+        ? UDEMY_INSTRUCTOR_TOKEN_NENSI
         : `bearer ${UDEMY_INSTRUCTOR_TOKEN_NENSI}`;
       fetchPromises.push(fetchAllInstructorCourses(nensiToken).then(courses => ({
         courses,
@@ -174,7 +174,7 @@ app.get('/api/udemy/courses', async (req, res) => {
 
     // Fetch all courses
     const results = await Promise.all(fetchPromises);
-    
+
     // Merge all courses
     let allCourses = [];
     results.forEach(({ courses, instructor }) => {
@@ -189,7 +189,7 @@ app.get('/api/udemy/courses', async (req, res) => {
     // Filter by creator if specified
     if (creator && creator !== 'All') {
       allCourses = allCourses.filter(course => {
-        const courseInstructor = course._instructor || 
+        const courseInstructor = course._instructor ||
           (course.visible_instructors?.[0]?.title || course.visible_instructors?.[0]?.name || '');
         return courseInstructor === creator;
       });
@@ -227,20 +227,20 @@ app.get('/api/udemy/courses', async (req, res) => {
 app.get('/api/udemy/image/:courseSlug', async (req, res) => {
   try {
     const { courseSlug } = req.params;
-    
+
     // Try different image sizes
     const imageSizes = ['480x270', '240x135', '750x422', '125_H'];
     const baseUrl = 'https://img-c.udemycdn.com/course';
-    
+
     // Try to fetch the image with authentication
     for (const size of imageSizes) {
       const imageUrl = `${baseUrl}/${size}/${courseSlug}/`;
-      
+
       try {
-        const authHeader = UDEMY_INSTRUCTOR_TOKEN.startsWith('bearer ') 
-          ? UDEMY_INSTRUCTOR_TOKEN 
+        const authHeader = UDEMY_INSTRUCTOR_TOKEN.startsWith('bearer ')
+          ? UDEMY_INSTRUCTOR_TOKEN
           : `bearer ${UDEMY_INSTRUCTOR_TOKEN}`;
-        
+
         const response = await fetch(imageUrl, {
           method: 'GET',
           headers: {
@@ -248,12 +248,12 @@ app.get('/api/udemy/image/:courseSlug', async (req, res) => {
             'Referer': 'https://www.udemy.com/',
           },
         });
-        
+
         if (response.ok) {
           // Forward the image
           const imageBuffer = await response.arrayBuffer();
           const contentType = response.headers.get('content-type') || 'image/jpeg';
-          
+
           res.setHeader('Content-Type', contentType);
           res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
           res.send(Buffer.from(imageBuffer));
@@ -264,7 +264,7 @@ app.get('/api/udemy/image/:courseSlug', async (req, res) => {
         continue;
       }
     }
-    
+
     // If all fail, return 404
     res.status(404).json({ error: 'Image not found' });
   } catch (error) {
@@ -280,7 +280,7 @@ app.get('/api/udemy/image/:courseSlug', async (req, res) => {
 app.post('/api/razorpay/create-order', async (req, res) => {
   try {
     const { amount, currency = 'INR', receipt, notes } = req.body;
-    
+
     if (!amount) {
       return res.status(400).json({ error: 'Amount is required' });
     }
@@ -291,7 +291,7 @@ app.post('/api/razorpay/create-order', async (req, res) => {
     const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || process.env.VITE_RAZORPAY_KEY_SECRET || 'AbZUaer9h9iPXWHK3QNUF3TG';
 
     if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Razorpay credentials not configured',
         message: 'Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables'
       });
@@ -323,7 +323,7 @@ app.post('/api/razorpay/create-order', async (req, res) => {
 
     const order = await response.json();
     console.log('✅ Razorpay order created:', order.id);
-    
+
     res.json({
       orderId: order.id,
       amount: order.amount,
@@ -343,8 +343,8 @@ app.post('/api/razorpay/create-order', async (req, res) => {
  * Health check endpoint
  */
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     tokenLoaded: !!UDEMY_INSTRUCTOR_TOKEN,
   });
@@ -379,11 +379,118 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
+/**
+ * Yatri AI Chat endpoint using Ollama with live streaming
+ * POST /api/chat
+ * Body: { message: string }
+ * Returns: Server-Sent Events (SSE) stream with AI response tokens
+ */
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'Message is required and must be a string' });
+    }
+
+    console.log('💬 Chat request:', message);
+
+    // Set headers for Server-Sent Events
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Get Ollama API URL from environment variable
+    const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434';
+
+    // Create a system prompt for better formatting
+    const systemPrompt = `You are Yatri AI, a helpful assistant for Yatri Cloud certification platform. 
+Provide clear, friendly, and conversational responses. 
+DO NOT use markdown formatting like bullet points (*, -), numbered lists, or headers.
+Write responses in natural, flowing paragraphs.
+Keep responses concise and helpful.
+
+User question: ${message}`;
+
+    // Call Ollama API with streaming enabled
+    const ollamaResponse = await fetch(`${OLLAMA_API_URL}/api/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gemma3',
+        prompt: systemPrompt,
+        stream: true, // Enable streaming
+      }),
+    });
+
+    if (!ollamaResponse.ok) {
+      const errorText = await ollamaResponse.text();
+      console.error('Ollama API error:', ollamaResponse.status, errorText);
+      res.write(`data: ${JSON.stringify({
+        error: 'Ollama service unavailable. Make sure Ollama is running and the gemma3 model is available.',
+        details: errorText
+      })}\n\n`);
+      res.end();
+      return;
+    }
+
+    // Stream the response
+    const reader = ollamaResponse.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        console.log('✅ Chat response stream completed');
+        res.write('data: [DONE]\n\n');
+        res.end();
+        break;
+      }
+
+      // Decode chunk and add to buffer
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process complete JSON lines
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            const data = JSON.parse(line);
+            if (data.response) {
+              // Send each token immediately via SSE
+              res.write(`data: ${JSON.stringify({ token: data.response })}\n\n`);
+            }
+            if (data.error) {
+              res.write(`data: ${JSON.stringify({ error: data.error })}\n\n`);
+            }
+          } catch (e) {
+            console.error('Error parsing JSON line:', e);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error in chat endpoint:', err);
+    res.write(`data: ${JSON.stringify({
+      error: 'Failed to process chat message',
+      message: err.message
+    })}\n\n`);
+    res.end();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Udemy API Proxy Server running on http://localhost:${PORT}`);
   console.log(`📚 Courses endpoint: http://localhost:${PORT}/api/udemy/courses`);
   console.log(`💳 Razorpay endpoint: http://localhost:${PORT}/api/razorpay/create-order`);
   console.log(`💚 Health check: http://localhost:${PORT}/health`);
+  console.log(`💬 Chat endpoint: http://localhost:${PORT}/api/chat (requires Ollama running)`);
   console.log(`\n⚠️  Make sure your frontend calls: http://localhost:${PORT}/api/udemy/courses`);
 });
 

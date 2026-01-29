@@ -28,6 +28,37 @@ Yatri Cloud Certification Practice Hub - Free practice tests and exam preparatio
 
 ### Installation
 
+#### Linux Installation
+
+```bash
+# Update system packages
+sudo apt update
+
+# Install Node.js and npm
+sudo apt install -y npm nodejs
+
+# Verify installation
+npm --version
+node --version
+
+# Verify versions installed
+# npm: v9.2.0
+# node: v18.19.1
+
+# Clone the repository
+git clone https://github.com/yatricloud/certification.yatricloud.com.git
+cd certification.yatricloud.com
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Add your Udemy API tokens to .env
+```
+
+#### macOS/Windows Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/yatricloud/certification.yatricloud.com.git
