@@ -30,6 +30,12 @@ export default defineConfig(({ mode }) => ({
         secure: true,
         rewrite: (path) => '', // Remove /api/yatris-proxy, proxy to root of target
       },
+      '/api/reviews': {
+        target: process.env.VITE_CERTIFICATE_REVIEWS_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbw-LbPpzjLhGAXmgHqzcafhsEaYurhcxwBp5kWmCPA_iqwC_uj4dARB52TKItDaerPmvg/exec',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api\/reviews/, ''),
+      },
     },
   },
   // Optimize for development

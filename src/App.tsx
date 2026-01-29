@@ -1,4 +1,5 @@
 import Review from "./pages/Review";
+import Reviews from "./pages/Reviews";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -37,7 +38,8 @@ const App = () => (
             <Route path="/udemy" element={<Udemy />} />
             <Route path="/yatristore" element={<YatriStore />} />
             <Route path="/addproduct" element={<AddProduct />} />
-            <Route path="/review" element={<Review />} />
+            <Route path="/feedback" element={<Review />} />
+            <Route path="/reviews" element={<Reviews />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

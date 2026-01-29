@@ -3,6 +3,14 @@
  * Certificates Reviews Manager for Google Sheets
  * Spreadsheet: yatri-certifications-reviews
  * Subsheet: certificates-reviews
+ *
+ * SHEET STRUCTURE (row 1 headers, exact order):
+ *   A: timestamp   B: name   C: feedback   D: rating
+ *   E: linkedinProfile   F: provider   G: source
+ *
+ * If your sheet has "source" twice or is missing "provider", fix row 1 to:
+ *   timestamp | name | feedback | rating | linkedinProfile | provider | source
+ * The script will also auto-fix headers on next doGet/doPost.
  * ====================================================================
  */
 
@@ -10,8 +18,9 @@
 const SPREADSHEET_ID = '1G2A3f-6FU76c8PoE9ZtZaQKUjAlypW5DURWunWYh89k';
 const SHEET_NAME = 'certificates-reviews';
 
-// Expected header columns
-const HEADERS = ['timestamp', 'name', 'feedback', 'rating', 'linkedinProfile', 'source'];
+// Expected header columns (order matters: add "provider" between linkedinProfile and source)
+// Sheet row 1 must be: timestamp | name | feedback | rating | linkedinProfile | provider | source
+const HEADERS = ['timestamp', 'name', 'feedback', 'rating', 'linkedinProfile', 'provider', 'source'];
 
 /**
  * Initialize or get the sheet, ensuring headers exist.
@@ -89,6 +98,7 @@ function addReview(data) {
       data.feedback.trim(),
       rating,
       data.linkedinProfile ? data.linkedinProfile.trim() : '',
+      data.provider ? data.provider.trim() : '',
       data.source ? data.source.trim() : 'web'
     ];
 
@@ -96,7 +106,7 @@ function addReview(data) {
     Logger.log(`Review added: ${data.name} - Rating: ${rating}`);
     return { success: true, message: 'Review added successfully' };
   } catch (err) {
-    Logger.error(`Error adding review: ${err.message}`);
+    console.error(`Error adding review: ${err.message}`);
     return { success: false, message: `Error: ${err.message}` };
   }
 }
@@ -113,15 +123,16 @@ function getReviews(options = {}) {
 
     if (data.length <= 1) return [];
 
-    // Skip header row
+    // Skip header row. Support old 6-column rows (no provider): timestamp,name,feedback,rating,linkedinProfile,source
     const reviews = data.slice(1).map((row, idx) => ({
-      id: idx + 2, // row number
+      id: idx + 2,
       timestamp: row[0],
       name: row[1],
       feedback: row[2],
       rating: row[3],
       linkedinProfile: row[4],
-      source: row[5]
+      provider: (row.length > 6 ? row[5] : '') || '',
+      source: (row.length > 6 ? row[6] : row[5]) || 'web'
     }));
 
     // Apply filters
@@ -140,7 +151,7 @@ function getReviews(options = {}) {
 
     return filtered;
   } catch (err) {
-    Logger.error(`Error retrieving reviews: ${err.message}`);
+    console.error(`Error retrieving reviews: ${err.message}`);
     return [];
   }
 }
@@ -162,7 +173,7 @@ function getReviewStats() {
       avgRating: (totalRating / reviews.length).toFixed(2)
     };
   } catch (err) {
-    Logger.error(`Error calculating stats: ${err.message}`);
+    console.error(`Error calculating stats: ${err.message}`);
     return { totalCount: 0, avgRating: 0 };
   }
 }
@@ -171,7 +182,7 @@ function getReviewStats() {
  * HTTP POST handler for external forms/webhooks.
  * Accepts JSON: { name, feedback, rating, linkedinProfile, source }
  * @param {Object} e - Event object from doPost
- * @returns {TextOutput} JSON response with CORS headers
+ * @returns {TextOutput} JSON response
  */
 function doPost(e) {
   try {
@@ -186,42 +197,33 @@ function doPost(e) {
 
     const result = addReview(payload);
 
-    return ContentService
-      .createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON)
-      .addHeader('Access-Control-Allow-Origin', '*')
-      .addHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-      .addHeader('Access-Control-Allow-Headers', 'Content-Type');
+    const output = ContentService.createTextOutput(JSON.stringify(result));
+    output.setMimeType(ContentService.MimeType.JSON);
+    return output;
   } catch (err) {
-    Logger.error(`doPost error: ${err.message}`);
-    return ContentService
-      .createTextOutput(JSON.stringify({ success: false, message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .addHeader('Access-Control-Allow-Origin', '*')
-      .addHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-      .addHeader('Access-Control-Allow-Headers', 'Content-Type');
+    console.error(`doPost error: ${err.message}`);
+    const output = ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }));
+    output.setMimeType(ContentService.MimeType.JSON);
+    return output;
   }
 }
 
 /**
  * Handle OPTIONS preflight requests for CORS.
  * @param {Object} e - Event object from doOptions
- * @returns {TextOutput} Empty response with CORS headers
+ * @returns {TextOutput} Empty response for OPTIONS preflight
  */
 function doOptions(e) {
-  return ContentService
-    .createTextOutput('')
-    .setMimeType(ContentService.MimeType.TEXT)
-    .addHeader('Access-Control-Allow-Origin', '*')
-    .addHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    .addHeader('Access-Control-Allow-Headers', 'Content-Type');
+  const output = ContentService.createTextOutput('');
+  output.setMimeType(ContentService.MimeType.TEXT);
+  return output;
 }
 
 /**
  * HTTP GET handler for retrieving reviews.
  * Query params: ?action=all&limit=10 or ?action=stats
  * @param {Object} e - Event object from doGet
- * @returns {TextOutput} JSON response with CORS headers
+ * @returns {TextOutput} JSON response
  */
 function doGet(e) {
   try {
@@ -229,30 +231,21 @@ function doGet(e) {
 
     if (action === 'stats') {
       const stats = getReviewStats();
-      return ContentService
-        .createTextOutput(JSON.stringify({ success: true, data: stats }))
-        .setMimeType(ContentService.MimeType.JSON)
-        .addHeader('Access-Control-Allow-Origin', '*')
-        .addHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        .addHeader('Access-Control-Allow-Headers', 'Content-Type');
+      const output = ContentService.createTextOutput(JSON.stringify({ success: true, data: stats }));
+      output.setMimeType(ContentService.MimeType.JSON);
+      return output;
     }
 
     const limit = e.parameter.limit ? parseInt(e.parameter.limit, 10) : null;
     const reviews = getReviews({ limit });
-    return ContentService
-      .createTextOutput(JSON.stringify({ success: true, data: reviews }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .addHeader('Access-Control-Allow-Origin', '*')
-      .addHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-      .addHeader('Access-Control-Allow-Headers', 'Content-Type');
+    const output = ContentService.createTextOutput(JSON.stringify({ success: true, data: reviews }));
+    output.setMimeType(ContentService.MimeType.JSON);
+    return output;
   } catch (err) {
-    Logger.error(`doGet error: ${err.message}`);
-    return ContentService
-      .createTextOutput(JSON.stringify({ success: false, message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .addHeader('Access-Control-Allow-Origin', '*')
-      .addHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-      .addHeader('Access-Control-Allow-Headers', 'Content-Type');
+    console.error(`doGet error: ${err.message}`);
+    const output = ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }));
+    output.setMimeType(ContentService.MimeType.JSON);
+    return output;
   }
 }
 

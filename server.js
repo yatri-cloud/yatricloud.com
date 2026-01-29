@@ -16,8 +16,14 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Load .env first, then .env.local (local overrides)
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '.env.local'), override: true });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -342,6 +348,35 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     tokenLoaded: !!UDEMY_INSTRUCTOR_TOKEN,
   });
+});
+
+/**
+ * Proxy endpoint to fetch reviews from Apps Script
+ * GET /api/reviews?action=all&limit=200
+ */
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const appsScriptUrl = process.env.VITE_CERTIFICATE_REVIEWS_APPS_SCRIPT_URL;
+    if (!appsScriptUrl) return res.status(500).json({ error: 'Apps Script URL not configured in env' });
+
+    const query = req.originalUrl.split('?')[1] || '';
+    const targetUrl = appsScriptUrl + (query ? `?${query}` : '');
+
+    const response = await fetch(targetUrl, { method: 'GET' });
+    const contentType = response.headers.get('content-type') || '';
+
+    if (contentType.includes('application/json')) {
+      const json = await response.json();
+      return res.json(json);
+    }
+
+    // If not JSON, forward text (likely error/html)
+    const text = await response.text();
+    res.status(response.status).type('text/plain').send(text);
+  } catch (err) {
+    console.error('Error proxying reviews:', err);
+    res.status(500).json({ error: 'Failed to proxy reviews', message: err.message });
+  }
 });
 
 app.listen(PORT, () => {

@@ -15,9 +15,23 @@ type ReviewFormData = {
   feedback: string;
   rating: string;
   linkedinProfile?: string;
+  provider?: string;
 };
 
 const RATINGS = [1, 2, 3, 4, 5];
+
+const PROVIDERS = [
+  { id: 'aws', label: 'AWS', color: '#FF9900' },
+  { id: 'azure', label: 'Azure', color: '#0078D4' },
+  { id: 'gcp', label: 'Google Cloud', color: '#4285F4' },
+  { id: 'kubernetes', label: 'Kubernetes', color: '#326CE5' },
+  { id: 'terraform', label: 'Terraform', color: '#844FBA' },
+  { id: 'docker', label: 'Docker', color: '#2496ED' },
+  { id: 'github', label: 'GitHub', color: '#181717' },
+  { id: 'salesforce', label: 'Salesforce', color: '#00A1E0' },
+  { id: 'oracle', label: 'Oracle', color: '#F80000' },
+  { id: 'servicenow', label: 'ServiceNow', color: '#00A82E' },
+];
 
 const Review = () => {
   const { toast } = useToast();
@@ -35,6 +49,7 @@ const Review = () => {
       feedback: "",
       rating: "",
       linkedinProfile: "",
+      provider: "",
     },
   });
 
@@ -58,6 +73,7 @@ const Review = () => {
           feedback: data.feedback,
           rating: data.rating,
           linkedinProfile: data.linkedinProfile || "",
+          provider: data.provider || "",
           source: "web",
         }),
       });
@@ -129,6 +145,28 @@ const Review = () => {
                     />
                     {errors.feedback && (
                       <p className="text-sm text-destructive">{errors.feedback.message}</p>
+                    )}
+                  </div>
+
+                  {/* Certificate Provider */}
+                  <div className="space-y-2">
+                    <Label htmlFor="provider">
+                      Certificate Provider <span className="text-destructive">*</span>
+                    </Label>
+                    <select
+                      id="provider"
+                      {...register("provider", { required: "Please select a certificate provider" })}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">-- Select a provider --</option>
+                      {PROVIDERS.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.provider && (
+                      <p className="text-sm text-destructive">{errors.provider.message}</p>
                     )}
                   </div>
 
