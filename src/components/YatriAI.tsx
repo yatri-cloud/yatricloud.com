@@ -258,9 +258,10 @@ How may I help you today?`,
           className={`absolute bottom-full right-0 mb-2 transition-all duration-500 ${showTooltip ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
             }`}
         >
-          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-3 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 whitespace-nowrap">
-            <p className="text-sm font-medium">
-              Hello Yatris👋, Want to Get Certified?
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-3 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
+            <p className="text-sm font-medium text-center leading-snug">
+              Hello Yatris 👋<br />
+              Want to Get Certified?
             </p>
           </div>
           {/* Arrow pointing down */}
@@ -276,7 +277,7 @@ How may I help you today?`,
           className="rounded-full bg-blue-500 text-white p-4 shadow-lg hover:shadow-xl hover:scale-110 hover:bg-blue-600 transition-all duration-300"
           aria-label="Open Yatri AI chat"
         >
-          <MessageCircle size={24} />
+          {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
         </button>
       </div>
 
