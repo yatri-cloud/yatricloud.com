@@ -77,7 +77,7 @@ const renderMarkdown = (text: string) => {
     );
   });
 
-  return <div className="space-y-1">{elements}</div>;
+  return <div className="text-sm space-y-1">{elements}</div>;
 };
 
 export const YatriAI = () => {
@@ -94,6 +94,7 @@ How may I help you today?`,
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -102,6 +103,14 @@ How may I help you today?`,
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  // Auto-show tooltip for 5 seconds on page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTooltip(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleStopGeneration = () => {
     if (abortControllerRef.current) {
@@ -242,14 +251,34 @@ How may I help you today?`,
 
   return (
     <>
-      {/* Chat Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-40 rounded-full bg-blue-500 text-white p-4 shadow-lg hover:shadow-xl hover:scale-110 hover:bg-blue-600 transition-all duration-300"
-        aria-label="Open Yatri AI chat"
-      >
-        <MessageCircle size={24} />
-      </button>
+      {/* Chat Button with Tooltip */}
+      <div className="fixed bottom-6 right-6 z-40">
+        {/* Tooltip Popup */}
+        <div
+          className={`absolute bottom-full right-0 mb-2 transition-all duration-500 ${showTooltip ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
+            }`}
+        >
+          <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-3 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 whitespace-nowrap">
+            <p className="text-sm font-medium">
+              Hello Yatris👋, Want to Get Certified?
+            </p>
+          </div>
+          {/* Arrow pointing down */}
+          <div className="absolute top-full right-6 -mt-2">
+            <div className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white dark:border-t-gray-800" />
+          </div>
+        </div>
+
+        {/* Chat Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          onMouseEnter={() => setShowTooltip(true)}
+          className="rounded-full bg-blue-500 text-white p-4 shadow-lg hover:shadow-xl hover:scale-110 hover:bg-blue-600 transition-all duration-300"
+          aria-label="Open Yatri AI chat"
+        >
+          <MessageCircle size={24} />
+        </button>
+      </div>
 
       {/* Chat Window */}
       {isOpen && (
@@ -293,9 +322,13 @@ How may I help you today?`,
                         <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
                     ) : (
-                      <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                        {msg.sender === 'ai' ? renderMarkdown(msg.text) : msg.text}
-                      </div>
+                      msg.sender === 'ai' ? (
+                        renderMarkdown(msg.text)
+                      ) : (
+                        <div className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                          {msg.text}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
