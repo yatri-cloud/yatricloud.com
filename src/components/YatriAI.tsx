@@ -112,16 +112,7 @@ const renderMarkdown = (text: string) => {
 
 export const YatriAI = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: `Hi Yatri 👋
-
-How may I help you today?`,
-      sender: 'ai',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
@@ -129,6 +120,27 @@ How may I help you today?`,
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
+
+  // Set initial greeting based on time of day
+  useEffect(() => {
+    const hour = new Date().getHours();
+    let greeting = 'Good Morning';
+
+    if (hour >= 12 && hour < 17) {
+      greeting = 'Good Afternoon';
+    } else if (hour >= 17) {
+      greeting = 'Good Evening';
+    }
+
+    setMessages([
+      {
+        id: '1',
+        text: `${greeting} Yatri 👋\n\nHow may I help you today?`,
+        sender: 'ai',
+        timestamp: new Date(),
+      },
+    ]);
+  }, []);
 
   // Handle scroll events to detect if user is at bottom
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
