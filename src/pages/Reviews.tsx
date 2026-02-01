@@ -236,7 +236,7 @@ const Reviews = () => {
                               <h4 className="font-semibold text-lg truncate">{r.name}</h4>
                               {r.linkedinProfile && (
                                 <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="flex-shrink-0 hover:opacity-80 transition">
-                                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png" alt="LinkedIn" className="w-3 h-3 object-contain" width={12} height={12} />
+                                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png" alt="LinkedIn" className="w-4 h-4 object-contain" width={16} height={16} />
                                 </a>
                               )}
                             </div>

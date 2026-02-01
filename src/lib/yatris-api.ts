@@ -6,7 +6,13 @@
 // Use proxy API route to avoid CORS issues
 // In production, this goes through Vercel serverless function
 // In local dev, Vite proxy forwards to Google Apps Script
-const API_URL = '/api/yatris-proxy';
+// API Configuration
+const API_URL_AUTH = import.meta.env.VITE_API_URL_AUTH;
+const API_URL_EVENTS = import.meta.env.VITE_API_URL_EVENTS;
+
+// Validation
+if (!API_URL_AUTH) console.warn('VITE_API_URL_AUTH is missing');
+if (!API_URL_EVENTS) console.warn('VITE_API_URL_EVENTS is missing');
 
 interface User {
   email: string;
@@ -52,10 +58,10 @@ export async function registerUser(data: {
   phoneNumber?: string;
 }): Promise<RegisterResponse> {
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'register',
@@ -92,11 +98,40 @@ export async function loginUser(
   email: string,
   password: string
 ): Promise<LoginResponse> {
+  // Test credentials for development
+  const TEST_USER = {
+    email: 'test@yatricloud.com',
+    password: 'test123',
+    user: {
+      email: 'test@yatricloud.com',
+      fullName: 'Test User',
+      linkedinUrl: 'https://linkedin.com/in/testuser',
+      photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Test',
+      country: 'IN',
+      stateProvince: 'Karnataka',
+      city: 'Bangalore',
+      countryCode: '+91',
+      phoneNumber: '9876543210',
+    }
+  };
+
+  // Check for test credentials first (development only)
+  if (email === TEST_USER.email && password === TEST_USER.password) {
+    const testToken = 'test_token_' + Date.now();
+    localStorage.setItem('yatris_token', testToken);
+    localStorage.setItem('yatris_user', JSON.stringify(TEST_USER.user));
+    return {
+      success: true,
+      token: testToken,
+      user: TEST_USER.user,
+    };
+  }
+
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'login',
@@ -110,7 +145,7 @@ export async function loginUser(
     }
 
     const result = await response.json();
-    
+
     // Store token if login successful
     if (result.success && result.token) {
       localStorage.setItem('yatris_token', result.token);
@@ -135,7 +170,7 @@ export async function getCurrentUser(): Promise<User | null> {
     const token = localStorage.getItem('yatris_token');
     if (!token) return null;
 
-    const response = await fetch(`${API_URL}?action=getUser&token=${token}`);
+    const response = await fetch(`${API_URL_AUTH}?action=getUser&token=${token}`);
 
     if (!response.ok) {
       // Token might be invalid, clear it
@@ -173,11 +208,11 @@ export async function getUserCertifications(): Promise<any[]> {
     const cacheKey = `yatris_user_certifications_${user.email}`;
     const cacheTimestampKey = `yatris_user_certifications_timestamp_${user.email}`;
     const cacheMaxAge = 10 * 60 * 1000; // 10 minutes (increased for better persistence)
-    
+
     try {
       const cachedData = localStorage.getItem(cacheKey);
       const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
-      
+
       if (cachedData) {
         try {
           const parsedData = JSON.parse(cachedData);
@@ -215,10 +250,10 @@ async function fetchFreshCertifications(
 ): Promise<any[]> {
   // Import fetchCertifications dynamically to avoid circular dependency
   const { fetchCertifications } = await import('./google-sheets');
-  
+
   // Fetch all certifications from all provider sheets
   const allCertifications = await fetchCertifications();
-  
+
   // Filter by user's email (case-insensitive, trim whitespace)
   const userCerts = allCertifications.filter(cert => {
     if (!cert.email) return false;
@@ -231,7 +266,7 @@ async function fetchFreshCertifications(
     }
     return matches;
   });
-  
+
   console.log(`🔍 Filtering certifications for email: ${userEmail}`);
   console.log(`📊 Total certifications fetched: ${allCertifications.length}`);
   console.log(`📊 User certifications found: ${userCerts.length}`);
@@ -285,10 +320,10 @@ export async function submitCertification(data: {
       return { success: false, error: 'Not authenticated' };
     }
 
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'submitCertification',
@@ -330,10 +365,10 @@ export async function updateProfile(data: {
       return { success: false, error: 'Not authenticated' };
     }
 
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'updateProfile',
@@ -347,7 +382,7 @@ export async function updateProfile(data: {
     }
 
     const result = await response.json();
-    
+
     // Update stored user data
     if (result.success) {
       const currentUser = JSON.parse(localStorage.getItem('yatris_user') || '{}');
@@ -401,10 +436,10 @@ export async function updateCertification(
       return { success: false, error: 'Not authenticated' };
     }
 
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'updateCertification',
@@ -440,10 +475,10 @@ export async function deleteCertification(
       return { success: false, error: 'Not authenticated' };
     }
 
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'deleteCertification',
@@ -479,10 +514,10 @@ export async function changePassword(
       return { success: false, error: 'Not authenticated' };
     }
 
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'changePassword',
@@ -519,10 +554,10 @@ export async function changeEmail(
       return { success: false, error: 'Not authenticated' };
     }
 
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'changeEmail',
@@ -555,5 +590,121 @@ export function getStoredUser(): User | null {
     return userStr ? JSON.parse(userStr) : null;
   } catch {
     return null;
+  }
+}
+
+// Event Registration Types
+export interface Attendee {
+  name: string;
+  email: string;
+  phone?: string;
+  ticketId: string;
+}
+
+export interface EventRegistration {
+  id: string;
+  eventId: string;
+  eventName: string;
+  eventDate: string;
+  eventLocation: string;
+  eventImage: string;
+  registrationDate: string;
+  attendees: Attendee[];
+  totalAmount: number;
+  status: 'confirmed' | 'cancelled';
+}
+
+/**
+ * Register for an event
+ * Stores registration in localStorage for persistence
+ */
+export async function registerForEvent(
+  event: { id: string; name: string; date: string; location: any; imageUrl: string },
+  attendees: Omit<Attendee, 'ticketId'>[]
+): Promise<{ success: boolean; message?: string; registrationId?: string }> {
+  try {
+    const user = getStoredUser();
+    if (!user) {
+      return { success: false, message: 'You must be logged in to register.' };
+    }
+
+    // Get current token
+    const token = localStorage.getItem('yatris_token');
+
+    const response = await fetch(API_URL_EVENTS, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify({
+        action: 'registerEvent',
+        token: token, // Send token for auth validation if needed by script, or just user email
+        email: user.email,
+        userName: user.fullName,
+        phone: user.phoneNumber,
+        eventId: event.id,
+        eventName: event.name,
+        tickets: 1, // Default to 1 for now, or sum from attendees
+        totalAmount: 0,
+        attendees: attendees
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Optimistically update local cache if we want, but for now just return success
+      // We can invalidate cache here
+      localStorage.removeItem(`yatris_registrations_${user.email}`);
+    }
+
+    return result;
+
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    return { success: false, message: error.message || 'Registration failed' };
+  }
+}
+
+/**
+ * Get registered events for current user
+ */
+export async function getRegisteredEvents(): Promise<EventRegistration[]> {
+  try {
+    const user = getStoredUser();
+    if (!user) return [];
+
+    // Try to fetch from API
+    try {
+      const response = await fetch(`${API_URL_EVENTS}?action=getRegisteredEvents&email=${encodeURIComponent(user.email)}`);
+      const result = await response.json();
+      if (result.success && result.data) {
+        return result.data;
+      }
+    } catch (e) {
+      console.warn("Failed to fetch events from API, falling back to empty", e);
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching registrations:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch all published events from Google Sheets API
+ */
+export async function fetchPublishedEvents(): Promise<any[]> {
+  try {
+    const response = await fetch(`${API_URL_EVENTS}?action=getEvents`);
+    const result = await response.json();
+    if (result.success && result.data) {
+      return result.data;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching published events:', error);
+    return [];
   }
 }
