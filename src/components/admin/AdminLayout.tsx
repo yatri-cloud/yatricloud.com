@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { logout, isAuthenticated } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -87,8 +88,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     </div>
                 </nav>
 
-                {/* Logout Button */}
-                <div className="p-4 border-t border-border">
+                {/* Logout Button & Theme */}
+                <div className="p-4 border-t border-border space-y-4">
+                    <div className="flex items-center justify-between px-2">
+                        <span className="text-sm font-medium text-muted-foreground">Theme</span>
+                        <ThemeToggle />
+                    </div>
                     <Button
                         onClick={handleLogout}
                         variant="outline"
