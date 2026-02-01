@@ -4,8 +4,8 @@ import CountdownTimer from "@/components/CountdownTimer";
 import ScrollReveal from "@/components/ScrollReveal";
 
 export const HeroSection = () => {
-  // Set target date to January 31, 2026 (end of New Year offer)
-  const targetDate = new Date('2026-01-31T23:59:59');
+  // Set target date to February 14, 2026 (Valentine's Day offer)
+  const targetDate = new Date('2026-02-14T23:59:59');
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -23,7 +23,7 @@ export const HeroSection = () => {
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <span className="text-primary text-sm font-semibold">🎉 New Year 2026 Offer</span>
+              <span className="text-primary text-sm font-semibold">💝 Valentine's Day 2026 Offer</span>
               <div className="w-px h-4 bg-border" />
               <CountdownTimer targetDate={targetDate} className="scale-75 origin-left" />
             </motion.div>
@@ -58,10 +58,10 @@ export const HeroSection = () => {
               >
                 {/* Shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                
+
                 <span className="relative z-10">Get Your 50% OFF</span>
                 <ArrowRight className="relative z-10 ml-2 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
-                
+
                 {/* Glow effect */}
                 <div className="absolute inset-0 rounded-2xl bg-primary/0 group-hover:bg-primary/25 blur-2xl transition-all duration-300" />
               </motion.a>
@@ -123,7 +123,7 @@ export const HeroSection = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Floating Elements - Modern UI without icons */}
               <motion.div
                 className="absolute -top-4 -right-4 md:right-10 bg-card border border-primary/20 rounded-xl px-4 py-2.5 shadow-lg backdrop-blur-sm"
@@ -132,7 +132,7 @@ export const HeroSection = () => {
               >
                 <span className="text-sm font-semibold text-foreground">Study Resources</span>
               </motion.div>
-              
+
               <motion.div
                 className="absolute -bottom-4 -left-4 md:left-10 bg-card border border-primary/20 rounded-xl px-4 py-2.5 shadow-lg backdrop-blur-sm"
                 animate={{ rotate: [0, -5, 0, 5, 0] }}
@@ -192,11 +192,11 @@ export const HeroSection = () => {
                   >
                     {/* Animated gradient background */}
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
+
                     {/* Decorative corner elements */}
                     <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
                     <div className="absolute bottom-0 left-0 w-20 h-20 bg-primary/5 rounded-full translate-y-10 -translate-x-10 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
-                    
+
                     <div className="relative z-10">
                       {/* Step Number */}
                       <div className="mb-4">
@@ -204,20 +204,20 @@ export const HeroSection = () => {
                           {step.number}
                         </span>
                       </div>
-                      
+
                       {/* Title */}
                       <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
                         {step.title}
                       </h3>
-                      
+
                       {/* Decorative line */}
                       <div className="h-1 w-12 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full mb-4 group-hover:w-16 transition-all duration-500" />
-                      
+
                       {/* Description */}
                       <p className="text-muted-foreground text-sm leading-relaxed mb-4 group-hover:text-foreground/80 transition-colors">
                         {step.description}
                       </p>
-                      
+
                       {/* Learn More Link */}
                       <motion.a
                         href="#certification-flow"
@@ -235,10 +235,10 @@ export const HeroSection = () => {
                         <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                       </motion.a>
                     </div>
-                    
+
                     {/* Bottom accent line */}
                     <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
+
                     {/* Shine effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </motion.div>
