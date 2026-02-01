@@ -95,10 +95,10 @@ sudo ufw enable
 
 2.  **Install Dependencies**:
     ```bash
-    npm install
+    npm install react-confetti canvas-confetti
     ```
 
-3.  **Configure Service**:
+3.  **Configure Chat Backend Service**:
     Create `/etc/systemd/system/chat-server.service`:
     ```ini
     [Unit]
@@ -107,9 +107,9 @@ sudo ufw enable
 
     [Service]
     Type=simple
-    User=YOUR_USERNAME_HERE
-    WorkingDirectory=/home/YOUR_USERNAME_HERE
-    ExecStart=/usr/bin/node /home/YOUR_USERNAME_HERE/chat-server.js
+    User=iamyatri
+    WorkingDirectory=/home/iamyatri
+    ExecStart=/usr/bin/node /home/iamyatri/chat-server.js
     Environment="OLLAMA_API_URL=http://localhost:11434"
     Restart=always
     RestartSec=3
@@ -117,13 +117,33 @@ sudo ufw enable
     [Install]
     WantedBy=multi-user.target
     ```
-    *Replace `YOUR_USERNAME_HERE` with your actual username.*
 
-4.  **Start Server**:
+4.  **Configure Frontend Dev Service (Optional)**:
+    If you want the Vite dev server to auto-start:
+    Create `/etc/systemd/system/yatri-frontend.service`:
+    ```ini
+    [Unit]
+    Description=Yatri AI Frontend (Vite)
+    After=network.target
+
+    [Service]
+    Type=simple
+    User=iamyatri
+    WorkingDirectory=/home/iamyatri/yatricloud/certification.yatricloud.com
+    ExecStart=/usr/bin/npm run dev
+    Restart=always
+    RestartSec=3
+    Environment=PORT=8080
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+5.  **Start Services**:
     ```bash
     sudo systemctl daemon-reload
-    sudo systemctl enable chat-server
-    sudo systemctl start chat-server
+    sudo systemctl enable chat-server yatri-frontend
+    sudo systemctl start chat-server yatri-frontend
     ```
 
 ### 5. Configure Nginx Reverse Proxy

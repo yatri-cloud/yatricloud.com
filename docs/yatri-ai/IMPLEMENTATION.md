@@ -6,15 +6,22 @@
 *   **Implementation**: Changed from simple JSON response to `response.body.getReader()` in frontend and `res.write()` in backend.
 *   **UX Benefit**: Users see text appearing instantly instead of waiting 3-5s for the whole block.
 *   **Technical**:
-    *   **Backend**: Proxies the Ollama stream, parsing JSON chunks and flushing data immediately.
     *   **Frontend**: Decodes chunks on the fly and updates state incrementally.
 
+### Backend (`server.js` / `infrastructure/chat-server.js`)
+*   Express.js proxy endpoint (`/api/chat`).
+*   Connects to local Ollama instance (Port 11434).
+*   Streaming response support (Server-Sent Events / raw stream).
+*   Robust error handling (Ollama offline, model missing).
+*   **Systemd Integration**: Uses `ollama.service`, `chat-server.service`, and `yatri-frontend.service` for auto-restart and high availability.
+
 ### 2. 🧠 Smart Prompt Engineering
-*   **System Prompt**: Hardcoded in `server.js` to enforce strict persona rules.
+*   **System Prompt**: Strictly engineered for simple English, no-bullet formatting, and concise answers.
 *   **Rules Enforced**:
     *   **Simple English**: ELI5 (Explain Like I'm 5) style for beginners.
     *   **Strict Formatting**: **NO** bullet points (`*` or `-`) or dashes. Lists use **Bold Term:** syntax.
     *   **Greeting Logic**: Only greets if user says "Hi/Hello". Direct questions get direct answers.
+    *   **Dynamic Context**: Prompt is structured with clear `### INSTRUCTIONS` and `### USER QUESTION` headers to improve model adherence and avoid accidental hardcoded output.
     *   **Tone**: Professional, technical, but accessible.
 
 ### 3. 🖱️ Advanced interaction
