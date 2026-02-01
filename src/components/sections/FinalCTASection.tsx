@@ -4,8 +4,8 @@ import ScrollReveal from "@/components/ScrollReveal";
 import CountdownTimer from "@/components/CountdownTimer";
 
 export const FinalCTASection = () => {
-  // Set target date to January 31, 2026 (end of New Year offer)
-  const targetDate = new Date('2026-01-31T23:59:59');
+  // Set target date to February 14, 2026 (Valentine's Day offer)
+  const targetDate = new Date('2026-02-14T23:59:59');
 
   return (
     <section className="py-24 relative overflow-hidden">
@@ -16,7 +16,7 @@ export const FinalCTASection = () => {
             <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Ace Your <span className="gradient-text">Certification</span>?</h2>
             <p className="text-lg text-muted-foreground mb-8">Join 50,000+ learners who've passed their certification exams with our free practice tests.</p>
             <div className="inline-flex items-center gap-3 bg-card border border-border rounded-full px-6 py-3 mb-8">
-              <span className="text-primary font-semibold">🎉 New Year 2026 Offer:</span>
+              <span className="text-primary font-semibold">💝 Valentine's Day 2026 Offer:</span>
               <CountdownTimer targetDate={targetDate} />
             </div>
             <div className="flex justify-center">
@@ -30,10 +30,10 @@ export const FinalCTASection = () => {
               >
                 {/* Shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                
+
                 <span className="relative z-10">Get 50% OFF on Certification Vouchers</span>
                 <ArrowRight className="relative z-10 ml-2 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
-                
+
                 {/* Glow effect */}
                 <div className="absolute inset-0 rounded-2xl bg-primary/0 group-hover:bg-primary/25 blur-2xl transition-all duration-300" />
               </motion.a>

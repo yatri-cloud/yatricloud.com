@@ -1189,6 +1189,30 @@ const Achievements = () => {
               </div>
             </ScrollReveal>
 
+            {/* Share Your Achievement Button */}
+            <ScrollReveal delay={0.15}>
+              <div className="flex justify-center mt-8 mb-8">
+                <motion.a
+                  href="/certifiedyatris"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.05, y: -3 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-8 py-4 text-base font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden relative"
+                >
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+
+                  <Trophy className="relative z-10 w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                  <span className="relative z-10">Share Your Achievement</span>
+                  <ExternalLink className="relative z-10 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
+
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 rounded-2xl bg-primary/0 group-hover:bg-primary/25 blur-2xl transition-all duration-300" />
+                </motion.a>
+              </div>
+            </ScrollReveal>
+
             {/* Provider Filter */}
             {providers.length > 1 && (
               <ScrollReveal delay={0.1}>
@@ -1198,8 +1222,8 @@ const Achievements = () => {
                       <button
                         onClick={() => setSelectedProvider("all")}
                         className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedProvider === "all"
-                            ? "bg-primary text-primary-foreground shadow-lg"
-                            : "text-muted-foreground hover:text-foreground"
+                          ? "bg-primary text-primary-foreground shadow-lg"
+                          : "text-muted-foreground hover:text-foreground"
                           }`}
                       >
                         <BadgeCheck className="w-4 h-4" />
@@ -1224,16 +1248,16 @@ const Achievements = () => {
                             key={provider}
                             onClick={() => setSelectedProvider(provider)}
                             className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedProvider === provider
-                                ? "bg-primary text-primary-foreground shadow-lg"
-                                : "text-muted-foreground hover:text-foreground"
+                              ? "bg-primary text-primary-foreground shadow-lg"
+                              : "text-muted-foreground hover:text-foreground"
                               }`}
                           >
                             <img
                               src={logoSrc}
                               alt={provider}
                               className={`object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''} ${provider === 'ORACLE' || provider === 'SERVICENOW'
-                                  ? 'w-7 h-7'
-                                  : 'w-5 h-5'
+                                ? 'w-7 h-7'
+                                : 'w-5 h-5'
                                 }`}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
@@ -1416,8 +1440,8 @@ const Achievements = () => {
                                 <div className="relative mb-6 z-10 flex justify-center">
                                   <motion.div
                                     className={`relative overflow-visible rounded-full border-4 shadow-xl transition-all duration-300 ${isSpecialPerson
-                                        ? "border-yellow-500 group-hover:border-yellow-400"
-                                        : "border-primary/20 group-hover:border-primary/40"
+                                      ? "border-yellow-500 group-hover:border-yellow-400"
+                                      : "border-primary/20 group-hover:border-primary/40"
                                       }`}
                                     whileHover={{ scale: 1.05 }}
                                   >
@@ -1432,16 +1456,16 @@ const Achievements = () => {
                                     {/* Certification Count Badge - On the circular border, bottom right */}
                                     <motion.div
                                       className={`absolute bottom-0 right-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 shadow-lg z-20 ${isSpecialPerson
-                                          ? "bg-yellow-500 border-yellow-600"
-                                          : "bg-gradient-to-br from-primary to-primary/80 border-background"
+                                        ? "bg-yellow-500 border-yellow-600"
+                                        : "bg-gradient-to-br from-primary to-primary/80 border-background"
                                         }`}
                                       style={{
                                         transform: 'translate(10%, 25%)'
                                       }}
                                     >
                                       <span className={`text-xs md:text-sm font-bold leading-none ${isSpecialPerson
-                                          ? "text-black"
-                                          : "text-primary-foreground"
+                                        ? "text-black"
+                                        : "text-primary-foreground"
                                         }`}>
                                         {totalCertCount}x
                                       </span>
@@ -1451,8 +1475,8 @@ const Achievements = () => {
 
                                 {/* Name */}
                                 <h4 className={`text-xl md:text-2xl font-bold mb-4 text-center relative z-10 transition-colors ${isSpecialPerson
-                                    ? "text-white dark:text-black group-hover:text-yellow-300 dark:group-hover:text-yellow-600"
-                                    : "text-foreground group-hover:text-primary"
+                                  ? "text-white dark:text-black group-hover:text-yellow-300 dark:group-hover:text-yellow-600"
+                                  : "text-foreground group-hover:text-primary"
                                   }`}>
                                   {person.fullName}
                                 </h4>
@@ -1507,15 +1531,15 @@ const Achievements = () => {
                                           {/* Certification count before logo - only show if NOT in "All" view */}
                                           {!isAllView && (
                                             <span className={`text-xs font-bold ${isSpecialPerson
-                                                ? "text-white dark:text-black"
-                                                : "text-foreground/80"
+                                              ? "text-white dark:text-black"
+                                              : "text-foreground/80"
                                               }`}>
                                               {count}x
                                             </span>
                                           )}
                                           <div className={`flex items-center justify-center rounded-lg border p-1 ${providerName === 'ORACLE' || providerName === 'SERVICENOW'
-                                              ? 'w-12 h-12'
-                                              : 'w-8 h-8'
+                                            ? 'w-12 h-12'
+                                            : 'w-8 h-8'
                                             } ${isSpecialPerson
                                               ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40"
                                               : "bg-background/50 border-border/40"
@@ -1538,8 +1562,8 @@ const Achievements = () => {
                                     <motion.div
                                       whileHover={{ scale: 1.1 }}
                                       className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${isSpecialPerson
-                                          ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40"
-                                          : "bg-background/50 border-border/40"
+                                        ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40"
+                                        : "bg-background/50 border-border/40"
                                         }`}
                                       title={getCountryName(person.country)}
                                     >
@@ -1547,8 +1571,8 @@ const Achievements = () => {
                                         {getCountryFlag(person.country)}
                                       </span>
                                       <span className={`text-xs font-medium ${isSpecialPerson
-                                          ? "text-white dark:text-black font-semibold"
-                                          : "text-foreground/80"
+                                        ? "text-white dark:text-black font-semibold"
+                                        : "text-foreground/80"
                                         }`}>
                                         {getCountryName(person.country)}
                                       </span>
@@ -1613,8 +1637,8 @@ const Achievements = () => {
                         <button
                           onClick={() => setSelectedMapProvider("all")}
                           className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === "all"
-                              ? "bg-primary text-primary-foreground shadow-lg"
-                              : "text-muted-foreground hover:text-foreground"
+                            ? "bg-primary text-primary-foreground shadow-lg"
+                            : "text-muted-foreground hover:text-foreground"
                             }`}
                         >
                           <BadgeCheck className="w-4 h-4" />
@@ -1640,16 +1664,16 @@ const Achievements = () => {
                               key={provider}
                               onClick={() => setSelectedMapProvider(provider)}
                               className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === provider
-                                  ? "bg-primary text-primary-foreground shadow-lg"
-                                  : "text-muted-foreground hover:text-foreground"
+                                ? "bg-primary text-primary-foreground shadow-lg"
+                                : "text-muted-foreground hover:text-foreground"
                                 }`}
                             >
                               <img
                                 src={logoSrc}
                                 alt={provider}
                                 className={`object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''} ${provider === 'ORACLE' || provider === 'SERVICENOW'
-                                    ? 'w-7 h-7'
-                                    : 'w-5 h-5'
+                                  ? 'w-7 h-7'
+                                  : 'w-5 h-5'
                                   }`}
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).style.display = 'none';
@@ -1787,8 +1811,8 @@ const Achievements = () => {
                           src={selectedPerson.photoUrl || "https://via.placeholder.com/150"}
                           alt={selectedPerson.fullName}
                           className={`w-20 h-20 rounded-full object-cover border-4 ${isSpecialPerson
-                              ? "border-yellow-500"
-                              : "border-primary/30"
+                            ? "border-yellow-500"
+                            : "border-primary/30"
                             }`}
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = "https://via.placeholder.com/150";
@@ -1891,8 +1915,8 @@ const Achievements = () => {
                                   <div
                                     key={providerName}
                                     className={`flex items-center justify-center bg-background/50 rounded border border-border/40 p-0.5 ${providerName === 'ORACLE' || providerName === 'SERVICENOW'
-                                        ? 'w-7 h-7'
-                                        : 'w-5 h-5'
+                                      ? 'w-7 h-7'
+                                      : 'w-5 h-5'
                                       }`}
                                   >
                                     <img
@@ -2004,8 +2028,8 @@ const Achievements = () => {
                                     {/* Exam Code and Verified */}
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold border ${PROVIDER_COLORS[providerName]
-                                          ? `${PROVIDER_COLORS[providerName].bg} ${PROVIDER_COLORS[providerName].text} ${PROVIDER_COLORS[providerName].border}`
-                                          : 'bg-primary/20 text-primary border-primary/30'
+                                        ? `${PROVIDER_COLORS[providerName].bg} ${PROVIDER_COLORS[providerName].text} ${PROVIDER_COLORS[providerName].border}`
+                                        : 'bg-primary/20 text-primary border-primary/30'
                                         }`}>
                                         {cert.examCode}
                                       </div>
