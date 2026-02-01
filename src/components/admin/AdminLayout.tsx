@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Calendar, BookOpen, Home, LogOut } from "lucide-react";
+import { Calendar, BookOpen, Home, LogOut, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logout, isAuthenticated } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +41,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             name: "Udemy",
             path: "/admin/udemy",
             icon: BookOpen,
+        },
+        {
+            name: "Yatri AI",
+            path: "/admin/ai",
+            icon: Bot,
         },
     ];
 

@@ -430,7 +430,7 @@ User question: ${message}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gemma3',
+        model: req.body.model || 'gemma3',
         prompt: systemPrompt,
         stream: true, // Enable streaming
       }),
@@ -493,6 +493,29 @@ User question: ${message}`;
       message: err.message
     })}\n\n`);
     res.end();
+  }
+});
+
+/**
+ * Get available Ollama models
+ * GET /api/ai/models
+ */
+app.get('/api/ai/models', async (req, res) => {
+  try {
+    const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434';
+    const response = await fetch(`${OLLAMA_API_URL}/api/tags`);
+
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    // Return just the model names
+    const models = data.models.map(m => m.name);
+    res.json({ models });
+  } catch (err) {
+    console.error('Error fetching Ollama models:', err);
+    res.status(500).json({ error: 'Failed to fetch models', message: err.message });
   }
 });
 

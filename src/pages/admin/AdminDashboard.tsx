@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import AdminLogin from "./AdminLogin";
 import { Button } from "@/components/ui/button";
-import { Calendar, LayoutDashboard, LogOut, GraduationCap, Plus } from "lucide-react";
+import { Calendar, LayoutDashboard, LogOut, GraduationCap, Plus, Bot } from "lucide-react";
 
 const AdminDashboard = () => {
     const [token, setToken] = useState<string | null>(localStorage.getItem('admin_token'));
@@ -25,6 +25,7 @@ const AdminDashboard = () => {
     const navItems = [
         { href: "/admin/events", label: "Events", icon: Calendar },
         { href: "/admin/udemy", label: "Udemy Coupons", icon: GraduationCap },
+        { href: "/admin/ai", label: "Yatri AI", icon: Bot },
         { href: "/admin/products/add", label: "Add Product", icon: Plus },
     ];
 

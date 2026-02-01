@@ -25,6 +25,8 @@ import AdminEvents from "./pages/admin/AdminEvents";
 import UdemyAdmin from "./pages/admin/UdemyAdmin";
 import AdminAddProduct from "./pages/admin/AdminAddProduct";
 import CreateEvent from "./pages/CreateEvent";
+import AdminYatriAI from "./pages/admin/AdminYatriAI"; // Import AdminYatriAI
+import { Bot } from "lucide-react"; // Import Bot icon
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,7 @@ const App = () => (
               <Route index element={<Navigate to="/admin/events" replace />} />
               <Route path="events" element={<AdminEvents />} />
               <Route path="udemy" element={<UdemyAdmin />} />
+              <Route path="ai" element={<AdminYatriAI />} />
               <Route path="products/add" element={<AdminAddProduct />} />
             </Route>
 

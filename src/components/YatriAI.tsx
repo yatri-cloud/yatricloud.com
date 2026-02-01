@@ -3,6 +3,7 @@ import { MessageCircle, X, Send, StopCircle, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getAIModel } from '@/lib/ai-store';
 
 interface Message {
   id: string;
@@ -236,7 +237,10 @@ export const YatriAI = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: messageText }),
+        body: JSON.stringify({
+          message: messageText,
+          model: getAIModel()
+        }),
         signal: abortControllerRef.current?.signal,
       });
 
