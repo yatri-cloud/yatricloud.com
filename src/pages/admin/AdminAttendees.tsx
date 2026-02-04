@@ -73,10 +73,11 @@ export default function AdminAttendees() {
 
                 // Send Feedback/Attendance Email
                 try {
-                    const emailHtml = getEventFeedbackEmail(attendee.name, attendee.eventName);
+                    const feedbackLink = `${window.location.origin}/events/${encodeURIComponent(attendee.eventName)}/feedback`;
+                    const emailHtml = getEventFeedbackEmail(attendee.name, attendee.eventName, feedbackLink);
                     sendEmail({
                         to: attendee.email,
-                        subject: `Thanks for attending ${attendee.eventName}! 🌟`,
+                        subject: `Thanks for attending ${attendee.eventName}!`,
                         html: emailHtml
                     }).catch(err => console.error("Feedback email failed:", err));
                 } catch (emailErr) {

@@ -8,6 +8,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useCart } from "@/contexts/CartContext";
 import { initiatePayment, isTestMode } from "@/lib/razorpay";
 import { toast } from "sonner";
+import { getStoredUser } from "@/lib/yatris-api";
+import { sendEmail } from "@/lib/email";
+import { getProductPurchaseEmail } from "@/lib/email-templates";
 
 interface CartSheetProps {
   trigger?: ReactNode;
@@ -28,10 +31,10 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
     try {
       // Calculate total amount in paise (no GST)
       const amountInPaise = totalPrice * 100;
-      
+
       // Create order description
       const productNames = items.map(item => item.title).join(", ");
-      
+
       // Create Razorpay order via API
       const { createRazorpayOrder } = await import("@/lib/razorpay");
       const orderId = await createRazorpayOrder({
@@ -43,16 +46,38 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
           items: JSON.stringify(items.map(item => ({ id: item.id, title: item.title, quantity: item.quantity })))
         }
       });
-      
+
+      const user = getStoredUser();
+      const customerName = user?.fullName || "Guest Customer";
+      const customerEmail = user?.email || "";
+      const customerPhone = user?.phoneNumber || "";
+
       await initiatePayment(
         orderId,
         amountInPaise,
         productNames,
-        "Customer",
-        "",
-        "",
-        (paymentId) => {
+        customerName,
+        customerEmail,
+        customerPhone,
+        async (paymentId) => {
           toast.success(`Payment successful! Payment ID: ${paymentId}`);
+
+          // Send Confirmation Email
+          if (customerEmail) {
+            try {
+              const emailHtml = getProductPurchaseEmail(customerName, productNames, `₹${totalPrice.toLocaleString("en-IN")}`, paymentId);
+              await sendEmail({
+                to: customerEmail,
+                subject: "Order Confirmation - Yatri Cloud",
+                html: emailHtml
+              });
+              toast.success("Confirmation email sent!");
+            } catch (emailErr) {
+              console.error("Failed to send order email:", emailErr);
+              toast.error("Payment successful, but failed to send email.");
+            }
+          }
+
           clearCart();
           setIsProcessing(false);
         },
@@ -179,17 +204,17 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
               </div>
 
               <div className="mt-auto pt-4 border-t space-y-4">
-    {testMode && (
-      <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-        <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <AlertTitle className="text-amber-800 dark:text-amber-200 font-semibold">
-          Payment sandbox active
-        </AlertTitle>
-        <AlertDescription className="text-amber-700 dark:text-amber-300 text-xs mt-1">
-          This checkout session is configured for non-production testing. In production, real payments will be processed securely via Razorpay.
-        </AlertDescription>
-      </Alert>
-    )}
+                {testMode && (
+                  <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    <AlertTitle className="text-amber-800 dark:text-amber-200 font-semibold">
+                      Payment sandbox active
+                    </AlertTitle>
+                    <AlertDescription className="text-amber-700 dark:text-amber-300 text-xs mt-1">
+                      This checkout session is configured for non-production testing. In production, real payments will be processed securely via Razorpay.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <div className="space-y-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>

@@ -1,20 +1,21 @@
-/**
- * Email Templates for Yatri Cloud
- * Uses inline styles for maximum email client compatibility.
- */
+
+require('dotenv').config({ path: '.env.local' });
+const nodemailer = require('nodemailer');
+
+const TO_EMAIL = 'yatharth.chauhan@yatricloud.com';
+
+// --- TEMPLATES (Copied and adapted from src/lib/email-templates.ts) ---
 
 const COLORS = {
-  primary: '#3b82f6', // blue-500
-  secondary: '#1e3a8a', // blue-900
-  background: '#f3f4f6', // gray-100
-  card: '#ffffff',
-  text: '#1f2937', // gray-800
-  textMuted: '#6b7280', // gray-500
+    primary: '#3b82f6',
+    secondary: '#1e3a8a',
+    background: '#f3f4f6',
+    card: '#ffffff',
+    text: '#1f2937',
+    textMuted: '#6b7280',
 };
 
-const LOGO_URL = "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/logo/yatri_cloud_logo.png"; // Replace with actual logo URL if available
-
-const BASE_TEMPLATE = (content: string, title: string) => `
+const BASE_TEMPLATE = (content, title) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -55,8 +56,8 @@ const BASE_TEMPLATE = (content: string, title: string) => `
 </html>
 `;
 
-export const getRegistrationEmail = (name: string, eventName: string, code: string, date: string, meetLink?: string) => {
-  const content = `
+const getRegistrationEmail = (name, eventName, code, date, meetLink) => {
+    const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Registration Confirmed!</h2>
     <p>Hi ${name},</p>
     <p>You have successfully registered for <strong>${eventName}</strong>.</p>
@@ -76,11 +77,11 @@ export const getRegistrationEmail = (name: string, eventName: string, code: stri
     <p>We're excited to see you there! Make sure to add this to your calendar.</p>
     <p>Best regards,<br>The Yatri Cloud Team</p>
   `;
-  return BASE_TEMPLATE(content, `Registration Confirmed: ${eventName}`);
+    return BASE_TEMPLATE(content, `Registration Confirmed: ${eventName}`);
 };
 
-export const getProductPurchaseEmail = (name: string, productNames: string, amount: string, paymentId: string) => {
-  const content = `
+const getProductPurchaseEmail = (name, productNames, amount, paymentId) => {
+    const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Order Confirmed!</h2>
     <p>Hi ${name},</p>
     <p>Thank you for your purchase from the Yatri Store.</p>
@@ -97,28 +98,11 @@ export const getProductPurchaseEmail = (name: string, productNames: string, amou
     <p>If you have any questions, feel free to reply to this email.</p>
     <p>Best regards,<br>The Yatri Cloud Team</p>
   `;
-  return BASE_TEMPLATE(content, "Order Confirmation - Yatri Cloud");
+    return BASE_TEMPLATE(content, "Order Confirmation - Yatri Cloud");
 };
 
-export const getCertificateSubmissionEmail = (name: string, certName: string, provider: string) => {
-  const content = `
-    <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Achievement Unlocked!</h2>
-    <p>Hi ${name},</p>
-    <p>Congratulations on earning your <strong>${certName}</strong> from <strong>${provider}</strong>!</p>
-    <p>We've successfully received your submission. It will now appear on your public profile and the "Yatri Stars" wall.</p>
-    
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="https://certification.yatricloud.com/achievements" style="background-color: ${COLORS.primary}; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">View Profile</a>
-    </div>
-
-    <p>Keep learning and collecting those badges!</p>
-    <p>Best regards,<br>The Yatri Cloud Team</p>
-  `;
-  return BASE_TEMPLATE(content, `Submission Received: ${certName}`);
-};
-
-export const getWelcomeEmail = (name: string) => {
-  const content = `
+const getWelcomeEmail = (name) => {
+    const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Welcome to Yatri Cloud!</h2>
     <p>Hi ${name},</p>
     <p>We're thrilled to have you join our community of cloud enthusiasts.</p>
@@ -136,11 +120,11 @@ export const getWelcomeEmail = (name: string) => {
     <p>If you have any questions, feel free to reply to this email.</p>
     <p>Happy Learning!<br>The Yatri Cloud Team</p>
   `;
-  return BASE_TEMPLATE(content, "Welcome to Yatri Cloud");
+    return BASE_TEMPLATE(content, "Welcome to Yatri Cloud");
 };
 
-export const getEventFeedbackEmail = (name: string, eventName: string, feedbackLink: string) => {
-  const content = `
+const getEventFeedbackEmail = (name, eventName, feedbackLink) => {
+    const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Thank You for Attending!</h2>
     <p>Hi ${name},</p>
     <p>Thanks for joining us at <strong>${eventName}</strong>. We hope you found it valuable!</p>
@@ -153,5 +137,97 @@ export const getEventFeedbackEmail = (name: string, eventName: string, feedbackL
     <p>See you at the next event!</p>
     <p>Best regards,<br>The Yatri Cloud Team</p>
   `;
-  return BASE_TEMPLATE(content, `Feedback Request: ${eventName}`);
+    return BASE_TEMPLATE(content, `Feedback Request: ${eventName}`);
 };
+
+const getCertificateSubmissionEmail = (name, certName, provider) => {
+    const content = `
+    <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Achievement Unlocked!</h2>
+    <p>Hi ${name},</p>
+    <p>Congratulations on earning your <strong>${certName}</strong> from <strong>${provider}</strong>!</p>
+    <p>We've successfully received your submission. It will now appear on your public profile and the "Yatri Stars" wall.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="https://certification.yatricloud.com/achievements" style="background-color: ${COLORS.primary}; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">View Profile</a>
+    </div>
+
+    <p>Keep learning and collecting those badges!</p>
+    <p>Best regards,<br>The Yatri Cloud Team</p>
+  `;
+    return BASE_TEMPLATE(content, `Submission Received: ${certName}`);
+};
+
+// --- SENDING LOGIC ---
+
+async function sendAllEmails() {
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || 'smtp.office365.com',
+        port: parseInt(process.env.EMAIL_PORT || '587'),
+        secure: false,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+        tls: {
+            ciphers: 'SSLv3'
+        }
+    });
+
+    try {
+        await transporter.verify();
+        console.log('✅ SMTP connection established');
+    } catch (e) {
+        console.error('❌ SMTP connection failed', e);
+        return;
+    }
+
+    const emails = [
+        {
+            name: "Welcome Email",
+            subject: "Welcome to Yatri Cloud!",
+            html: getWelcomeEmail("Yatharth Chauhan")
+        },
+        {
+            name: "Registration Email (Free)",
+            subject: "Registration Confirmed: Cloud Summit 2026",
+            html: getRegistrationEmail("Yatharth Chauhan", "Cloud Summit 2026", "TEST-CODE-1234", "March 20, 2026", "https://meet.google.com/abc-defg-hij")
+        },
+        {
+            name: "Product Purchase Email",
+            subject: "Order Confirmation - Yatri Cloud",
+            html: getProductPurchaseEmail("Yatharth Chauhan", "AWS Solution Architect Voucher", "₹12,499", "pay_test_123456789")
+        },
+        {
+            name: "Event Feedback Email",
+            subject: "Thanks for attending Cloud Summit 2026!",
+            html: getEventFeedbackEmail("Yatharth Chauhan", "Cloud Summit 2026", "https://certification.yatricloud.com/events/CloudSummit2026/feedback")
+        },
+        {
+            name: "Certificate Submission Email",
+            subject: "Submission Received: AWS Developer Associate",
+            html: getCertificateSubmissionEmail("Yatharth Chauhan", "AWS Developer Associate", "Amazon Web Services")
+        }
+    ];
+
+    console.log(`📧 Sending ${emails.length} test emails to ${TO_EMAIL}...`);
+
+    for (const email of emails) {
+        try {
+            await transporter.sendMail({
+                from: `"Yatri Cloud" <${process.env.EMAIL_USER}>`,
+                to: TO_EMAIL,
+                subject: email.subject,
+                html: email.html
+            });
+            console.log(`✅ Sent: ${email.name}`);
+        } catch (error) {
+            console.error(`❌ Failed: ${email.name}`, error.message);
+        }
+        // Small delay to avoid rate limiting
+        await new Promise(r => setTimeout(r, 1000));
+    }
+
+    console.log('🎉 All test emails processed!');
+}
+
+sendAllEmails();

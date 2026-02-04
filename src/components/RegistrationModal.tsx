@@ -215,9 +215,9 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 amount: price,
                             });
 
-                            // Send Confirmation Email
                             try {
-                                const emailHtml = getRegistrationEmail(formData.name, event.name, event.date || 'TBD', event.location); // event.location might need checking if it exists
+                                const locationStr = event.location.venue || (event.location.type === 'online' ? 'Online' : 'TBD');
+                                const emailHtml = getRegistrationEmail(formData.name, event.name, registration.registrationCode, event.date || 'TBD', locationStr);
                                 await sendEmail({
                                     to: formData.email,
                                     subject: `Registration Confirmed: ${event.name}`,
@@ -260,7 +260,8 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
 
                 // Send Confirmation Email
                 try {
-                    const emailHtml = getRegistrationEmail(formData.name, event.name, event.date || 'TBD', event.location);
+                    const locationStr = event.location.venue || (event.location.type === 'online' ? 'Online' : 'TBD');
+                    const emailHtml = getRegistrationEmail(formData.name, event.name, registration.registrationCode, event.date || 'TBD', locationStr);
                     await sendEmail({
                         to: formData.email,
                         subject: `Registration Confirmed: ${event.name}`,

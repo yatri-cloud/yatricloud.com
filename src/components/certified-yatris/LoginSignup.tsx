@@ -237,7 +237,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
           const emailHtml = getWelcomeEmail(registerData.fullName);
           sendEmail({
             to: registerData.email,
-            subject: "Welcome to Yatri Cloud! 🚀",
+            subject: "Welcome to Yatri Cloud!",
             html: emailHtml
           }).catch(err => console.error("Welcome email failed:", err));
         } catch (emailErr) {
