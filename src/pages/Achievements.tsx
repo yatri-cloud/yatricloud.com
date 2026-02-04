@@ -48,6 +48,8 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   SERVICENOW: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
   KUBERNETES: { logo: `${LOGO_BASE_URL}/kubernetes.svg` },
   TERRAFORM: { logo: `${LOGO_BASE_URL}/terraform.svg` },
+  OPENAI: { logo: `https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg` },
+  HASHICORP: { logo: `https://upload.wikimedia.org/wikipedia/commons/6/6e/HashiCorp_logo.svg`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/6/6e/HashiCorp_logo.svg` },
 };
 
 // Country coordinates mapping (approximate center of each country)
@@ -208,6 +210,16 @@ const PROVIDER_COLORS: Record<string, { bg: string; text: string; border: string
     text: 'text-purple-700 dark:text-purple-400',
     border: 'border-purple-300 dark:border-purple-800'
   },
+  OPENAI: {
+    bg: 'bg-emerald-100 dark:bg-emerald-950/30',
+    text: 'text-emerald-700 dark:text-emerald-400',
+    border: 'border-emerald-300 dark:border-emerald-800'
+  },
+  HASHICORP: {
+    bg: 'bg-stone-100 dark:bg-stone-800/30',
+    text: 'text-stone-700 dark:text-stone-300',
+    border: 'border-stone-300 dark:border-stone-700'
+  },
 };
 
 // Provider brand colors for card backgrounds
@@ -272,6 +284,18 @@ const PROVIDER_BRAND_COLORS: Record<string, { from: string; via: string; to: str
     via: 'via-purple-400/15 dark:via-purple-500/25',
     to: 'to-purple-300/10 dark:to-purple-400/20',
     border: 'border-purple-400/30 dark:border-purple-500/40'
+  },
+  OPENAI: {
+    from: 'from-emerald-500/20 dark:from-emerald-600/30',
+    via: 'via-teal-500/15 dark:via-teal-600/25',
+    to: 'to-emerald-400/10 dark:to-emerald-500/20',
+    border: 'border-emerald-400/30 dark:border-emerald-500/40'
+  },
+  HASHICORP: {
+    from: 'from-gray-700/30 dark:from-gray-800/40',
+    via: 'via-stone-600/20 dark:via-stone-700/30',
+    to: 'to-gray-500/15 dark:to-gray-600/25',
+    border: 'border-stone-500/30 dark:border-stone-600/40'
   },
   MULTIPLE: {
     from: 'from-primary/30 dark:from-primary/40',
@@ -611,6 +635,8 @@ const Achievements = () => {
     SERVICENOW: '#81B5A1', // Teal
     KUBERNETES: '#326CE5', // Blue
     TERRAFORM: '#7B42BC', // Purple
+    OPENAI: '#10A37F', // OpenAI Green
+    HASHICORP: '#000000', // Black
   };
 
   // Calculate location distribution for map (state-wise if available, otherwise country-wise)

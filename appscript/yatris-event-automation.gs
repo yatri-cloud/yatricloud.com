@@ -54,6 +54,10 @@ function doPost(e) {
     if (data.action === 'confirmAttendance') {
       return confirmAttendanceCode(data);
     }
+
+    if (data.action === 'submitFeedback') {
+      return submitEventFeedback(data);
+    }
     
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
@@ -1153,5 +1157,69 @@ function saveBase64Image(base64Data, folder, fileName) {
   } catch (error) {
     Logger.log('Error saving base64 image: ' + error.toString());
     return 'Error saving image: ' + error.toString();
+  }
+}
+
+/**
+ * Submit Event Feedback
+ */
+function submitEventFeedback(data) {
+  try {
+    const eventName = data.eventName;
+    const rating = data.rating;
+    const likes = data.likes || '';
+    const improvements = data.improvements || '';
+    const name = data.name || 'Anonymous';
+    const email = data.email || '';
+    const source = data.source || 'web';
+    
+    if (!eventName || !rating) {
+      throw new Error('Missing required fields: eventName, rating');
+    }
+    
+    const ss = getCentralSpreadsheet();
+    let sheet = ss.getSheetByName('Event Feedback');
+    
+    if (!sheet) {
+      sheet = ss.insertSheet('Event Feedback');
+      // Headers
+      sheet.appendRow([
+        'Timestamp',
+        'Event Name',
+        'Rating',
+        'Likes',
+        'Improvements',
+        'Name',
+        'Email',
+        'Source'
+      ]);
+      
+      const headerRange = sheet.getRange(1, 1, 1, 8);
+      headerRange.setFontWeight('bold');
+      headerRange.setBackground('#fff2cc'); // Light orange/yellow
+      sheet.setFrozenRows(1);
+    }
+    
+    sheet.appendRow([
+      new Date(),
+      eventName,
+      rating,
+      likes,
+      improvements,
+      name,
+      email,
+      source
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'Feedback submitted successfully'
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Error submitting feedback: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }

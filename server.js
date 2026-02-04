@@ -519,6 +519,71 @@ app.get('/api/ai/models', async (req, res) => {
   }
 });
 
+/**
+ * Send Email Endpoint
+ * POST /api/send-email
+ * Body: { to, subject, html }
+ */
+app.post('/api/send-email', async (req, res) => {
+  try {
+    const { to, subject, html } = req.body;
+
+    if (!to || !subject || !html) {
+      return res.status(400).json({ error: 'Missing required fields: to, subject, html' });
+    }
+
+    // Get email credentials
+    const EMAIL_USER = process.env.EMAIL_USER;
+    const EMAIL_PASS = process.env.EMAIL_PASS;
+    const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.office365.com';
+    const EMAIL_PORT = process.env.EMAIL_PORT || 587;
+    const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "Yatri Cloud";
+
+    if (!EMAIL_USER || !EMAIL_PASS) {
+      console.error('❌ Email credentials missing in .env');
+      return res.status(500).json({ error: 'Email configuration missing on server' });
+    }
+
+    // Import nodemailer dynamically to avoid startup errors if not installed
+    let nodemailer;
+    try {
+      nodemailer = await import('nodemailer');
+    } catch (e) {
+      console.error('❌ Nodemailer not found', e);
+      return res.status(500).json({ error: 'Email service error: nodemailer not installed' });
+    }
+
+    // Create transporter (Office 365 / Outlook)
+    const transporter = nodemailer.createTransport({
+      host: EMAIL_HOST,
+      port: Number(EMAIL_PORT),
+      secure: false, // TLS
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
+      },
+      tls: {
+        ciphers: 'SSLv3'
+      }
+    });
+
+    // Send mail
+    const info = await transporter.sendMail({
+      from: `"${EMAIL_FROM_NAME}" <${EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
+
+    console.log('✅ Email sent:', info.messageId);
+    res.json({ success: true, messageId: info.messageId });
+
+  } catch (error) {
+    console.error('❌ Error sending email:', error);
+    res.status(500).json({ error: 'Failed to send email', details: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Udemy API Proxy Server running on http://localhost:${PORT}`);
   console.log(`📚 Courses endpoint: http://localhost:${PORT}/api/udemy/courses`);

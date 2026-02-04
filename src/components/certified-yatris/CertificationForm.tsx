@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTheme } from "@/components/ThemeProvider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { sendEmail } from "@/lib/email";
+import { getCertificateSubmissionEmail } from "@/lib/email-templates";
 
 interface CertificationFormData {
   fullName: string;
@@ -585,12 +587,12 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [sortOrder, setSortOrder] = useState<'a-z' | 'z-a' | 'default'>('a-z');
   const [certSearchQuery, setCertSearchQuery] = useState('');
-  
+
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState<'selection' | 'common-info' | 'credentials'>('selection');
   const [certificationCredentials, setCertificationCredentials] = useState<CertificationCredential[]>([]);
-  
-  
+
+
   const {
     register,
     handleSubmit,
@@ -644,7 +646,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
         setPhotoPreview(user.photoUrl);
       }
     }
-    
+
     // Check if editing a certification from ManageCertifications page
     const editingCertStr = sessionStorage.getItem("editingCertification");
     if (editingCertStr) {
@@ -660,22 +662,22 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           ...SALESFORCE_CERTIFICATIONS,
           ...SERVICENOW_CERTIFICATIONS,
         ];
-        
-        const matchingCert = allCerts.find(c => 
+
+        const matchingCert = allCerts.find(c =>
           c.label.toLowerCase() === editingCert.certificationName?.toLowerCase() ||
           c.code === editingCert.examCode
         );
-        
+
         if (matchingCert) {
           // Set edit mode
           setIsEditMode(true);
-          
+
           // Set the provider first
           const provider = matchingCert.value.split('-')[0];
           if (provider && CERTIFICATION_PROVIDERS.find(p => p.value === provider)) {
             setValue("selectedProviders", [provider]);
           }
-          
+
           setValue("selectedCertifications", [matchingCert.value]);
           // Initialize credentials with the editing certification data
           const editCredential = {
@@ -689,20 +691,20 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           setCertificationCredentials([editCredential]);
           // Skip common-info step and go directly to credentials in edit mode
           setCurrentStep('credentials');
-          
+
           // Pre-fill the credential form
           setTimeout(() => {
             setCredentialValue('certificationDate', editCredential.certificationDate || '');
             setCredentialValue('verifiedCredential', editCredential.verifiedCredential || '');
             setCredentialValue('additionalNotes', editCredential.additionalNotes || '');
           }, 100);
-          
+
           toast({
             title: "Edit Mode",
             description: "Editing certification details only. Profile information will remain unchanged.",
           });
         }
-        
+
         // Clear sessionStorage
         sessionStorage.removeItem("editingCertification");
       } catch (error) {
@@ -714,7 +716,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
   // Load user's existing certifications - instant from cache
   const loadUserCertifications = async () => {
     setIsLoadingCerts(true);
-    
+
     // Load from cache immediately
     if (user?.email) {
       const cacheKey = `yatris_user_certifications_${user.email}`;
@@ -730,7 +732,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
         }
       }
     }
-    
+
     // Then fetch fresh data in background
     try {
       const certs = await getUserCertifications();
@@ -827,9 +829,9 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     if (ORACLE_CERTIFICATIONS.some(c => c.value === certValue)) return "oracle";
     if (SALESFORCE_CERTIFICATIONS.some(c => c.value === certValue)) return "salesforce";
     if (SERVICENOW_CERTIFICATIONS.some(c => c.value === certValue)) return "servicenow";
-     if (OPENAI_CERTIFICATIONS.some(c => c.value === certValue)) return "openai";
-     if (HASHICORP_CERTIFICATIONS.some(c => c.value === certValue)) return "hashicorp";
-     if (KUBERNETES_CERTIFICATIONS.some(c => c.value === certValue)) return "kubernetes";
+    if (OPENAI_CERTIFICATIONS.some(c => c.value === certValue)) return "openai";
+    if (HASHICORP_CERTIFICATIONS.some(c => c.value === certValue)) return "hashicorp";
+    if (KUBERNETES_CERTIFICATIONS.some(c => c.value === certValue)) return "kubernetes";
     return "other";
   };
 
@@ -869,7 +871,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
   // Check for duplicate submission
   const checkDuplicate = (email: string, certificationName: string, examCode: string, provider?: string): boolean => {
     if (!email || !certificationName || !examCode) return false;
-    
+
     const normalizedEmail = email.toLowerCase().trim();
     const normalizedCertName = certificationName.toLowerCase().trim();
     const normalizedExamCode = examCode.toLowerCase().trim();
@@ -994,7 +996,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       });
       return;
     }
-    
+
     // If user has photo from signup, ensure it's set in photoPreview
     if (user?.photoUrl && !photoPreview) {
       setPhotoPreview(user.photoUrl);
@@ -1004,7 +1006,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     const missingCerts = certificationCredentials.filter(
       (cred) => !cred.certificationValue || cred.certificationValue.trim() === ''
     );
-    
+
     if (missingCerts.length > 0) {
       toast({
         title: "Validation Error",
@@ -1013,7 +1015,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       });
       return;
     }
-    
+
     if (false) {
       toast({
         title: "Validation Error",
@@ -1055,10 +1057,10 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       if (currentCert && user?.email) {
         // Optimistically update cache immediately
         updateCacheOptimistically(currentCert, credentialData);
-        
+
         // Submit in background
         submitAllCertifications();
-        
+
         // Navigate back immediately
         setTimeout(() => {
           window.location.href = '/manage-certifications';
@@ -1083,13 +1085,13 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       submitAllCertifications();
     }
   };
-  
+
   // Optimistically update cache with new certifications immediately
   const updateCacheWithNewCertifications = (credentials: CertificationCredential[], userEmail: string) => {
     try {
       const cacheKey = `yatris_user_certifications_${userEmail}`;
       const cachedData = localStorage.getItem(cacheKey);
-      
+
       const newCerts = credentials.map((cred, index) => {
         // Use the getProviderForCertification function
         const provider = getProviderForCertification(cred.certificationValue);
@@ -1108,35 +1110,35 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           country: user?.country || '',
         };
       });
-      
+
       const existingCerts = cachedData ? JSON.parse(cachedData) : [];
       const updatedCerts = [...existingCerts, ...newCerts];
-      
+
       // Update cache immediately
       localStorage.setItem(cacheKey, JSON.stringify(updatedCerts));
       localStorage.setItem(`yatris_user_certifications_timestamp_${userEmail}`, Date.now().toString());
-      
+
       // Dispatch custom event to update ManageCertifications page
       window.dispatchEvent(new CustomEvent('certificationsUpdated', { detail: updatedCerts }));
     } catch (error) {
       console.warn("Error updating cache with new certifications:", error);
     }
   };
-  
+
   // Optimistically update cache immediately
   const updateCacheOptimistically = (cert: any, updatedData: any) => {
     if (!user?.email) return;
-    
+
     try {
       const cacheKey = `yatris_user_certifications_${user.email}`;
       const cachedData = localStorage.getItem(cacheKey);
-      
+
       if (cachedData) {
         const certs = JSON.parse(cachedData);
         const updatedCerts = certs.map((c: any) => {
           // Match by exam code and provider
-          if (c.examCode === cert.examCode && 
-              c.certificationProvider?.toLowerCase() === cert.certificationProvider?.toLowerCase()) {
+          if (c.examCode === cert.examCode &&
+            c.certificationProvider?.toLowerCase() === cert.certificationProvider?.toLowerCase()) {
             return {
               ...c,
               certificationDate: updatedData.certificationDate || c.certificationDate,
@@ -1146,11 +1148,11 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           }
           return c;
         });
-        
+
         // Update cache immediately
         localStorage.setItem(cacheKey, JSON.stringify(updatedCerts));
         localStorage.setItem(`yatris_user_certifications_timestamp_${user.email}`, Date.now().toString());
-        
+
         // Dispatch custom event to update ManageCertifications page
         window.dispatchEvent(new CustomEvent('certificationsUpdated', { detail: updatedCerts }));
       }
@@ -1172,28 +1174,28 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           console.log(`🔍 Processing certification: ${cred.certificationName} (${cred.examCode})`);
           console.log(`📋 Detected provider: ${certProvider}`);
           console.log(`📋 Certification value: ${cred.certificationValue}`);
-          
-          const sheetName = certProvider === "aws" 
-            ? "certified-aws-yatris" 
+
+          const sheetName = certProvider === "aws"
+            ? "certified-aws-yatris"
             : certProvider === "azure"
-            ? "certified-azure-yatris"
-            : certProvider === "gcp"
-            ? "certified-gcp-yatris"
-            : certProvider === "github"
-            ? "certified-github-yatris"
-            : certProvider === "oracle"
-            ? "certified-oracle-yatris"
-            : certProvider === "salesforce"
-            ? "certified-salesforce-yatris"
-            : certProvider === "servicenow"
-            ? "certified-servicenow-yatris"
-            : certProvider === "openai"
-            ? "certified-openai-yatris"
-            : certProvider === "hashicorp"
-            ? "certified-hashicorp-yatris"
-            : certProvider === "kubernetes"
-            ? "certified-kubernetes-yatris"
-            : "certified-other-yatris";
+              ? "certified-azure-yatris"
+              : certProvider === "gcp"
+                ? "certified-gcp-yatris"
+                : certProvider === "github"
+                  ? "certified-github-yatris"
+                  : certProvider === "oracle"
+                    ? "certified-oracle-yatris"
+                    : certProvider === "salesforce"
+                      ? "certified-salesforce-yatris"
+                      : certProvider === "servicenow"
+                        ? "certified-servicenow-yatris"
+                        : certProvider === "openai"
+                          ? "certified-openai-yatris"
+                          : certProvider === "hashicorp"
+                            ? "certified-hashicorp-yatris"
+                            : certProvider === "kubernetes"
+                              ? "certified-kubernetes-yatris"
+                              : "certified-other-yatris";
 
           console.log(`📊 Target sheet: ${sheetName}`);
 
@@ -1204,7 +1206,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
             console.warn(`⚠️ This exact certification already exists. Skipping to prevent duplicate entries.`);
             return { success: false, reason: 'duplicate', provider: certProvider, cert: cred.certificationName };
           }
-          
+
           console.log(`✅ No duplicate found for ${certProvider.toUpperCase()}: ${cred.certificationName} (${cred.examCode})`);
 
           const subSheetName = `${cred.examCode}: ${cred.certificationName}`;
@@ -1215,10 +1217,10 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           // This ensures data appears in achievements section
           // Use user data if available (when hasSubmittedBefore), otherwise use form data
           // For photo: use user's photoUrl if available, otherwise use form photo
-          const photoToUse = user?.photoUrl 
+          const photoToUse = user?.photoUrl
             ? null // If user has photoUrl, we'll pass it as photoUrl string (handled separately)
             : (commonData.photo || null);
-          
+
           await submitCertification({
             fullName: hasSubmittedBefore ? (user?.fullName || '') : (user?.fullName || commonData.fullName),
             email: hasSubmittedBefore ? (user?.email || '') : (user?.email || commonData.email),
@@ -1254,6 +1256,38 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       const failed = results.filter(r => r && r.success === false);
       const total = certificationCredentials.length;
 
+      // Send Confirmation Email for successful submissions
+      if (successful > 0) {
+        try {
+          const successNames = results
+            .filter(r => r && r.success === true)
+            .map(r => r?.cert)
+            .join(', ');
+
+          const providerName = results
+            .filter(r => r && r.success === true)
+            .map(r => r?.provider?.toUpperCase())
+            .filter((v, i, a) => a?.indexOf(v) === i) // Unique providers
+            .join(' & ');
+
+          // Use first user name available
+          const recipientName = hasSubmittedBefore ? (user?.fullName || '') : (user?.fullName || commonData.fullName);
+          const recipientEmail = hasSubmittedBefore ? (user?.email || '') : (user?.email || commonData.email);
+
+          const emailHtml = getCertificateSubmissionEmail(recipientName, successNames, providerName);
+
+          // Send in background
+          sendEmail({
+            to: recipientEmail,
+            subject: `Submission Received: ${successNames}`,
+            html: emailHtml
+          }).catch(err => console.error("Email API error:", err));
+
+        } catch (emailErr) {
+          console.error("Failed to prepare submission confirmation email", emailErr);
+        }
+      }
+
       // Log detailed results
       console.log(`📊 Submission Summary: ${successful}/${total} successful`);
       if (failed.length > 0) {
@@ -1284,17 +1318,17 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       setCurrentCertIndex(0);
       setCertificationCredentials([]);
       setShowAddNew(false); // Reset to show certifications view
-      
+
       toast({
         title: "Success! 🎉",
-        description: `Successfully submitted ${successful} of ${total} certification${total > 1 ? 's' : ''}!`,
+        description: `Successfully submitted ${successful} of ${total} certification${total > 1 ? 's' : ''}! A confirmation email has been sent.`,
       });
-      
+
       // Optimistically update cache immediately with submitted certifications
       if (user?.email) {
         updateCacheWithNewCertifications(certificationCredentials, user.email);
       }
-      
+
       // Reload certifications from achievements in background (no delay)
       (async () => {
         const currentCerts = await fetchCertifications();
@@ -1396,7 +1430,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
 
       // Get all certifications for selected providers
       const certifications = getCertifications();
-      
+
       // Submit each selected certification separately
       const submissionPromises = data.selectedCertifications.map(async (certValue) => {
         const selectedCert = certifications.find((c) => c.value === certValue);
@@ -1406,21 +1440,21 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
 
         // Determine provider for this certification
         const certProvider = getProviderForCertification(certValue);
-        const sheetName = certProvider === "aws" 
-          ? "certified-aws-yatris" 
+        const sheetName = certProvider === "aws"
+          ? "certified-aws-yatris"
           : certProvider === "azure"
-          ? "certified-azure-yatris"
-          : certProvider === "gcp"
-          ? "certified-gcp-yatris"
-          : certProvider === "github"
-          ? "certified-github-yatris"
-          : certProvider === "oracle"
-          ? "certified-oracle-yatris"
-          : certProvider === "salesforce"
-          ? "certified-salesforce-yatris"
-          : certProvider === "servicenow"
-          ? "certified-servicenow-yatris"
-          : "certified-other-yatris";
+            ? "certified-azure-yatris"
+            : certProvider === "gcp"
+              ? "certified-gcp-yatris"
+              : certProvider === "github"
+                ? "certified-github-yatris"
+                : certProvider === "oracle"
+                  ? "certified-oracle-yatris"
+                  : certProvider === "salesforce"
+                    ? "certified-salesforce-yatris"
+                    : certProvider === "servicenow"
+                      ? "certified-servicenow-yatris"
+                      : "certified-other-yatris";
 
         const fullCertificationName = selectedCert.label;
         const examCode = selectedCert.code;
@@ -1464,7 +1498,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       setIsSuccess(true);
       reset();
       setPhotoPreview(null);
-      
+
       toast({
         title: "Success! 🎉",
         description: `Successfully submitted ${successful} of ${total} certification${total > 1 ? 's' : ''}!`,
@@ -1511,7 +1545,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
               loadUserCertifications();
             }
           }}>Submit Another</Button>
-          <Button 
+          <Button
             variant="default"
             onClick={() => {
               window.location.href = "/achievements";
@@ -1520,8 +1554,8 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
             View Achievements
           </Button>
           {user?.email && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 window.location.href = "/manage-certifications";
               }}
@@ -1548,7 +1582,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       description: "Certification deletion requires updating the provider's Apps Script. Please contact support or resubmit with updated information.",
       variant: "destructive",
     });
-    
+
     // TODO: Implement delete functionality by calling provider-specific webhook
     // For now, we'll just reload to show current state
     await loadUserCertifications();
@@ -1566,7 +1600,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       verifiedCredential: cert.verifiedCredential || "",
       additionalNotes: cert.additionalNotes || "",
     }));
-    
+
     // Navigate to form (remove edit param to show form)
     const url = new URL(window.location.href);
     url.searchParams.delete('edit');
@@ -1597,7 +1631,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
 
   // Check if we're editing a certification first (before redirecting)
   const isEditingCert = sessionStorage.getItem("editingCertification");
-  
+
   // If editing, don't redirect - show the edit form
   // The edit mode useEffect will set currentStep to 'credentials' and isEditMode to true
   if (isEditingCert || isEditMode || currentStep === 'credentials') {
@@ -1675,335 +1709,331 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
               </>
             )}
 
-          {/* Multiple Provider Selection - Card Style */}
-          <div>
-            <Label className="mb-3 block text-base font-semibold">
-              Step 1: Select Your Certification Provider(s) <span className="text-destructive">*</span>
-            </Label>
-            <p className="text-sm text-muted-foreground mb-4">
-              Choose one or more providers. You can select multiple providers to submit certifications from different platforms.
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {CERTIFICATION_PROVIDERS.map((provider) => {
-                const isChecked = selectedProviders.includes(provider.value);
-                return (
-                  <motion.div
-                    key={provider.value}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleProviderToggle(provider.value, !isChecked)}
-                    className={`
-                      relative cursor-pointer rounded-xl p-4 border-2 transition-all duration-200
-                      ${isChecked 
-                        ? 'bg-primary/10 border-primary shadow-lg ring-2 ring-offset-2 ring-offset-background' 
-                        : 'bg-muted/30 border-border hover:border-primary/50 hover:bg-muted/50'
-                      }
-                    `}
-                  >
-                    {/* Check Icon */}
-                    {isChecked && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center"
-                      >
-                        <Check className="w-4 h-4 text-primary-foreground" />
-                      </motion.div>
-                    )}
-                    
-                    {/* Provider Content */}
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      {provider.logo && (
-                        <div className="flex justify-center mb-2">
-                          <img 
-                            src={
-                              provider.value === 'github'
-                                ? (theme === 'dark' ? provider.logo : (provider as any).logoLight || provider.logo) // Interchanged for GitHub
-                                : (theme === 'dark' && (provider as any).logoLight ? (provider as any).logoLight : provider.logo)
-                            }
-                            alt={provider.label}
-                            className={`h-12 w-auto object-contain ${
-                              provider.value === 'terraform' 
-                                ? 'dark:invert' 
-                                : provider.value === 'github' && theme === 'light'
-                                ? 'invert' // Invert white icon for light theme
-                                : ''
-                            } ${
-                              provider.value === 'oracle' || provider.value === 'servicenow'
-                                ? 'max-w-[120px]' // Limit width for Oracle and ServiceNow
-                                : ''
-                            }`}
-                            onError={(e) => {
-                              // Hide image if it fails to load
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      )}
-                      <div className="font-semibold text-base text-foreground">
-                        {provider.label}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-            
-            {/* Selection Feedback */}
-            {selectedProviders.length === 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
-              >
-                <p className="text-sm text-destructive font-medium">
-                  ⚠️ Please select at least one provider to continue
-                </p>
-              </motion.div>
-            )}
-            {selectedProviders.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg"
-              >
-                <p className="text-sm text-primary font-medium">
-                  ✓ {selectedProviders.length} provider{selectedProviders.length > 1 ? 's' : ''} selected
-                  {selectedProviders.length > 1 && " - Great! You can submit certifications from multiple platforms."}
-                </p>
-              </motion.div>
-            )}
-          </div>
-
-          {/* Multiple Certification Selection - Grouped by Provider */}
-          {selectedProviders.length > 0 && (
+            {/* Multiple Provider Selection - Card Style */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <Label className="block text-base font-semibold">
-                  Step 2: Select Your Certifications <span className="text-destructive">*</span>
-                </Label>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <div className="w-full sm:w-64">
-                    <Input
-                      type="text"
-                      value={certSearchQuery}
-                      onChange={(e) => setCertSearchQuery(e.target.value)}
-                      placeholder="Search certifications by name or code..."
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm text-muted-foreground">Sort:</Label>
-                  <Select value={sortOrder} onValueChange={(value: 'a-z' | 'z-a' | 'default') => setSortOrder(value)}>
-                    <SelectTrigger className="w-[120px] h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="a-z">A to Z</SelectItem>
-                      <SelectItem value="z-a">Z to A</SelectItem>
-                      <SelectItem value="default">Default</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  </div>
-                </div>
-              </div>
+              <Label className="mb-3 block text-base font-semibold">
+                Step 1: Select Your Certification Provider(s) <span className="text-destructive">*</span>
+              </Label>
               <p className="text-sm text-muted-foreground mb-4">
-                Choose the specific certifications you want to submit. You can select multiple certifications from your chosen providers.
+                Choose one or more providers. You can select multiple providers to submit certifications from different platforms.
               </p>
-              <div className="border border-border rounded-xl p-4 max-h-96 overflow-y-auto bg-muted/30 space-y-6">
-                {selectedProviders.map((providerValue) => {
-                  const provider = CERTIFICATION_PROVIDERS.find(p => p.value === providerValue);
-                  const providerCerts = getCertificationsForProvider(providerValue);
-                  if (providerCerts.length === 0) return null;
-                  
-                  const providerColors: Record<string, string> = {
-                    aws: "text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800",
-                    azure: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
-                    gcp: "text-red-600 dark:text-red-400 border-red-200 dark:border-red-800",
-                    github: "text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800",
-                    oracle: "text-red-600 dark:text-red-400 border-red-200 dark:border-red-800",
-                    salesforce: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
-                    servicenow: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
-                    openai: "text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
-                    hashicorp: "text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800",
-                    kubernetes: "text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800",
-                    other: "text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800"
-                  };
-                  const colorClass = providerColors[providerValue] || providerColors.other;
-                  
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {CERTIFICATION_PROVIDERS.map((provider) => {
+                  const isChecked = selectedProviders.includes(provider.value);
                   return (
-                    <div key={providerValue} className="space-y-3">
-                      <div className={`flex items-center gap-2 pb-2 border-b ${colorClass.split(' ')[2]}`}>
-                        <h4 className={`font-semibold text-sm ${colorClass.split(' ')[0]} ${colorClass.split(' ')[1]}`}>
-                          {provider?.label} Certifications
-                        </h4>
+                    <motion.div
+                      key={provider.value}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleProviderToggle(provider.value, !isChecked)}
+                      className={`
+                      relative cursor-pointer rounded-xl p-4 border-2 transition-all duration-200
+                      ${isChecked
+                          ? 'bg-primary/10 border-primary shadow-lg ring-2 ring-offset-2 ring-offset-background'
+                          : 'bg-muted/30 border-border hover:border-primary/50 hover:bg-muted/50'
+                        }
+                    `}
+                    >
+                      {/* Check Icon */}
+                      {isChecked && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center"
+                        >
+                          <Check className="w-4 h-4 text-primary-foreground" />
+                        </motion.div>
+                      )}
+
+                      {/* Provider Content */}
+                      <div className="flex flex-col items-center text-center space-y-2">
+                        {provider.logo && (
+                          <div className="flex justify-center mb-2">
+                            <img
+                              src={
+                                provider.value === 'github'
+                                  ? (theme === 'dark' ? provider.logo : (provider as any).logoLight || provider.logo) // Interchanged for GitHub
+                                  : (theme === 'dark' && (provider as any).logoLight ? (provider as any).logoLight : provider.logo)
+                              }
+                              alt={provider.label}
+                              className={`h-12 w-auto object-contain ${provider.value === 'terraform'
+                                ? 'dark:invert'
+                                : provider.value === 'github' && theme === 'light'
+                                  ? 'invert' // Invert white icon for light theme
+                                  : ''
+                                } ${provider.value === 'oracle' || provider.value === 'servicenow'
+                                  ? 'max-w-[120px]' // Limit width for Oracle and ServiceNow
+                                  : ''
+                                }`}
+                              onError={(e) => {
+                                // Hide image if it fails to load
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        <div className="font-semibold text-base text-foreground">
+                          {provider.label}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 gap-2 ml-2">
-                        {[...providerCerts]
-                          .filter((cert) => {
-                            if (!certSearchQuery) return true;
-                            const query = certSearchQuery.toLowerCase();
-                            return (
-                              cert.label.toLowerCase().includes(query) ||
-                              cert.code.toLowerCase().includes(query)
-                            );
-                          })
-                          .sort((a, b) => {
-                          if (sortOrder === 'a-z') {
-                            return a.label.localeCompare(b.label);
-                          } else if (sortOrder === 'z-a') {
-                            return b.label.localeCompare(a.label);
-                          }
-                          return 0;
-                        }).map((cert) => {
-                          const isChecked = selectedCertifications.includes(cert.value);
-                          return (
-                            <motion.div
-                              key={cert.value}
-                              whileHover={{ x: 4 }}
-                              className={`
-                                flex items-center space-x-3 py-2.5 px-3 rounded-lg border transition-all cursor-pointer
-                                ${isChecked 
-                                  ? 'bg-primary/10 border-primary/50 shadow-sm' 
-                                  : 'hover:bg-muted/70 border-border/50'
-                                }
-                              `}
-                              onClick={() => handleCertificationToggle(cert.value, !isChecked)}
-                            >
-                              <div className={`
-                                w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all
-                                ${isChecked 
-                                  ? 'bg-primary border-primary' 
-                                  : 'border-muted-foreground/40'
-                                }
-                              `}>
-                                {isChecked && <Check className="w-3 h-3 text-primary-foreground" />}
-                              </div>
-                              {cert.logo && (
-                                <div className="flex-shrink-0">
-                                  <img 
-                                    src={
-                                      cert.logo.includes('github-white-icon')
-                                        ? (theme === 'dark' ? cert.logo : (cert as any).logoLight || cert.logo) // Interchanged for GitHub
-                                        : (theme === 'dark' && (cert as any).logoLight ? (cert as any).logoLight : cert.logo)
-                                    }
-                                    alt={cert.label}
-                                    className={`h-8 w-auto object-contain ${
-                                      cert.logo && cert.logo.includes('HashiCorp')
-                                        ? 'dark:invert'
-                                        : cert.logo.includes('github-white-icon') && theme === 'light'
-                                        ? 'invert' // Invert white icon for light theme
-                                        : ''
-                                    } ${
-                                      cert.logo && (cert.logo.includes('Oracle') || cert.logo.includes('ServiceNow'))
-                                        ? 'max-w-[80px]' // Limit width for Oracle and ServiceNow certifications
-                                        : ''
-                                    }`}
-                                    onError={(e) => {
-                                      // Hide image if it fails to load
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                  />
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className={`font-medium text-sm ${isChecked ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                  {cert.label}
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-0.5">
-                                  Exam Code: <span className="font-mono font-semibold">{cert.code}</span>
-                                </div>
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
-              
+
               {/* Selection Feedback */}
-              {selectedCertifications.length === 0 && (
+              {selectedProviders.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
                 >
                   <p className="text-sm text-destructive font-medium">
-                    ⚠️ Please select at least one certification to continue
+                    ⚠️ Please select at least one provider to continue
                   </p>
                 </motion.div>
               )}
-              {selectedCertifications.length > 0 && (
+              {selectedProviders.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg"
                 >
                   <p className="text-sm text-primary font-medium">
-                    ✓ {selectedCertifications.length} certification{selectedCertifications.length > 1 ? 's' : ''} selected
-                    {selectedCertifications.length > 1 && " - Ready to proceed!"}
+                    ✓ {selectedProviders.length} provider{selectedProviders.length > 1 ? 's' : ''} selected
+                    {selectedProviders.length > 1 && " - Great! You can submit certifications from multiple platforms."}
                   </p>
                 </motion.div>
               )}
             </div>
-          )}
 
-          {/* Selected Certifications Summary */}
-          {selectedCertifications.length > 0 && (
-            <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
-              <h3 className="font-semibold mb-3 text-primary">Selected Certifications:</h3>
-              <div className="space-y-2">
-                {selectedCertifications.map((certValue) => {
-                  const cert = getCertifications().find(c => c.value === certValue);
-                  if (!cert) return null;
-                  return (
-                    <div key={certValue} className="flex items-center justify-between p-2 bg-background rounded border">
-                      <div>
-                        <span className="font-medium">{cert.label}</span>
-                        <span className="text-sm text-muted-foreground ml-2">({cert.code})</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCertificationToggle(certValue, false)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        Remove
-                      </Button>
+            {/* Multiple Certification Selection - Grouped by Provider */}
+            {selectedProviders.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="block text-base font-semibold">
+                    Step 2: Select Your Certifications <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="w-full sm:w-64">
+                      <Input
+                        type="text"
+                        value={certSearchQuery}
+                        onChange={(e) => setCertSearchQuery(e.target.value)}
+                        placeholder="Search certifications by name or code..."
+                        className="h-8 text-xs"
+                      />
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm text-muted-foreground">Sort:</Label>
+                      <Select value={sortOrder} onValueChange={(value: 'a-z' | 'z-a' | 'default') => setSortOrder(value)}>
+                        <SelectTrigger className="w-[120px] h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="a-z">A to Z</SelectItem>
+                          <SelectItem value="z-a">Z to A</SelectItem>
+                          <SelectItem value="default">Default</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Choose the specific certifications you want to submit. You can select multiple certifications from your chosen providers.
+                </p>
+                <div className="border border-border rounded-xl p-4 max-h-96 overflow-y-auto bg-muted/30 space-y-6">
+                  {selectedProviders.map((providerValue) => {
+                    const provider = CERTIFICATION_PROVIDERS.find(p => p.value === providerValue);
+                    const providerCerts = getCertificationsForProvider(providerValue);
+                    if (providerCerts.length === 0) return null;
 
-          {/* Done Button */}
-          {selectedCertifications.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-end pt-6 border-t border-border mt-6"
-            >
-              <div className="text-sm text-muted-foreground mb-3 text-right">
-                {selectedCertifications.length} certification{selectedCertifications.length > 1 ? 's' : ''} ready to submit
+                    const providerColors: Record<string, string> = {
+                      aws: "text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800",
+                      azure: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
+                      gcp: "text-red-600 dark:text-red-400 border-red-200 dark:border-red-800",
+                      github: "text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800",
+                      oracle: "text-red-600 dark:text-red-400 border-red-200 dark:border-red-800",
+                      salesforce: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
+                      servicenow: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
+                      openai: "text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
+                      hashicorp: "text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800",
+                      kubernetes: "text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800",
+                      other: "text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800"
+                    };
+                    const colorClass = providerColors[providerValue] || providerColors.other;
+
+                    return (
+                      <div key={providerValue} className="space-y-3">
+                        <div className={`flex items-center gap-2 pb-2 border-b ${colorClass.split(' ')[2]}`}>
+                          <h4 className={`font-semibold text-sm ${colorClass.split(' ')[0]} ${colorClass.split(' ')[1]}`}>
+                            {provider?.label} Certifications
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 ml-2">
+                          {[...providerCerts]
+                            .filter((cert) => {
+                              if (!certSearchQuery) return true;
+                              const query = certSearchQuery.toLowerCase();
+                              return (
+                                cert.label.toLowerCase().includes(query) ||
+                                cert.code.toLowerCase().includes(query)
+                              );
+                            })
+                            .sort((a, b) => {
+                              if (sortOrder === 'a-z') {
+                                return a.label.localeCompare(b.label);
+                              } else if (sortOrder === 'z-a') {
+                                return b.label.localeCompare(a.label);
+                              }
+                              return 0;
+                            }).map((cert) => {
+                              const isChecked = selectedCertifications.includes(cert.value);
+                              return (
+                                <motion.div
+                                  key={cert.value}
+                                  whileHover={{ x: 4 }}
+                                  className={`
+                                flex items-center space-x-3 py-2.5 px-3 rounded-lg border transition-all cursor-pointer
+                                ${isChecked
+                                      ? 'bg-primary/10 border-primary/50 shadow-sm'
+                                      : 'hover:bg-muted/70 border-border/50'
+                                    }
+                              `}
+                                  onClick={() => handleCertificationToggle(cert.value, !isChecked)}
+                                >
+                                  <div className={`
+                                w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all
+                                ${isChecked
+                                      ? 'bg-primary border-primary'
+                                      : 'border-muted-foreground/40'
+                                    }
+                              `}>
+                                    {isChecked && <Check className="w-3 h-3 text-primary-foreground" />}
+                                  </div>
+                                  {cert.logo && (
+                                    <div className="flex-shrink-0">
+                                      <img
+                                        src={
+                                          cert.logo.includes('github-white-icon')
+                                            ? (theme === 'dark' ? cert.logo : (cert as any).logoLight || cert.logo) // Interchanged for GitHub
+                                            : (theme === 'dark' && (cert as any).logoLight ? (cert as any).logoLight : cert.logo)
+                                        }
+                                        alt={cert.label}
+                                        className={`h-8 w-auto object-contain ${cert.logo && cert.logo.includes('HashiCorp')
+                                          ? 'dark:invert'
+                                          : cert.logo.includes('github-white-icon') && theme === 'light'
+                                            ? 'invert' // Invert white icon for light theme
+                                            : ''
+                                          } ${cert.logo && (cert.logo.includes('Oracle') || cert.logo.includes('ServiceNow'))
+                                            ? 'max-w-[80px]' // Limit width for Oracle and ServiceNow certifications
+                                            : ''
+                                          }`}
+                                        onError={(e) => {
+                                          // Hide image if it fails to load
+                                          (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className={`font-medium text-sm ${isChecked ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                      {cert.label}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mt-0.5">
+                                      Exam Code: <span className="font-mono font-semibold">{cert.code}</span>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Selection Feedback */}
+                {selectedCertifications.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+                  >
+                    <p className="text-sm text-destructive font-medium">
+                      ⚠️ Please select at least one certification to continue
+                    </p>
+                  </motion.div>
+                )}
+                {selectedCertifications.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg"
+                  >
+                    <p className="text-sm text-primary font-medium">
+                      ✓ {selectedCertifications.length} certification{selectedCertifications.length > 1 ? 's' : ''} selected
+                      {selectedCertifications.length > 1 && " - Ready to proceed!"}
+                    </p>
+                  </motion.div>
+                )}
               </div>
-              <Button
-                type="button"
-                onClick={handleDoneSelection}
-                className="px-8 py-6 text-base font-semibold"
-                disabled={selectedCertifications.length === 0}
-                size="lg"
+            )}
+
+            {/* Selected Certifications Summary */}
+            {selectedCertifications.length > 0 && (
+              <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                <h3 className="font-semibold mb-3 text-primary">Selected Certifications:</h3>
+                <div className="space-y-2">
+                  {selectedCertifications.map((certValue) => {
+                    const cert = getCertifications().find(c => c.value === certValue);
+                    if (!cert) return null;
+                    return (
+                      <div key={certValue} className="flex items-center justify-between p-2 bg-background rounded border">
+                        <div>
+                          <span className="font-medium">{cert.label}</span>
+                          <span className="text-sm text-muted-foreground ml-2">({cert.code})</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCertificationToggle(certValue, false)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Done Button */}
+            {selectedCertifications.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-end pt-6 border-t border-border mt-6"
               >
-                Continue to Next Step →
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2 text-right max-w-md">
-                You can add more certifications later by clicking "Back to Add More Certifications" in the next step
-              </p>
-            </motion.div>
-          )}
+                <div className="text-sm text-muted-foreground mb-3 text-right">
+                  {selectedCertifications.length} certification{selectedCertifications.length > 1 ? 's' : ''} ready to submit
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleDoneSelection}
+                  className="px-8 py-6 text-base font-semibold"
+                  disabled={selectedCertifications.length === 0}
+                  size="lg"
+                >
+                  Continue to Next Step →
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2 text-right max-w-md">
+                  You can add more certifications later by clicking "Back to Add More Certifications" in the next step
+                </p>
+              </motion.div>
+            )}
           </div>
         </motion.div>
       </div>
@@ -2121,14 +2151,14 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
               {certificationCredentials.map((cred) => {
                 const cert = getCertifications().find(c => c.value === cred.certificationValue);
                 if (!cert) return null;
-                
-                              return (
+
+                return (
                   <div key={cred.certificationValue} className="p-6 bg-muted/30 border border-border rounded-lg space-y-4">
                     <div className="pb-3 border-b border-border">
                       <h4 className="text-lg font-semibold">{cert.label}</h4>
                       <p className="text-sm text-muted-foreground">Exam Code: {cert.code}</p>
                     </div>
-                    
+
 
                     {/* Verified Credential URL */}
                     <div>
@@ -2210,7 +2240,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
               </p>
             </div>
           )}
-          
+
           <div className="mb-6">
             {!isEditMode && (
               <div className="text-sm text-muted-foreground mb-2">
@@ -2328,10 +2358,10 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                 type="button"
                 variant="outline"
                 onClick={() => {
-                    if (isEditMode) {
-                      // In edit mode, go back to manage certifications
-                      window.location.href = '/manage-certifications';
-                    } else if (currentCertIndex > 0) {
+                  if (isEditMode) {
+                    // In edit mode, go back to manage certifications
+                    window.location.href = '/manage-certifications';
+                  } else if (currentCertIndex > 0) {
                     setCurrentCertIndex(currentCertIndex - 1);
                     const prevCert = certificationCredentials[currentCertIndex - 1];
                     setCredentialValue('certificationDate', prevCert.certificationDate);

@@ -15,6 +15,8 @@ import { initiateRazorpayPayment, isEventPaid, formatEventPrice } from "@/lib/ra
 import { generateUniqueCode, addRegistration, isUserRegistered, type EventRegistration } from "@/lib/registration-store";
 import { registerForEvent } from "@/lib/registration-api";
 import { useToast } from "@/hooks/use-toast";
+import { sendEmail } from "@/lib/email";
+import { getRegistrationEmail } from "@/lib/email-templates";
 
 interface RegistrationModalProps {
     event: Event;
@@ -213,9 +215,21 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 amount: price,
                             });
 
+                            // Send Confirmation Email
+                            try {
+                                const emailHtml = getRegistrationEmail(formData.name, event.name, event.date || 'TBD', event.location); // event.location might need checking if it exists
+                                await sendEmail({
+                                    to: formData.email,
+                                    subject: `Registration Confirmed: ${event.name}`,
+                                    html: emailHtml
+                                });
+                            } catch (emailErr) {
+                                console.error("Failed to send confirmation email", emailErr);
+                            }
+
                             toast({
                                 title: "Registration Successful!",
-                                description: `Your code: ${registration.registrationCode}`,
+                                description: `Your code: ${registration.registrationCode}. A confirmation email has been sent.`,
                             });
 
                             onSuccess(registration);
@@ -244,9 +258,21 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                 // Free event - direct registration
                 const registration = await createRegistration();
 
+                // Send Confirmation Email
+                try {
+                    const emailHtml = getRegistrationEmail(formData.name, event.name, event.date || 'TBD', event.location);
+                    await sendEmail({
+                        to: formData.email,
+                        subject: `Registration Confirmed: ${event.name}`,
+                        html: emailHtml
+                    });
+                } catch (emailErr) {
+                    console.error("Failed to send confirmation email", emailErr);
+                }
+
                 toast({
                     title: "Registration Successful!",
-                    description: `Your code: ${registration.registrationCode}`,
+                    description: `Your code: ${registration.registrationCode}. A confirmation email has been sent.`,
                 });
 
                 onSuccess(registration);

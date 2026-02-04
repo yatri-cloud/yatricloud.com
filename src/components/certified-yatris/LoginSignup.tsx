@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Country } from "country-state-city";
 import { parsePhoneNumber } from "libphonenumber-js";
+import { sendEmail } from "@/lib/email";
+import { getWelcomeEmail } from "@/lib/email-templates";
 
 interface LoginSignupProps {
   onSuccess: (user: any) => void;
@@ -123,7 +125,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       }
 
       setPhotoFile(file);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -229,6 +231,19 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       });
 
       if (result.success && result.user) {
+
+        // Send Welcome Email
+        try {
+          const emailHtml = getWelcomeEmail(registerData.fullName);
+          sendEmail({
+            to: registerData.email,
+            subject: "Welcome to Yatri Cloud! 🚀",
+            html: emailHtml
+          }).catch(err => console.error("Welcome email failed:", err));
+        } catch (emailErr) {
+          console.error("Failed to prepare welcome email:", emailErr);
+        }
+
         onSuccess(result.user);
       } else {
         setError(result.error || "Registration failed");

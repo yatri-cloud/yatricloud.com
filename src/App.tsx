@@ -37,6 +37,7 @@ import AdminAttendees from "./pages/admin/AdminAttendees";
 import EventRegistrationsList from "./pages/admin/EventRegistrationsList";
 import { Bot } from "lucide-react"; // Import Bot icon
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import EventFeedback from "./pages/EventFeedback";
 
 const queryClient = new QueryClient();
 
@@ -63,7 +64,10 @@ const App = () => (
             <Route path="/addproduct" element={<AddProduct />} />
             <Route path="/feedback" element={<Review />} />
             <Route path="/reviews" element={<Reviews />} />
+
+            {/* ... inside Routes ... */}
             <Route path="/createevent" element={<CreateEvent />} />
+            <Route path="/events/:eventName/feedback" element={<EventFeedback />} />
 
             {/* Upcoming Event Routes */}
             <Route path="/upcoming-event/:slug" element={<UpcomingEventDetail />} />

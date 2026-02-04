@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { verifyAttendee, confirmAttendance, AttendeeDetails } from "@/lib/registration-api";
 import { updateRegistrationStatus } from "@/lib/registration-store";
 import { useToast } from "@/hooks/use-toast";
+import { sendEmail } from "@/lib/email";
+import { getEventFeedbackEmail } from "@/lib/email-templates";
 
 export default function AdminAttendees() {
     const { toast } = useToast();
@@ -68,6 +70,18 @@ export default function AdminAttendees() {
             if (result.success) {
                 // Update localStorage
                 updateRegistrationStatus(attendee.code, 'attended', new Date().toISOString());
+
+                // Send Feedback/Attendance Email
+                try {
+                    const emailHtml = getEventFeedbackEmail(attendee.name, attendee.eventName);
+                    sendEmail({
+                        to: attendee.email,
+                        subject: `Thanks for attending ${attendee.eventName}! 🌟`,
+                        html: emailHtml
+                    }).catch(err => console.error("Feedback email failed:", err));
+                } catch (emailErr) {
+                    console.error("Failed to prepare feedback email:", emailErr);
+                }
 
                 setVerified(true);
                 toast({
