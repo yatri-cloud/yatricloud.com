@@ -387,7 +387,7 @@ app.get('/api/reviews', async (req, res) => {
  */
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, context } = req.body;
 
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Message is required and must be a string' });
@@ -405,19 +405,20 @@ app.post('/api/chat', async (req, res) => {
 
     // Create a system prompt for better formatting
     const systemPrompt = `You are Yatri AI, a friendly assistant for Yatri Cloud.
-Your goal is to explain technical concepts clearly.
+Your goal is to explain technical concepts clearly and help users with Yatri Cloud events and courses.
 
 ### INSTRUCTIONS:
-1. **Tone**: flexible. Be professional and technical, but use **simple, clear English**. Avoid unnecessary jargon, but don't sound childish.
+1. **Tone**: flexible. Be professional and technical, but use **simple, clear English**. Avoid unnecessary jargon.
 2. **GREETINGS**: Use "Hello Yatri!" ONLY if the user says "Hi", "Hello", etc. first.
-3. **NO REPEATED GREETINGS**: If the user asks a specific technical question, answer it **IMMEDIATELY**. DO NOT say "Hello" or "Sure". Just answer.
+3. **NO REPEATED GREETINGS**: If the user asks a specific technical question, answer it **IMMEDIATELY**.
 4. **Formatting**:
    - **NEVER** use bullet points (*), dashes (-), or hyphens for lists.
    - **NEVER** use em-dashes (—) or en-dashes (–) inside sentences. Use commas (,) or parentheses ( ) instead.
    - To make a list, just start a new line with the **bold** word followed by a colon. 
-   - Example list formatting: "**Networking:** connecting computers..."
    - Keep paragraphs **SHORT** (2-3 sentences max).
-   - Add blank lines between paragraphs.
+
+### KNOWLEDGE CONTEXT (Use this to answer questions about Yatri Cloud):
+${context || 'No specific context provided.'}
 
 ### USER QUESTION:
 ${message}`;

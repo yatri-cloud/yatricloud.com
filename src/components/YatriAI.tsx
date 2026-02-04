@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getAIModel } from '@/lib/ai-store';
+import { fetchPublishedEvents } from '@/lib/yatris-api';
 
 interface Message {
   id: string;
@@ -121,6 +122,31 @@ export const YatriAI = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const [contextData, setContextData] = useState<string>('');
+
+  useEffect(() => {
+    const loadContext = async () => {
+      try {
+        const events = await fetchPublishedEvents();
+        const eventList = events.map((e: any) =>
+          "- " + e.name + ": " + new Date(e.date).toLocaleDateString() + " at " + (e.location?.venue || 'Online') + " (" + e.status + ")"
+        ).join('\n');
+
+        setContextData(
+          "AVAILABLE EVENTS:\n" +
+          (eventList || 'No upcoming events found.') +
+          "\n\nWEBSITE SECTIONS:\n" +
+          "- Certified Yatris: Browse certified professionals.\n" +
+          "- Events: Register for upcoming workshops and hackathons.\n" +
+          "- Practice Tests: Udemy course integration.\n" +
+          "- Store: Yatri merchandise (coming soon)."
+        );
+      } catch (e) {
+        console.warn("Failed to load AI context", e);
+      }
+    };
+    loadContext();
+  }, []);
 
   // Set initial greeting based on time of day
   useEffect(() => {
@@ -239,7 +265,8 @@ export const YatriAI = () => {
         },
         body: JSON.stringify({
           message: messageText,
-          model: getAIModel()
+          model: getAIModel(),
+          context: contextData
         }),
         signal: abortControllerRef.current?.signal,
       });

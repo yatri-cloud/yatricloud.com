@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, User, Settings, LogOut } from "lucide-react";
+import { Menu, X, User, Settings, LogOut, Calendar } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAuthenticated, getStoredUser, logout } from "@/lib/yatris-api";
@@ -64,8 +64,8 @@ export const Navbar = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-            ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
-            : "bg-transparent"
+          ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
+          : "bg-transparent"
           }`}
       >
         <div className="container mx-auto px-4 md:px-6">
@@ -140,6 +140,10 @@ export const Navbar = () => {
                     <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                       <Settings className="w-4 h-4 mr-2" />
                       Edit Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/profile/my-events")}>
+                      <Calendar className="w-4 h-4 mr-2" />
+                      My Events
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/manage-certifications")}>
                       <User className="w-4 h-4 mr-2" />

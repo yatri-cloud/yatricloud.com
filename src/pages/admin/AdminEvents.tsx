@@ -1,17 +1,28 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, Mic, Layers, Plus, MapPin, Clock, Pencil, Trash2 } from "lucide-react";
+import { Calendar, Users, Mic, Layers, Plus, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList } from "lucide-react";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
 import { getAllEvents, getEventStatus, Event, deleteEvent } from "@/lib/events-store";
 import { Badge } from "@/components/ui/badge";
+import { deleteEventFolder } from "@/lib/event-automation-api";
+import { useToast } from "@/hooks/use-toast";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 type TabType = "active" | "draft" | "past";
 
 export default function AdminEvents() {
     const navigate = useNavigate();
+    const { toast } = useToast();
     const [activeTab, setActiveTab] = useState<TabType>("active");
     const [events, setEvents] = useState<Event[]>([]);
+    const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
 
     useEffect(() => {
         // Fetch events on mount
@@ -26,11 +37,52 @@ export default function AdminEvents() {
         return computedStatus === 'draft';
     });
 
-    const handleDelete = (id: string, name: string) => {
-        if (window.confirm(`Are you sure you want to delete "${name}"? This will remove it from the website.`)) {
-            deleteEvent(id);
-            // Refresh local state
-            setEvents(getAllEvents());
+    const handleDelete = async (id: string, name: string, driveFolderId?: string) => {
+        const confirmMessage = driveFolderId
+            ? `Are you sure you want to delete "${name}"? This will also permanently delete the Google Drive folder with all event files.`
+            : `Are you sure you want to delete "${name}"? This will remove it from the website.`;
+
+        if (window.confirm(confirmMessage)) {
+            setDeletingEventId(id);
+
+            try {
+                // Delete from Drive if folder exists
+                if (driveFolderId) {
+                    const driveResult = await deleteEventFolder(driveFolderId);
+
+                    if (!driveResult.success) {
+                        toast({
+                            title: "Partial Deletion",
+                            description: `Event removed from UI, but Drive folder deletion failed: ${driveResult.error}`,
+                            variant: "destructive"
+                        });
+                    } else {
+                        toast({
+                            title: "Event Deleted",
+                            description: "Event and Drive folder deleted successfully"
+                        });
+                    }
+                } else {
+                    toast({
+                        title: "Event Deleted",
+                        description: "Event removed successfully"
+                    });
+                }
+
+                // Delete from localStorage
+                deleteEvent(id);
+
+                // Refresh local state
+                setEvents(getAllEvents());
+            } catch (error: any) {
+                toast({
+                    title: "Error",
+                    description: error.message || "Failed to delete event",
+                    variant: "destructive"
+                });
+            } finally {
+                setDeletingEventId(null);
+            }
         }
     };
 
@@ -142,23 +194,87 @@ export default function AdminEvents() {
                             </div>
 
                             <div className="flex gap-2 shrink-0">
-                                {(activeTab === 'draft' || activeTab === 'active') && (
-                                    <Button
-                                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                                        size="sm"
-                                        onClick={() => navigate('/createevent', { state: { event } })}
-                                    >
-                                        <Pencil className="w-4 h-4 mr-2" /> Edit
-                                    </Button>
-                                )}
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-destructive hover:bg-destructive/10 border-destructive/20"
-                                    onClick={() => handleDelete(event.id, event.name)}
-                                >
-                                    <Trash2 className="w-4 h-4 mr-2" /> Delete
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0"
+                                            disabled={deletingEventId === event.id}
+                                        >
+                                            {deletingEventId === event.id ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <MoreVertical className="w-4 h-4" />
+                                            )}
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-56">
+                                        {(activeTab === 'draft' || activeTab === 'active' || activeTab === 'past') && (
+                                            <DropdownMenuItem
+                                                onClick={() => navigate('/createevent', { state: { event } })}
+                                            >
+                                                <Pencil className="w-4 h-4 mr-2" />
+                                                {activeTab === 'past' ? 'View Details' : 'Edit Event'}
+                                            </DropdownMenuItem>
+                                        )}
+
+                                        <DropdownMenuItem
+                                            onClick={() => navigate(`/admin/events/${event.id}/registrations`)}
+                                        >
+                                            <ClipboardList className="w-4 h-4 mr-2" />
+                                            View Registered Details
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuItem
+                                            onClick={() => navigate(`/admin/attendees?eventId=${event.id}`)}
+                                        >
+                                            <UserCheck className="w-4 h-4 mr-2" />
+                                            View Attendees
+                                        </DropdownMenuItem>
+
+                                        {(event.isUpcoming || getEventStatus(event) === 'upcoming') && (
+                                            <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        const url = `${window.location.origin}/upcoming-event/${event.slug || event.id}`;
+                                                        navigator.clipboard.writeText(url);
+                                                        toast({ title: "Link Copied", description: "Upcoming event link copied to clipboard" });
+                                                    }}
+                                                >
+                                                    <ClipboardList className="w-4 h-4 mr-2" />
+                                                    Get Share Link
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => navigate(`/upcoming-event/${event.slug || event.id}`)}
+                                                >
+                                                    <Calendar className="w-4 h-4 mr-2" />
+                                                    View Upcoming Page
+                                                </DropdownMenuItem>
+                                            </>
+                                        )}
+
+                                        {event.spreadsheetId && (
+                                            <DropdownMenuItem
+                                                onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${event.spreadsheetId}`, '_blank')}
+                                            >
+                                                <ClipboardList className="w-4 h-4 mr-2" />
+                                                View Spreadsheet
+                                            </DropdownMenuItem>
+                                        )}
+
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem
+                                            onClick={() => handleDelete(event.id, event.name, event.driveFolderId)}
+                                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                        >
+                                            <Trash2 className="w-4 h-4 mr-2" />
+                                            Delete Event
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </div>
                     ))

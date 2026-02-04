@@ -26,6 +26,15 @@ import UdemyAdmin from "./pages/admin/UdemyAdmin";
 import AdminAddProduct from "./pages/admin/AdminAddProduct";
 import CreateEvent from "./pages/CreateEvent";
 import AdminYatriAI from "./pages/admin/AdminYatriAI"; // Import AdminYatriAI
+import UpcomingEventDetail from "./pages/UpcomingEventDetail";
+import VenueSubmissionForm from "./pages/VenueSubmissionForm";
+import SpeakerSubmissionForm from "./pages/SpeakerSubmissionForm";
+import SponsorSubmissionForm from "./pages/SponsorSubmissionForm";
+import AdminSubmissions from "./pages/admin/AdminSubmissions";
+import EventMediaUpload from "./pages/EventMediaUpload";
+import MyEvents from "./pages/MyEvents";
+import AdminAttendees from "./pages/admin/AdminAttendees";
+import EventRegistrationsList from "./pages/admin/EventRegistrationsList";
 import { Bot } from "lucide-react"; // Import Bot icon
 
 const queryClient = new QueryClient();
@@ -54,12 +63,27 @@ const App = () => (
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/createevent" element={<CreateEvent />} />
 
+            {/* Upcoming Event Routes */}
+            <Route path="/upcoming-event/:slug" element={<UpcomingEventDetail />} />
+            <Route path="/upcoming-event/:slug/venue" element={<VenueSubmissionForm />} />
+            <Route path="/upcoming-event/:slug/speakers" element={<SpeakerSubmissionForm />} />
+            <Route path="/upcoming-event/:slug/sponsors" element={<SponsorSubmissionForm />} />
+
+            {/* Event Media Upload Route */}
+            <Route path="/event/:slug/media" element={<EventMediaUpload />} />
+
+            {/* Profile Routes */}
+            <Route path="/profile/my-events" element={<MyEvents />} />
+
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />}>
               <Route index element={<Navigate to="/admin/events" replace />} />
               <Route path="events" element={<AdminEvents />} />
+              <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
+              <Route path="attendees" element={<AdminAttendees />} />
               <Route path="udemy" element={<UdemyAdmin />} />
               <Route path="ai" element={<AdminYatriAI />} />
+              <Route path="submissions" element={<AdminSubmissions />} />
               <Route path="products/add" element={<AdminAddProduct />} />
             </Route>
 

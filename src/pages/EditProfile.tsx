@@ -27,7 +27,7 @@ const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  
+
   const [profileData, setProfileData] = useState({
     fullName: "",
     email: "",
@@ -68,10 +68,10 @@ const EditProfile = () => {
         return;
       }
       setUser(storedUser);
-      
+
       // Initialize with stored data immediately
       let userData = storedUser;
-      
+
       // Try to fetch fresh user data from API to ensure all fields are loaded
       try {
         const { getCurrentUser } = await import("@/lib/yatris-api");
@@ -83,7 +83,7 @@ const EditProfile = () => {
       } catch (error) {
         console.warn("Error fetching fresh user data, using stored data:", error);
       }
-      
+
       // Set profile data with user data (either fresh or stored)
       const initialData = {
         fullName: userData.fullName || "",
@@ -278,7 +278,7 @@ const EditProfile = () => {
           title: "Success",
           description: "Email changed successfully. Please sign in with your new email.",
         });
-        
+
         // Log out user and redirect to login
         setTimeout(() => {
           logout();
@@ -306,7 +306,7 @@ const EditProfile = () => {
     <div className="min-h-screen bg-background text-foreground">
       <SEO />
       <Navbar />
-      
+
       <main className="pt-24 pb-12">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {/* Header */}
@@ -315,10 +315,15 @@ const EditProfile = () => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Edit Profile</h1>
-            <p className="text-muted-foreground text-lg">
-              Update your personal information and account settings
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold mb-2">Edit Profile</h1>
+                <p className="text-muted-foreground text-lg">
+                  Update your personal information and account settings
+                </p>
+              </div>
+
+            </div>
           </motion.div>
 
           <div className="space-y-6">

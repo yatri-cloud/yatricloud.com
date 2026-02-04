@@ -604,6 +604,7 @@ export interface Attendee {
 export interface EventRegistration {
   id: string;
   eventId: string;
+  eventSlug?: string;
   eventName: string;
   eventDate: string;
   eventLocation: string;

@@ -1,4 +1,23 @@
-// Razorpay integration utilities
+/**
+ * Razorpay Payment Integration Utility
+ */
+
+export interface RazorpayOptions {
+  amount: number; // Amount in rupees (not paise)
+  currency: string;
+  eventName: string;
+  userDetails: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}
+
+export interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
+}
 
 declare global {
   interface Window {
@@ -6,167 +25,176 @@ declare global {
   }
 }
 
-// Public Razorpay Key ID – must be provided via Vite env (VITE_RAZORPAY_KEY_ID)
-// Never hard-code keys in the source; they should come from environment variables.
-const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID ?? "";
-// For local dev, set VITE_API_BASE_URL=http://localhost:3001
-// In production on Vercel, leave VITE_API_BASE_URL empty so we use relative /api path
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+/**
+ * Initialize and open Razorpay payment modal
+ */
+export function initiateRazorpayPayment(
+  options: RazorpayOptions,
+  onSuccess: (response: RazorpayResponse) => void,
+  onFailure: (error: any) => void
+): void {
+  const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-// Check if we're in test mode
-export const isTestMode = () => {
-  return RAZORPAY_KEY.startsWith('rzp_test_');
-};
+  if (!key) {
+    console.error('Razorpay Key ID not configured');
+    onFailure({ error: 'Payment gateway not configured. Please contact administrator.' });
+    return;
+  }
 
-export const loadRazorpayScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    if (window.Razorpay) {
-      resolve();
-      return;
+  if (!window.Razorpay) {
+    console.error('Razorpay script not loaded');
+    onFailure({ error: 'Payment system not available. Please refresh and try again.' });
+    return;
+  }
+
+  const razorpayOptions = {
+    key: key,
+    amount: Math.round(options.amount * 100), // Convert to paise
+    currency: options.currency,
+    name: 'Yatri Cloud Events',
+    description: `Registration for ${options.eventName}`,
+    image: 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png',
+    handler: function (response: RazorpayResponse) {
+      onSuccess(response);
+    },
+    prefill: {
+      name: options.userDetails.name,
+      email: options.userDetails.email,
+      contact: options.userDetails.phone,
+    },
+    notes: {
+      event: options.eventName,
+    },
+    theme: {
+      color: '#3B82F6', // Primary blue color
+    },
+    modal: {
+      ondismiss: function () {
+        onFailure({ error: 'Payment cancelled by user' });
+      }
     }
+  };
 
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load Razorpay script"));
-    document.body.appendChild(script);
-  });
-};
+  try {
+    const razorpayInstance = new window.Razorpay(razorpayOptions);
 
-export interface RazorpayOrder {
-  amount: number; // in paise
-  currency: string;
-  receipt?: string;
-  notes?: Record<string, string>;
+    razorpayInstance.on('payment.failed', function (response: any) {
+      onFailure({
+        error: response.error.description || 'Payment failed',
+        code: response.error.code,
+        reason: response.error.reason
+      });
+    });
+
+    razorpayInstance.open();
+  } catch (error) {
+    console.error('Error opening Razorpay:', error);
+    onFailure({ error: 'Failed to open payment gateway' });
+  }
 }
 
-export const createRazorpayOrder = async (orderData: RazorpayOrder): Promise<string> => {
+/**
+ * Format amount for display (₹499 or Free)
+ */
+export function formatEventPrice(price: string | number | undefined): string {
+  if (!price || price === 0 || price === '0') {
+    return 'Free';
+  }
+
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return `₹${numPrice.toFixed(0)}`;
+}
+
+/**
+ * Check if event is paid
+ */
+export function isEventPaid(price: string | number | undefined): boolean {
+  if (!price) return false;
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return numPrice > 0;
+}
+
+// ------------------------------------------------------------------
+// Legacy Support & CartSheet.tsx Compatibility
+// ------------------------------------------------------------------
+
+export const isTestMode = () => {
+  return import.meta.env.VITE_RAZORPAY_KEY_ID?.startsWith("rzp_test_");
+};
+
+export const createRazorpayOrder = async (orderData: any) => {
   try {
-    if (!RAZORPAY_KEY) {
-      throw new Error("Razorpay key is not configured. Please set VITE_RAZORPAY_KEY_ID in environment variables.");
-    }
-
-    const url = API_BASE_URL
-      ? `${API_BASE_URL}/api/razorpay/create-order`
-      : `/api/razorpay/create-order`;
-
-    console.log('Creating Razorpay order:', { url, amount: orderData.amount });
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
+    const response = await fetch("http://localhost:3001/api/razorpay/create-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(orderData)
+      body: JSON.stringify(orderData),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { message: errorText || `HTTP error! status: ${response.status}` };
-      }
-      console.error('Razorpay API error:', errorData);
-      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
+      throw new Error(`Failed to create order: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('Razorpay order created successfully:', data.orderId);
-    return data.orderId;
+    return data.id;
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
     throw error;
   }
 };
 
-export const initiatePayment = async (
+export function initiatePayment(
   orderId: string,
   amount: number,
   productName: string,
-  customerName: string = "Customer",
-  customerEmail: string = "",
-  customerContact: string = "",
+  customerName: string,
+  email: string,
+  phone: string,
   onSuccess: (paymentId: string) => void,
-  onError: (error: string) => void
-) => {
-  try {
-    await loadRazorpayScript();
+  onFailure: (error: string) => void
+) {
+  const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-    if (!window.Razorpay) {
-      throw new Error("Razorpay script failed to load");
-    }
+  if (!key) {
+    onFailure("Razorpay Key ID not configured");
+    return;
+  }
 
-    const testMode = isTestMode();
-    
-    const options: any = {
-      key: RAZORPAY_KEY,
-      amount: amount, // amount in paise
-      currency: "INR",
-      name: "Yatri Cloud",
-      description: productName,
-      order_id: orderId,
-      handler: function (response: any) {
-        // Handle successful payment
-        // In production, verify payment on backend before calling onSuccess
-        onSuccess(response.razorpay_payment_id);
-      },
-      prefill: {
-        name: customerName,
-        email: customerEmail,
-        contact: customerContact,
-      },
-      theme: {
-        color: "#007CFF", // Yatri Cloud brand color
-      },
-      modal: {
-        ondismiss: function () {
-          onError("Payment cancelled by user");
-        },
-      },
-      notes: {
-        product: productName,
-        test_mode: testMode ? "true" : "false",
-      },
-      // Set read_only to restrict card input
-      read_only: {
-        email: false,
-        contact: false,
-        name: false,
-      },
-    };
-
-    // Configure payment methods for test mode
-    if (testMode) {
-      // In test mode, prefer cards but let Razorpay decide actual availability
-      options.method = {
-        card: true,
-        netbanking: true,
-        wallet: true,
-        upi: true,
-        emi: true,
-        paylater: true,
-      };
-      
-      // Ensure Indian phone format
-      if (!options.prefill.contact || options.prefill.contact.length < 10) {
-        options.prefill.contact = "9999999999";
+  const options = {
+    key: key,
+    amount: amount,
+    currency: "INR",
+    name: "Yatri Cloud",
+    description: productName,
+    order_id: orderId,
+    image: "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png",
+    handler: function (response: any) {
+      onSuccess(response.razorpay_payment_id);
+    },
+    prefill: {
+      name: customerName,
+      email: email,
+      contact: phone,
+    },
+    theme: {
+      color: "#3B82F6",
+    },
+    modal: {
+      ondismiss: function () {
+        onFailure('Payment cancelled by user');
       }
-      
-      // Add image
-      options.image = "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png";
     }
+  };
 
+  try {
     const razorpay = new window.Razorpay(options);
     razorpay.on("payment.failed", function (response: any) {
-      onError(response.error.description || "Payment failed");
+      onFailure(response.error.description || "Payment failed");
     });
     razorpay.open();
   } catch (error) {
-    console.error("Error initiating payment:", error);
-    onError(error instanceof Error ? error.message : "Failed to initiate payment");
+    console.error("Error opening Razorpay:", error);
+    onFailure("Failed to open payment gateway");
   }
-};
-
+}

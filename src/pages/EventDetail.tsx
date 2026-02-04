@@ -18,11 +18,11 @@ import { Footer } from "@/components/sections/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
 import { LoginModal } from "@/components/LoginModal";
-import { EventRegistrationModal } from "@/components/events/EventRegistrationModal";
+import { RegistrationModal } from "@/components/RegistrationModal";
 import { isAuthenticated, getStoredUser, getRegisteredEvents } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
-import { getAllEvents, Event as StoreEvent } from "@/lib/events-store";
+import { getAllEvents, getEventBySlug, Event as StoreEvent, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
 
 interface Speaker {
     id: string;
@@ -90,7 +90,9 @@ const EventDetail = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [event, setEvent] = useState<Event | null>(null);
-    const [activeTab, setActiveTab] = useState<'about' | 'tickets' | 'speakers' | 'attendees' | 'community'>('about');
+    const [activeTab, setActiveTab] = useState<'about' | 'tickets' | 'speakers' | 'attendees' | 'community' | 'gallery'>('about');
+    const [lightboxAlbum, setLightboxAlbum] = useState<GalleryAlbum | null>(null);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegistrationModal, setShowRegistrationModal] = useState(false);
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
@@ -102,9 +104,8 @@ const EventDetail = () => {
     }, []);
 
     useEffect(() => {
-        // Find event by ID
-        const allEvents = getAllEvents();
-        const foundEvent = allEvents.find(e => e.id === id);
+        // Find event by ID or Slug
+        const foundEvent = getEventBySlug(id || "");
 
         if (foundEvent) {
             // Map store event to detail event if needed, or just use as is
@@ -112,7 +113,7 @@ const EventDetail = () => {
             setEvent(foundEvent as any);
         } else {
             // Check if it's one of the internal MOCK_EVENTS as fallback
-            const mockEvent = MOCK_EVENTS.find(e => e.id === id);
+            const mockEvent = MOCK_EVENTS.find(e => e.id === id); // Mocks don't have slugs yet usually
             if (mockEvent) {
                 setEvent(mockEvent);
             } else {
@@ -182,12 +183,15 @@ const EventDetail = () => {
         return `${date.toLocaleTimeString('en-US', options)} ${timezone}`;
     };
 
+    const isPastEvent = event.status === 'past';
+
     const tabs = [
         { id: 'about', label: 'About' },
         { id: 'tickets', label: 'Tickets' },
         { id: 'speakers', label: 'Speakers' },
         { id: 'attendees', label: 'Attendees' },
         { id: 'community', label: 'Join Community' },
+        ...(isPastEvent ? [{ id: 'gallery', label: 'Gallery' }] : []),
     ];
 
     return (
@@ -226,6 +230,17 @@ const EventDetail = () => {
                                     </span>
                                 </div>
                             </div>
+
+                            {/* Tech Stack Tags */}
+                            {event.techStack && event.techStack.length > 0 && (
+                                <div className="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
+                                    {event.techStack.map((tech, i) => (
+                                        <span key={i} className="px-3 py-1 rounded-full bg-secondary/80 text-secondary-foreground text-xs font-medium border border-secondary">
+                                            {tech}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </ScrollReveal>
                     </div>
 
@@ -536,6 +551,50 @@ const EventDetail = () => {
                                     </div>
                                 </ScrollReveal>
                             )}
+
+                            {activeTab === 'gallery' && (
+                                <ScrollReveal>
+                                    <div>
+                                        <h2 className="text-2xl font-bold mb-6">Event Gallery</h2>
+                                        {(event as StoreEvent).gallery && (event as StoreEvent).gallery!.length > 0 ? (
+                                            <div className="space-y-8">
+                                                {(event as StoreEvent).gallery!.map((album) => (
+                                                    <div key={album.id}>
+                                                        <h3 className="text-xl font-semibold mb-4">{album.name}</h3>
+                                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                            {album.media.map((media, idx) => (
+                                                                <button
+                                                                    key={media.id}
+                                                                    onClick={() => {
+                                                                        setLightboxAlbum(album);
+                                                                        setLightboxIndex(idx);
+                                                                    }}
+                                                                    className="aspect-square bg-muted rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer group relative"
+                                                                >
+                                                                    {media.type === 'photo' ? (
+                                                                        <img src={media.url} alt="" className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <div className="relative w-full h-full">
+                                                                            <video src={media.url} className="w-full h-full object-cover" />
+                                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                                                                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                                                                                </svg>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-muted-foreground">No photos available yet.</p>
+                                        )}
+                                    </div>
+                                </ScrollReveal>
+                            )}
                         </div>
                     </div>
 
@@ -582,11 +641,15 @@ const EventDetail = () => {
             />
 
             {event && (
-                <EventRegistrationModal
-                    isOpen={showRegistrationModal}
+                <RegistrationModal
+                    open={showRegistrationModal}
                     onClose={() => setShowRegistrationModal(false)}
                     event={event}
-                    onSuccess={handleRegistrationSuccess}
+                    onSuccess={(registration) => {
+                        setIsRegistered(true);
+                        // Reuse existing success logic or adapt if needed
+                        handleRegistrationSuccess(registration);
+                    }}
                 />
             )}
 
@@ -663,6 +726,75 @@ const EventDetail = () => {
                     }
                 </div>
             </section>
+
+            {/* Lightbox Modal */}
+            {lightboxAlbum && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+                    onClick={() => setLightboxAlbum(null)}
+                >
+                    <button
+                        onClick={() => setLightboxAlbum(null)}
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+                    >
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+
+                    {lightboxAlbum.media && lightboxAlbum.media[lightboxIndex] && (
+                        <div className="max-w-5xl max-h-[90vh] relative" onClick={(e) => e.stopPropagation()}>
+                            {lightboxAlbum.media[lightboxIndex].type === 'photo' ? (
+                                <img
+                                    src={lightboxAlbum.media[lightboxIndex].url}
+                                    alt=""
+                                    className="max-w-full max-h-[90vh] object-contain mx-auto"
+                                />
+                            ) : (
+                                <video
+                                    src={lightboxAlbum.media[lightboxIndex].url}
+                                    controls
+                                    autoPlay
+                                    className="max-w-full max-h-[90vh] mx-auto"
+                                />
+                            )}
+
+                            {/* Navigation */}
+                            {lightboxAlbum.media.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setLightboxIndex((prev) => (prev > 0 ? prev - 1 : lightboxAlbum.media.length - 1));
+                                        }}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setLightboxIndex((prev) => (prev < lightboxAlbum.media.length - 1 ? prev + 1 : 0));
+                                        }}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </>
+                            )}
+
+                            {/* Counter */}
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+                                {lightboxIndex + 1} / {lightboxAlbum.media.length}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <Footer />
         </div>

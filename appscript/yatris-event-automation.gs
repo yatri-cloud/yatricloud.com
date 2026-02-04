@@ -27,12 +27,32 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     
+    if (data.action === 'submitProposal') {
+      return submitProposal(data);
+    }
+    
     if (data.action === 'createEvent') {
       return createEventStructure(data);
     }
     
-    if (data.action === 'getEvents') {
-      return getEvents();
+    if (data.action === 'deleteEvent') {
+      return deleteEventFolder(data);
+    }
+    
+    if (data.action === 'uploadMedia') {
+      return uploadEventMedia(data);
+    }
+    
+    if (data.action === 'registerEvent') {
+      return registerForEvent(data);
+    }
+    
+    if (data.action === 'verifyAttendee') {
+      return verifyAttendeeCode(data);
+    }
+    
+    if (data.action === 'confirmAttendance') {
+      return confirmAttendanceCode(data);
     }
     
     return ContentService.createTextOutput(JSON.stringify({
@@ -44,6 +64,512 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
       error: 'Error in doPost: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ... (existing code) ...
+
+/**
+ * Submit a proposal (Venue, Speaker, Sponsor) to the Event Spreadsheet
+ */
+function submitProposal(data) {
+  try {
+    const spreadsheetId = data.spreadsheetId;
+    const type = data.type; // 'venue', 'speaker', 'sponsor'
+    const submission = data.submission;
+    
+    if (!spreadsheetId || !type || !submission) {
+      throw new Error('Missing required fields: spreadsheetId, type, submission');
+    }
+    
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    let sheetName = '';
+    let headers = [];
+    
+    if (type === 'venue') {
+      sheetName = 'Venue Proposals';
+      headers = ['ID', 'Date', 'Venue Name', 'Address', 'Capacity', 'Facilities', 'Contact Name', 'Email', 'Phone', 'Pricing', 'Notes', 'Status'];
+    } else if (type === 'speaker') {
+      sheetName = 'Speaker Applications';
+      headers = ['ID', 'Date', 'Full Name', 'Email', 'LinkedIn', 'Bio', 'Talk Title', 'Talk Description', 'Duration', 'Category', 'Experience', 'Status'];
+    } else if (type === 'sponsor') {
+      sheetName = 'Sponsor Offers';
+      headers = ['ID', 'Date', 'Company Name', 'Contact Name', 'Email', 'Phone', 'Tier', 'Budget', 'Areas', 'Notes', 'Status'];
+    } else {
+      throw new Error('Invalid submission type');
+    }
+    
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(headers);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#f3f3f3');
+      sheet.setFrozenRows(1);
+    }
+    
+    // Prepare row data based on type
+    let rowData = [];
+    if (type === 'venue') {
+      rowData = [
+        submission.id,
+        new Date(),
+        submission.venueName,
+        submission.address,
+        submission.capacity,
+        submission.facilities,
+        submission.contactName,
+        submission.contactEmail,
+        submission.contactPhone,
+        submission.pricingTerms,
+        submission.additionalNotes,
+        'Pending'
+      ];
+    } else if (type === 'speaker') {
+      rowData = [
+        submission.id,
+        new Date(),
+        submission.fullName,
+        submission.email,
+        submission.linkedinWebsite,
+        submission.bio,
+        submission.talkTitle,
+        submission.talkDescription,
+        submission.talkDuration,
+        submission.topicCategory,
+        submission.previousExperience,
+        'Pending'
+      ];
+    } else if (type === 'sponsor') {
+      rowData = [
+        submission.id,
+        new Date(),
+        submission.companyName,
+        submission.contactName,
+        submission.contactEmail,
+        submission.contactPhone,
+        submission.sponsorshipTier,
+        submission.sponsorshipBudget,
+        Array.isArray(submission.sponsorshipAreas) ? submission.sponsorshipAreas.join(', ') : submission.sponsorshipAreas,
+        submission.additionalNotes,
+        'Pending'
+      ];
+    }
+    
+    sheet.appendRow(rowData);
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'Proposal submitted successfully',
+      sheetName: sheetName
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Error submitting proposal: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Delete an event folder from Google Drive
+ */
+function deleteEventFolder(data) {
+  try {
+    const folderId = data.eventFolderId;
+    
+    if (!folderId) {
+      throw new Error('Missing required field: eventFolderId');
+    }
+    
+    // Get the folder
+    const folder = DriveApp.getFolderById(folderId);
+    
+    if (!folder) {
+      throw new Error('Event folder not found');
+    }
+    
+    // Move folder to trash (can be restored from trash if needed)
+    folder.setTrashed(true);
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'Event folder deleted successfully',
+      folderId: folderId
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Error deleting event folder: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Upload media file to event's media folder
+ */
+function uploadEventMedia(data) {
+  try {
+    const eventFolderId = data.eventFolderId;
+    const fileName = data.fileName;
+    const fileData = data.fileData; // base64 encoded
+    const mimeType = data.mimeType;
+    
+    if (!eventFolderId || !fileName || !fileData || !mimeType) {
+      throw new Error('Missing required fields: eventFolderId, fileName, fileData, mimeType');
+    }
+    
+    // Get the event folder
+    const eventFolder = DriveApp.getFolderById(eventFolderId);
+    
+    if (!eventFolder) {
+      throw new Error('Event folder not found');
+    }
+    
+    // Find or get media subfolder
+    const mediaFolders = eventFolder.getFoldersByName('Media');
+    let mediaFolder;
+    
+    if (mediaFolders.hasNext()) {
+      mediaFolder = mediaFolders.next();
+    } else {
+      throw new Error('Media folder not found in event folder');
+    }
+    
+    // Decode base64 and create file
+    const fileBlob = Utilities.newBlob(
+      Utilities.base64Decode(fileData),
+      mimeType,
+      fileName
+    );
+    
+    const file = mediaFolder.createFile(fileBlob);
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'File uploaded successfully',
+      fileId: file.getId(),
+      fileUrl: file.getUrl()
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Error uploading media: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Register user for an event
+ */
+function registerForEvent(data) {
+  try {
+    const eventId = data.eventId;
+    const eventSlug = data.eventSlug;
+    const eventName = data.eventName;
+    const userId = data.userId;
+    const registrationCode = data.registrationCode;
+    const userDetails = data.userDetails;
+    
+    // Payment fields
+    const ticketType = data.ticketType || 'free';
+    const ticketPrice = data.ticketPrice || '';
+    const paymentStatus = data.paymentStatus || '';
+    const paymentId = data.paymentId || '';
+    const paymentAmount = data.paymentAmount || '';
+    const paymentTimestamp = data.paymentTimestamp || '';
+    const orderId = data.orderId || '';
+    const currency = data.currency || '';
+    const spreadsheetId = data.spreadsheetId;
+    const codePrefix = data.codePrefix || 'EVENT'; // Default prefix
+    
+    if (!eventId || !userId || !userDetails) {
+      throw new Error('Missing required fields');
+    }
+    
+    // Get or create the Registrations sheet
+    const ss = getCentralSpreadsheet();
+    let sheet = ss.getSheetByName('Registrations');
+    
+    if (!sheet) {
+      sheet = ss.insertSheet('Registrations');
+      // Add headers with payment fields
+      sheet.appendRow([
+        'Code',
+        'Name',
+        'Email',
+        'Phone',
+        'City',
+        'State',
+        'Country',
+        'LinkedIn',
+        'Event ID',
+        'Event Name',
+        'Event Slug',
+        'User ID',
+        'Registered At',
+        'Status',
+        'Attended At',
+        // Payment fields
+        'Ticket Type',
+        'Ticket Price',
+        'Payment Status',
+        'Payment ID',
+        'Payment Amount',
+        'Payment Timestamp',
+        'Order ID',
+        'Currency'
+      ]);
+      
+      // Format header row
+      const headerRange = sheet.getRange(1, 1, 1, 23);
+      headerRange.setFontWeight('bold');
+      headerRange.setBackground('#4285f4');
+      headerRange.setFontColor('#ffffff');
+    }
+
+    // Generate Registration Code Logic
+    // Format: [TechStack]YATRI[Random][Sequence]
+    // Example: AWSYATRIabc001
+    
+    // 1. Calculate Sequence
+    // getLastRow() includes header. So if lastRow is 1, next is 1.
+    // If lastRow is 10, next is 10 (since row 1 is header, there are 9 records).
+    // Actually, let's just use getLastRow() as the sequence number, it's unique enough for this purpose if we don't delete rows often.
+    // Ideally: Count rows + 1 - Header
+    const lastRow = sheet.getLastRow();
+    const sequence = lastRow; // Start from 1 (row 2 becomes sequence 1 if lastRow was 1)
+    const paddedSequence = ('000' + sequence).slice(-3);
+    
+    // 2. Random String (3 chars)
+    const randomStr = Math.random().toString(36).substring(2, 5).toUpperCase();
+    
+    // 3. Construct Code
+    // Ensure prefix is uppercase and clean
+    const safePrefix = codePrefix.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
+    const finalRegistrationCode = `${safePrefix}YATRI${randomStr}${paddedSequence}`;
+
+    // If data.registrationCode was sent, we ignore it now in favor of backend generation
+    // OR we could check if it exists in the sheet (for idempotency), but for now let's enforce new code generation
+    
+    // Check if code already exists (unlikely with random+time, but strict check)
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    // Optional: Check duplication based on UserID + EventID to prevent double registration logic if needed here
+    // For now, proceeding with generation
+    
+    // Add registration row with payment data
+    const timestamp = new Date().toISOString();
+    sheet.appendRow([
+      finalRegistrationCode,
+      userDetails.name,
+      userDetails.email,
+      userDetails.phone,
+      userDetails.city,
+      userDetails.state,
+      userDetails.country,
+      userDetails.linkedIn || '',
+      eventId,
+      eventName,
+      eventSlug,
+      userId,
+      timestamp,
+      'registered',
+      '', // Attended At - empty initially
+      // Payment fields
+      ticketType,
+      ticketPrice,
+      paymentStatus,
+      paymentId,
+      paymentAmount,
+      paymentTimestamp,
+      orderId,
+      currency
+    ]);
+
+    // 2. Write to Specific Event Spreadsheet (User Viewable)
+    if (spreadsheetId) {
+      try {
+        const eventSs = SpreadsheetApp.openById(spreadsheetId);
+        const regSheet = eventSs.getSheetByName('Registrations'); 
+        
+        if (regSheet) {
+          regSheet.appendRow([
+            timestamp,
+            userDetails.name,
+            userDetails.email,
+            userDetails.phone,
+            userDetails.city || '', 
+            ticketType,
+            'Registered',
+            '' // Check-in Time
+          ]);
+        }
+      } catch (e) {
+        Logger.log('Error writing to event spreadsheet: ' + e.toString());
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      registrationCode: finalRegistrationCode,
+      message: 'Registration successful'
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Error registering for event: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Helper to get the central spreadsheet
+ */
+function getCentralSpreadsheet() {
+  // 1. Try active spreadsheet (container-bound)
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) return ss;
+  } catch (e) {
+    Logger.log('No active spreadsheet: ' + e.toString());
+  }
+  
+  // 2. Try to find existing Master Sheet in Log Folder
+  try {
+    const folder = DriveApp.getFolderById(LOG_FOLDER_ID);
+    const files = folder.getFilesByName('Yatri Events Master Sheet');
+    
+    if (files.hasNext()) {
+      return SpreadsheetApp.open(files.next());
+    }
+    
+    // 3. Create if not found
+    const ss = SpreadsheetApp.create('Yatri Events Master Sheet');
+    const file = DriveApp.getFileById(ss.getId());
+    folder.addFile(file);
+    DriveApp.getRootFolder().removeFile(file);
+    
+    // Setup initial sheets if new
+    if (!ss.getSheetByName('Registrations')) {
+      ss.insertSheet('Registrations');
+    }
+    
+    return ss;
+  } catch (e) {
+    throw new Error('Could not open or create Central Spreadsheet: ' + e.toString());
+  }
+}
+
+/**
+ * Verify attendee by registration code
+ */
+function verifyAttendeeCode(data) {
+  try {
+    const code = data.code;
+    
+    if (!code) {
+      throw new Error('Missing registration code');
+    }
+    
+    const ss = getCentralSpreadsheet();
+    const sheet = ss.getSheetByName('Registrations');
+    
+    if (!sheet) {
+      throw new Error('Registrations sheet not found');
+    }
+    
+    // Find registration by code
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][0] === code) {
+        // Found the registration
+        const attendee = {
+          code: values[i][0],
+          name: values[i][1],
+          email: values[i][2],
+          phone: values[i][3],
+          city: values[i][4],
+          state: values[i][5],
+          country: values[i][6],
+          linkedIn: values[i][7],
+          eventId: values[i][8],
+          eventName: values[i][9],
+          eventSlug: values[i][10],
+          userId: values[i][11],
+          registeredAt: values[i][12],
+          status: values[i][13],
+          attendedAt: values[i][14]
+        };
+        
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          attendee: attendee
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    // Code not found
+    throw new Error('Registration code not found');
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Error verifying attendee: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Confirm attendee attendance
+ */
+function confirmAttendanceCode(data) {
+  try {
+    const code = data.code;
+    
+    if (!code) {
+      throw new Error('Missing registration code');
+    }
+    
+    const ss = getCentralSpreadsheet();
+    const sheet = ss.getSheetByName('Registrations');
+    
+    if (!sheet) {
+      throw new Error('Registrations sheet not found');
+    }
+    
+    // Find and update registration
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][0] === code) {
+        // Update status and attended timestamp
+        const timestamp = new Date().toISOString();
+        sheet.getRange(i + 1, 14).setValue('attended'); // Status column
+        sheet.getRange(i + 1, 15).setValue(timestamp);   // Attended At column
+        
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          message: 'Attendance confirmed successfully'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    // Code not found
+    throw new Error('Registration code not found');
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'Error confirming attendance: ' + error.toString()
     })).setMimeType(ContentService.MimeType.JSON);
   }
 }
@@ -113,10 +639,18 @@ function createEventStructure(data) {
     // 3. Create event folder inside city folder
     const eventFolder = cityFolder.createFolder(folderName);
     
-    // Create subfolders
+    // Create subfolders (Main Event Section)
     const galleryFolder = eventFolder.createFolder('gallery');
     const speakersFolder = eventFolder.createFolder('speakers');
     const mediaFolder = eventFolder.createFolder('media');
+    
+    // Create "Upcoming" folder structure as requested
+    // "Add one more folder, upcoming hyphen that event name itself again. And inside that three folder..."
+    const upcomingFolderName = `upcoming-${eventName}`;
+    const upcomingFolder = eventFolder.createFolder(upcomingFolderName);
+    upcomingFolder.createFolder('gallery');
+    upcomingFolder.createFolder('speakers');
+    upcomingFolder.createFolder('media');
     
     // 4. Save base64 images to media folder to avoid 50k character limit in Sheets
     const processedImageUrl = saveBase64Image(imageUrl, mediaFolder, `poster-${eventName.replace(/\s+/g, '-').toLowerCase()}`);
@@ -129,6 +663,16 @@ function createEventStructure(data) {
       return sponsor;
     });
     const sponsorsJson = JSON.stringify(processedSponsors);
+
+    // Process Speakers (Save photos to MAIN speakers folder)
+    const speakersData = data.speakers || [];
+    const processedSpeakers = speakersData.map((speaker, index) => {
+      if (speaker.imageUrl && speaker.imageUrl.startsWith('data:image')) {
+        const photoUrl = saveBase64Image(speaker.imageUrl, speakersFolder, `speaker-${index}-${speaker.name.replace(/\s+/g, '-').toLowerCase()}`);
+        return { ...speaker, imageUrl: photoUrl };
+      }
+      return speaker;
+    });
 
     // Create Google Spreadsheet
     const spreadsheet = createEventSpreadsheet(eventFolder, eventName, {
@@ -151,7 +695,8 @@ function createEventStructure(data) {
       endDate: endDate,
       mapLink: mapLink,
       imageUrl: processedImageUrl,
-      sponsors: sponsorsJson
+      sponsors: sponsorsJson,
+      speakers: processedSpeakers
     });
     
     // Log the creation
@@ -166,7 +711,8 @@ function createEventStructure(data) {
       subfolders: {
         gallery: galleryFolder.getUrl(),
         speakers: speakersFolder.getUrl(),
-        media: mediaFolder.getUrl()
+        media: mediaFolder.getUrl(),
+        upcoming: upcomingFolder.getUrl()
       }
     })).setMimeType(ContentService.MimeType.JSON);
     
@@ -287,13 +833,13 @@ function createEventSpreadsheet(folder, eventName, eventData) {
   // Setup Event Details sheet
   setupEventDetailsSheet(eventDetailsSheet, eventData);
   
-  // Create Attendees sheet
-  const attendeesSheet = spreadsheet.insertSheet('Attendees');
-  setupAttendeesSheet(attendeesSheet);
+  // Create Registrations sheet
+  const registrationsSheet = spreadsheet.insertSheet('Registrations');
+  setupRegistrationsSheet(registrationsSheet);
   
   // Create Speakers sheet
   const speakersSheet = spreadsheet.insertSheet('Speakers');
-  setupSpeakersSheet(speakersSheet);
+  setupSpeakersSheet(speakersSheet, eventData.speakers);
   
   // Create Schedule sheet
   const scheduleSheet = spreadsheet.insertSheet('Schedule');
@@ -367,9 +913,9 @@ function setupEventDetailsSheet(sheet, eventData) {
 }
 
 /**
- * Setup Attendees sheet
+ * Setup Registrations sheet
  */
-function setupAttendeesSheet(sheet) {
+function setupRegistrationsSheet(sheet) {
   const headers = [
     ['Timestamp', 'Name', 'Email', 'Phone', 'Organization', 'Ticket Type', 'Status', 'Check-in Time']
   ];
@@ -383,7 +929,10 @@ function setupAttendeesSheet(sheet) {
 /**
  * Setup Speakers sheet
  */
-function setupSpeakersSheet(sheet) {
+/**
+ * Setup Speakers sheet
+ */
+function setupSpeakersSheet(sheet, speakersData) {
   const headers = [
     ['Name', 'Title', 'Organization', 'Bio', 'Email', 'Phone', 'Photo URL', 'LinkedIn', 'Session Topic', 'Session Time']
   ];
@@ -392,6 +941,25 @@ function setupSpeakersSheet(sheet) {
   sheet.getRange(1, 1, 1, headers[0].length).setBackground('#ea4335').setFontColor('#ffffff').setFontWeight('bold');
   sheet.setFrozenRows(1);
   sheet.autoResizeColumns(1, headers[0].length);
+  
+  // Populate with provided speakers
+  if (speakersData && Array.isArray(speakersData) && speakersData.length > 0) {
+    const rows = speakersData.map(speaker => [
+      speaker.name || '',
+      speaker.role || '', // Mapping role to Title
+      speaker.company || '',
+      speaker.bio || '', 
+      speaker.email || '',
+      speaker.phone || '', 
+      speaker.imageUrl || '',
+      speaker.linkedinUrl || '',
+      '', '' // Session info empty initially
+    ]);
+    
+    if (rows.length > 0) {
+      sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+    }
+  }
 }
 
 /**

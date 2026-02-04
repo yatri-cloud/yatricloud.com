@@ -1,5 +1,6 @@
 export interface Event {
     id: string;
+    slug?: string; // URL-friendly name
     name: string;
     description?: string;
     fullDescription?: string;
@@ -15,11 +16,20 @@ export interface Event {
         state?: string;
         country?: string;
     };
-    category: 'Concert' | 'Conference' | 'Hackathon' | 'Marathon' | 'Workshop' | 'Meetup';
+    category: string;
     status: 'upcoming' | 'past' | 'draft';
+
+    // Collaboration flags for upcoming events
+    isUpcoming?: boolean; // Published as upcoming event needing community help
+    lookingForVenue?: boolean;
+    lookingForSpeakers?: boolean;
+    lookingForSponsors?: boolean;
+    spreadsheetId?: string; // Google Sheet ID for storing submissions
+
     price?: string | number;
     registrationDeadline?: string;
     seatsAvailable?: number;
+    communityLink?: string;
     organizer?: {
         name: string;
         logo?: string;
@@ -27,9 +37,50 @@ export interface Event {
         phone?: string;
     };
     techStack?: string[];
-    communityLink?: string;
     requiresLogin?: boolean;
     sponsors?: Sponsor[];
+    speakers?: EventSpeaker[];
+    gallery?: GalleryAlbum[];
+    driveFolderId?: string; // Root event folder ID in Google Drive
+}
+
+export interface EventSpeaker {
+    id: string;
+    fullName: string;
+    email?: string;
+    linkedinUrl?: string;
+    profileImage?: string; // Data URL or URL
+    companyName?: string;
+    about: string; // Summary/Bio
+    country?: string;
+    phone?: string;
+    state?: string;
+    city?: string;
+
+    // Session Details
+    sessionName?: string;
+    sessionDescription?: string;
+    sessionTopics?: string[];
+    sessionStartTime?: string; // HH:mm
+    sessionEndTime?: string; // HH:mm
+}
+
+export interface GalleryMedia {
+    id: string;
+    type: 'photo' | 'video';
+    url: string;
+    driveFileId?: string;
+    thumbnailUrl?: string;
+    caption?: string;
+    uploadedAt: string;
+}
+
+export interface GalleryAlbum {
+    id: string;
+    name: string;
+    driveFolderId?: string; // Google Drive folder ID for this album
+    media: GalleryMedia[];
+    createdAt: string;
 }
 
 export interface Sponsor {
@@ -52,6 +103,24 @@ export function getAllEvents(): Event[] {
     } catch (e) {
         console.error("Error fetching events", e);
         return INITIAL_MOCK_EVENTS;
+    }
+}
+
+export function getEventBySlug(slug: string): Event | undefined {
+    try {
+        const events = getAllEvents();
+        return events.find(e => e.slug === slug || e.id === slug);
+    } catch (e) {
+        return undefined;
+    }
+}
+
+export function getEventById(id: string): Event | undefined {
+    try {
+        const events = getAllEvents();
+        return events.find(e => e.id === id);
+    } catch (e) {
+        return undefined;
     }
 }
 

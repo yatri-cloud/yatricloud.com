@@ -123,7 +123,7 @@ const Events = () => {
 
     const EventCard = ({ event, index }: { event: Event; index: number }) => (
         <ScrollReveal delay={index * 0.1}>
-            <Link to={`/events/${event.id}`} className="block h-full">
+            <Link to={`/events/${event.slug || event.id}`} className="block h-full">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -239,7 +239,7 @@ const Events = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {myRegistrations.map((reg, index) => (
                                 <ScrollReveal key={reg.id} delay={index * 0.1}>
-                                    <Link to={`/events/${reg.eventId}`} className="block h-full">
+                                    <Link to={`/events/${reg.eventSlug || reg.eventId}`} className="block h-full">
                                         <motion.div
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
