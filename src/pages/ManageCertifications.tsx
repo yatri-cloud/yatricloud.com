@@ -301,38 +301,74 @@ const ManageCertifications = () => {
                             {certs.map((cert) => (
                               <div
                                 key={cert.id}
-                                className="p-4 border border-border rounded-lg bg-muted/50"
+                                className="p-4 border border-border rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                               >
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-lg mb-1">
-                                      {cert.certificationName}
-                                    </h4>
-                                    <div className="text-sm text-muted-foreground space-y-1">
-                                      <p>Exam Code: {cert.examCode}</p>
+                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                  <div className="flex-1 space-y-2">
+                                    <div className="flex items-start justify-between">
+                                      <div>
+                                        <h4 className="font-semibold text-lg">
+                                          {cert.certificationName}
+                                        </h4>
+                                        {cert.verifiedCredential && (
+                                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 mt-1">
+                                            Verified
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm text-muted-foreground">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-foreground">Exam Code:</span>
+                                        {cert.examCode}
+                                      </div>
+
+                                      {cert.certificationDate && (
+                                        <div className="flex items-center gap-2">
+                                          <Calendar className="w-4 h-4" />
+                                          <span className="font-medium text-foreground">Date:</span>
+                                          {new Date(cert.certificationDate).toLocaleDateString(undefined, {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                          })}
+                                        </div>
+                                      )}
+
                                       {cert.verifiedCredential && (
-                                        <p>
-                                          Credential:{" "}
+                                        <div className="md:col-span-2">
+                                          <span className="font-medium text-foreground">Credential: </span>
                                           <a
                                             href={cert.verifiedCredential}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-primary hover:underline"
+                                            className="text-primary hover:underline break-all"
                                           >
-                                            View
+                                            {cert.verifiedCredential}
                                           </a>
-                                        </p>
+                                        </div>
+                                      )}
+
+                                      {cert.additionalNotes && (
+                                        <div className="md:col-span-2 mt-2 p-2 bg-background rounded border border-border/50 text-xs">
+                                          <span className="font-semibold block mb-1">Notes:</span>
+                                          {cert.additionalNotes}
+                                        </div>
                                       )}
                                     </div>
                                   </div>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEditCertification(cert)}
-                                  >
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Edit
-                                  </Button>
+
+                                  <div className="flex md:flex-col gap-2 shrink-0">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditCertification(cert)}
+                                    >
+                                      <Edit className="w-4 h-4 mr-2" />
+                                      Edit
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             ))}

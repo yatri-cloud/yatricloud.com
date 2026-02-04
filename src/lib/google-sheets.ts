@@ -31,7 +31,7 @@ const KUBERNETES_CERTIFICATIONS_WEBHOOK_URL = import.meta.env.VITE_KUBERNETES_CE
 function getWebhookUrl(provider: string): string {
   const providerLower = provider.toLowerCase();
   console.log(`🔍 Getting webhook URL for provider: ${providerLower}`);
-  
+
   switch (providerLower) {
     case 'aws':
       console.log(`🔗 AWS webhook URL: ${AWS_CERTIFICATIONS_WEBHOOK_URL ? 'CONFIGURED' : 'NOT CONFIGURED'}`);
@@ -135,7 +135,7 @@ function fileToBase64(file: File): Promise<string> {
 async function uploadPhoto(photo: File): Promise<string> {
   // Option 1: Convert to base64 (stored in sheet - not recommended for large images)
   const base64 = await fileToBase64(photo);
-  
+
   // Option 2: Upload to image hosting service (recommended)
   // Example with Imgur API:
   // const formData = new FormData();
@@ -147,7 +147,7 @@ async function uploadPhoto(photo: File): Promise<string> {
   // });
   // const data = await response.json();
   // return data.data.link;
-  
+
   return base64;
 }
 
@@ -159,10 +159,10 @@ export async function submitCertification(
 ): Promise<void> {
   // Get the appropriate webhook URL based on provider
   const webhookUrl = getWebhookUrl(data.certificationProvider);
-  
+
   console.log(`🔗 Provider: ${data.certificationProvider.toUpperCase()}`);
   console.log(`🔗 Webhook URL: ${webhookUrl ? webhookUrl.substring(0, 50) + '...' : 'NOT CONFIGURED'}`);
-  
+
   if (!webhookUrl) {
     // In development, show a helpful message
     if (import.meta.env.DEV) {
@@ -248,7 +248,7 @@ export async function submitCertification(
         subSheetName: data.subSheetName,
         email: data.email
       });
-      
+
       response = await fetch(webhookUrl, {
         method: "POST",
         headers: {
@@ -283,7 +283,7 @@ export async function submitCertification(
         sheetName: data.sheetName,
         subSheetName: data.subSheetName
       });
-      
+
       await fetch(webhookUrl, {
         method: "POST",
         mode: "no-cors",
@@ -292,7 +292,7 @@ export async function submitCertification(
         },
         body: JSON.stringify(submissionData),
       });
-      
+
       // With no-cors, we can't verify success, but data should be saved
       console.warn(`⚠️ [${data.certificationProvider.toUpperCase()}] Submitted with no-cors mode. Check Google Apps Script execution logs to verify data was saved.`);
       console.warn("💡 Tip: Update Google Apps Script with CORS headers for better error handling (see CORS_FIX_INSTRUCTIONS.md)");
@@ -320,7 +320,7 @@ async function fetchFromWebhook(url: string, provider: string): Promise<Certific
 
   try {
     console.log(`📥 Fetching ${provider} certifications from:`, url);
-    
+
     // Try with CORS first (no Content-Type header to avoid preflight)
     let response: Response;
     try {
@@ -339,7 +339,7 @@ async function fetchFromWebhook(url: string, provider: string): Promise<Certific
     }
 
     const data = await response.json();
-    
+
     // Handle both response formats
     let certifications: CertificationEntry[] = [];
     if (data.certifications && Array.isArray(data.certifications)) {
@@ -355,21 +355,21 @@ async function fetchFromWebhook(url: string, provider: string): Promise<Certific
 
     // Normalize fields (handle different naming variations from Google Sheets)
     return certifications.map((cert: any) => {
-      const verifiedCredential = 
-        cert.verifiedCredential || 
-        cert.verifiedcredential || 
+      const verifiedCredential =
+        cert.verifiedCredential ||
+        cert.verifiedcredential ||
         cert['verified-credential'] ||
         cert['Verified Credential'] ||
         cert.verified_credential ||
         '';
-      
+
       // Apps Script lowercases headers, so check lowercase variations
-      const country = 
-        cert.country || 
+      const country =
+        cert.country ||
         cert['country'] ||
         cert['Country'] ||
         '';
-      
+
       // Debug country field for first cert
       if (certifications.indexOf(cert) === 0) {
         console.log('🌍 Country field in frontend:', {
@@ -380,31 +380,31 @@ async function fetchFromWebhook(url: string, provider: string): Promise<Certific
           'allKeys': Object.keys(cert)
         });
       }
-      
-      const stateProvince = 
-        cert.stateProvince || 
+
+      const stateProvince =
+        cert.stateProvince ||
         cert.stateprovince ||
         cert['state-province'] ||
         cert['State/Province'] ||
         cert.State ||
         cert.Province ||
         '';
-      
-      const city = 
-        cert.city || 
+
+      const city =
+        cert.city ||
         cert.City ||
         cert.CITY ||
         '';
-      
-      const countryCode = 
-        cert.countryCode || 
+
+      const countryCode =
+        cert.countryCode ||
         cert.countrycode ||
         cert['country-code'] ||
         cert['Country Code'] ||
         '';
-      
-      const phoneNumber = 
-        cert.phoneNumber || 
+
+      const phoneNumber =
+        cert.phoneNumber ||
         cert.phonenumber ||
         cert['phone-number'] ||
         cert['Phone Number'] ||
@@ -417,7 +417,21 @@ async function fetchFromWebhook(url: string, provider: string): Promise<Certific
         stateProvince: stateProvince && stateProvince.trim() !== '' ? stateProvince.trim() : undefined,
         city: city && city.trim() !== '' ? city.trim() : undefined,
         countryCode: countryCode && countryCode.trim() !== '' ? countryCode.trim() : undefined,
-        phoneNumber: phoneNumber && phoneNumber.trim() !== '' ? phoneNumber.trim() : undefined
+        phoneNumber: phoneNumber && phoneNumber.trim() !== '' ? phoneNumber.trim() : undefined,
+        certificationDate:
+          cert.certificationDate ||
+          cert.certificationdate ||
+          cert['certification-date'] ||
+          cert['Certification Date'] ||
+          cert.Date ||
+          '',
+        additionalNotes:
+          cert.additionalNotes ||
+          cert.additionalnotes ||
+          cert['additional-notes'] ||
+          cert['Additional Notes'] ||
+          cert.Notes ||
+          ''
       };
     });
   } catch (error: any) {
@@ -432,72 +446,72 @@ async function fetchFromWebhook(url: string, provider: string): Promise<Certific
  */
 export async function fetchCertifications(): Promise<CertificationEntry[]> {
   const allCertifications: CertificationEntry[] = [];
-  
+
   // Fetch from all configured webhooks in parallel
   const fetchPromises: Promise<CertificationEntry[]>[] = [];
-  
+
   // Fetch from AWS webhook
   if (AWS_CERTIFICATIONS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(AWS_CERTIFICATIONS_WEBHOOK_URL, 'AWS'));
   } else {
     console.warn('⚠️ AWS webhook URL not configured');
   }
-  
+
   // Fetch from Azure webhook
   if (AZURE_CERTIFICATIONS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(AZURE_CERTIFICATIONS_WEBHOOK_URL, 'Azure'));
   } else {
     console.warn('⚠️ Azure webhook URL not configured');
   }
-  
+
   // Fetch from GCP webhook
   if (GCP_CERTIFICATIONS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(GCP_CERTIFICATIONS_WEBHOOK_URL, 'GCP'));
   } else {
     console.warn('⚠️ GCP webhook URL not configured');
   }
-  
+
   // Fetch from GitHub webhook
   if (GITHUB_CERTIFICATIONS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(GITHUB_CERTIFICATIONS_WEBHOOK_URL, 'GitHub'));
   } else {
     console.warn('⚠️ GitHub webhook URL not configured');
   }
-  
+
   // Fetch from Oracle webhook
   if (ORACLE_CERTIFICATIONS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(ORACLE_CERTIFICATIONS_WEBHOOK_URL, 'Oracle'));
   } else {
     console.warn('⚠️ Oracle webhook URL not configured');
   }
-  
+
   // Fetch from Salesforce webhook
   if (SALESFORCE_CERTIFICATIONS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(SALESFORCE_CERTIFICATIONS_WEBHOOK_URL, 'Salesforce'));
   } else {
     console.warn('⚠️ Salesforce webhook URL not configured');
   }
-  
+
   // Fetch from ServiceNow webhook
   if (SERVICENOW_CERTIFICATIONS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(SERVICENOW_CERTIFICATIONS_WEBHOOK_URL, 'ServiceNow'));
   } else {
     console.warn('⚠️ ServiceNow webhook URL not configured');
   }
-  
+
   // Fetch from general webhook (fallback for other providers)
   if (GOOGLE_SHEETS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(GOOGLE_SHEETS_WEBHOOK_URL, 'Other'));
   }
-  
+
   // Wait for all fetches to complete
   const results = await Promise.all(fetchPromises);
-  
+
   // Combine all results
   results.forEach((certs) => {
     allCertifications.push(...certs);
   });
-  
+
   console.log(`📊 Total certifications fetched: ${allCertifications.length}`);
   console.log(`📊 Breakdown by provider:`, {
     AWS: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'aws').length,
@@ -508,7 +522,7 @@ export async function fetchCertifications(): Promise<CertificationEntry[]> {
     Salesforce: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'salesforce').length,
     ServiceNow: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'servicenow').length,
   });
-  
+
   return allCertifications;
 }
 
