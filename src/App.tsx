@@ -36,11 +36,13 @@ import MyEvents from "./pages/MyEvents";
 import AdminAttendees from "./pages/admin/AdminAttendees";
 import EventRegistrationsList from "./pages/admin/EventRegistrationsList";
 import { Bot } from "lucide-react"; // Import Bot icon
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <ThemeProvider defaultTheme="dark">
+    <SpeedInsights />
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />

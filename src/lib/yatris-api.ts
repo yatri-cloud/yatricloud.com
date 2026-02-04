@@ -146,10 +146,35 @@ export async function loginUser(
 
     const result = await response.json();
 
+    // Safe storage helper
+    const safeSetItem = (key: string, value: string) => {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e: any) {
+        if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+          console.warn('LocalStorage quota exceeded. Clearing old cache...');
+          // Clear large items
+          // Iterate over all keys and remove certification caches
+          Object.keys(localStorage).forEach(k => {
+            if (k.startsWith('yatris_user_certifications_')) {
+              localStorage.removeItem(k);
+            }
+          });
+
+          // Try again
+          try {
+            localStorage.setItem(key, value);
+          } catch (retryError) {
+            console.error('Failed to save to localStorage even after cleanup', retryError);
+          }
+        }
+      }
+    };
+
     // Store token if login successful
     if (result.success && result.token) {
-      localStorage.setItem('yatris_token', result.token);
-      localStorage.setItem('yatris_user', JSON.stringify(result.user));
+      safeSetItem('yatris_token', result.token);
+      safeSetItem('yatris_user', JSON.stringify(result.user));
     }
 
     return result;
@@ -294,8 +319,27 @@ async function fetchFreshCertifications(
 
   // Cache the result
   try {
-    localStorage.setItem(cacheKey, JSON.stringify(result));
-    localStorage.setItem(cacheTimestampKey, Date.now().toString());
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(result));
+      localStorage.setItem(cacheTimestampKey, Date.now().toString());
+    } catch (e: any) {
+      if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+        console.warn('LocalStorage quota exceeded while caching certs. Clearing old cache...');
+        // Clear ALL certification caches to make space
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith('yatris_user_certifications_')) {
+            localStorage.removeItem(k);
+          }
+        });
+        // Try one more time, but only for this key
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(result));
+          localStorage.setItem(cacheTimestampKey, Date.now().toString());
+        } catch (retryError) {
+          console.warn('Could not cache certifications even after cleanup. Proceeding without cache.');
+        }
+      }
+    }
   } catch (cacheError) {
     console.warn("Error caching certifications:", cacheError);
   }
@@ -387,7 +431,11 @@ export async function updateProfile(data: {
     if (result.success) {
       const currentUser = JSON.parse(localStorage.getItem('yatris_user') || '{}');
       const updatedUser = { ...currentUser, ...data };
-      localStorage.setItem('yatris_user', JSON.stringify(updatedUser));
+      try {
+        localStorage.setItem('yatris_user', JSON.stringify(updatedUser));
+      } catch (e) {
+        console.warn('Could not update stored user profile due to storage limits', e);
+      }
     }
 
     return result;
