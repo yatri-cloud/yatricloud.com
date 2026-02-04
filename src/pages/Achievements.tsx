@@ -419,37 +419,9 @@ const Achievements = () => {
     const cacheMaxAge = 10 * 60 * 1000; // 10 minutes (increased for better persistence)
 
     // Load from cache FIRST - this ensures instant display
-    let cacheLoaded = false;
-    try {
-      const cachedData = localStorage.getItem(cacheKey);
-      const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
-
-      if (cachedData) {
-        try {
-          const parsedData = JSON.parse(cachedData);
-          if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
-            setCertifications(parsedData);
-            setIsLoading(false); // Show cached data immediately
-            cacheLoaded = true;
-            console.log("✅ Loaded certifications from cache:", parsedData.length);
-          } else if (parsedData && Array.isArray(parsedData)) {
-            // Cache exists but is empty array - still use it to show empty state immediately
-            setCertifications(parsedData);
-            setIsLoading(false);
-            cacheLoaded = true;
-          }
-        } catch (parseError) {
-          console.warn("⚠️ Error parsing cached data:", parseError);
-        }
-      }
-    } catch (error) {
-      console.warn("⚠️ Error loading from cache:", error);
-    }
-
-    // If no cache loaded, show loading while fetching
-    if (!cacheLoaded) {
-      setIsLoading(true);
-    }
+    // MODIFIED: We want to show loading state until fresh data is fetched to avoid "stale" 2 vs "fresh" 57 flash
+    // We will only use cache if it matches the fresh fetch or if fetch fails.
+    setIsLoading(true);
 
     // Always fetch fresh data in the background (even if cache was loaded)
     setError(null);
@@ -458,10 +430,33 @@ const Achievements = () => {
 
       // Cache the fresh data
       try {
-        localStorage.setItem(cacheKey, JSON.stringify(data));
-        localStorage.setItem(cacheTimestampKey, Date.now().toString());
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+          localStorage.setItem(cacheTimestampKey, Date.now().toString());
+        } catch (e: any) {
+          if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+            console.warn('LocalStorage quota exceeded. Clearing old cache...');
+            // Clear all non-essenatial keys or specific large keys
+            // For now, clear the cache key itself and try to clear other potentially large items
+            localStorage.removeItem(cacheKey);
+
+            // Clear other potential large API caches
+            Object.keys(localStorage).forEach(k => {
+              if (k.startsWith('yatri_') && k !== cacheKey && k !== 'yatri_user' && k !== 'yatri_token') {
+                localStorage.removeItem(k);
+              }
+            });
+
+            // Try setting again
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+            localStorage.setItem(cacheTimestampKey, Date.now().toString());
+          } else {
+            throw e;
+          }
+        }
       } catch (cacheError) {
         console.warn("⚠️ Error caching data:", cacheError);
+        // Continue without caching - do not block the UI
       }
 
       // Update with fresh data
@@ -469,7 +464,7 @@ const Achievements = () => {
       setIsLoading(false);
 
       // If no data and no error, check if it's a CORS issue
-      if (data.length === 0 && !cacheLoaded) {
+      if (data.length === 0) {
         // Check console for CORS errors
         const hasCorsError = window.location.href.includes('localhost') || window.location.href.includes('127.0.0.1');
         if (hasCorsError) {
@@ -478,14 +473,27 @@ const Achievements = () => {
       }
     } catch (error: any) {
       console.error("❌ Error loading certifications:", error);
-      // Only set error if we don't have cached data
-      if (!cacheLoaded) {
-        setIsLoading(false);
-        if (error.message && error.message.includes("CORS")) {
-          setError("CORS Error: Please update your Google Apps Script with the doOptions() function. See FIX_CORS_GET_REQUEST.md for instructions.");
-        } else {
-          setError("Failed to load certifications. Please check the browser console for details.");
+
+      // Fallback to cache if request fails
+      try {
+        const cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+          const parsedData = JSON.parse(cachedData);
+          if (parsedData && Array.isArray(parsedData)) {
+            setCertifications(parsedData);
+            setIsLoading(false);
+            return;
+          }
         }
+      } catch (cacheError) {
+        console.warn("Failed to load fallback cache", cacheError);
+      }
+
+      setIsLoading(false);
+      if (error.message && error.message.includes("CORS")) {
+        setError("CORS Error: Please update your Google Apps Script with the doOptions() function. See FIX_CORS_GET_REQUEST.md for instructions.");
+      } else {
+        setError("Failed to load certifications. Please check the browser console for details.");
       }
     }
   };
@@ -1389,6 +1397,7 @@ const Achievements = () => {
                             // Look up the person in the original persons array to get all their certifications
                             const allPersonCerts = persons.find(p => p.id === person.id)?.certifications || person.certifications;
 
+
                             // Get unique providers from ALL person's certifications with counts
                             const providerCounts = allPersonCerts.reduce((acc, cert) => {
                               const provider = cert.certificationProvider.toUpperCase();
@@ -1396,7 +1405,7 @@ const Achievements = () => {
                               return acc;
                             }, {} as Record<string, number>);
                             const uniqueProviders = Object.keys(providerCounts);
-                            const { theme } = useTheme();
+
 
                             // Determine card background color based on providers
                             // Single provider = brand color, Multiple providers = primary blue
@@ -1870,7 +1879,7 @@ const Achievements = () => {
                         {/* Certification Logos */}
                         {(() => {
                           const uniqueProviders = Array.from(new Set(selectedPerson.certifications.map(c => c.certificationProvider.toUpperCase())));
-                          const { theme } = useTheme();
+
                           const isSpecialPerson = selectedPerson.fullName === "Yatharth Chauhan" || selectedPerson.fullName === "Nensi Ravaliya";
 
                           return (
@@ -1955,7 +1964,7 @@ const Achievements = () => {
                     <>
                       {Object.entries(certsByProvider).map(([provider, certs]) => {
                         const providerLogo = PROVIDER_LOGOS[provider];
-                        const { theme } = useTheme();
+
                         const logoSrc = providerLogo
                           ? (provider === 'AWS'
                             ? (theme === 'dark'

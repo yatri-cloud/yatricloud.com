@@ -321,10 +321,15 @@ async function fetchFromWebhook(url: string, provider: string): Promise<Certific
   try {
     console.log(`📥 Fetching ${provider} certifications from:`, url);
 
+    // URL with cache busting
+    const urlWithCacheBuster = url.includes('?')
+      ? `${url}&t=${Date.now()}`
+      : `${url}?t=${Date.now()}`;
+
     // Try with CORS first (no Content-Type header to avoid preflight)
     let response: Response;
     try {
-      response = await fetch(url, {
+      response = await fetch(urlWithCacheBuster, {
         method: "GET",
         mode: "cors",
       });
