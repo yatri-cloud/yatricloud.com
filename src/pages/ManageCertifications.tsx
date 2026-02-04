@@ -23,6 +23,9 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   oracle: { logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
   salesforce: { logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg` },
   servicenow: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
+  openai: { logo: `https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg` }, // Using Wikipedia SVG for better availability than internal repo if missing
+  hashicorp: { logo: `${LOGO_BASE_URL}/HashiCorp_logo.svg` },
+  kubernetes: { logo: `${LOGO_BASE_URL}/Kubernetes_logo.svg` },
 };
 
 const ManageCertifications = () => {
@@ -198,6 +201,9 @@ const ManageCertifications = () => {
     oracle: "Oracle",
     salesforce: "Salesforce",
     servicenow: "ServiceNow",
+    openai: "OpenAI",
+    hashicorp: "HashiCorp",
+    kubernetes: "Kubernetes",
     other: "Other",
   };
 

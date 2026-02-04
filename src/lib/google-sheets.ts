@@ -499,6 +499,27 @@ export async function fetchCertifications(): Promise<CertificationEntry[]> {
     console.warn('⚠️ ServiceNow webhook URL not configured');
   }
 
+  // Fetch from OpenAI webhook
+  if (OPENAI_CERTIFICATIONS_WEBHOOK_URL) {
+    fetchPromises.push(fetchFromWebhook(OPENAI_CERTIFICATIONS_WEBHOOK_URL, 'OpenAI'));
+  } else {
+    console.warn('⚠️ OpenAI webhook URL not configured');
+  }
+
+  // Fetch from Hashicorp webhook
+  if (HASHICORP_CERTIFICATIONS_WEBHOOK_URL) {
+    fetchPromises.push(fetchFromWebhook(HASHICORP_CERTIFICATIONS_WEBHOOK_URL, 'HashiCorp'));
+  } else {
+    console.warn('⚠️ HashiCorp webhook URL not configured');
+  }
+
+  // Fetch from Kubernetes webhook
+  if (KUBERNETES_CERTIFICATIONS_WEBHOOK_URL) {
+    fetchPromises.push(fetchFromWebhook(KUBERNETES_CERTIFICATIONS_WEBHOOK_URL, 'Kubernetes'));
+  } else {
+    console.warn('⚠️ Kubernetes webhook URL not configured');
+  }
+
   // Fetch from general webhook (fallback for other providers)
   if (GOOGLE_SHEETS_WEBHOOK_URL) {
     fetchPromises.push(fetchFromWebhook(GOOGLE_SHEETS_WEBHOOK_URL, 'Other'));
@@ -521,6 +542,9 @@ export async function fetchCertifications(): Promise<CertificationEntry[]> {
     Oracle: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'oracle').length,
     Salesforce: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'salesforce').length,
     ServiceNow: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'servicenow').length,
+    OpenAI: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'openai').length,
+    HashiCorp: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'hashicorp').length,
+    Kubernetes: allCertifications.filter(c => c.certificationProvider?.toLowerCase() === 'kubernetes').length,
   });
 
   return allCertifications;
