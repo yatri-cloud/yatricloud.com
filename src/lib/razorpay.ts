@@ -125,18 +125,16 @@ export const isTestMode = () => {
 export const createRazorpayOrder = async (orderData: any) => {
   try {
     // Determine Base URL
-    let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+    // Determine Base URL
+    let API_BASE_URL = "";
 
-    // CRITICAL FIX: If we are in production (built app), we MUST NOT use localhost.
-    // Even if Vercel env var says localhost, we ignore it to prevent the "Name Not Resolved" error.
-    if (import.meta.env.PROD && API_BASE_URL.includes("localhost")) {
-      console.warn("⚠️ Ignoring localhost API_BASE_URL in production. Switching to relative path.");
+    if (import.meta.env.PROD) {
+      // In production (Vercel), ALWAYS use relative path to hit Vercel functions (same origin)
+      // This ignores any incorrect VITE_API_BASE_URL set in env vars
       API_BASE_URL = "";
-    }
-
-    // In strict development (npm run dev), default to localhost if nothing is set
-    if (import.meta.env.DEV && !API_BASE_URL) {
-      API_BASE_URL = "http://localhost:3001";
+    } else {
+      // In development, use env var or default to localhost
+      API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
     }
 
     const requestUrl = `${API_BASE_URL}/api/razorpay/create-order`;
