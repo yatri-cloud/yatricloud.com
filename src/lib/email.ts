@@ -14,20 +14,14 @@ interface SendEmailParams {
  */
 export async function sendEmail({ to, subject, html }: SendEmailParams): Promise<{ success: boolean; error?: string }> {
     try {
-        // Determine the API URL
-        // In dev: http://localhost:3001/api/send-email (if using separate server) or relative /api/send-email
-        // In prod: /api/send-email
+        // Determine API URL with strict production check
+        // In PROD: Always use relative path to hit Vercel functions
+        // In DEV: Use env var or default to localhost
+        const API_BASE = import.meta.env.PROD
+            ? ""
+            : (import.meta.env.VITE_API_URL || "http://localhost:3001");
 
-        // We'll use the relative path, assuming the proxy or same-domain API
-        const API_URL = '/api/send-email';
-
-        // If we're strictly in dev running separately, we might need absolute URL, but let's try relative first
-        // assuming the vite proxy is set up or the server is on the same port in prod
-
-        // Fallback for local testing if needed
-        const targetUrl = import.meta.env.VITE_API_URL
-            ? `${import.meta.env.VITE_API_URL}/api/send-email`
-            : (window.location.hostname === 'localhost' ? 'http://localhost:3001/api/send-email' : '/api/send-email');
+        const targetUrl = `${API_BASE}/api/send-email`;
 
         console.log('📧 Sending email to:', to);
 
