@@ -124,7 +124,13 @@ export const isTestMode = () => {
 
 export const createRazorpayOrder = async (orderData: any) => {
   try {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+    // In development, use the env var or default to localhost
+    // In production (Vercel), default to empty string to use relative path /api/...
+    const defaultUrl = import.meta.env.DEV ? "http://localhost:3001" : "";
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || defaultUrl;
+
+    console.log("💳 Creating order via:", `${API_BASE_URL}/api/razorpay/create-order`);
+
     const response = await fetch(`${API_BASE_URL}/api/razorpay/create-order`, {
       method: "POST",
       headers: {
