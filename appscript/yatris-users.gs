@@ -58,6 +58,12 @@ function doPost(e) {
       
       return sendResponse(updateUserProfile(data, user));
     }
+    
+    // Google Login Action
+    if (action === 'googleLogin') {
+      return sendResponse(googleLogin(data));
+    }
+    
     return sendResponse({ success: false, error: 'Invalid action code' });
   } catch (err) {
     return sendResponse({ success: false, error: err.toString() });
@@ -65,6 +71,87 @@ function doPost(e) {
 }
 
 // --- CORE FUNCTIONS ---
+
+function googleLogin(data) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(USERS_SHEET_NAME);
+  if (!sheet) {
+     sheet = ss.insertSheet(USERS_SHEET_NAME);
+     sheet.appendRow(['Email', 'Password Hash', 'Full Name', 'LinkedIn URL', 'Photo URL', 'Country', 'Phone Number', 'State', 'City', 'Token', 'Token Expiry', 'Created At', 'Last Login', 'Status']);
+  }
+
+  const row = findUserRow(sheet, data.email);
+
+  // LOGIN EXISTING USER
+  if (row) {
+    // Update token
+    const token = generateToken();
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 30); // 30 Day session
+
+    sheet.getRange(row, 10).setValue(token);
+    sheet.getRange(row, 11).setValue(expiry.toISOString());
+    sheet.getRange(row, 13).setValue(new Date().toISOString()); // Last Login updated
+    
+    // Update photo if provided and currently empty, or always update? Let's update if provided.
+    if (data.photoUrl) sheet.getRange(row, 5).setValue(data.photoUrl);
+
+    // Fetch user data to return
+    let values = sheet.getRange(row, 1, 1, 14).getValues()[0];
+    return {
+      success: true,
+      token: token,
+      user: {
+        email: values[0],
+        fullName: values[2],
+        linkedinUrl: values[3],
+        photoUrl: values[4], 
+        country: values[5],
+        phoneNumber: values[6] || '',
+        stateProvince: values[7] || '',
+        city: values[8] || ''
+      }
+    };
+  } else {
+    // REGISTER NEW USER FROM GOOGLE
+    const passwordHash = "GOOGLE_AUTH_USER"; // Marker for Google users
+    const token = generateToken();
+    const tokenExpiry = new Date();
+    tokenExpiry.setDate(tokenExpiry.getDate() + 30);
+
+    sheet.appendRow([
+      data.email,
+      passwordHash,
+      data.fullName || data.email.split('@')[0],
+      '', // LinkedIn
+      data.photoUrl || '',
+      '', // Country
+      '', // Phone
+      '', // State
+      '', // City
+      token,
+      tokenExpiry.toISOString(),
+      new Date().toISOString(),
+      new Date().toISOString(),
+      'active'
+    ]);
+
+     return {
+      success: true,
+      token: token,
+      user: {
+        email: data.email,
+        fullName: data.fullName || data.email.split('@')[0],
+        linkedinUrl: '',
+        photoUrl: data.photoUrl || '',
+        country: '',
+        phoneNumber: '',
+        stateProvince: '',
+        city: ''
+      }
+    };
+  }
+}
 
 function registerUser(data) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);

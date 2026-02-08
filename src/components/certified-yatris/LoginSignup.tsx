@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { LogIn, UserPlus, X, Upload } from "lucide-react";
-import { loginUser, registerUser } from "@/lib/yatris-api";
+import { loginUser, registerUser, googleLogin } from "@/lib/yatris-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +70,63 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       }
     }
   }, [registerData.country]);
+
+  // Google Auth Initialization
+  useEffect(() => {
+    // Check if google is available
+    if (typeof window !== 'undefined' && window.google) {
+      try {
+        const client_id = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+        if (!client_id || client_id.includes("YOUR_GOOGLE")) {
+          console.warn("Google Client ID missing in .env");
+          return;
+        }
+
+        window.google.accounts.id.initialize({
+          client_id: client_id,
+          callback: handleGoogleResponse
+        });
+
+        window.google.accounts.id.renderButton(
+          document.getElementById("googleSignInDiv"),
+          { theme: "outline", size: "large", width: "100%" }
+        );
+      } catch (e) {
+        console.error("Google Auth Init Error", e);
+      }
+    }
+  }, [isLogin]);
+
+  const handleGoogleResponse = async (response: any) => {
+    try {
+      setIsLoading(true);
+      // dynamically import jwt-decode to avoid issues if not installed yet
+      const { jwtDecode } = await import("jwt-decode");
+      const userObject: any = jwtDecode(response.credential);
+
+      console.log("Google User:", userObject);
+
+      const result = await googleLogin({
+        email: userObject.email,
+        fullName: userObject.name,
+        photoUrl: userObject.picture
+      });
+
+      if (result.success && result.user) {
+        onSuccess(result.user);
+        toast({
+          title: "Welcome!",
+          description: `Logged in as ${result.user.fullName}`,
+        });
+      } else {
+        setError(result.error || "Google Login failed");
+      }
+    } catch (e: any) {
+      setError("Google Auth Error: " + e.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -271,11 +328,11 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
               transition={{ delay: 0.2 }}
               className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4"
             >
-              {isLogin ? (
-                <LogIn className="w-8 h-8 text-primary" />
-              ) : (
-                <UserPlus className="w-8 h-8 text-primary" />
-              )}
+              <img
+                src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
+                alt="Yatri Cloud Logo"
+                className="w-12 h-12 object-contain"
+              />
             </motion.div>
             <h2 className="text-3xl font-bold mb-2">
               {isLogin ? "Welcome Back!" : "Join Yatri Cloud"}
@@ -298,6 +355,16 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
             </motion.div>
           )}
 
+          {/* Google Sign In - Always visible */}
+          <div className="mt-4 mb-6">
+            <div id="googleSignInDiv" style={{ width: '100%', minHeight: '40px' }}></div>
+          </div>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with email</span></div>
+          </div>
+
           {/* Login Form */}
           {isLogin ? (
             <form onSubmit={handleLogin} className="space-y-4">
@@ -305,7 +372,6 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                 <Label htmlFor="login-email">Email</Label>
                 <Input
                   id="login-email"
-                  type="email"
                   placeholder="your@email.com"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
@@ -567,7 +633,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
             </button>
           </div>
         </div>
-      </motion.div>
-    </div>
+      </motion.div >
+    </div >
   );
 };

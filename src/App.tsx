@@ -38,6 +38,18 @@ import EventRegistrationsList from "./pages/admin/EventRegistrationsList";
 import { Bot } from "lucide-react"; // Import Bot icon
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import EventFeedback from "./pages/EventFeedback";
+import AdminTraining from "./pages/admin/AdminTraining";
+import AdminProviders from "./pages/admin/AdminProviders";
+import AdminEnrollments from "./pages/admin/AdminEnrollments";
+import Training from "./pages/Training";
+import TrainingDetail from "./pages/TrainingDetail";
+import AdminTrainingList from "@/pages/admin/AdminTrainingList";
+import MyTrainings from "@/pages/MyTrainings";
+import BecomeTrainer from "@/pages/BecomeTrainer";
+import AdminTrainers from "@/pages/admin/AdminTrainers";
+import TrainerLogin from "@/pages/trainer/TrainerLogin";
+import TrainerDashboard from "@/pages/trainer/TrainerDashboard";
+import TrainerCourseEditor from "@/pages/trainer/TrainerCourseEditor";
 
 const queryClient = new QueryClient();
 
@@ -61,9 +73,13 @@ const App = () => (
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/udemy" element={<Udemy />} />
             <Route path="/yatristore" element={<YatriStore />} />
+            <Route path="/training" element={<Training />} />
+            <Route path="/training/:id" element={<TrainingDetail />} />
+            <Route path="/training/:certification/:courseSlug" element={<TrainingDetail />} />
             <Route path="/addproduct" element={<AddProduct />} />
             <Route path="/feedback" element={<Review />} />
             <Route path="/reviews" element={<Reviews />} />
+            <Route path="/creator" element={<BecomeTrainer />} />
 
             {/* ... inside Routes ... */}
             <Route path="/createevent" element={<CreateEvent />} />
@@ -80,6 +96,12 @@ const App = () => (
 
             {/* Profile Routes */}
             <Route path="/profile/my-events" element={<MyEvents />} />
+            <Route path="/my-trainings" element={<MyTrainings />} />
+
+            {/* Trainer Routes */}
+            <Route path="/trainer/login" element={<TrainerLogin />} />
+            <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
+            <Route path="/trainer/course/:courseId/edit" element={<TrainerCourseEditor />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />}>
@@ -91,6 +113,13 @@ const App = () => (
               <Route path="ai" element={<AdminYatriAI />} />
               <Route path="submissions" element={<AdminSubmissions />} />
               <Route path="products/add" element={<AdminAddProduct />} />
+              <Route path="training">
+                <Route index element={<AdminTrainingList />} />
+                <Route path="create" element={<AdminTraining />} />
+              </Route>
+              <Route path="providers" element={<AdminProviders />} />
+              <Route path="enrollments" element={<AdminEnrollments />} />
+              <Route path="trainers" element={<AdminTrainers />} />
             </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

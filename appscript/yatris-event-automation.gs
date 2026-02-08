@@ -59,6 +59,38 @@ function doPost(e) {
       return submitEventFeedback(data);
     }
     
+    if (data.action === 'getEvents') {
+      return getEvents();
+    }
+
+    // Training Portal Actions
+    const trainingActions = [
+      'createTraining', 
+      'getTrainingStructure', 
+      'getProviders', 
+      'addProvider', 
+      'enrollUser', 
+      'getEnrollments', 
+      'updateEnrollment', 
+      'deleteEnrollment'
+    ];
+
+    if (trainingActions.includes(data.action)) {
+      try {
+        // Double check handleTrainingAction exists before calling
+        if (typeof handleTrainingAction !== 'function') {
+           throw new Error("handleTrainingAction is not defined. Please ensure yatri-training.gs is included in the project.");
+        }
+        const result = handleTrainingAction(data.action, data);
+        return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+      } catch (e) {
+        return ContentService.createTextOutput(JSON.stringify({ 
+          success: false, 
+          error: "Sys Error: " + e.toString() 
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
       error: 'Invalid action: ' + (data.action || 'none')

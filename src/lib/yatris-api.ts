@@ -188,6 +188,43 @@ export async function loginUser(
 }
 
 /**
+ * Login or Register with Google
+ */
+export async function googleLogin(userProfile: {
+  email: string;
+  fullName: string;
+  photoUrl: string;
+}): Promise<LoginResponse> {
+  try {
+    const response = await fetch(API_URL_AUTH, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify({
+        action: 'googleLogin',
+        email: userProfile.email,
+        fullName: userProfile.fullName,
+        photoUrl: userProfile.photoUrl
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Google login failed");
+    }
+
+    const result = await response.json();
+    if (result.success && result.token) {
+      localStorage.setItem("yatris_token", result.token);
+      localStorage.setItem("yatris_user", JSON.stringify(result.user));
+    }
+    return result;
+  } catch (error: any) {
+    return { success: false, error: error.message || "Network error" };
+  }
+}
+
+/**
  * Get current user from token
  */
 export async function getCurrentUser(): Promise<User | null> {
@@ -746,7 +783,13 @@ export async function getRegisteredEvents(): Promise<EventRegistration[]> {
  */
 export async function fetchPublishedEvents(): Promise<any[]> {
   try {
-    const response = await fetch(`${API_URL_EVENTS}?action=getEvents`);
+    const response = await fetch(API_URL_EVENTS, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify({ action: 'getEvents' })
+    });
     const result = await response.json();
     if (result.success && result.data) {
       return result.data;

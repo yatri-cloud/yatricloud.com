@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, BookOpen, Home, LogOut, Bot, Plus, GraduationCap, ClipboardList, Users } from "lucide-react";
+import { Calendar, BookOpen, Home, LogOut, Bot, Plus, GraduationCap, ClipboardList, Users, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -42,6 +42,31 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
             name: "Add Product",
             path: "/admin/products/add",
             icon: Plus,
+        },
+        {
+            name: "Training Management",
+            path: "/admin/training",
+            icon: ClipboardList,
+        },
+        {
+            name: "Create Training",
+            path: "/admin/training/create",
+            icon: BookOpen,
+        },
+        {
+            name: "Providers",
+            path: "/admin/providers",
+            icon: Server,
+        },
+        {
+            name: "Enrolled",
+            path: "/admin/enrollments",
+            icon: Users,
+        },
+        {
+            name: "Trainers",
+            path: "/admin/trainers",
+            icon: Users,
         },
     ];
 
