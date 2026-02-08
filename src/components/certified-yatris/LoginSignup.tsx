@@ -89,7 +89,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
 
         window.google.accounts.id.renderButton(
           document.getElementById("googleSignInDiv"),
-          { theme: "outline", size: "large", width: "100%" }
+          { theme: "outline", size: "large" }
         );
       } catch (e) {
         console.error("Google Auth Init Error", e);
@@ -356,8 +356,8 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
           )}
 
           {/* Google Sign In - Always visible */}
-          <div className="mt-4 mb-6">
-            <div id="googleSignInDiv" style={{ width: '100%', minHeight: '40px' }}></div>
+          <div className="mt-4 mb-6 flex justify-center w-full">
+            <div id="googleSignInDiv" className="flex justify-center"></div>
           </div>
 
           <div className="relative mb-6">
