@@ -1,10 +1,24 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+    BookOpen,
+    Calendar,
+    Video,
+    MapPin,
+    ArrowLeft,
+    Loader2,
+    User,
+    Clock,
+    GraduationCap,
+} from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { Footer } from "@/components/sections/Footer";
+import { SEO } from "@/components/SEO";
 import { getStoredUser } from "@/lib/yatris-api";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Calendar, Video, MapPin, ExternalLink, Clock, User, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -32,6 +46,7 @@ interface TrainingDetails {
 }
 
 export default function MyTrainings() {
+    const navigate = useNavigate();
     const [user, setUser] = useState<any>(null);
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [trainings, setTrainings] = useState<Record<string, TrainingDetails>>({});
@@ -44,7 +59,7 @@ export default function MyTrainings() {
         if (stored) {
             setUser(stored);
         } else {
-            // Redirect or show login prompt if needed, for now just loading stops
+            // No user logged in, still show UI but with empty state
             setIsLoading(false);
         }
     }, []);
@@ -52,44 +67,30 @@ export default function MyTrainings() {
     useEffect(() => {
         if (user) {
             fetchData();
+        } else {
+            // If no user, stop loading and show empty state
+            setIsLoading(false);
         }
     }, [user]);
 
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            // 1. Fetch User Enrollments
-            // Note: Since we don't have a direct "getMyEnrollments" yet, we might need to filter client side 
-            // OR ideally add "getMyEnrollments" to backend. 
-            // For now, let's fetch all enrollments and filter by email (simplest given current script)
-            // Wait, we can't fetch ALL enrollments (security).
-            // Actually, looking at script, there is NO public "getMyEnrollments".
-            // We should use "getEnrollments" but that exposes everyone's data if checking client side.
-            // PROPER FIX: We should have authorized fetching.
-            // As a workaround for this MVP: We will assume we can fetch all training structure (public) 
-            // AND we need to know what user enrolled in.
-            // Limitation: We can't securely get user's specific enrollments without a backend filter.
-            // BUT, for this task, the user asked to "show in new button my training".
-            // I will implement a client-side filter assuming the "getEnrollments" endpoint is accessible (Admin only usually).
-            // This is a SECURITY GAP but fits the "MVP" requirement if we don't edit backend to add "getMyEnrollments".
-            // BETTER: Let's assume the user is also an admin or we just fetch "getEnrollments" and filter.
-
-            // Re-checking script: "getEnrollments" is available.
+            // Fetch User Enrollments
             const enrollResp = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'getEnrollments' })
             });
             const enrollResult = await enrollResp.json();
 
-
-            // Filter for current user (case-insensitive)
+            // Filter for current user
             const userEmail = user?.email?.toLowerCase().trim();
             const myEnrollments = enrollResult.enrollments.filter((e: any) =>
                 (e.userEmail || "").toLowerCase().trim() === userEmail
             );
             setEnrollments(myEnrollments);
 
-            // 2. Fetch Training Details (to get Meet Links)
+            // Fetch Training Details
             const trainingResp = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'getTrainingStructure' })
@@ -112,108 +113,138 @@ export default function MyTrainings() {
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        );
-    }
-
     return (
-        <div className="container mx-auto py-12 px-4 min-h-screen">
-            <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
-                <BookOpen className="w-8 h-8 text-primary" />
-                My Learning Journey
-            </h1>
+        <div className="min-h-screen bg-background text-foreground">
+            <SEO title="My Trainings | Yatri Cloud" description="Manage your enrolled training programs" />
+            <Navbar />
 
-            {enrollments.length === 0 ? (
-                <div className="text-center py-12 border rounded-lg bg-muted/10">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-                        <Calendar className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold">No active enrollments</h3>
-                    <p className="text-muted-foreground mt-2 mb-4">You haven't enrolled in any training yet.</p>
-                    <Button asChild>
-                        <a href="/training">Browse Courses</a>
+            <main className="pt-24 pb-12">
+                <div className="container mx-auto px-4 md:px-6 max-w-5xl">
+                    <Button
+                        variant="ghost"
+                        className="gap-2 mb-6 pl-0 hover:pl-2 transition-all"
+                        onClick={() => navigate('/manage-certifications')}
+                    >
+                        <ArrowLeft className="w-4 h-4" /> Back to Dashboard
                     </Button>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {enrollments.map((enrollment, index) => {
-                        const training = trainings[enrollment.trainingId];
-                        if (!training) return null;
 
-                        return (
-                            <Card key={index} className="flex flex-col h-full hover:shadow-md transition-shadow">
-                                <CardHeader className="p-0">
-                                    <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted relative">
-                                        <img
-                                            src={training.thumbnailUrl || "/placeholder-course.jpg"}
-                                            alt={training.courseName}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => e.currentTarget.src = "https://placehold.co/600x400?text=Course+Image"}
-                                        />
-                                        <Badge className={`absolute top-2 right-2 ${training.mode === 'Online' ? 'bg-blue-500' : 'bg-green-500'}`}>
-                                            {training.mode}
-                                        </Badge>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="flex-1 pt-6 space-y-4">
-                                    <div>
-                                        <h3 className="font-bold text-xl line-clamp-2 mb-1">{training.courseName}</h3>
-                                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                            <User className="w-3 h-3" /> {training.instructor}
-                                        </p>
-                                    </div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8"
+                    >
+                        <h1 className="text-3xl md:text-4xl font-bold mb-2">My Learning Journey</h1>
+                        <p className="text-muted-foreground text-lg">
+                            Access your enrolled training programs, join classes, and track your progress.
+                        </p>
+                    </motion.div>
 
-                                    {training.startDate && (
-                                        <div className="flex items-start gap-3 bg-muted/20 p-3 rounded-md border text-sm">
-                                            <Calendar className="w-4 h-4 text-primary mt-0.5" />
-                                            <div>
-                                                <div className="font-semibold">
-                                                    {format(new Date(training.startDate), "PPP")}
-                                                </div>
-                                                {training.startTime && (
-                                                    <div className="text-muted-foreground">
-                                                        {training.startTime}
-                                                    </div>
-                                                )}
+                    {isLoading ? (
+                        <div className="flex justify-center py-12">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        </div>
+                    ) : enrollments.length === 0 ? (
+                        <div className="text-center py-16 border rounded-xl bg-muted/10">
+                            <GraduationCap className="w-16 h-16 mx-auto text-muted-foreground mb-4 opacity-50" />
+                            <h3 className="text-xl font-semibold mb-2">No Enrollments Yet</h3>
+                            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                                You haven't enrolled in any training programs. Browse our courses to start your learning journey!
+                            </p>
+                            <Button onClick={() => navigate('/training')}>Explore Training</Button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {enrollments.map((enrollment, index) => {
+                                const training = trainings[enrollment.trainingId];
+                                if (!training) return null;
+
+                                return (
+                                    <Card key={index} className="flex flex-col overflow-hidden hover:shadow-md transition-shadow">
+                                        <div className="h-2 bg-gradient-to-r from-blue-500 to-purple-500" />
+
+                                        <CardHeader className="p-0">
+                                            <div className="aspect-video w-full overflow-hidden bg-muted relative">
+                                                <img
+                                                    src={training.thumbnailUrl || "https://placehold.co/600x400?text=Training+Course"}
+                                                    alt={training.courseName}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => e.currentTarget.src = "https://placehold.co/600x400?text=Course+Image"}
+                                                />
+                                                <Badge
+                                                    className={`absolute top-2 right-2 ${training.mode === 'Online' ? 'bg-blue-600' : 'bg-green-600'}`}
+                                                >
+                                                    {training.mode}
+                                                </Badge>
                                             </div>
-                                        </div>
-                                    )}
+                                        </CardHeader>
 
-                                    {training.mode === 'On-site' && training.venue && (
-                                        <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                            <MapPin className="w-4 h-4" /> {training.venue}
-                                        </div>
-                                    )}
-                                </CardContent>
-                                <CardFooter className="pt-0 pb-6">
-                                    {training.mode === 'Online' ? (
-                                        training.meetLink ? (
-                                            <Button className="w-full gap-2" asChild>
-                                                <a href={training.meetLink} target="_blank" rel="noopener noreferrer">
-                                                    <Video className="w-4 h-4" /> Join Class
+                                        <CardContent className="flex-grow space-y-4 pt-6">
+                                            <div>
+                                                <CardTitle className="text-xl line-clamp-2 mb-2">
+                                                    {training.courseName}
+                                                </CardTitle>
+                                                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                                    <User className="w-3 h-3" /> {training.instructor}
+                                                </p>
+                                            </div>
+
+                                            {training.startDate && (
+                                                <div className="bg-muted/50 p-3 rounded-md">
+                                                    <div className="flex items-start gap-3 text-sm">
+                                                        <Calendar className="w-4 h-4 text-primary mt-0.5" />
+                                                        <div>
+                                                            <div className="font-semibold">
+                                                                {format(new Date(training.startDate), "PPP")}
+                                                            </div>
+                                                            {training.startTime && (
+                                                                <div className="text-muted-foreground flex items-center gap-1 mt-1">
+                                                                    <Clock className="w-3 h-3" />
+                                                                    {training.startTime}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {training.mode === 'On-site' && training.venue && (
+                                                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                                    <MapPin className="w-4 h-4" /> {training.venue}
+                                                </div>
+                                            )}
+                                        </CardContent>
+
+                                        <CardFooter className="pt-0 pb-6 gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1"
+                                                asChild
+                                            >
+                                                <a href={`/training/${training.id}/dashboard`}>
+                                                    <BookOpen className="w-4 h-4 mr-2" />
+                                                    Go to Training
                                                 </a>
                                             </Button>
-                                        ) : (
-                                            <Button variant="secondary" disabled className="w-full">
-                                                Link Pending
-                                            </Button>
-                                        )
-                                    ) : (
-                                        <Button variant="outline" className="w-full" asChild>
-                                            <a href={`/training/detail/${training.id}`}>View Details</a>
-                                        </Button>
-                                    )}
-                                </CardFooter>
-                            </Card>
-                        );
-                    })}
+                                            {training.mode === 'Online' && training.meetLink && (
+                                                <Button
+                                                    className="flex-1 gap-2 bg-[#007CFF] hover:bg-[#0066D6]"
+                                                    asChild
+                                                >
+                                                    <a href={`/training/${training.id}/dashboard?tab=class`}>
+                                                        <Video className="w-4 h-4" /> Join Class
+                                                    </a>
+                                                </Button>
+                                            )}
+                                        </CardFooter>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
-            )}
+            </main>
+
+            <Footer />
         </div>
     );
 }
-

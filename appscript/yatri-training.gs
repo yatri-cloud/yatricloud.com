@@ -14,21 +14,49 @@ const ENROLLMENTS_SHEET_NAME = "Enrollments";
  * Helper to get the database spreadsheet robustly
  */
 function getTrainingDatabase() {
+  var DB_NAME = "Yatri Training Master Database";
+
   try {
     // 1. Try to get the spreadsheet the script is bound to
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
     if (ss) return ss;
   } catch (e) {}
 
-  // 2. Fallback: Search for "Yatri Training Master Database" in the Individuals folder or root
-  const DB_NAME = "Yatri Training Master Database";
-  const files = DriveApp.getFilesByName(DB_NAME);
+  // 2. Search inside the target folder first
+  try {
+    var targetFolder = DriveApp.getFolderById(TRAINING_ROOT_FOLDER_ID);
+    var folderFiles = targetFolder.getFilesByName(DB_NAME);
+    if (folderFiles.hasNext()) {
+      return SpreadsheetApp.open(folderFiles.next());
+    }
+  } catch (e) {}
+
+  // 3. Fallback: Search anywhere in Drive
+  var files = DriveApp.getFilesByName(DB_NAME);
   if (files.hasNext()) {
-    return SpreadsheetApp.open(files.next());
+    var file = files.next();
+    // Move it into the target folder if it's not there already
+    try {
+      var targetFolder2 = DriveApp.getFolderById(TRAINING_ROOT_FOLDER_ID);
+      targetFolder2.addFile(file);
+      DriveApp.getRootFolder().removeFile(file);
+    } catch (moveErr) {
+      Logger.log("Could not move existing DB to target folder: " + moveErr);
+    }
+    return SpreadsheetApp.open(file);
   }
 
-  // 3. Last Resort: Create it in the root folder so it exists
-  const newSs = SpreadsheetApp.create(DB_NAME);
+  // 4. Create it inside the target folder
+  var newSs = SpreadsheetApp.create(DB_NAME);
+  try {
+    var newFile = DriveApp.getFileById(newSs.getId());
+    var folder = DriveApp.getFolderById(TRAINING_ROOT_FOLDER_ID);
+    folder.addFile(newFile);
+    DriveApp.getRootFolder().removeFile(newFile);
+    Logger.log("Created DB in folder: " + TRAINING_ROOT_FOLDER_ID);
+  } catch (moveErr) {
+    Logger.log("Created DB in root (could not move): " + moveErr);
+  }
   return newSs;
 }
 
@@ -48,36 +76,132 @@ function doPost(e) {
   }
 }
 
+// NOTE: The definitive handleTrainingAction router is defined below (around line 406).
+// Do NOT add a duplicate here — in GAS the last definition wins.
+
 /**
- * Action Router
+ * Grant Google Meet host access to a trainer
+ * Creates/updates a Calendar event with the trainer as co-organizer
  */
-function handleTrainingAction(action, data) {
-  switch (action) {
-    case 'createTraining': return createTrainingStructure(data);
-    case 'getTrainings': return getTrainings();
-    case 'getTrainingById': return getTrainingById(data.id);
-    case 'getTrainingByCertification': return getTrainingByCertification(data.certification);
-    case 'addProvider': return addProvider(data);
-    case 'getProviders': return getProviders();
-    case 'updateProvider': return updateProvider(data);
-    case 'deleteProvider': return deleteProvider(data.providerId);
-    case 'enroll': return enrollUser(data);
-    case 'getEnrollments': return getEnrollments();
-    case 'submitTrainerApplication': return submitTrainerApplication(data);
-    case 'getTrainerApplications': return getTrainerApplications();
-    case 'updateApplicationStatus': return updateApplicationStatus(data);
-    case 'createTrainerCredentials': return createTrainerCredentials(data);
-    case 'getApprovedTrainers': return getApprovedTrainers();
-    case 'assignTrainerToCourse': return assignTrainerToCourse(data);
-    case 'getTrainerAssignments': return getTrainerAssignments(data);
-    case 'trainerLogin': return trainerLogin(data);
-    case 'saveCourseContent': return saveCourseContent(data);
-    case 'getCourseContent': return getCourseContent(data);
-    case 'submitCourseForApproval': return submitCourseForApproval(data);
-    case 'resetTrainerPassword': return resetTrainerPassword(data);
-    case 'deleteTrainer': return deleteTrainer(data);
-    case 'deleteTrainerApplication': return deleteTrainerApplication(data);
-    default: return { success: false, error: 'Unknown action: ' + action };
+function grantMeetAccess(data) {
+  try {
+    var trainerEmail = data.trainerEmail;
+    var trainingId = data.trainingId;
+    
+    if (!trainerEmail || !trainingId) {
+      return { success: false, error: "Missing trainerEmail or trainingId" };
+    }
+    
+    // Look up training data to get meet link, course name, and schedule
+    var ss = getTrainingDatabase();
+    var sheet = ss.getSheetByName(TRAINING_SHEET_NAME);
+    if (!sheet) return { success: false, error: "Training sheet not found" };
+    
+    var allData = sheet.getDataRange().getValues();
+    var trainingRow = null;
+    for (var i = 1; i < allData.length; i++) {
+      if (allData[i][5] === trainingId) { // Column 5 = Folder ID (used as training ID)
+        trainingRow = allData[i];
+        break;
+      }
+    }
+    
+    if (!trainingRow) {
+      return { success: false, error: "Training not found for ID: " + trainingId };
+    }
+    
+    var courseName = trainingRow[3] || "Yatri Training";
+    var meetLink = trainingRow[23] || "";
+    var startDate = trainingRow[21] || "";
+    var startTime = trainingRow[22] || "";
+    
+    // Create a Calendar event with the trainer as co-host
+    var eventStart, eventEnd;
+    
+    if (startDate) {
+      try {
+        var dateObj = new Date(startDate);
+        if (startTime) {
+          // Parse time like "10:00 AM" or "14:00"
+          var timeParts = startTime.toString().match(/(\d+):(\d+)\s*(AM|PM)?/i);
+          if (timeParts) {
+            var hours = parseInt(timeParts[1]);
+            var minutes = parseInt(timeParts[2]);
+            if (timeParts[3] && timeParts[3].toUpperCase() === "PM" && hours < 12) hours += 12;
+            if (timeParts[3] && timeParts[3].toUpperCase() === "AM" && hours === 12) hours = 0;
+            dateObj.setHours(hours, minutes, 0, 0);
+          }
+        }
+        eventStart = dateObj;
+        eventEnd = new Date(dateObj.getTime() + 2 * 60 * 60 * 1000); // 2 hour default duration
+      } catch (e) {
+        // Fallback: tomorrow at 10 AM
+        eventStart = new Date();
+        eventStart.setDate(eventStart.getDate() + 1);
+        eventStart.setHours(10, 0, 0, 0);
+        eventEnd = new Date(eventStart.getTime() + 2 * 60 * 60 * 1000);
+      }
+    } else {
+      eventStart = new Date();
+      eventStart.setDate(eventStart.getDate() + 1);
+      eventStart.setHours(10, 0, 0, 0);
+      eventEnd = new Date(eventStart.getTime() + 2 * 60 * 60 * 1000);
+    }
+    
+    // Use Calendar Advanced Service to create event with conferenceData
+    var calendarId = "primary";
+    
+    var event = {
+      summary: "[Trainer] " + courseName,
+      description: "You have been granted host access for this training session.\n\nTraining: " + courseName + (meetLink ? "\nMeet Link: " + meetLink : ""),
+      start: {
+        dateTime: eventStart.toISOString(),
+        timeZone: CalendarApp.getDefaultCalendar().getTimeZone()
+      },
+      end: {
+        dateTime: eventEnd.toISOString(),
+        timeZone: CalendarApp.getDefaultCalendar().getTimeZone()
+      },
+      attendees: [
+        {
+          email: trainerEmail,
+          responseStatus: "accepted"
+        }
+      ],
+      conferenceData: {
+        createRequest: {
+          requestId: "meet-" + trainingId + "-" + Date.now(),
+          conferenceSolutionKey: { type: "hangoutsMeet" }
+        }
+      },
+      guestsCanModify: true,
+      guestsCanInviteOthers: true
+    };
+    
+    var createdEvent = Calendar.Events.insert(event, calendarId, { conferenceDataVersion: 1, sendUpdates: "all" });
+    
+    var newMeetLink = "";
+    if (createdEvent.conferenceData && createdEvent.conferenceData.entryPoints) {
+      for (var ep = 0; ep < createdEvent.conferenceData.entryPoints.length; ep++) {
+        if (createdEvent.conferenceData.entryPoints[ep].entryPointType === "video") {
+          newMeetLink = createdEvent.conferenceData.entryPoints[ep].uri;
+          break;
+        }
+      }
+    }
+    
+    Logger.log("Created Calendar event with Meet for trainer " + trainerEmail + ". Meet link: " + (newMeetLink || meetLink || "N/A"));
+    
+    return {
+      success: true,
+      message: "Meet host access granted to " + trainerEmail,
+      meetLink: newMeetLink || meetLink,
+      eventId: createdEvent.id
+    };
+    
+  } catch (e) {
+    Logger.log("grantMeetAccess error: " + e.toString());
+    return { success: false, error: e.toString() };
   }
 }
 
@@ -138,6 +262,31 @@ function enrollUser(data) {
       amount,
       currency
     ]);
+
+    // Auto-share training Drive folder with the enrolled user as Viewer
+    try {
+      if (userEmail && trainingId) {
+        var trainingSheet = ss.getSheetByName(TRAINING_SHEET_NAME);
+        if (trainingSheet) {
+          var trainingData = trainingSheet.getDataRange().getValues();
+          for (var t = 1; t < trainingData.length; t++) {
+            var folderId = trainingData[t][5]; // Column 5 = Folder ID
+            if (folderId === trainingId) {
+              try {
+                var folder = DriveApp.getFolderById(folderId);
+                folder.addViewer(userEmail);
+                Logger.log("Shared folder " + folderId + " with " + userEmail);
+              } catch (shareErr) {
+                Logger.log("Could not share folder: " + shareErr.toString());
+              }
+              break;
+            }
+          }
+        }
+      }
+    } catch (driveErr) {
+      Logger.log("Drive sharing error (non-fatal): " + driveErr.toString());
+    }
     
     return { success: true, message: "Enrolled successfully!" };
     
@@ -220,14 +369,51 @@ function deleteEnrollment(data) {
  */
 function handleTrainingAction(action, payload) {
   switch (action) {
+    // Training CRUD
     case 'createTraining':
       return createTrainingStructure(payload);
+    case 'updateTraining':
+      return updateTraining(payload);
     case 'getTrainingStructure':
       return getTrainingStructure();
+    case 'getTrainings':
+      return getTrainings();
+    case 'getTrainingById':
+      return getTrainingById(payload);
+    case 'getTrainingByCertification':
+      return getTrainingByCertification(payload.certification);
+    case 'getAllTraining':
+      return getAllTraining();
+    case 'deleteTraining':
+      return deleteTraining(payload);
+    case 'updateTrainingSchedule':
+      return updateTrainingSchedule(payload);
+    case 'fixAllTrainingPermissions':
+      return fixAllTrainingPermissions();
+
+    // Providers
     case 'getProviders':
       return getProviders();
     case 'addProvider':
       return addProvider(payload);
+    case 'deleteProvider':
+      return deleteProvider(payload);
+    case 'updateProvider':
+      return updateProvider(payload);
+
+    // Resources
+    case 'uploadResource':
+      return uploadResource(payload);
+    case 'getTrainingResources':
+      return getTrainingResources(payload);
+    case 'getTrainingQuizzes':
+      return getTrainingQuizzes(payload);
+    case 'getFoldersInPath':
+      return getFoldersInPath(payload);
+
+    // Enrollments
+    case 'enroll':
+      return enrollUser(payload);
     case 'enrollUser':
       return enrollUser(payload);
     case 'getEnrollments':
@@ -236,36 +422,223 @@ function handleTrainingAction(action, payload) {
       return updateEnrollment(payload);
     case 'deleteEnrollment':
       return deleteEnrollment(payload);
-    case 'getFoldersInPath':
-      return getFoldersInPath(payload);
-    case 'deleteProvider':
-      return deleteProvider(payload);
-    case 'updateProvider':
-      return updateProvider(payload);
-    case 'getAllTraining':
-      return getAllTraining();
-    case 'deleteTraining':
-      return deleteTraining(payload);
-    case 'fixAllTrainingPermissions':
-      return fixAllTrainingPermissions();
-    case 'updateTrainingSchedule':
-      return updateTrainingSchedule(payload);
+
+    // Trainer Applications
     case 'submitTrainerApplication':
       return submitTrainerApplication(payload);
     case 'getTrainerApplications':
       return getTrainerApplications();
     case 'updateApplicationStatus':
       return updateApplicationStatus(payload);
-    case 'createTrainerCredentials':
-      return createTrainerCredentials(payload);
+    case 'approveTrainer':
+      return approveTrainer(payload);
+    case 'verifyTrainerAccess':
+      return verifyTrainerAccess(payload);
+    case 'rejectTrainerApplication':
+      return rejectTrainerApplication(payload);
+    case 'deleteTrainerApplication':
+      return deleteTrainerApplication(payload);
+
+    // Trainer Management
     case 'getApprovedTrainers':
       return getApprovedTrainers();
     case 'assignTrainerToCourse':
       return assignTrainerToCourse(payload);
     case 'getTrainerAssignments':
       return getTrainerAssignments(payload);
+    case 'revokeTrainerAssignment':
+      return revokeTrainerAssignment(payload);
+    case 'createTrainerCredentials':
+      return createTrainerCredentials(payload);
+    case 'trainerLogin':
+      return trainerLogin(payload);
+    case 'resetTrainerPassword':
+      return resetTrainerPassword(payload);
+    case 'deleteTrainer':
+      return deleteTrainer(payload);
+
+    // Trainer Course Content
+    case 'saveCourseContent':
+      return saveCourseContent(payload);
+    case 'getCourseContent':
+      return getCourseContent(payload);
+    case 'submitCourseForApproval':
+      return submitCourseForApproval(payload);
+
+    // Google Meet
+    case 'grantMeetAccess':
+      return grantMeetAccess(payload);
+
     default:
       return { success: false, error: "Unknown training action: " + action };
+  }
+}
+
+/**
+ * Update an existing training record in-place.
+ * Finds the row by Folder ID and updates all columns.
+ */
+function updateTraining(data) {
+  try {
+    var id = data.id;
+    if (!id) return { success: false, error: 'No training ID provided for update' };
+
+    var ss = getTrainingDatabase();
+    var sheet = ss.getSheetByName(TRAINING_SHEET_NAME);
+    if (!sheet) return { success: false, error: 'Trainings sheet not found' };
+
+    var allData = sheet.getDataRange().getValues();
+    var headers = allData[0];
+    var colMap = {};
+    for (var h = 0; h < headers.length; h++) {
+      colMap[headers[h].toString().trim().toLowerCase()] = h;
+    }
+
+    var getIdx = function(keys) {
+      for (var k = 0; k < keys.length; k++) {
+        if (colMap.hasOwnProperty(keys[k])) return colMap[keys[k]];
+      }
+      return -1;
+    };
+    // The unique ID is the Folder ID (Column index 5, F)
+    // Hardcoded to match getAllTraining and fix misaligned headers
+    var folderIdIdx = 5;
+
+    var targetRow = -1;
+    for (var i = 1; i < allData.length; i++) {
+      var rowId = (allData[i][folderIdIdx] || '').toString().trim();
+      var updateId = (id || '').toString().trim();
+      if (rowId === updateId) {
+        targetRow = i + 1; // 1-based index
+        break;
+      }
+    }
+
+    if (targetRow === -1) {
+      return { success: false, error: 'Training not found for update: ' + id };
+    }
+
+    // Hardcoded column updates to match logTrainingToSheet
+    // Index 0 is Timestamp (Column 1)
+    sheet.getRange(targetRow, 2).setValue(data.type || ''); // Index 1
+    sheet.getRange(targetRow, 3).setValue(data.subType || ''); // Index 2
+    sheet.getRange(targetRow, 4).setValue(data.courseName || ''); // Index 3
+    // Index 4 is Folder URL (skip)
+    // Index 5 is Folder ID (skip - used for lookup)
+    sheet.getRange(targetRow, 7).setValue(data.description || ''); // Index 6
+    sheet.getRange(targetRow, 8).setValue(data.instructor || ''); // Index 7
+    sheet.getRange(targetRow, 9).setValue(data.level || ''); // Index 8
+    sheet.getRange(targetRow, 10).setValue(data.duration || ''); // Index 9
+    sheet.getRange(targetRow, 11).setValue(data.skills || ''); // Index 10
+    sheet.getRange(targetRow, 12).setValue(data.outcomes || ''); // Index 11
+    
+    // Calculate modules count if curriculum provided
+    if (data.curriculum) {
+       sheet.getRange(targetRow, 13).setValue(data.curriculum.length); // Index 12
+    }
+
+    sheet.getRange(targetRow, 14).setValue(data.status || 'Draft'); // Index 13
+
+    // New Data
+    sheet.getRange(targetRow, 15).setValue(data.mode || 'Online'); // Index 14
+    
+    // Venue: combine name + address if provided
+    var venueVal = data.venueName ? (data.venueName + (data.venueAddress ? " (" + data.venueAddress + ")" : "")) : "";
+    sheet.getRange(targetRow, 16).setValue(venueVal); // Index 15
+    
+    sheet.getRange(targetRow, 17).setValue(data.capacityType === 'Limited' ? data.capacityCount : "Unlimited"); // Index 16
+    sheet.getRange(targetRow, 18).setValue(data.paymentType || 'Free'); // Index 17
+    sheet.getRange(targetRow, 19).setValue(data.price || ''); // Index 18
+    sheet.getRange(targetRow, 20).setValue(data.couponCode || ''); // Index 19
+    
+    // Index 20 is Thumbnail (handled below)
+    
+    sheet.getRange(targetRow, 22).setValue(data.startDate || ''); // Index 21
+    sheet.getRange(targetRow, 23).setValue(data.startTime || ''); // Index 22
+    // Index 23 is Meet Link (handled separately via grantMeetAccess usually, but can update if passed)
+    if (data.meetLink) sheet.getRange(targetRow, 24).setValue(data.meetLink);
+
+    // Update curriculum.json in Drive
+    if (data.curriculum && data.curriculum.length > 0) {
+      try {
+        var folder = DriveApp.getFolderById(id);
+        // Remove old curriculum.json
+        var oldFiles = folder.getFilesByName('curriculum.json');
+        while (oldFiles.hasNext()) {
+          oldFiles.next().setTrashed(true);
+        }
+        folder.createFile('curriculum.json', JSON.stringify(data.curriculum, null, 2), 'application/json');
+      } catch (e) {
+        console.warn('Could not update curriculum.json in Drive:', e);
+      }
+    }
+
+    // Update Quizzes.csv
+    if (data.quizQuestions && data.quizQuestions.length > 0) {
+      try {
+        var folder2 = DriveApp.getFolderById(id);
+        var oldQuiz = folder2.getFilesByName('Quizzes.csv');
+        while (oldQuiz.hasNext()) {
+          oldQuiz.next().setTrashed(true);
+        }
+        var csvContent = 'ID,Question,Type,Options,CorrectAnswers,Explanation\n';
+        data.quizQuestions.forEach(function(quiz) {
+          var optionsJson = JSON.stringify(quiz.options || []).replace(/"/g, '""');
+          var correctAnswersJson = JSON.stringify(quiz.correctAnswers || []).replace(/"/g, '""');
+          var explanation = (quiz.overallExplanation || '').replace(/"/g, '""');
+          var question = (quiz.question || '').replace(/"/g, '""');
+          csvContent += '"' + quiz.id + '","' + question + '","' + quiz.questionType + '","' + optionsJson + '","' + correctAnswersJson + '","' + explanation + '"\n';
+        });
+        folder2.createFile('Quizzes.csv', csvContent, 'text/csv');
+      } catch (e) {
+        console.warn('Could not update Quizzes.csv:', e);
+      }
+    }
+
+    // Update Resources.csv
+    if (data.resources && data.resources.length > 0) {
+      try {
+        var folder3 = DriveApp.getFolderById(id);
+        var oldRes = folder3.getFilesByName('Resources.csv');
+        while (oldRes.hasNext()) {
+          oldRes.next().setTrashed(true);
+        }
+        var resCsv = 'ID,Name,URL,Type,Description\n';
+        data.resources.forEach(function(resource) {
+          var name = (resource.name || '').replace(/"/g, '""');
+          var url = (resource.url || '').replace(/"/g, '""');
+          var type = (resource.type || 'Link').replace(/"/g, '""');
+          var description = (resource.description || '').replace(/"/g, '""');
+          resCsv += '"' + resource.id + '","' + name + '","' + url + '","' + type + '","' + description + '"\n';
+        });
+        folder3.createFile('Resources.csv', resCsv, 'text/csv');
+      } catch (e) {
+        console.warn('Could not update Resources.csv:', e);
+      }
+    }
+
+    // Handle thumbnail update
+    if (data.thumbnailBase64) {
+      try {
+        var folder4 = DriveApp.getFolderById(id);
+        var decoded = Utilities.base64Decode(data.thumbnailBase64);
+        var blob = Utilities.newBlob(decoded, data.thumbnailMimeType || 'image/png', 'thumbnail');
+        var thumbFile = folder4.createFile(blob);
+        thumbFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        var thumbnailUrl = 'https://lh3.googleusercontent.com/d/' + thumbFile.getId();
+        setCell(['thumbnail url', 'thumbnailurl', 'thumbnail'], thumbnailUrl);
+      } catch (e) {
+        console.warn('Could not update thumbnail:', e);
+      }
+    }
+
+    return {
+      success: true,
+      message: data.status === 'Draft' ? 'Draft updated successfully' : 'Training updated successfully'
+    };
+  } catch (e) {
+    console.error('Error in updateTraining:', e);
+    return { success: false, error: e.toString() };
   }
 }
 
@@ -615,6 +988,8 @@ function createTrainingStructure(data) {
       modulesCount = 0,
       curriculum = [],
       status = 'Published', // 'Draft' or 'Published'
+      quizQuestions = [],
+      resources = [],
       // Advanced Settings
       mode = 'Online',
       venueName = '',
@@ -678,6 +1053,40 @@ function createTrainingStructure(data) {
       }
 
       getOrCreateFolder('Resources', courseFolder);
+
+      // Save Quizzes to CSV if provided
+      if (quizQuestions && quizQuestions.length > 0) {
+        try {
+          let csvContent = 'ID,Question,Type,Options,CorrectAnswers,Explanation\n';
+          quizQuestions.forEach((quiz) => {
+            const optionsJson = JSON.stringify(quiz.options || []).replace(/"/g, '""');
+            const correctAnswersJson = JSON.stringify(quiz.correctAnswers || []).replace(/"/g, '""');
+            const explanation = (quiz.overallExplanation || '').replace(/"/g, '""');
+            const question = (quiz.question || '').replace(/"/g, '""');
+            csvContent += `"${quiz.id}","${question}","${quiz.questionType}","${optionsJson}","${correctAnswersJson}","${explanation}"\n`;
+          });
+          courseFolder.createFile('Quizzes.csv', csvContent, 'text/csv');
+        } catch (quizErr) {
+          console.error('Error creating Quizzes.csv:', quizErr);
+        }
+      }
+
+      // Save Resources to CSV if provided
+      if (resources && resources.length > 0) {
+        try {
+          let csvContent = 'ID,Name,URL,Type,Description\n';
+          resources.forEach((resource) => {
+            const name = (resource.name || '').replace(/"/g, '""');
+            const url = (resource.url || '').replace(/"/g, '""');
+            const type = (resource.type || 'Link').replace(/"/g, '""');
+            const description = (resource.description || '').replace(/"/g, '""');
+            csvContent += `"${resource.id}","${name}","${url}","${type}","${description}"\n`;
+          });
+          courseFolder.createFile('Resources.csv', csvContent, 'text/csv');
+        } catch (resourceErr) {
+          console.error('Error creating Resources.csv:', resourceErr);
+        }
+      }
 
       // Google Meet Integration (Requires 'Google Calendar API' Service enabled)
       if (mode === 'Online' && startDate && startTime) {
@@ -962,6 +1371,16 @@ function deleteTraining(data) {
       console.warn("Drive folder not found or already deleted: " + driveError.toString());
     }
 
+    // 5. If instructor is selected, assign them
+    if (data.instructorId && data.instructorId !== "") {
+       assignTrainerToCourse({
+         trainerId: data.instructorId,
+         trainerName: data.instructor || "Unknown",
+         courseId: folder.getId(),
+         courseName: data.courseName
+       });
+    }
+
     return { 
       success: true, 
       message: `Training deleted successfully. Removed ${deletedCount} record(s) from sheet.` 
@@ -1025,6 +1444,271 @@ function fixAllTrainingPermissions() {
 }
 
 /**
+ * Get Quiz Questions for a Training
+ */
+function getTrainingQuizzes(data) {
+  try {
+    const { trainingId } = data;
+    
+    // Find the training folder
+    const folder = DriveApp.getFolderById(trainingId);
+    if (!folder) {
+      return { success: false, error: 'Training folder not found' };
+    }
+    
+    // Look for Quizzes.csv
+    const files = folder.getFilesByName('Quizzes.csv');
+    if (!files.hasNext()) {
+      return { success: true, quizzes: [] };
+    }
+    
+    const csvFile = files.next();
+    const csvContent = csvFile.getBlob().getDataAsString();
+    const rows = Utilities.parseCsv(csvContent);
+    
+    // Skip header row
+    const quizzes = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length < 6) continue;
+      
+      try {
+        quizzes.push({
+          id: row[0],
+          question: row[1],
+          questionType: row[2],
+          options: JSON.parse(row[3]),
+          correctAnswers: JSON.parse(row[4]),
+          overallExplanation: row[5]
+        });
+      } catch (parseErr) {
+        console.error('Error parsing quiz row:', parseErr);
+      }
+    }
+    
+    return { success: true, quizzes: quizzes };
+  } catch (e) {
+    console.error('Error in getTrainingQuizzes:', e);
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * Get Resources for a Training
+ */
+function getTrainingResources(data) {
+  try {
+    const { trainingId } = data;
+    
+    // Find the training folder
+    const folder = DriveApp.getFolderById(trainingId);
+    if (!folder) {
+      return { success: false, error: 'Training folder not found' };
+    }
+    
+    // Look for Resources.csv
+    const files = folder.getFilesByName('Resources.csv');
+    if (!files.hasNext()) {
+      return { success: true, resources: [] };
+    }
+    
+    const csvFile = files.next();
+    const csvContent = csvFile.getBlob().getDataAsString();
+    const rows = Utilities.parseCsv(csvContent);
+    
+    // Skip header row
+    const resources = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length < 5) continue;
+      
+      resources.push({
+        id: row[0],
+        name: row[1],
+        url: row[2],
+        type: row[3],
+        description: row[4]
+      });
+    }
+    
+    return { success: true, resources: resources };
+  } catch (e) {
+    console.error('Error in getTrainingResources:', e);
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * Get training by ID for editing.
+ * The ID is the Folder ID (used as unique identifier in getAllTraining).
+ * Uses dynamic header mapping for robustness.
+ */
+function getTrainingById(data) {
+  try {
+    const { id } = data;
+    if (!id) return { success: false, error: 'No training ID provided' };
+
+    const ss = getTrainingDatabase();
+    const sheet = ss.getSheetByName(TRAINING_SHEET_NAME);
+
+    if (!sheet) {
+      return { success: false, error: 'Trainings sheet not found' };
+    }
+
+    const allData = sheet.getDataRange().getValues();
+    if (allData.length < 2) {
+      return { success: false, error: 'No training data found' };
+    }
+
+    // Dynamic header mapping
+    const headers = allData[0];
+    const colMap = {};
+    for (let h = 0; h < headers.length; h++) {
+      colMap[headers[h].toString().trim().toLowerCase()] = h;
+    }
+
+    const getIdx = function(keys) {
+      for (var k = 0; k < keys.length; k++) {
+        if (colMap.hasOwnProperty(keys[k])) return colMap[keys[k]];
+      }
+      return -1;
+    };
+
+    const getVal = function(row, keys, fallback) {
+      var idx = getIdx(keys);
+      if (idx > -1 && row[idx] !== undefined && row[idx] !== null && row[idx] !== '') return row[idx];
+      return fallback !== undefined ? fallback : '';
+    };
+
+    // The unique ID is the Folder ID (Column index 5, F)
+    // We hardcode this to match getAllTraining and logTrainingToSheet
+    // The previous dynamic header search found "Folder ID" at index 6 (misaligned header), causing failure.
+    var folderIdIdx = 5; 
+
+    // console.log('Searching for ID:', id, 'at column index:', folderIdIdx);
+
+    // Find the row matching the ID
+    for (var i = 1; i < allData.length; i++) {
+      var row = allData[i];
+      // Loose comparison for robustness with normalization
+      var rowId = (row[folderIdIdx] || '').toString().trim();
+      var searchId = (id || '').toString().trim();
+      if (rowId === searchId) {
+        // Parse curriculum from the Drive folder
+        var curriculum = [];
+        try {
+          var folder = DriveApp.getFolderById(id);
+          var curriculumFiles = folder.getFilesByName('curriculum.json');
+          if (curriculumFiles.hasNext()) {
+            var currFile = curriculumFiles.next();
+            curriculum = JSON.parse(currFile.getBlob().getDataAsString());
+          }
+        } catch (e) {
+          console.log('Could not load curriculum from Drive, checking sheet:', e);
+        }
+
+        // Parse venue info (stored as "VenueName (Address)")
+        var venueRaw = getVal(row, ['venue name', 'venue'], '');
+        var venueName = venueRaw;
+        var venueAddress = '';
+        var venueMatch = venueRaw.match(/^(.+?)\s*\((.+)\)$/);
+        if (venueMatch) {
+          venueName = venueMatch[1].trim();
+          venueAddress = venueMatch[2].trim();
+        }
+
+        // Parse capacity
+        var capacityRaw = getVal(row, ['max capacity', 'capacity'], 'Unlimited');
+        var capacityType = (capacityRaw === 'Unlimited' || !capacityRaw) ? 'Unlimited' : 'Limited';
+        var capacityCount = capacityType === 'Limited' ? capacityRaw : '';
+
+        // Parse payment/price (stored as "USD 99" or "Free")
+        var paymentType = getVal(row, ['payment', 'payment type'], 'Free');
+        var priceRaw = getVal(row, ['price'], '');
+        var currency = 'USD';
+        var price = '';
+        if (priceRaw && priceRaw !== 'Free') {
+          var priceParts = priceRaw.toString().split(' ');
+          if (priceParts.length === 2) {
+            currency = priceParts[0];
+            price = priceParts[1];
+          } else {
+            price = priceRaw;
+          }
+        }
+
+        // Parse start date
+        var startDateRaw = getVal(row, ['startdate', 'start date'], null);
+        var startDate = null;
+        if (startDateRaw) {
+          try {
+            startDate = new Date(startDateRaw).toISOString();
+          } catch (e) {
+            startDate = startDateRaw;
+          }
+        }
+
+        var training = {
+          id: row[folderIdIdx],
+          type: getVal(row, ['type']),
+          certification: getVal(row, ['provider/role', 'provider', 'subtype', 'sub-type']),
+          subType: getVal(row, ['provider/role', 'provider', 'subtype', 'sub-type']),
+          courseName: getVal(row, ['course name', 'coursename']),
+          description: getVal(row, ['description']),
+          instructor: getVal(row, ['instructor']),
+          level: getVal(row, ['level'], 'Beginner'),
+          duration: getVal(row, ['duration']),
+          skills: getVal(row, ['skills']),
+          outcomes: getVal(row, ['outcomes']),
+          mode: getVal(row, ['mode'], 'Online'),
+          curriculum: curriculum,
+          venueName: venueName,
+          venueAddress: venueAddress,
+          venueMapLink: '',
+          capacityType: capacityType,
+          capacityCount: capacityCount,
+          startDate: startDate,
+          startTime: getVal(row, ['starttime', 'start time']),
+          paymentType: paymentType,
+          price: price,
+          currency: currency,
+          couponCode: getVal(row, ['coupon code', 'couponcode']),
+          status: getVal(row, ['status'], 'Draft'),
+          folderId: row[folderIdIdx],
+          folderUrl: getVal(row, ['folder url', 'folderurl']),
+          meetLink: getVal(row, ['meetlink', 'meet link']),
+          thumbnail: getVal(row, ['thumbnail url', 'thumbnailurl', 'thumbnail'])
+        };
+
+        return { success: true, training: training };
+      }
+    }
+
+    // Capture debug info
+    var debugInfo = {
+      sheetId: sheet.getParent().getId(),
+      sheetName: sheet.getName(),
+      rowCount: allData.length,
+      searchColumnIndex: folderIdIdx,
+      searchedId: id,
+      nomalizedSearchId: (id || '').toString().trim(),
+      first5Ids: allData.slice(1, 6).map(r => r[folderIdIdx])
+    };
+
+    console.warn('Training not found. Debug:', JSON.stringify(debugInfo));
+
+    return { 
+      success: false, 
+      error: 'Training not found for ID: ' + id,
+      debug: debugInfo
+    };
+  } catch (e) {
+    console.error('Error in getTrainingById:', e);
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
  * ========================================
  * TRAINER APPLICATION FUNCTIONS
  * ========================================
@@ -1050,6 +1734,8 @@ function submitTrainerApplication(data) {
         'Phone Number',
         'LinkedIn URL',
         'Expertise',
+        'Certification Provider',
+        'Credentials Links',
         'Years of Experience',
         'Motivation',
         'Status',
@@ -1059,10 +1745,36 @@ function submitTrainerApplication(data) {
       sheet.setFrozenRows(1);
       
       // Format header
-      const headerRange = sheet.getRange(1, 1, 1, 12);
+      const headerRange = sheet.getRange(1, 1, 1, 14);
       headerRange.setBackground('#4285f4');
       headerRange.setFontColor('#ffffff');
       headerRange.setFontWeight('bold');
+      headerRange.setFontWeight('bold');
+    }
+    
+    // Check if application already exists for this email
+    const existingData = sheet.getDataRange().getValues();
+    for (let i = 1; i < existingData.length; i++) {
+      if (existingData[i][2] === data.email) { // Email column index is 2
+        return {
+          success: false,
+          error: 'You have already submitted an application. Please wait for our review.'
+        };
+      }
+    }
+
+    // Check if already a trainer
+    let trainersSheet = ss.getSheetByName('trainers');
+    if (trainersSheet) {
+      const trainersData = trainersSheet.getDataRange().getValues();
+      for (let i = 1; i < trainersData.length; i++) {
+        if (trainersData[i][1] === data.email) { // Email column index is 1 in trainers sheet
+          return {
+            success: false,
+            error: 'You are already a registered trainer. Please log in to the trainer portal.'
+          };
+        }
+      }
     }
     
     // Handle resume upload to Google Drive
@@ -1093,20 +1805,75 @@ function submitTrainerApplication(data) {
     }
     
     // Append the application
-    sheet.appendRow([
-      new Date(),
-      data.fullName || '',
-      data.email || '',
-      data.countryCode || '',
-      data.phoneNumber || '',
-      data.linkedinUrl || '',
-      data.expertise || '',
-      data.yearsOfExperience || '',
-      data.motivation || '',
-      'Pending', // Initial status
-      '', // Admin notes (empty initially)
-      resumeUrl
-    ]);
+    // Dynamic Row Construction
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const colMap = {};
+    for (let h = 0; h < headers.length; h++) {
+       colMap[headers[h].toString().trim().toLowerCase()] = h;
+    }
+    
+    // Helper to find index with aliases
+    const getIdx = (keys) => {
+      for (const key of keys) {
+        if (colMap.hasOwnProperty(key)) return colMap[key];
+      }
+      return -1;
+    };
+    
+    // Initialize row with empty strings
+    const newRow = new Array(headers.length).fill('');
+    
+    // Map data to indices
+    const setVal = (keys, value) => {
+      const idx = getIdx(keys);
+      if (idx > -1) newRow[idx] = value;
+    };
+    
+    setVal(['timestamp'], new Date());
+    setVal(['full name', 'name'], data.fullName || '');
+    setVal(['email', 'email address'], data.email || '');
+    setVal(['country code'], data.countryCode || '');
+    setVal(['phone number', 'phone'], data.phoneNumber || '');
+    setVal(['linkedin url', 'linkedin profile', 'linkedin'], data.linkedinUrl || '');
+    setVal(['expertise', 'area of expertise'], data.expertise || '');
+    setVal(['certification provider'], data.certificationProvider || '');
+    setVal(['credentials links'], data.credentialsLinks || '');
+    setVal(['years of experience', 'experience'], data.yearsOfExperience || '');
+    setVal(['motivation'], data.motivation || '');
+    setVal(['status'], 'Pending');
+    setVal(['admin notes'], '');
+    setVal(['resume url', 'resume'], resumeUrl);
+    
+    // Check if Status was set (critical). If not found, we might need to append it?
+    // No, better to trust the existing headers or maybe the user deleted the Status column?
+    // If Status column is missing, we should probably add it? 
+    // For now, assuming headers exist as we create them if missing.
+    
+    sheet.appendRow(newRow);
+    
+    // --- Send Acknowledgment Email ---
+    try {
+      if (data.email) {
+        MailApp.sendEmail({
+          to: data.email,
+          subject: "Application Received - Yatri Trainer Program",
+          htmlBody: `
+            <div style="font-family: Arial, sans-serif; color: #333;">
+              <h2>Hello ${data.fullName},</h2>
+              <p>Thank you for applying to become a trainer at <strong>Yatri Cloud</strong>.</p>
+              <p>We have received your application and will review your profile shortly. Our team typically takes <strong>2-3 business days</strong> to process applications.</p>
+              <p>You will receive another email once your application status is updated.</p>
+              <br>
+              <p>Best regards,</p>
+              <p><strong>Yatri Training Team</strong></p>
+            </div>
+          `
+        });
+      }
+    } catch (mailError) {
+      Logger.log("Failed to send acknowledgment email: " + mailError.toString());
+    }
+    // ---------------------------------
     
     return {
       success: true,
@@ -1141,22 +1908,51 @@ function getTrainerApplications() {
     const headers = data[0];
     const applications = [];
     
+    // Dynamic Column Finding
+    const colMap = {
+      'timestamp': 0,
+      'full name': 1,
+      'email': 2,
+      'country code': 3,
+      'phone number': 4,
+      'linkedin profile': 5,
+      'area of expertise': 6,
+      'certification provider': 7,
+      'credentials links': 8,
+      'years of experience': 9,
+      'motivation': 10,
+      'status': 11,
+      'admin notes': 12,
+      'resume url': 13
+    };
+    
+    if (headers) {
+      for (let h = 0; h < headers.length; h++) {
+        const header = headers[h].toString().trim().toLowerCase();
+        if (colMap.hasOwnProperty(header)) {
+          colMap[header] = h;
+        }
+      }
+    }
+    
     for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      applications.push({
-        timestamp: row[0],
-        fullName: row[1],
-        email: row[2],
-        countryCode: row[3],
-        phoneNumber: row[4],
-        linkedinUrl: row[5],
-        expertise: row[6],
-        yearsOfExperience: row[7],
-        motivation: row[8],
-        status: row[9],
-        adminNotes: row[10],
-        resumeUrl: row[11] || ''
-      });
+        const row = data[i];
+        applications.push({
+            timestamp: row[colMap['timestamp']],
+            fullName: row[colMap['full name']],
+            email: row[colMap['email']],
+            countryCode: row[colMap['country code']],
+            phoneNumber: row[colMap['phone number']],
+            linkedinUrl: row[colMap['linkedin profile']],
+            expertise: row[colMap['area of expertise']],
+            certificationProvider: row[colMap['certification provider']] || '',
+            credentialsLinks: row[colMap['credentials links']] || '',
+            yearsOfExperience: row[colMap['years of experience']],
+            motivation: row[colMap['motivation']],
+            status: row[colMap['status']],
+            adminNotes: row[colMap['admin notes']],
+            resumeUrl: row[colMap['resume url']] || ''
+        });
     }
     
     return {
@@ -1169,6 +1965,72 @@ function getTrainerApplications() {
       success: false,
       error: 'Failed to fetch applications: ' + error.toString()
     };
+  }
+}
+
+/**
+ * Delete a Trainer Application
+ */
+function deleteTrainerApplication(data) {
+  try {
+    var email = data.email;
+    if (!email) return { success: false, error: "Missing email" };
+
+    var ss = getTrainingDatabase();
+    var sheet = ss.getSheetByName('trainer_applications');
+    if (!sheet) return { success: false, error: "Applications sheet not found" };
+
+    var allData = sheet.getDataRange().getValues();
+    for (var i = 1; i < allData.length; i++) {
+      if (allData[i][2] === email) { // Column 2 = Email
+        sheet.deleteRow(i + 1); // +1 because sheet rows are 1-indexed
+        return { success: true, message: "Application deleted" };
+      }
+    }
+
+    return { success: false, error: "Application not found for email: " + email };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * Delete an Approved Trainer
+ */
+function deleteTrainer(data) {
+  try {
+    var email = data.email;
+    if (!email) return { success: false, error: "Missing email" };
+
+    var ss = getTrainingDatabase();
+    var sheet = ss.getSheetByName('trainers');
+    if (!sheet) return { success: false, error: "Trainers sheet not found" };
+
+    var allData = sheet.getDataRange().getValues();
+    var headers = allData[0];
+    
+    // Dynamic find Email column with aliases
+    var emailIndex = 1;
+    if (headers) {
+      for (var h = 0; h < headers.length; h++) {
+        var header = headers[h].toString().trim().toLowerCase();
+        if (header === 'email' || header === 'email address') {
+          emailIndex = h;
+          break;
+        }
+      }
+    }
+    
+    for (var i = 1; i < allData.length; i++) {
+      if (allData[i][emailIndex] === email) { 
+        sheet.deleteRow(i + 1);
+        return { success: true, message: "Trainer deleted" };
+      }
+    }
+
+    return { success: false, error: "Trainer not found for email: " + email };
+  } catch (e) {
+    return { success: false, error: e.toString() };
   }
 }
 
@@ -1191,10 +2053,24 @@ function updateApplicationStatus(data) {
     const allData = sheet.getDataRange().getValues();
     const headers = allData[0];
     
+    // Dynamic Column Finding
+    let emailIdx = 2;
+    let statusIdx = 11;
+    let notesIdx = 12;
+    
+    if (headers) {
+      for (let h = 0; h < headers.length; h++) {
+        const header = headers[h].toString().trim().toLowerCase();
+        if (header === 'email' || header === 'email address') emailIdx = h;
+        else if (header === 'status') statusIdx = h;
+        else if (header === 'admin notes') notesIdx = h;
+      }
+    }
+    
     // Find the row with matching email
     let targetRow = -1;
     for (let i = 1; i < allData.length; i++) {
-      if (allData[i][2] === data.email) { // Email is at index 2
+      if (allData[i][emailIdx] === data.email) {
         targetRow = i + 1; // +1 because sheet rows are 1-indexed
         break;
       }
@@ -1207,10 +2083,11 @@ function updateApplicationStatus(data) {
       };
     }
     
-    // Update status (column 10) and admin notes (column 11)
-    sheet.getRange(targetRow, 10).setValue(data.status); // Status
-    if (data.adminNotes) {
-      sheet.getRange(targetRow, 11).setValue(data.adminNotes); // Admin Notes
+    // Update status and admin notes
+    // getRange(row, column) is 1-indexed. Our indices are 0-indexed. So +1.
+    sheet.getRange(targetRow, statusIdx + 1).setValue(data.status); 
+    if (data.adminNotes && notesIdx > -1) {
+      sheet.getRange(targetRow, notesIdx + 1).setValue(data.adminNotes);
     }
     
     return {
@@ -1227,10 +2104,61 @@ function updateApplicationStatus(data) {
 }
 
 /**
+ * Upload Resource to Drive
+ */
+function uploadResource(data) {
+  try {
+    const { base64, mimeType, fileName, folderId } = data;
+    
+    // Get root folder
+    const rootFolder = DriveApp.getFolderById(TRAINING_ROOT_FOLDER_ID);
+    let targetFolder = rootFolder;
+    
+    // Use specific folder if provided, otherwise "Training Resources" in root
+    if (folderId) {
+      try {
+        targetFolder = DriveApp.getFolderById(folderId);
+      } catch (e) {
+        console.warn('Invalid folderId, using root resources folder');
+        targetFolder = getOrCreateFolder("Training Resources", rootFolder);
+      }
+    } else {
+      targetFolder = getOrCreateFolder("Training Resources", rootFolder);
+    }
+    
+    // Create file
+    const decoded = Utilities.base64Decode(base64);
+    const blob = Utilities.newBlob(decoded, mimeType, fileName);
+    const file = targetFolder.createFile(blob);
+    
+    // Set public permission
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    return {
+      success: true,
+      url: file.getUrl(),
+      downloadUrl: `https://lh3.googleusercontent.com/d/${file.getId()}`,
+      id: file.getId(),
+      name: file.getName()
+    };
+    
+  } catch (error) {
+    return {
+      success: false,
+      error: 'Upload failed: ' + error.toString()
+    };
+  }
+}
+
+/**
  * Create Trainer Credentials
  * Creates login credentials for an approved trainer
  */
-function createTrainerCredentials(data) {
+/**
+ * Approve Trainer (Google Auth)
+ * Adds trainer to the approved list for Google Login access
+ */
+function approveTrainer(data) {
   try {
     const ss = getTrainingDatabase();
     let trainersSheet = ss.getSheetByName('trainers');
@@ -1245,15 +2173,14 @@ function createTrainerCredentials(data) {
         'Phone',
         'LinkedIn',
         'Expertise',
-        'Username',
-        'Password Hash',
+        'Username', // Kept for schema compatibility, will be empty/unused
         'Status',
         'Created Date'
       ]);
       trainersSheet.setFrozenRows(1);
       
       // Format header
-      const headerRange = trainersSheet.getRange(1, 1, 1, 10);
+      const headerRange = trainersSheet.getRange(1, 1, 1, 9);
       headerRange.setBackground('#4285f4');
       headerRange.setFontColor('#ffffff');
       headerRange.setFontWeight('bold');
@@ -1265,7 +2192,7 @@ function createTrainerCredentials(data) {
       if (trainersData[i][1] === data.email) {
         return {
           success: false,
-          error: 'Trainer credentials already exist for this email'
+          error: 'Trainer is already approved'
         };
       }
     }
@@ -1279,17 +2206,40 @@ function createTrainerCredentials(data) {
       };
     }
     
+    // --- Dynamic Column Mapping for Applications Sheet ---
+    const appHeaders = appSheet.getRange(1, 1, 1, appSheet.getLastColumn()).getValues()[0];
+    const appColMap = {};
+    for (let h = 0; h < appHeaders.length; h++) {
+       appColMap[appHeaders[h].toString().trim().toLowerCase()] = h;
+    }
+    
+    // Helper to find index in App Sheet
+    const getAppIdx = (keys) => {
+      for (const key of keys) {
+        if (appColMap.hasOwnProperty(key)) return appColMap[key];
+      }
+      return -1;
+    };
+
+    const appEmailIdx = getAppIdx(['email', 'email address']);
+    const appStatusIdx = getAppIdx(['status']);
+    
+    // Find Application Row
     const appData = appSheet.getDataRange().getValues();
     let trainerInfo = null;
+    let appRowIndex = -1;
+    
     for (let i = 1; i < appData.length; i++) {
-      if (appData[i][2] === data.email) {
+      if (appData[i][appEmailIdx] === data.email) {
+        appRowIndex = i + 1;
+        const row = appData[i];
         trainerInfo = {
-          fullName: appData[i][1],
-          email: appData[i][2],
-          countryCode: appData[i][3],
-          phoneNumber: appData[i][4],
-          linkedIn: appData[i][5],
-          expertise: appData[i][6]
+          fullName: row[getAppIdx(['full name', 'name'])] || '',
+          email: row[appEmailIdx] || '',
+          countryCode: row[getAppIdx(['country code'])] || '',
+          phoneNumber: row[getAppIdx(['phone number', 'phone'])] || '',
+          linkedIn: row[getAppIdx(['linkedin', 'linkedin url', 'linkedin profile'])] || '',
+          expertise: row[getAppIdx(['expertise', 'area of expertise'])] || ''
         };
         break;
       }
@@ -1302,40 +2252,189 @@ function createTrainerCredentials(data) {
       };
     }
     
-    // Generate trainer ID (simple implementation)
+    // Generate trainer ID
     const trainerId = 'TR' + new Date().getTime();
     
-    // Simple password hash (in production, use proper hashing)
-    const passwordHash = Utilities.base64Encode(data.password);
+    // --- Dynamic Row Construction for Trainers Sheet ---
+    const tHeaders = trainersSheet.getRange(1, 1, 1, trainersSheet.getLastColumn()).getValues()[0];
+    const tColMap = {};
+    for (let h = 0; h < tHeaders.length; h++) {
+       tColMap[tHeaders[h].toString().trim().toLowerCase()] = h;
+    }
     
-    // Add trainer record
-    trainersSheet.appendRow([
-      trainerId,
-      trainerInfo.email,
-      trainerInfo.fullName,
-      trainerInfo.countryCode + ' ' + trainerInfo.phoneNumber,
-      trainerInfo.linkedIn,
-      trainerInfo.expertise,
-      data.username,
-      passwordHash,
-      'Active',
-      new Date()
-    ]);
+    const getTrIdx = (keys) => {
+      for (const key of keys) {
+        if (tColMap.hasOwnProperty(key)) return tColMap[key];
+      }
+      return -1;
+    };
+    
+    const newTrainerRow = new Array(tHeaders.length).fill('');
+    const setTrVal = (keys, value) => {
+      const idx = getTrIdx(keys);
+      if (idx > -1) newTrainerRow[idx] = value;
+    };
+    
+    setTrVal(['trainer id'], trainerId);
+    setTrVal(['email', 'email address'], trainerInfo.email);
+    setTrVal(['full name', 'name'], trainerInfo.fullName);
+    setTrVal(['phone'], (trainerInfo.countryCode + ' ' + trainerInfo.phoneNumber).trim());
+    setTrVal(['linkedin', 'linkedin profile'], trainerInfo.linkedIn);
+    setTrVal(['expertise', 'area of expertise'], trainerInfo.expertise);
+    setTrVal(['username'], ''); // Unused
+    setTrVal(['status'], 'Active');
+    setTrVal(['created date', 'created'], new Date());
+    
+    trainersSheet.appendRow(newTrainerRow);
+    
+    // Update application status to Approved
+    if (appRowIndex !== -1 && appStatusIdx !== -1) {
+      appSheet.getRange(appRowIndex, appStatusIdx + 1).setValue('Approved');
+    }
+    
+    // --- Send Approval Email ---
+    try {
+      if (trainerInfo.email) {
+        MailApp.sendEmail({
+          to: trainerInfo.email,
+          subject: "Welcome to Yatri Training - Application Approved!",
+          htmlBody: `
+            <div style="font-family: Arial, sans-serif; color: #333;">
+              <h2>Congratulations ${trainerInfo.fullName}!</h2>
+              <p>We are excited to inform you that your application to become a Yatri Trainer has been <strong>APPROVED</strong>.</p>
+              <p>You can now access the Trainer Portal using your Google Account.</p>
+              <p>
+                <a href="${data.portalUrl || 'https://yatri-practice-hub.vercel.app/trainer/login'}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                  Access Trainer Dashboard
+                </a>
+              </p>
+              <p>If the button doesn't work, copy and paste this link: <br> ${data.portalUrl || 'https://yatri-practice-hub.vercel.app/trainer/login'}</p>
+              <br>
+              <p>We look forward to collaborating with you!</p>
+              <p><strong>Yatri Training Team</strong></p>
+            </div>
+          `
+        });
+      }
+    } catch (mailError) {
+      Logger.log("Failed to send approval email: " + mailError.toString());
+    }
+    // ---------------------------
     
     return {
       success: true,
-      message: 'Trainer credentials created successfully',
-      trainerId: trainerId,
-      username: data.username
+      message: 'Trainer approved successfully. Notification email sent.',
+      trainerId: trainerId
     };
     
   } catch (error) {
     return {
       success: false,
-      error: 'Failed to create credentials: ' + error.toString()
+      error: 'Failed to approve trainer: ' + error.toString()
     };
   }
 }
+
+/**
+ * Verify Trainer Access (Google Login)
+ */
+function verifyTrainerAccess(data) {
+  try {
+    const email = data.email;
+    if (!email) return { success: false, error: 'Email is required' };
+    
+    const ss = getTrainingDatabase();
+    const trainersSheet = ss.getSheetByName('trainers');
+    
+    if (!trainersSheet) return { success: false, error: 'Trainer database not initialization' };
+    
+    const trainersData = trainersSheet.getDataRange().getValues();
+    const headers = trainersData[0];
+    
+    // Dynamic Column Finding with Aliases
+    let indices = {
+      email: 1,
+      fullName: 2,
+      expertise: 5,
+      status: 7,
+      trainerId: 0
+    };
+    
+    if (headers) {
+       for (let h = 0; h < headers.length; h++) {
+         const header = headers[h].toString().trim().toLowerCase();
+         if (header === 'email') indices.email = h;
+         else if (header === 'status') indices.status = h;
+         else if (header === 'full name' || header === 'name') indices.fullName = h;
+         else if (header === 'expertise' || header === 'area of expertise') indices.expertise = h;
+         else if (header === 'trainer id') indices.trainerId = h;
+       }
+    }
+    
+    for (let i = 1; i < trainersData.length; i++) {
+       const row = trainersData[i];
+       if (row[indices.email] === email) {
+        if (row[indices.status] === 'Active') {
+           return {
+             success: true,
+             trainer: {
+               trainerId: row[indices.trainerId],
+               email: row[indices.email],
+               fullName: row[indices.fullName],
+               expertise: row[indices.expertise]
+             }
+           };
+        } else {
+          return { success: false, error: 'Trainer account is suspended or inactive' };
+        }
+      }
+    }
+    
+    return { success: false, error: 'Access denied. You are not an approved trainer.' };
+    
+  } catch (error) {
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
+ * Reject Trainer Application
+ */
+function rejectTrainerApplication(data) {
+  try {
+    const email = data.email;
+    const ss = getTrainingDatabase();
+    
+    // 1. Update Application Status to 'Rejected'
+    const appSheet = ss.getSheetByName('trainer_applications');
+    if (appSheet) {
+      const appData = appSheet.getDataRange().getValues();
+      for (let i = 1; i < appData.length; i++) {
+        if (appData[i][2] === email) {
+           appSheet.getRange(i + 1, 12).setValue('Rejected'); // Status column
+           break;
+        }
+      }
+    }
+    
+    // 2. Remove from trainers list if exists (Revoke access)
+    const trainersSheet = ss.getSheetByName('trainers');
+    if (trainersSheet) {
+      const trainersData = trainersSheet.getDataRange().getValues();
+      for (let i = 1; i < trainersData.length; i++) {
+        if (trainersData[i][1] === email) {
+          trainersSheet.deleteRow(i + 1);
+          break;
+        }
+      }
+    }
+    
+    return { success: true, message: 'Application rejected and access revoked if applicable.' };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
 
 /**
  * Get Approved Trainers
@@ -1354,21 +2453,75 @@ function getApprovedTrainers() {
     }
     
     const data = trainersSheet.getDataRange().getValues();
+    const headers = data[0];
     const trainers = [];
+    
+    // Dynamic Column Finding
+    const colMap = {
+      'trainer id': 0,
+      'email': 1,
+      'full name': 2,
+      'name': 2, // Alias
+      'phone': 3,
+      'linkedin': 4,
+      'linkedin profile': 4, // Alias
+      'expertise': 5,
+      'area of expertise': 5, // Alias
+      'username': 6,
+      'status': 7, 
+      'created date': 8,
+      'created': 8 // Alias
+    };
+    
+    // Default indices if not found
+    let indices = {
+      trainerId: 0,
+      email: 1,
+      fullName: 2,
+      phone: 3,
+      linkedIn: 4,
+      expertise: 5,
+      username: 6,
+      status: 7,
+      createdDate: 8
+    };
+
+    if (headers) {
+      for (let h = 0; h < headers.length; h++) {
+        const header = headers[h].toString().trim().toLowerCase();
+        // Update indices based on map
+        // We check if header matches any key in colMap
+        if (colMap.hasOwnProperty(header)) {
+           // We need to map back to our internal keys
+           if (header === 'trainer id') indices.trainerId = h;
+           else if (header === 'email') indices.email = h;
+           else if (header === 'full name' || header === 'name') indices.fullName = h;
+           else if (header === 'phone') indices.phone = h;
+           else if (header === 'linkedin' || header === 'linkedin profile') indices.linkedIn = h;
+           else if (header === 'expertise' || header === 'area of expertise') indices.expertise = h;
+           else if (header === 'username') indices.username = h;
+           else if (header === 'status') indices.status = h;
+           else if (header === 'created date' || header === 'created') indices.createdDate = h;
+        }
+      }
+    }
     
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (row[8] === 'Active') { // Check status
+      // Check status (Case-insensitive check for safety)
+      const currentStatus = (row[indices.status] || '').toString();
+      
+      if (currentStatus === 'Active') { 
         trainers.push({
-          trainerId: row[0],
-          email: row[1],
-          fullName: row[2],
-          phone: row[3],
-          linkedIn: row[4],
-          expertise: row[5],
-          username: row[6],
-          status: row[8],
-          createdDate: row[9]
+          trainerId: row[indices.trainerId],
+          email: row[indices.email],
+          fullName: row[indices.fullName],
+          phone: row[indices.phone],
+          linkedIn: row[indices.linkedIn],
+          expertise: row[indices.expertise],
+          username: row[indices.username],
+          status: currentStatus,
+          createdDate: row[indices.createdDate]
         });
       }
     }
@@ -1441,9 +2594,72 @@ function assignTrainerToCourse(data) {
       'Active'
     ]);
     
+    // --- Send Assignment Email ---
+    try {
+      // Fetch trainer email (data.trainerEmail might not be passed, so look it up if needed, but ideally passed from frontend)
+      // Since assignTrainerToCourse uses trainerId, we should look up email if not provided in data
+      let trainerEmail = data.trainerEmail;
+      
+      if (!trainerEmail) {
+             // Lookup trainer email from trainers sheet
+             const trainersSheet = ss.getSheetByName('trainers');
+             if (trainersSheet) {
+               const tData = trainersSheet.getDataRange().getValues();
+               const tHeaders = tData[0];
+               
+               let tIndices = { tId: 0, tEmail: 1 };
+               
+               if (tHeaders) {
+                 for (let h = 0; h < tHeaders.length; h++) {
+                   const th = tHeaders[h].toString().trim().toLowerCase();
+                   if (th === 'trainer id') tIndices.tId = h;
+                   else if (th === 'email') tIndices.tEmail = h;
+                 }
+               }
+               
+               for(let k=1; k<tData.length; k++) {
+                 if(tData[k][tIndices.tId] === data.trainerId) {
+                   trainerEmail = tData[k][tIndices.tEmail];
+                   break;
+                 }
+               }
+             }
+          }
+
+      if (trainerEmail) {
+        MailApp.sendEmail({
+          to: trainerEmail,
+          subject: "New Training Assignment - Yatri Cloud",
+          htmlBody: `
+            <div style="font-family: Arial, sans-serif; color: #333;">
+              <h2>New Course Assignment</h2>
+              <p>Hello <strong>${data.trainerName}</strong>,</p>
+              <p>You have been assigned as the instructor for the following training:</p>
+              <ul>
+                <li><strong>Course:</strong> ${data.courseName}</li>
+                <li><strong>Assigned Date:</strong> ${new Date().toLocaleDateString()}</li>
+              </ul>
+              <p>Please log in to your dashboard to view course details and manage sessions.</p>
+              <p>
+                 <a href="https://yatri-practice-hub.vercel.app/trainer/login" style="background-color: #2196F3; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px;">
+                  Go to Dashboard
+                </a>
+              </p>
+              <br>
+              <p>Best regards,</p>
+              <p><strong>Yatri Training Team</strong></p>
+            </div>
+          `
+        });
+      }
+    } catch (mailError) {
+      Logger.log("Failed to send assignment email: " + mailError.toString());
+    }
+    // -----------------------------
+
     return {
       success: true,
-      message: 'Trainer assigned to course successfully',
+      message: 'Trainer assigned and notified successfully',
       assignmentId: assignmentId
     };
     
@@ -1499,6 +2715,44 @@ function getTrainerAssignments(data) {
       success: false,
       error: 'Failed to fetch assignments: ' + error.toString()
     };
+  }
+}
+
+/**
+ * Revoke Trainer Assignment
+ * Removes a specific assignment
+ */
+function revokeTrainerAssignment(data) {
+  try {
+    const ss = getTrainingDatabase();
+    const assignmentsSheet = ss.getSheetByName('trainer_course_assignments');
+    
+    if (!assignmentsSheet) {
+      return { success: false, error: 'Assignments sheet not found' };
+    }
+    
+    const assignmentsData = assignmentsSheet.getDataRange().getValues();
+    
+    // Find and delete the assignment
+    for (let i = 1; i < assignmentsData.length; i++) {
+        // Check by Assignment ID if provided, otherwise by TrainerId + CourseId
+        if (data.assignmentId) {
+             if (assignmentsData[i][0] === data.assignmentId) {
+                assignmentsSheet.deleteRow(i + 1);
+                return { success: true, message: 'Assignment revoked successfully' };
+            }
+        } else if (data.trainerId && data.courseId) {
+             if (assignmentsData[i][1] === data.trainerId && assignmentsData[i][3] === data.courseId) {
+                assignmentsSheet.deleteRow(i + 1);
+                return { success: true, message: 'Assignment revoked successfully' };
+            }
+        }
+    }
+    
+    return { success: false, error: 'Assignment not found' };
+    
+  } catch (error) {
+    return { success: false, error: 'Failed to revoke assignment: ' + error.toString() };
   }
 }
 

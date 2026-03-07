@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Loader2, ShoppingCart, IndianRupee } from "lucide-react";
+import { Sparkles, Loader2, ShoppingCart, IndianRupee, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -62,13 +62,13 @@ const YatriStore = () => {
         <SEO />
         <div className="noise-overlay" />
         <Navbar />
-        
+
         {/* Store Header */}
         <section className="relative pt-28 pb-16 overflow-hidden">
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,124,255,0.05),transparent_50%)]" />
-          
+
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -92,7 +92,7 @@ const YatriStore = () => {
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 Get certified with our exclusive exam vouchers. Limited time offers with amazing discounts!
               </p>
-              <div className="mt-6 flex justify-center">
+              <div className="mt-6 flex justify-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
@@ -100,6 +100,15 @@ const YatriStore = () => {
                   className="rounded-full px-5 text-sm font-medium"
                 >
                   See process to get scheduled exam
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/reviews")}
+                  className="rounded-full px-5 text-sm font-medium"
+                >
+                  <Star className="w-4 h-4 mr-1.5 fill-yellow-400 text-yellow-400" />
+                  See Reviews
                 </Button>
               </div>
             </motion.div>
@@ -269,7 +278,7 @@ const YatriStore = () => {
         </section>
 
         <Footer />
-        
+
         {/* Mobile Cart Bar - Fixed at bottom */}
         <MobileCartBar />
       </div>

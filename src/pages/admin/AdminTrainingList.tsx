@@ -316,11 +316,10 @@ export default function AdminTrainingList() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="w-48">
-                                                    <DropdownMenuItem onClick={() => toast.info("Edit feature coming soon (pre-fills form)")}>
-                                                        <Edit className="w-4 h-4 mr-2" /> Edit Details
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => toast.info("Edit feature coming soon (pre-fills form)")}>
-                                                        <Edit className="w-4 h-4 mr-2" /> Edit Details
+                                                    <DropdownMenuItem asChild>
+                                                        <Link to={`/admin/training/edit/${course.id}`} className="cursor-pointer">
+                                                            <Edit className="w-4 h-4 mr-2" /> Edit Details
+                                                        </Link>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => {
                                                         setSelectedCourse(course);

@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray, Control } from "react-hook-form";
 import { Loader2, FolderPlus, User, Clock, BookOpen, Layers, CheckCircle, ChevronRight, ChevronLeft, Trash2, Plus, FileText, Video, ClipboardList, Save, Upload, Download, MapPin, Users, Ticket, CreditCard, Wand2 } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QuizBuilder } from "@/components/trainer/QuizBuilder";
+import { QuizQuestion } from "@/types/quiz";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -75,17 +78,31 @@ const TYPES = ["Certification", "Role-based"];
 const LEVELS = ["Beginner", "Intermediate", "Advanced", "Mixed"];
 const LESSON_TYPES = ["Video", "Reading", "Assignment", "Quiz"];
 
-const STEPS = ["Identity", "Details", "Logistics", "Curriculum", "Review"];
+const STEPS = ["Identity", "Details", "Logistics", "Curriculum", "Quiz", "Resources", "Review"];
 
-export default function TrainingManager() {
+interface TrainingManagerProps {
+    initialId?: string;
+    initialData?: any;
+}
+
+export default function TrainingManager({ initialId, initialData }: TrainingManagerProps = {}) {
+    const navigate = useNavigate();
+    const { id: paramId } = useParams();
+    const editId = initialId || paramId;
     const [activeTab, setActiveTab] = useState("Identity");
     const [isLoading, setIsLoading] = useState(false);
     const [isSavingDraft, setIsSavingDraft] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(!!editId && !initialData);
     const [providers, setProviders] = useState<ProviderData[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [thumbnailBase64, setThumbnailBase64] = useState<string>("");
     const [thumbnailMimeType, setThumbnailMimeType] = useState<string>("");
     const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
+    const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+    const [resources, setResources] = useState<{ id: string; name: string; url: string; type: string; description: string }[]>([]);
+    const [resourceMode, setResourceMode] = useState<'link' | 'upload'>('link');
+    const [isUploading, setIsUploading] = useState(false);
+    const [approvedTrainers, setApprovedTrainers] = useState<{ fullName: string; email: string; trainerId: string }[]>([]);
 
     const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
 
@@ -132,7 +149,7 @@ export default function TrainingManager() {
     const selectedProvider = watch("subType"); // Provider
     const curriculum = watch("curriculum");
 
-    // Fetch Providers on Mount
+    // Fetch Providers and Trainers on Mount
     useEffect(() => {
         const fetchProviders = async () => {
             try {
@@ -149,7 +166,104 @@ export default function TrainingManager() {
             }
         };
         fetchProviders();
+
+        // Fetch approved trainers for instructor dropdown
+        const fetchTrainers = async () => {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'getApprovedTrainers' })
+                });
+                const result = await response.json();
+                console.log("Joined Trainers API Result:", result);
+                if (result.success && result.trainers) {
+                    console.log("Setting Approved Trainers:", result.trainers);
+                    setApprovedTrainers(result.trainers.map((t: any) => ({
+                        fullName: t.fullName,
+                        email: t.email,
+                        trainerId: t.trainerId
+                    })));
+                } else {
+                    console.warn("No trainers found or success false:", result);
+                }
+            } catch (e) {
+                console.error("Failed to fetch trainers", e);
+            }
+        };
+        fetchTrainers();
     }, []);
+
+    // Helper to populate form data
+    const populateForm = (training: any) => {
+        setValue("type", training.type || "");
+        setValue("subType", training.certification || training.subType || "");
+        setValue("courseName", training.courseName || "");
+        setValue("description", training.description || "");
+        setValue("instructor", training.instructor || "");
+        setValue("level", training.level || "Beginner");
+        setValue("duration", training.duration || "");
+        setValue("skills", training.skills || "");
+        setValue("outcomes", training.outcomes || "");
+        setValue("curriculum", training.curriculum || []);
+        setValue("mode", training.mode || "Online");
+        setValue("venueName", training.venueName || "");
+        setValue("venueAddress", training.venueAddress || "");
+        setValue("venueMapLink", training.venueMapLink || "");
+        setValue("capacityType", training.capacityType || "Unlimited");
+        setValue("capacityCount", training.capacityCount || "");
+        setValue("paymentType", training.paymentType || "Free");
+        setValue("price", training.price || "");
+        setValue("currency", training.currency || "USD");
+        setValue("couponCode", training.couponCode || "");
+        if (training.startDate) {
+            setValue("startDate", new Date(training.startDate));
+        }
+        setValue("startTime", training.startTime || "");
+
+        // Set thumbnail preview if available
+        if (training.thumbnail) {
+            setThumbnailPreview(training.thumbnail);
+        }
+    };
+
+    // Load existing training data logic
+    useEffect(() => {
+        if (initialData) {
+            populateForm(initialData);
+            setIsLoadingData(false);
+        } else if (editId) {
+            loadTrainingData(editId);
+        }
+    }, [editId, initialData]);
+
+    const loadTrainingData = async (trainingId: string) => {
+        setIsLoadingData(true);
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "getTrainingById", id: trainingId })
+            });
+            const result = await response.json();
+
+            if (result.success && result.training) {
+                populateForm(result.training);
+                toast.success("Training loaded successfully");
+            } else {
+                toast.error("Failed to load training data");
+                // Don't redirect automatically on failure if instantiated via props,
+                // but for now default behavior is preserved for direct route access
+                if (!initialId) navigate("/admin/training");
+            }
+        } catch (error) {
+            console.error("Error loading training:", error);
+            toast.error("Error loading training");
+            if (!initialId) navigate("/admin/training");
+        } finally {
+            setIsLoadingData(false);
+        }
+    };
 
     // Helper to get exams for selected provider
     const getExams = () => {
@@ -162,17 +276,25 @@ export default function TrainingManager() {
         else setIsLoading(true);
 
         try {
+            const isEditing = !!editId;
+            const action = isEditing ? "updateTraining" : "createTraining";
+
             const response = await fetch(SCRIPT_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify({
-                    action: "createTraining",
+                    action: action,
+                    id: editId || undefined, // Pass the training ID for updates
                     ...data,
+                    instructorId: data.instructor, // The select value is now trainerId
+                    instructor: approvedTrainers.find(t => t.trainerId === data.instructor)?.fullName || data.instructor, // Send name for display
                     startDate: data.startDate ? format(data.startDate, "yyyy-MM-dd") : "",
                     modulesCount: data.curriculum.length,
                     status: status,
                     thumbnailBase64: thumbnailBase64,
-                    thumbnailMimeType: thumbnailMimeType
+                    thumbnailMimeType: thumbnailMimeType,
+                    quizQuestions: quizQuestions,
+                    resources: resources
                 })
             });
 
@@ -180,7 +302,7 @@ export default function TrainingManager() {
 
             if (result.success) {
                 toast.success(result.message);
-                if (status === 'Published') {
+                if (!isEditing && status === 'Published') {
                     reset();
                     setThumbnailBase64("");
                     setThumbnailPreview("");
@@ -190,11 +312,72 @@ export default function TrainingManager() {
                 toast.error("Failed: " + result.error);
             }
         } catch (error) {
-            console.error("Training creation error", error);
+            console.error("Training save error", error);
             toast.error("Network error. Please try again.");
         } finally {
             setIsLoading(false);
             setIsSavingDraft(false);
+        }
+    };
+
+    // --- File Upload Logic ---
+    const handleResourceUpload = async () => {
+        const fileInput = document.getElementById('resource-file') as HTMLInputElement;
+        const file = fileInput?.files?.[0];
+        const name = (document.getElementById('resource-name-upload') as HTMLInputElement).value;
+        const description = (document.getElementById('resource-desc-upload') as HTMLInputElement).value;
+
+        if (!file || !name) {
+            toast.error("Please select a file and provide a name");
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64 = (reader.result as string).split(',')[1];
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "uploadResource",
+                        base64,
+                        mimeType: file.type,
+                        fileName: file.name,
+                        folderId: editId // Backend handles if this is undefined
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    let type = "Document";
+                    if (file.type.includes("pdf")) type = "PDF";
+                    else if (file.type.includes("video")) type = "Video";
+
+                    setResources([...resources, {
+                        id: result.id || Date.now().toString(),
+                        name: name,
+                        url: result.url,
+                        type: type,
+                        description: description
+                    }]);
+                    toast.success("File uploaded and added");
+                    // Reset fields
+                    if (fileInput) fileInput.value = '';
+                    (document.getElementById('resource-name-upload') as HTMLInputElement).value = '';
+                    (document.getElementById('resource-desc-upload') as HTMLInputElement).value = '';
+                } else {
+                    toast.error("Upload failed: " + result.error);
+                }
+                setIsUploading(false);
+            };
+        } catch (e) {
+            console.error(e);
+            toast.error("Error uploading file");
+            setIsUploading(false);
         }
     };
 
@@ -300,9 +483,11 @@ export default function TrainingManager() {
                 <div>
                     <CardTitle className="flex items-center gap-2 text-2xl">
                         <FolderPlus className="w-7 h-7 text-primary" />
-                        Curriculum Builder
+                        {editId ? "Edit Training" : "Curriculum Builder"}
                     </CardTitle>
-                    <p className="text-muted-foreground mt-1">Design your course structure.</p>
+                    <p className="text-muted-foreground mt-1">
+                        {editId ? "Update your training details" : "Design your course structure."}
+                    </p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={handleSubmit((d) => onSubmit(d, 'Draft'))} disabled={isSavingDraft || isLoading}>
@@ -417,7 +602,18 @@ export default function TrainingManager() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="space-y-2">
                                     <Label className="flex items-center gap-1"><User className="w-3 h-3" /> Instructor Name</Label>
-                                    <Input {...register("instructor")} placeholder="e.g. John Doe" />
+                                    <Select onValueChange={(val) => setValue("instructor", val)} value={watch("instructor")}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Instructor" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {approvedTrainers.map((t) => (
+                                                <SelectItem key={t.trainerId} value={t.trainerId}>
+                                                    {t.fullName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="flex items-center gap-1"><Clock className="w-3 h-3" /> Total Duration</Label>
@@ -617,7 +813,169 @@ export default function TrainingManager() {
 
                             <div className="flex justify-between pt-4 mt-auto">
                                 <Button type="button" variant="ghost" onClick={() => setActiveTab("Logistics")}>Back</Button>
-                                <Button type="button" onClick={() => setActiveTab("Review")}>Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                                <Button type="button" onClick={() => setActiveTab("Quiz")}>Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                            </div>
+                        </TabsContent>
+
+                        {/* Quiz Tab */}
+                        <TabsContent value="Quiz" className="space-y-4">
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold">Training Quizzes</h3>
+                                <p className="text-sm text-muted-foreground">Create quiz questions to test students' knowledge</p>
+                            </div>
+
+                            <QuizBuilder trainingId={editId || "new"} onSave={setQuizQuestions} />
+
+                            <div className="flex justify-between pt-4">
+                                <Button type="button" variant="outline" onClick={() => setActiveTab("Curriculum")}>
+                                    <ChevronLeft className="mr-2 w-4 h-4" /> Back
+                                </Button>
+                                <Button type="button" onClick={() => setActiveTab("Resources")}>
+                                    Next <ChevronRight className="ml-2 w-4 h-4" />
+                                </Button>
+                            </div>
+                        </TabsContent>
+
+                        {/* Resources Tab */}
+                        <TabsContent value="Resources" className="space-y-4">
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold">Training Resources</h3>
+                                <p className="text-sm text-muted-foreground">Add downloadable resources, PDFs, and links for students.</p>
+                            </div>
+
+                            <Card>
+                                <CardContent className="pt-6 space-y-4">
+                                    <Tabs value={resourceMode} onValueChange={(v) => setResourceMode(v as 'link' | 'upload')} className="w-full">
+                                        <TabsList className="grid w-full grid-cols-2 mb-4">
+                                            <TabsTrigger value="link">External Link</TabsTrigger>
+                                            <TabsTrigger value="upload">Upload File</TabsTrigger>
+                                        </TabsList>
+
+                                        <TabsContent value="link" className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <Label>Resource Name</Label>
+                                                    <Input id="resource-name" placeholder="e.g., Study Guide" />
+                                                </div>
+                                                <div>
+                                                    <Label>Resource URL</Label>
+                                                    <Input id="resource-url" type="url" placeholder="https://..." />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <Label>Resource Type</Label>
+                                                    <Select onValueChange={val => (document.getElementById('resource-type') as any).value = val}>
+                                                        <SelectTrigger id="resource-type">
+                                                            <SelectValue placeholder="Select type" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="PDF">PDF Document</SelectItem>
+                                                            <SelectItem value="Video">Video</SelectItem>
+                                                            <SelectItem value="Link">External Link</SelectItem>
+                                                            <SelectItem value="Document">Document</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div>
+                                                    <Label>Description (Optional)</Label>
+                                                    <Input id="resource-desc" placeholder="Brief description" />
+                                                </div>
+                                            </div>
+
+                                            <Button type="button" onClick={() => {
+                                                const name = (document.getElementById('resource-name') as HTMLInputElement).value;
+                                                const url = (document.getElementById('resource-url') as HTMLInputElement).value;
+                                                const type = (document.getElementById('resource-type') as any).value || 'Link';
+                                                const description = (document.getElementById('resource-desc') as HTMLInputElement).value;
+
+                                                if (name && url) {
+                                                    setResources([...resources, {
+                                                        id: Date.now().toString(),
+                                                        name,
+                                                        url,
+                                                        type,
+                                                        description
+                                                    }]);
+                                                    (document.getElementById('resource-name') as HTMLInputElement).value = '';
+                                                    (document.getElementById('resource-url') as HTMLInputElement).value = '';
+                                                    (document.getElementById('resource-desc') as HTMLInputElement).value = '';
+                                                    toast.success('Resource added');
+                                                } else {
+                                                    toast.error('Please provide name and URL');
+                                                }
+                                            }}>
+                                                <Plus className="w-4 h-4 mr-2" /> Add Link Resource
+                                            </Button>
+                                        </TabsContent>
+
+                                        <TabsContent value="upload" className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <Label>File Upload</Label>
+                                                    <Input id="resource-file" type="file" onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            (document.getElementById('resource-name-upload') as HTMLInputElement).value = file.name;
+                                                        }
+                                                    }} />
+                                                </div>
+                                                <div>
+                                                    <Label>Resource Name</Label>
+                                                    <Input id="resource-name-upload" placeholder="e.g., Study Guide" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <Label>Description (Optional)</Label>
+                                                <Input id="resource-desc-upload" placeholder="Brief description" />
+                                            </div>
+
+                                            <Button type="button" disabled={isUploading} onClick={handleResourceUpload}>
+                                                {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                                                {isUploading ? "Uploading..." : "Upload & Add Resource"}
+                                            </Button>
+                                        </TabsContent>
+                                    </Tabs>
+
+                                    {resources.length > 0 && (
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="text-base">Added Resources ({resources.length})</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-2">
+                                                    {resources.map((resource, idx) => (
+                                                        <div key={resource.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                                            <div>
+                                                                <p className="font-medium">{resource.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{resource.type} • {resource.url.substring(0, 50)}...</p>
+                                                            </div>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => setResources(resources.filter((_, i) => i !== idx))}
+                                                            >
+                                                                <Trash2 className="w-4 h-4 text-destructive" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            <div className="flex justify-between pt-4">
+                                <Button type="button" variant="outline" onClick={() => setActiveTab("Quiz")}>
+                                    <ChevronLeft className="mr-2 w-4 h-4" /> Back
+                                </Button>
+                                <Button type="button" onClick={() => setActiveTab("Review")}>
+                                    Next <ChevronRight className="ml-2 w-4 h-4" />
+                                </Button>
                             </div>
                         </TabsContent>
 
@@ -630,7 +988,7 @@ export default function TrainingManager() {
                                     <div><span className="font-semibold">Type:</span> {watch("type")}</div>
                                     <div><span className="font-semibold">Sub-Type:</span> {watch("subType")}</div>
                                     <div><span className="font-semibold">Course:</span> {watch("courseName")}</div>
-                                    <div><span className="font-semibold">Instructor:</span> {watch("instructor")}</div>
+                                    <div><span className="font-semibold">Instructor:</span> {approvedTrainers.find(t => t.trainerId === watch("instructor"))?.fullName || watch("instructor")}</div>
                                     <div><span className="font-semibold">Level:</span> {watch("level")}</div>
                                     <div><span className="font-semibold">Mode:</span> {watch("mode") === "On-site" ? `On-site (${watch("venueName")})` : "Online"}</div>
                                     <div><span className="font-semibold">Payment:</span> {watch("paymentType")} {watch("paymentType") === "Paid" && `(${watch("currency")} ${watch("price")})`}</div>

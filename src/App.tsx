@@ -39,12 +39,14 @@ import { Bot } from "lucide-react"; // Import Bot icon
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import EventFeedback from "./pages/EventFeedback";
 import AdminTraining from "./pages/admin/AdminTraining";
+import AdminEditTraining from "./pages/admin/AdminEditTraining";
 import AdminProviders from "./pages/admin/AdminProviders";
 import AdminEnrollments from "./pages/admin/AdminEnrollments";
 import Training from "./pages/Training";
 import TrainingDetail from "./pages/TrainingDetail";
 import AdminTrainingList from "@/pages/admin/AdminTrainingList";
 import MyTrainings from "@/pages/MyTrainings";
+import StudentTrainingDashboard from "@/pages/StudentTrainingDashboard";
 import BecomeTrainer from "@/pages/BecomeTrainer";
 import AdminTrainers from "@/pages/admin/AdminTrainers";
 import TrainerLogin from "@/pages/trainer/TrainerLogin";
@@ -74,6 +76,7 @@ const App = () => (
             <Route path="/udemy" element={<Udemy />} />
             <Route path="/yatristore" element={<YatriStore />} />
             <Route path="/training" element={<Training />} />
+            <Route path="/training/:id/dashboard" element={<StudentTrainingDashboard />} />
             <Route path="/training/:id" element={<TrainingDetail />} />
             <Route path="/training/:certification/:courseSlug" element={<TrainingDetail />} />
             <Route path="/addproduct" element={<AddProduct />} />
@@ -116,6 +119,7 @@ const App = () => (
               <Route path="training">
                 <Route index element={<AdminTrainingList />} />
                 <Route path="create" element={<AdminTraining />} />
+                <Route path="edit/:id" element={<AdminEditTraining />} />
               </Route>
               <Route path="providers" element={<AdminProviders />} />
               <Route path="enrollments" element={<AdminEnrollments />} />

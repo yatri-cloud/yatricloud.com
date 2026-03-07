@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Loader2, Clock, User, Award, CheckCircle2, MapPin, Globe, PlayCircle, Lock, ChevronDown, ChevronUp, Share2, Facebook, Twitter, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,9 +35,11 @@ interface Course {
 
 export default function TrainingDetail() {
     const { id, certification, courseSlug } = useParams();
+    const navigate = useNavigate();
     const [course, setCourse] = useState<Course | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+    const [isEnrolled, setIsEnrolled] = useState(false);
 
     const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
 
@@ -58,7 +60,7 @@ export default function TrainingDetail() {
             const result = await response.json();
             if (result.success) {
                 const createSlug = (name: string) => {
-                    return name
+                    return String(name || '')
                         .toLowerCase()
                         .trim()
                         .replace(/[^\w\s-]/g, '')
@@ -104,8 +106,8 @@ export default function TrainingDetail() {
         );
     }
 
-    const skills = course.skills ? course.skills.split(',').map(s => s.trim()) : [];
-    const outcomes = course.outcomes ? course.outcomes.split('•').filter(s => s.trim()).map(s => s.trim()) : [];
+    const skills = course.skills ? String(course.skills).split(',').map(s => s.trim()) : [];
+    const outcomes = course.outcomes ? String(course.outcomes).split('•').filter(s => s.trim()).map(s => s.trim()) : [];
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -173,9 +175,15 @@ export default function TrainingDetail() {
 
                                     <Button
                                         className="w-full h-12 text-lg font-bold bg-[#007CFF] hover:bg-[#0066D6] text-white rounded-lg transition-all shadow-lg"
-                                        onClick={() => setIsEnrollModalOpen(true)}
+                                        onClick={() => {
+                                            if (isEnrolled) {
+                                                navigate(`/training/${course.id}/dashboard`);
+                                            } else {
+                                                setIsEnrollModalOpen(true);
+                                            }
+                                        }}
                                     >
-                                        {course.paymentType === "Free" ? "Enroll for Free" : "Buy Now"}
+                                        {isEnrolled ? "Go to Training" : (course.paymentType === "Free" ? "Enroll for Free" : "Buy Now")}
                                     </Button>
 
                                     <p className="text-xs text-center text-muted-foreground">30-Day Money-Back Guarantee</p>
@@ -331,7 +339,7 @@ export default function TrainingDetail() {
                     currency={course.paymentType === 'Paid' ? (course.price.includes("₹") ? "INR" : "USD") : "INR"}
                     isPaid={course.paymentType === "Paid"}
                     onSuccess={() => {
-                        // Optional: Refresh or show some persistent success state
+                        setIsEnrolled(true);
                     }}
                 />
             )}

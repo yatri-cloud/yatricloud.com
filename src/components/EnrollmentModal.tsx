@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Loader2, CreditCard, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +13,15 @@ import {
 import { initiateRazorpayPayment, formatEventPrice } from "@/lib/razorpay";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
+import { getStoredUser, isProfileComplete } from "@/lib/yatris-api";
+import { Country } from "country-state-city";
 
 interface EnrollmentModalProps {
     open: boolean;
     onClose: () => void;
     courseId: string;
     courseName: string;
-    price: string | number; // String "199" or number
+    price: string | number;
     currency?: string;
     isPaid: boolean;
     onSuccess: () => void;
@@ -39,6 +40,7 @@ interface FormData {
 export function EnrollmentModal({ open, onClose, courseId, courseName, price, currency, isPaid, onSuccess }: EnrollmentModalProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [autoSubmitting, setAutoSubmitting] = useState(false);
     const [formData, setFormData] = useState<FormData>({
         name: "",
         email: "",
@@ -51,21 +53,64 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
 
     const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
 
+    // Helper to resolve country ISO code to country name
+    const getCountryName = (code: string): string => {
+        if (!code) return "";
+        const country = Country.getAllCountries().find(c => c.isoCode === code);
+        return country ? country.name : code;
+    };
+
+    // When modal opens, pre-fill from stored user and auto-submit if profile is complete
+    useEffect(() => {
+        if (!open) {
+            setAutoSubmitting(false);
+            return;
+        }
+
+        const user = getStoredUser();
+        if (user) {
+            const prefilled: FormData = {
+                name: user.fullName || "",
+                email: user.email || "",
+                phone: user.countryCode && user.phoneNumber
+                    ? `${user.countryCode} ${user.phoneNumber}`
+                    : user.phoneNumber || "",
+                city: user.city || "",
+                state: user.stateProvince || "",
+                country: getCountryName(user.country || ""),
+                linkedIn: user.linkedinUrl || "",
+            };
+            setFormData(prefilled);
+
+            // If profile is complete, skip the form entirely
+            if (isProfileComplete(user)) {
+                setAutoSubmitting(true);
+            }
+        }
+    }, [open]);
+
+    // Trigger auto-submit once formData is set and autoSubmitting flag is true
+    useEffect(() => {
+        if (autoSubmitting && open && formData.email) {
+            handleAutoSubmit();
+        }
+    }, [autoSubmitting]);
+
     const handleInputChange = (field: keyof FormData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     const validateForm = (): boolean => {
-        if (!formData.name.trim()) return error("Name is required");
-        if (!formData.email.trim() || !formData.email.includes('@')) return error("Valid email is required");
-        if (!formData.phone.trim()) return error("Phone number is required");
-        if (!formData.city.trim()) return error("City is required");
-        if (!formData.state.trim()) return error("State is required");
-        if (!formData.country.trim()) return error("Country is required");
+        if (!formData.name.trim()) return showError("Name is required");
+        if (!formData.email.trim() || !formData.email.includes('@')) return showError("Valid email is required");
+        if (!formData.phone.trim()) return showError("Phone number is required");
+        if (!formData.city.trim()) return showError("City is required");
+        if (!formData.state.trim()) return showError("State is required");
+        if (!formData.country.trim()) return showError("Country is required");
         return true;
     };
 
-    const error = (msg: string) => {
+    const showError = (msg: string) => {
         toast({ title: msg, variant: "destructive" });
         return false;
     };
@@ -96,7 +141,6 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
             const result = await response.json();
 
             if (result.success) {
-                // Send Email
                 const emailHtml = `
                     <div style="font-family: sans-serif; padding: 20px;">
                         <h1>Welcome to ${courseName}!</h1>
@@ -126,13 +170,52 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
         }
     };
 
+    // Auto-submit for users with complete profiles
+    const handleAutoSubmit = async () => {
+        setIsSubmitting(true);
+        try {
+            if (isPaid) {
+                const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+                initiateRazorpayPayment(
+                    {
+                        amount: numPrice,
+                        currency: currency || 'INR',
+                        eventName: courseName,
+                        userDetails: {
+                            name: formData.name,
+                            email: formData.email,
+                            phone: formData.phone,
+                        }
+                    },
+                    async (response) => {
+                        await submitEnrollment({
+                            paymentId: response.razorpay_payment_id,
+                            amount: numPrice
+                        });
+                        setIsSubmitting(false);
+                    },
+                    (err) => {
+                        setIsSubmitting(false);
+                        setAutoSubmitting(false);
+                        toast({ title: "Payment Failed", description: err.error, variant: "destructive" });
+                    }
+                );
+            } else {
+                await submitEnrollment();
+                setIsSubmitting(false);
+            }
+        } catch (e) {
+            setIsSubmitting(false);
+            setAutoSubmitting(false);
+        }
+    };
+
     const handleSubmit = async () => {
         if (!validateForm()) return;
         setIsSubmitting(true);
 
         try {
             if (isPaid) {
-                // Helper to parse price safe
                 const numPrice = typeof price === 'string' ? parseFloat(price) : price;
 
                 initiateRazorpayPayment(
@@ -159,7 +242,6 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     }
                 );
             } else {
-                // Free
                 await submitEnrollment();
                 setIsSubmitting(false);
             }
@@ -167,6 +249,21 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
             setIsSubmitting(false);
         }
     };
+
+    // Show a simple loading dialog when auto-enrolling (profile complete)
+    if (autoSubmitting) {
+        return (
+            <Dialog open={open} onOpenChange={onClose}>
+                <DialogContent className="max-w-md">
+                    <div className="flex flex-col items-center justify-center py-8 gap-4">
+                        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                        <p className="text-lg font-semibold">Enrolling you in {courseName}...</p>
+                        <p className="text-sm text-muted-foreground">Using your profile information</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        );
+    }
 
     return (
         <Dialog open={open} onOpenChange={onClose}>

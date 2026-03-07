@@ -76,7 +76,7 @@ export default function Training() {
     const certifications = ["All", ...Array.from(new Set(courses.map(c => c.subType)))];
 
     const createSlug = (name: string) => {
-        return name
+        return String(name || '')
             .toLowerCase()
             .replace(/[^\w\s-]/g, '') // remove special chars
             .replace(/\s+/g, '-') // replace spaces with hyphens

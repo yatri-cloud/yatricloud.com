@@ -11,7 +11,6 @@ interface TrainerData {
     email: string;
     phone: string;
     expertise: string;
-    username: string;
 }
 
 interface Assignment {
@@ -200,10 +199,7 @@ export const TrainerDashboard = () => {
                                 <p className="text-sm text-muted-foreground">Phone</p>
                                 <p className="font-medium">{trainerData.phone}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Username</p>
-                                <p className="font-medium">{trainerData.username}</p>
-                            </div>
+
                             <div>
                                 <p className="text-sm text-muted-foreground">Trainer ID</p>
                                 <p className="font-mono text-sm">{trainerData.trainerId}</p>

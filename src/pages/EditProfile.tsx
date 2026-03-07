@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { Save, X, User, Mail, Linkedin, Globe, Upload, Lock, Loader2 } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Save, X, User, Mail, Linkedin, Globe, Upload, Lock, Loader2, AlertTriangle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -22,6 +22,8 @@ import { Country } from "country-state-city";
 
 const EditProfile = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isCompleting = searchParams.get('complete') === 'true';
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -132,6 +134,36 @@ const EditProfile = () => {
   };
 
   const handleSaveProfile = async () => {
+    // Validate mandatory fields
+    if (!profileData.fullName?.trim()) {
+      toast({ title: "Error", description: "Full Name is required", variant: "destructive" });
+      return;
+    }
+    if (!profileData.linkedinUrl?.trim()) {
+      toast({ title: "Error", description: "LinkedIn Profile URL is required", variant: "destructive" });
+      return;
+    }
+    if (!profileData.linkedinUrl.match(/^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i)) {
+      toast({ title: "Error", description: "Please enter a valid LinkedIn profile URL", variant: "destructive" });
+      return;
+    }
+    if (!profileData.country) {
+      toast({ title: "Error", description: "Country is required", variant: "destructive" });
+      return;
+    }
+    if (!profileData.stateProvince?.trim()) {
+      toast({ title: "Error", description: "State/Province is required", variant: "destructive" });
+      return;
+    }
+    if (!profileData.city?.trim()) {
+      toast({ title: "Error", description: "City is required", variant: "destructive" });
+      return;
+    }
+    if (!profileData.phoneNumber?.trim()) {
+      toast({ title: "Error", description: "Phone Number is required", variant: "destructive" });
+      return;
+    }
+
     setIsSaving(true);
     try {
       const result = await updateProfile({
@@ -148,13 +180,14 @@ const EditProfile = () => {
       if (result.success) {
         toast({
           title: "Success",
-          description: "Profile updated successfully",
+          description: isCompleting ? "Profile completed successfully!" : "Profile updated successfully",
         });
         // Update stored user
         const updatedUser = { ...user, ...profileData };
         setUser(updatedUser);
         localStorage.setItem("yatris_user", JSON.stringify(updatedUser));
-        navigate("/manage-certifications");
+        // Redirect based on context
+        navigate(isCompleting ? "/certifiedyatris" : "/manage-certifications");
       } else {
         toast({
           title: "Error",
@@ -317,14 +350,35 @@ const EditProfile = () => {
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-2">Edit Profile</h1>
+                <h1 className="text-4xl md:text-5xl font-bold mb-2">
+                  {isCompleting ? "Complete Your Profile" : "Edit Profile"}
+                </h1>
                 <p className="text-muted-foreground text-lg">
-                  Update your personal information and account settings
+                  {isCompleting
+                    ? "Please fill in all required fields to continue"
+                    : "Update your personal information and account settings"}
                 </p>
               </div>
 
             </div>
           </motion.div>
+
+          {/* Profile Completion Banner */}
+          {isCompleting && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3"
+            >
+              <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-amber-500">Profile Incomplete</p>
+                <p className="text-sm text-muted-foreground">
+                  You signed in with Google. Please fill in your LinkedIn URL, location, and phone number to complete your profile.
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           <div className="space-y-6">
             {/* Profile Information */}
@@ -484,7 +538,7 @@ const EditProfile = () => {
 
                 {/* LinkedIn URL */}
                 <div>
-                  <Label>LinkedIn Profile URL</Label>
+                  <Label>LinkedIn Profile URL <span className="text-destructive">*</span></Label>
                   <Input
                     value={profileData.linkedinUrl || ""}
                     onChange={(e) =>
@@ -497,7 +551,7 @@ const EditProfile = () => {
                 {/* Location Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label>Country</Label>
+                    <Label>Country <span className="text-destructive">*</span></Label>
                     <Select
                       value={profileData.country || undefined}
                       onValueChange={(value) => {
@@ -522,7 +576,7 @@ const EditProfile = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label>State/Province</Label>
+                    <Label>State/Province <span className="text-destructive">*</span></Label>
                     <Input
                       value={profileData.stateProvince || ""}
                       onChange={(e) =>
@@ -532,7 +586,7 @@ const EditProfile = () => {
                     />
                   </div>
                   <div>
-                    <Label>City</Label>
+                    <Label>City <span className="text-destructive">*</span></Label>
                     <Input
                       value={profileData.city || ""}
                       onChange={(e) =>
@@ -554,7 +608,7 @@ const EditProfile = () => {
                     />
                   </div>
                   <div>
-                    <Label>Phone Number</Label>
+                    <Label>Phone Number <span className="text-destructive">*</span></Label>
                     <Input
                       value={profileData.phoneNumber || ""}
                       onChange={(e) =>

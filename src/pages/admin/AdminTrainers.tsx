@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2 } from "lucide-react";
+import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2, Video, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,8 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
+    DialogFooter,
 } from "@/components/ui/dialog";
 import {
     Select,
@@ -43,6 +45,8 @@ interface TrainerApplication {
     status: string;
     adminNotes: string;
     resumeUrl?: string;
+    certificationProvider?: string;
+    credentialsLinks?: string;
 }
 
 interface Trainer {
@@ -52,7 +56,6 @@ interface Trainer {
     phone: string;
     linkedIn: string;
     expertise: string;
-    username: string;
     status: string;
     createdDate: string;
 }
@@ -75,21 +78,10 @@ export const AdminTrainersNew = () => {
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string>("all");
 
-    const [isUpdating, setIsUpdating] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    // Trainer states
     const [trainers, setTrainers] = useState<Trainer[]>([]);
     const [isLoadingTrainers, setIsLoadingTrainers] = useState(false);
-    const [credentialsDialogOpen, setCredentialsDialogOpen] = useState(false);
-    const [selectedEmail, setSelectedEmail] = useState("");
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [isCreatingCredentials, setIsCreatingCredentials] = useState(false);
-    const [isResettingPassword, setIsResettingPassword] = useState(false);
-    const [credentialMode, setCredentialMode] = useState<"create" | "reset">("create");
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    // Assignment states
     // Assignment states
     const [allProviders, setAllProviders] = useState<ProviderData[]>([]);
     const [availableExams, setAvailableExams] = useState<string[]>([]);
@@ -99,10 +91,19 @@ export const AdminTrainersNew = () => {
     const [selectedExam, setSelectedExam] = useState("");
     const [isAssigning, setIsAssigning] = useState(false);
 
+    // Meet Access states
+    const [meetDialogOpen, setMeetDialogOpen] = useState(false);
+    const [meetTrainerEmail, setMeetTrainerEmail] = useState("");
+    const [meetTrainerName, setMeetTrainerName] = useState("");
+    const [meetTrainingId, setMeetTrainingId] = useState("");
+    const [allTrainings, setAllTrainings] = useState<any[]>([]);
+    const [isGrantingMeet, setIsGrantingMeet] = useState(false);
+
     useEffect(() => {
         fetchApplications();
         fetchTrainers();
         fetchProviders();
+        fetchTrainings();
     }, []);
 
     useEffect(() => {
@@ -198,9 +199,81 @@ export const AdminTrainersNew = () => {
         }
     };
 
+    const fetchTrainings = async () => {
+        try {
+            const response = await fetch(
+                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: "getTrainings" }),
+                }
+            );
+            const result = await response.json();
+            if (result.success) {
+                setAllTrainings(result.structure || []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch trainings:", error);
+        }
+    };
+
+    const handleGrantMeetAccess = async () => {
+        if (!meetTrainerEmail || !meetTrainingId) {
+            toast({
+                title: "Validation Error",
+                description: "Please select a training to grant access for",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            setIsGrantingMeet(true);
+            const response = await fetch(
+                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "grantMeetAccess",
+                        trainerEmail: meetTrainerEmail,
+                        trainingId: meetTrainingId,
+                    }),
+                }
+            );
+            const result = await response.json();
+            if (result.success) {
+                toast({
+                    title: "Meet Access Granted! ✅",
+                    description: `${meetTrainerName} now has host access. ${result.meetLink ? "Meet link: " + result.meetLink : ""}`,
+                });
+                setMeetDialogOpen(false);
+                setMeetTrainingId("");
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to grant Meet access",
+                variant: "destructive",
+            });
+        } finally {
+            setIsGrantingMeet(false);
+        }
+    };
+
+    const openMeetDialog = (email: string, name: string) => {
+        setMeetTrainerEmail(email);
+        setMeetTrainerName(name);
+        setMeetTrainingId("");
+        setMeetDialogOpen(true);
+    };
+
     const updateApplicationStatus = async (email: string, status: string, adminNotes?: string) => {
         try {
-            setIsUpdating(true);
+            setIsProcessing(true);
             const response = await fetch(
                 import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
                 {
@@ -232,94 +305,83 @@ export const AdminTrainersNew = () => {
                 variant: "destructive",
             });
         } finally {
-            setIsUpdating(false);
+            setIsProcessing(false);
         }
     };
 
-    const handleCredentialSubmit = async () => {
-        if (!password) {
-            toast({
-                title: "Validation Error",
-                description: "Please provide a password",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        if (credentialMode === "create" && !username) {
-            toast({
-                title: "Validation Error",
-                description: "Please provide a username",
-                variant: "destructive",
-            });
-            return;
-        }
+    const handleApproveTrainer = async (application: TrainerApplication) => {
+        if (!confirm(`Are you sure you want to approve ${application.fullName}? They will be able to log in with their Google account.`)) return;
 
         try {
-            if (credentialMode === "create") {
-                setIsCreatingCredentials(true);
-                const response = await fetch(
-                    import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({
-                            action: "createTrainerCredentials",
-                            email: selectedEmail,
-                            username,
-                            password,
-                        }),
-                    }
-                );
-                const result = await response.json();
-                if (result.success) {
-                    toast({
-                        title: "Success",
-                        description: `Credentials created for ${username}`,
-                    });
-                    setCredentialsDialogOpen(false);
-                    setUsername("");
-                    setPassword("");
-                    await fetchTrainers();
-                } else {
-                    throw new Error(result.error);
+            setIsProcessing(true);
+            const response = await fetch(
+                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "approveTrainer",
+                        email: application.email,
+                    }),
                 }
+            );
+            const result = await response.json();
+            if (result.success) {
+                toast({
+                    title: "Success",
+                    description: `Trainer approved! ${application.fullName} can now log in.`,
+                });
+                await fetchApplications();
+                await fetchTrainers();
             } else {
-                // Reset Password Mode
-                setIsResettingPassword(true);
-                const response = await fetch(
-                    import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({
-                            action: "resetTrainerPassword",
-                            email: selectedEmail,
-                            newPassword: password,
-                        }),
-                    }
-                );
-                const result = await response.json();
-                if (result.success) {
-                    toast({
-                        title: "Success",
-                        description: "Password reset successfully",
-                    });
-                    setCredentialsDialogOpen(false);
-                    setPassword("");
-                } else {
-                    throw new Error(result.error);
-                }
+                throw new Error(result.error);
             }
         } catch (error: any) {
             toast({
                 title: "Error",
-                description: error.message || "Failed to process request",
+                description: error.message || "Failed to approve trainer",
                 variant: "destructive",
             });
         } finally {
-            setIsCreatingCredentials(false);
-            setIsResettingPassword(false);
+            setIsProcessing(false);
+        }
+    };
+
+    const handleRejectApplication = async (application: TrainerApplication) => {
+        if (!confirm(`Are you sure you want to REJECT ${application.fullName}? This will revoke their access if they are already approved.`)) return;
+
+        try {
+            setIsProcessing(true);
+            const response = await fetch(
+                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "rejectTrainerApplication",
+                        email: application.email,
+                    }),
+                }
+            );
+            const result = await response.json();
+            if (result.success) {
+                toast({
+                    title: "Success",
+                    description: "Application rejected successfully",
+                });
+                await fetchApplications();
+                await fetchTrainers();
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to reject application",
+                variant: "destructive",
+            });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -379,31 +441,13 @@ export const AdminTrainersNew = () => {
         }
     };
 
-    const handleApprove = () => {
-        if (selectedApplication) {
-            updateApplicationStatus(
-                selectedApplication.email,
-                "Approved",
-                "Application approved - ready for credential creation"
-            );
-        }
-    };
 
-    const handleReject = () => {
-        if (selectedApplication) {
-            updateApplicationStatus(
-                selectedApplication.email,
-                "Rejected",
-                "Application rejected after review"
-            );
-        }
-    };
 
     const handleDeleteApplication = async (application: TrainerApplication) => {
         if (!confirm("Are you sure you want to delete this application?")) return;
 
         try {
-            setIsDeleting(true);
+            setIsProcessing(true);
             const response = await fetch(
                 import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
                 {
@@ -433,7 +477,7 @@ export const AdminTrainersNew = () => {
                 variant: "destructive",
             });
         } finally {
-            setIsDeleting(false);
+            setIsProcessing(false);
         }
     };
 
@@ -441,7 +485,7 @@ export const AdminTrainersNew = () => {
         if (!confirm(`Are you sure you want to delete trainer ${trainer.fullName}? This action cannot be undone.`)) return;
 
         try {
-            setIsDeleting(true);
+            setIsProcessing(true);
             const response = await fetch(
                 import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
                 {
@@ -471,18 +515,8 @@ export const AdminTrainersNew = () => {
                 variant: "destructive",
             });
         } finally {
-            setIsDeleting(false);
+            setIsProcessing(false);
         }
-    };
-
-    const openCredentialsDialog = (email: string, mode: "create" | "reset" = "create") => {
-        setSelectedEmail(email);
-        setCredentialMode(mode);
-        // If resetting, username is not needed or editable normally, but let's clear it just in case
-        if (mode === "reset") {
-            setUsername("");
-        }
-        setCredentialsDialogOpen(true);
     };
 
     const viewDetails = (application: TrainerApplication) => {
@@ -591,14 +625,30 @@ export const AdminTrainersNew = () => {
                                                             <Eye className="w-4 h-4 mr-1" />
                                                             View
                                                         </Button>
-                                                        {application.status === "Approved" && (
+                                                        {/* Approve Button */}
+                                                        {application.status === "Pending" && (
                                                             <Button
                                                                 variant="default"
                                                                 size="sm"
-                                                                onClick={() => openCredentialsDialog(application.email, "create")}
+                                                                className="bg-green-600 hover:bg-green-700"
+                                                                onClick={() => handleApproveTrainer(application)}
+                                                                disabled={isProcessing}
                                                             >
-                                                                <Key className="w-4 h-4 mr-1" />
-                                                                Create Credentials
+                                                                <CheckCircle className="w-4 h-4 mr-1" />
+                                                                Approve
+                                                            </Button>
+                                                        )}
+                                                        {/* Reject Button */}
+                                                        {(application.status === "Pending" || application.status === "Approved") && (
+                                                            <Button
+                                                                variant="default"
+                                                                size="sm"
+                                                                className="bg-orange-600 hover:bg-orange-700"
+                                                                onClick={() => handleRejectApplication(application)}
+                                                                disabled={isProcessing}
+                                                            >
+                                                                <XCircle className="w-4 h-4 mr-1" />
+                                                                Reject
                                                             </Button>
                                                         )}
                                                         <Button
@@ -639,7 +689,6 @@ export const AdminTrainersNew = () => {
                                             <TableHead>Trainer ID</TableHead>
                                             <TableHead>Name</TableHead>
                                             <TableHead>Email</TableHead>
-                                            <TableHead>Username</TableHead>
                                             <TableHead>Expertise</TableHead>
                                             <TableHead>Created</TableHead>
                                             <TableHead>Actions</TableHead>
@@ -651,27 +700,29 @@ export const AdminTrainersNew = () => {
                                                 <TableCell className="font-mono text-sm">{trainer.trainerId}</TableCell>
                                                 <TableCell className="font-medium">{trainer.fullName}</TableCell>
                                                 <TableCell>{trainer.email}</TableCell>
-                                                <TableCell className="font-semibold text-primary">{trainer.username}</TableCell>
                                                 <TableCell>{trainer.expertise}</TableCell>
+
                                                 <TableCell>{formatDate(trainer.createdDate)}</TableCell>
                                                 <TableCell>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => openCredentialsDialog(trainer.email, "reset")}
-                                                    >
-                                                        <Key className="w-4 h-4 mr-1" />
-                                                        Reset Password
-                                                    </Button>
-
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        className="ml-2"
-                                                        onClick={() => handleDeleteTrainer(trainer)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
+                                                    <div className="flex gap-2 flex-wrap">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => openMeetDialog(trainer.email, trainer.fullName)}
+                                                        >
+                                                            <Video className="w-4 h-4 mr-1" />
+                                                            Grant Meet Access
+                                                        </Button>
+                                                        {/* No Reset Password Needed for Google Auth */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                            onClick={() => handleDeleteTrainer(trainer)}
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -810,9 +861,84 @@ export const AdminTrainersNew = () => {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground mb-1">Years of Experience</p>
-                                        <p>{selectedApplication.yearsOfExperience}</p>
+                                        <p>{selectedApplication.yearsOfExperience} {isNaN(Number(selectedApplication.yearsOfExperience)) ? '' : 'years'}</p>
                                     </div>
                                 </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground mb-1">Credentials / Portfolio</p>
+                                        {(() => {
+                                            try {
+                                                if (!selectedApplication.credentialsLinks) return <p className="text-muted-foreground">N/A</p>;
+
+                                                // Try parsing as JSON first
+                                                const creds = JSON.parse(selectedApplication.credentialsLinks);
+                                                if (Array.isArray(creds) && creds.length > 0) {
+                                                    return (
+                                                        <div className="space-y-1">
+                                                            {creds.map((c: any, idx: number) => (
+                                                                <div key={idx} className="text-sm">
+                                                                    <span className="font-medium">{c.providerName}: </span>
+                                                                    <a
+                                                                        href={c.link}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-primary hover:underline"
+                                                                    >
+                                                                        Click here to view
+                                                                    </a>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    );
+                                                }
+                                                // Fallback for non-JSON strings
+                                                return (
+                                                    <a
+                                                        href={selectedApplication.credentialsLinks}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-primary hover:underline truncate block"
+                                                    >
+                                                        Click here to view
+                                                    </a>
+                                                );
+                                            } catch (e) {
+                                                // Fallback if parse error
+                                                return (
+                                                    <a
+                                                        href={selectedApplication.credentialsLinks}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-primary hover:underline truncate block"
+                                                    >
+                                                        {selectedApplication.credentialsLinks}
+                                                    </a>
+                                                );
+                                            }
+                                        })()}
+                                    </div>
+                                    <div>
+                                        {/* Removed Certification Provider as per request */}
+                                    </div>
+                                </div>
+
+                                {selectedApplication.resumeUrl && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground mb-2">Resume / CV</p>
+                                        <a
+                                            href={selectedApplication.resumeUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors text-primary"
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                            View Uploaded Resume
+                                            <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
+                                        </a>
+                                    </div>
+                                )}
 
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground mb-1">Motivation</p>
@@ -825,20 +951,20 @@ export const AdminTrainersNew = () => {
                                     <Button
                                         className="flex-1"
                                         variant="default"
-                                        onClick={handleApprove}
-                                        disabled={isUpdating}
+                                        onClick={() => handleApproveTrainer(selectedApplication)}
+                                        disabled={isProcessing}
                                     >
                                         <CheckCircle className="w-4 h-4 mr-2" />
-                                        {isUpdating ? " Processing..." : "Approve"}
+                                        {isProcessing ? " Processing..." : "Approve & Grant Access"}
                                     </Button>
                                     <Button
                                         className="flex-1"
                                         variant="destructive"
-                                        onClick={handleReject}
-                                        disabled={isUpdating}
+                                        onClick={() => handleRejectApplication(selectedApplication)}
+                                        disabled={isProcessing}
                                     >
                                         <XCircle className="w-4 h-4 mr-2" />
-                                        {isUpdating ? "Processing..." : "Reject"}
+                                        {isProcessing ? "Processing..." : "Reject Application"}
                                     </Button>
                                 </div>
                             )}
@@ -847,52 +973,50 @@ export const AdminTrainersNew = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Credential Creation Dialog */}
-            <Dialog open={credentialsDialogOpen} onOpenChange={setCredentialsDialogOpen}>
+            {/* Grant Meet Access Dialog */}
+            <Dialog open={meetDialogOpen} onOpenChange={setMeetDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>
-                            {credentialMode === "create" ? "Create Trainer Credentials" : "Reset Trainer Password"}
+                        <DialogTitle className="flex items-center gap-2">
+                            <Video className="w-5 h-5 text-primary" />
+                            Grant Google Meet Host Access
                         </DialogTitle>
                         <DialogDescription>
-                            {credentialMode === "create"
-                                ? "Create login credentials for the approved trainer"
-                                : "Enter a new password for the trainer"}
+                            Select a training to grant Meet host privileges to <strong>{meetTrainerName}</strong>
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div>
                             <Label>Trainer Email</Label>
-                            <Input value={selectedEmail} disabled className="bg-muted" />
+                            <Input value={meetTrainerEmail} disabled className="bg-muted" />
                         </div>
-                        {credentialMode === "create" && (
-                            <div>
-                                <Label>Select Username</Label>
-                                <Input
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    placeholder="e.g. name.training"
-                                />
-                            </div>
-                        )}
                         <div>
-                            <Label>{credentialMode === "create" ? "Initial Password" : "New Password"}</Label>
-                            <Input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder={credentialMode === "create" ? "Create secure password" : "Enter new password"}
-                            />
+                            <Label>Select Training</Label>
+                            <Select value={meetTrainingId} onValueChange={setMeetTrainingId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Choose a training..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {allTrainings.map((training: any) => (
+                                        <SelectItem key={training.id} value={training.id}>
+                                            {training.courseName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <Button
-                            onClick={handleCredentialSubmit}
-                            disabled={isCreatingCredentials || isResettingPassword}
+                            onClick={handleGrantMeetAccess}
+                            disabled={isGrantingMeet || !meetTrainingId}
                             className="w-full"
                         >
-                            {(isCreatingCredentials || isResettingPassword)
-                                ? "Processing..."
-                                : (credentialMode === "create" ? "Create Credentials" : "Reset Password")}
+                            <Video className="w-4 h-4 mr-2" />
+                            {isGrantingMeet ? "Granting Access..." : "Grant Meet Host Access"}
                         </Button>
+                        <p className="text-xs text-muted-foreground text-center">
+                            This will create a Calendar event with Google Meet and add the trainer as co-host.
+                            They will receive an email with the meeting details.
+                        </p>
                     </div>
                 </DialogContent>
             </Dialog>

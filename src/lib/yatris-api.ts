@@ -678,6 +678,21 @@ export function getStoredUser(): User | null {
   }
 }
 
+/**
+ * Check if user profile has all mandatory fields filled
+ * Google login users will have incomplete profiles (missing linkedin, country, phone, etc.)
+ */
+export function isProfileComplete(user: User | null): boolean {
+  if (!user) return false;
+  return !!(
+    user.linkedinUrl &&
+    user.country &&
+    user.stateProvince &&
+    user.city &&
+    user.phoneNumber
+  );
+}
+
 // Event Registration Types
 export interface Attendee {
   name: string;

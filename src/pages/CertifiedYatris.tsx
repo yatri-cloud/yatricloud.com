@@ -9,8 +9,9 @@ import { UserActionChoice } from "@/components/certified-yatris/UserActionChoice
 import { fetchCertifications } from "@/lib/google-sheets";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
-import { isAuthenticated, getStoredUser, getCurrentUser, logout as logoutUser } from "@/lib/yatris-api";
+import { isAuthenticated, getStoredUser, getCurrentUser, logout as logoutUser, isProfileComplete } from "@/lib/yatris-api";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface CertificationEntry {
   id: string;
@@ -20,6 +21,7 @@ interface CertificationEntry {
 }
 
 const CertifiedYatris = () => {
+  const navigate = useNavigate();
   const [certifications, setCertifications] = useState<CertificationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -47,6 +49,11 @@ const CertifiedYatris = () => {
           if (currentUser) {
             setUser(currentUser);
             setIsAuthenticated(true);
+            // Check profile completeness on auto-login too
+            if (!isProfileComplete(currentUser)) {
+              navigate('/edit-profile?complete=true');
+              return;
+            }
           } else {
             // Token expired, but keep user logged in with stored data
             setUser(storedUser);
@@ -91,6 +98,13 @@ const CertifiedYatris = () => {
   const handleLoginSuccess = (userData: any) => {
     setUser(userData);
     setIsAuthenticated(true);
+
+    // Check if profile is complete (Google login users won't have all fields)
+    if (!isProfileComplete(userData)) {
+      navigate('/edit-profile?complete=true');
+      return;
+    }
+
     setShowChoice(true); // Show choice after fresh login
   };
 
