@@ -49,12 +49,16 @@ export const HeroSection = () => {
           <ScrollReveal delay={0.4}>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <motion.a
-                href="https://certification.yatricloud.com/yatristore"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (window.Calendly) {
+                    window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/30min' });
+                  }
+                }}
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.95 }}
-                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-10 py-6 text-lg font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden"
+                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-10 py-6 text-lg font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden cursor-pointer"
               >
                 {/* Shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
