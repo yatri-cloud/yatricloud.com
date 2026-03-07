@@ -25,17 +25,17 @@ function getFallbackImageUrl(courseUrl: string, thumbnail?: string): string {
   if (thumbnail) {
     return thumbnail;
   }
-  
+
   // Fallback to default image
-    return 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
-  }
-  
+  return 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=225&fit=crop';
+}
+
 /**
  * Capitalize category name properly
  */
 function capitalizeCategory(category: string): string {
   if (!category) return category;
-  
+
   // Handle special cases
   const specialCases: Record<string, string> = {
     'ai': 'AI',
@@ -43,12 +43,12 @@ function capitalizeCategory(category: string): string {
     'gcp': 'GCP',
     'aws': 'AWS',
   };
-  
+
   const lowerCategory = category.toLowerCase();
   if (specialCases[lowerCategory]) {
     return specialCases[lowerCategory];
   }
-  
+
   // Capitalize first letter of each word
   return category
     .split(' ')
@@ -72,7 +72,7 @@ export const CurriculumSection = () => {
   const availableFilters = useMemo(() => {
     const certifications = new Set<string>();
     const categories = new Set<string>();
-    
+
     courses.forEach((course) => {
       if (course.certification && course.certification !== 'General') {
         certifications.add(course.certification);
@@ -81,12 +81,12 @@ export const CurriculumSection = () => {
         categories.add(course.category);
       }
     });
-    
+
     // Sort categories alphabetically
     const sortedCategories = Array.from(categories).sort((a, b) => {
       return a.localeCompare(b);
     });
-    
+
     return {
       certifications: Array.from(certifications).sort(),
       categories: sortedCategories,
@@ -96,17 +96,17 @@ export const CurriculumSection = () => {
   // Client-side filtering
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
-      const matchesSearch = !searchQuery || searchQuery.trim() === "" || 
+      const matchesSearch = !searchQuery || searchQuery.trim() === "" ||
         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (course.category && course.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (course.certification && course.certification.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+
       const matchesInstructor = selectedInstructor === "All" || course.creator === selectedInstructor;
-    const matchesCertification = selectedCertification === "All" || course.certification === selectedCertification;
-    const matchesCategory = selectedCategory === "All" || course.category === selectedCategory;
-    
-    return matchesSearch && matchesInstructor && matchesCertification && matchesCategory;
-  });
+      const matchesCertification = selectedCertification === "All" || course.certification === selectedCertification;
+      const matchesCategory = selectedCategory === "All" || course.category === selectedCategory;
+
+      return matchesSearch && matchesInstructor && matchesCertification && matchesCategory;
+    });
   }, [courses, searchQuery, selectedInstructor, selectedCertification, selectedCategory]);
 
   // Reset visible courses when filters change
@@ -126,13 +126,13 @@ export const CurriculumSection = () => {
   const handleViewMore = () => {
     const previousVisibleCount = visibleCourses;
     setVisibleCourses(filteredCourses.length);
-    
+
     // Smooth scroll to newly revealed courses after a short delay
     setTimeout(() => {
       const newCoursesStart = document.querySelector(`[data-course-index="${previousVisibleCount}"]`);
       if (newCoursesStart) {
-        newCoursesStart.scrollIntoView({ 
-          behavior: 'smooth', 
+        newCoursesStart.scrollIntoView({
+          behavior: 'smooth',
           block: 'start',
           inline: 'nearest'
         });
@@ -145,7 +145,7 @@ export const CurriculumSection = () => {
       {/* Background Elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      
+
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <ScrollReveal>
           <div className="text-center mb-12">
@@ -178,103 +178,103 @@ export const CurriculumSection = () => {
 
         {/* Search and Filters */}
         {!error && (
-        <ScrollReveal delay={0.1}>
-          <div className="max-w-4xl mx-auto mb-8 space-y-6">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search courses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-card border-border"
-              />
-            </div>
+          <ScrollReveal delay={0.1}>
+            <div className="max-w-4xl mx-auto mb-8 space-y-6">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search courses..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-card border-border"
+                />
+              </div>
 
-            {/* Filters - Modern UI without icons */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Instructor Filter */}
+              {/* Filters - Modern UI without icons */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Instructor Filter */}
                 {creators && creators.length > 0 && (
-              <div className="group">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                  Instructor
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedInstructor}
-                    onChange={(e) => setSelectedInstructor(e.target.value)}
-                    className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
-                  >
-                      <option value="All">All Instructors</option>
-                      {creators.map((instructor) => (
-                    <option key={instructor} value={instructor}>
-                      {instructor}
-                    </option>
-                  ))}
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                    </svg>
+                  <div className="group">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                      Instructor
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedInstructor}
+                        onChange={(e) => setSelectedInstructor(e.target.value)}
+                        className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+                      >
+                        <option value="All">All Instructors</option>
+                        {creators.map((instructor) => (
+                          <option key={instructor} value={instructor}>
+                            {instructor}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
                 )}
 
-              {/* Certification Filter */}
+                {/* Certification Filter */}
                 {availableFilters.certifications.length > 0 && (
-              <div className="group">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                  Certifications
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedCertification}
-                    onChange={(e) => setSelectedCertification(e.target.value)}
-                    className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
-                  >
-                      <option value="All">Yatri Stars</option>
-                      {availableFilters.certifications.map((cert) => (
-                    <option key={cert} value={cert}>
-                      {cert}
-                    </option>
-                  ))}
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                    </svg>
+                  <div className="group">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                      Certifications
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedCertification}
+                        onChange={(e) => setSelectedCertification(e.target.value)}
+                        className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+                      >
+                        <option value="All">All Providers</option>
+                        {availableFilters.certifications.map((cert) => (
+                          <option key={cert} value={cert}>
+                            {cert}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
                 )}
 
-              {/* Category Filter */}
+                {/* Category Filter */}
                 {availableFilters.categories.length > 0 && (
-              <div className="group">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                  Categories
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
-                  >
-                      <option value="All">All Categories</option>
-                      {availableFilters.categories.map((category) => (
-                    <option key={category} value={category}>
-                      {capitalizeCategory(category)}
-                    </option>
-                  ))}
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                  <div className="group">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                      Categories
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+                      >
+                        <option value="All">All Categories</option>
+                        {availableFilters.categories.map((category) => (
+                          <option key={category} value={category}>
+                            {capitalizeCategory(category)}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -293,7 +293,7 @@ export const CurriculumSection = () => {
         {/* Courses Grid */}
         {!isLoading && !error && (
           <>
-            <motion.div 
+            <motion.div
               className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
               layout
             >
@@ -306,7 +306,7 @@ export const CurriculumSection = () => {
                     initial={index >= 6 ? { opacity: 0, y: 20, scale: 0.95 } : false}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ 
+                    transition={{
                       duration: 0.4,
                       delay: index >= 6 ? (index - 6) * 0.05 : 0,
                       ease: "easeOut"
@@ -317,76 +317,76 @@ export const CurriculumSection = () => {
                         className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
                         whileHover={{ y: -5 }}
                       >
-                  {/* Course Image */}
-                  <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
-                    <img
-                      src={course.thumbnail || getFallbackImageUrl(course.udemyUrl, course.thumbnail)}
-                      alt={course.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      width={640}
-                      height={360}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = getFallbackImageUrl(course.udemyUrl, course.thumbnail);
-                      }}
-                    />
-                  </div>
+                        {/* Course Image */}
+                        <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
+                          <img
+                            src={course.thumbnail || getFallbackImageUrl(course.udemyUrl, course.thumbnail)}
+                            alt={course.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            width={640}
+                            height={360}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = getFallbackImageUrl(course.udemyUrl, course.thumbnail);
+                            }}
+                          />
+                        </div>
 
-                <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {course.certification && course.certification !== 'General' && (
-                    <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">
-                      {course.certification}
-                    </span>
-                      )}
-                      {course.category && course.category !== 'General' && (
-                    <span className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded">
-                      {capitalizeCategory(course.category)}
-                    </span>
-                      )}
-                  </div>
-                    <span className="text-xs text-muted-foreground">Udemy</span>
-                </div>
-                
-                <h3 className="text-lg font-semibold text-foreground mb-3 flex-1">
-                  {course.title}
-                </h3>
-                
-                  {course.creator && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                      <span>by {course.creator}</span>
-                </div>
-                  )}
-                
-                  <motion.a
-                    href={course.udemyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="group relative w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
-                  >
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    
-                    <span className="relative z-10">Enroll Now</span>
-                    <ExternalLink className="relative z-10 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
-                    
-                    {/* Glow effect */}
-                    <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
-                  </motion.a>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {course.certification && course.certification !== 'General' && (
+                              <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">
+                                {course.certification}
+                              </span>
+                            )}
+                            {course.category && course.category !== 'General' && (
+                              <span className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded">
+                                {capitalizeCategory(course.category)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground">Udemy</span>
+                        </div>
+
+                        <h3 className="text-lg font-semibold text-foreground mb-3 flex-1">
+                          {course.title}
+                        </h3>
+
+                        {course.creator && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                            <span>by {course.creator}</span>
+                          </div>
+                        )}
+
+                        <motion.a
+                          href={course.udemyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="group relative w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
+                        >
+                          {/* Shine effect */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+
+                          <span className="relative z-10">Enroll Now</span>
+                          <ExternalLink className="relative z-10 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
+
+                          {/* Glow effect */}
+                          <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
+                        </motion.a>
                       </motion.div>
                     </ScrollReveal>
                   </motion.div>
                 ))}
               </AnimatePresence>
             </motion.div>
-            
+
             {/* View More Button */}
             <AnimatePresence>
               {hasMoreCourses && (
-                <motion.div 
+                <motion.div
                   className="flex justify-center mt-10"
                   initial={{ opacity: 1 }}
                   exit={{ opacity: 0, height: 0, marginTop: 0 }}
@@ -401,11 +401,11 @@ export const CurriculumSection = () => {
                   >
                     {/* Shine effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    
+
                     <span className="relative z-10">
                       View More ({filteredCourses.length - visibleCourses} more)
                     </span>
-                    
+
                     {/* Glow effect */}
                     <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
                   </motion.button>

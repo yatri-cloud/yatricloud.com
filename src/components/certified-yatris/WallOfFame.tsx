@@ -102,7 +102,7 @@ export const WallOfFame = () => {
           <Filter className="w-5 h-5 text-primary" />
           <h3 className="text-lg font-semibold">Filters</h3>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div>

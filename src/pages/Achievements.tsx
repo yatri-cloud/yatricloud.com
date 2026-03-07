@@ -1366,7 +1366,7 @@ const Achievements = () => {
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
                             <div>
                               <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
-                                {isAllView ? "Yatri Stars" : `${provider} Certifications`}
+                                {isAllView ? "All Providers" : `${provider} Certifications`}
                               </h3>
                               <p className="text-lg text-muted-foreground">
                                 {certs.length} {certs.length === 1 ? "yatri" : "yatris"} certified

@@ -4,8 +4,8 @@ import CountdownTimer from "@/components/CountdownTimer";
 import ScrollReveal from "@/components/ScrollReveal";
 
 export const HeroSection = () => {
-  // Set target date to February 14, 2026 (Valentine's Day offer)
-  const targetDate = new Date('2026-02-14T23:59:59');
+  // Set target date to March 31, 2026 (Women's Day offer month)
+  const targetDate = new Date('2026-03-31T23:59:59');
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -23,7 +23,7 @@ export const HeroSection = () => {
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <span className="text-primary text-sm font-semibold">💝 Valentine's Day 2026 Offer</span>
+              <span className="text-primary text-sm font-semibold">✨ Women's Day Offer - March 2026</span>
               <div className="w-px h-4 bg-border" />
               <CountdownTimer targetDate={targetDate} className="scale-75 origin-left" />
             </motion.div>
@@ -154,31 +154,26 @@ export const HeroSection = () => {
                   How to Get <span className="gradient-text">Certified</span>
                 </h2>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  Follow these simple steps to get your AWS Associate certification with our full support
+                  Follow these simple steps below to schedule a meeting and start the exam processing
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid md:grid-cols-3 gap-6">
                 {[
                   {
                     number: "01",
-                    title: "Complete Registration",
-                    description: "Make your payment and get started with the certification process",
+                    title: "Select Time",
+                    description: "Select a suitable time slot to schedule your meeting",
                   },
                   {
                     number: "02",
-                    title: "Join Support Group",
-                    description: "Get exam scheduling coordination and direct support from our team",
+                    title: "Book a Meet",
+                    description: "Confirm your booking through the Calendly widget below",
                   },
                   {
                     number: "03",
-                    title: "Schedule Your Exam",
-                    description: "We'll arrange a meeting call to finalize your exam date and time",
-                  },
-                  {
-                    number: "04",
-                    title: "Get Certified",
-                    description: "Receive exam dumps, study resources, and personal support to ace your exam",
+                    title: "Exam Scheduling",
+                    description: "We will start processing ahead to schedule the exam during our meeting",
                   },
                 ].map((step, index) => (
                   <motion.div
@@ -218,22 +213,23 @@ export const HeroSection = () => {
                         {step.description}
                       </p>
 
-                      {/* Learn More Link */}
-                      <motion.a
-                        href="#certification-flow"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const element = document.querySelector('#certification-flow');
-                          if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }
-                        }}
-                        whileHover={{ x: 5 }}
-                        className="inline-flex items-center gap-2 text-primary font-semibold text-sm group/link"
-                      >
-                        Learn More
-                        <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                      </motion.a>
+                      {/* Action Button - Only for first step */}
+                      {index === 0 && (
+                        <motion.a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (window.Calendly) {
+                              window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/30min' });
+                            }
+                          }}
+                          whileHover={{ x: 5 }}
+                          className="inline-flex items-center gap-2 text-primary font-semibold text-sm group/link cursor-pointer mt-2"
+                        >
+                          Book Now
+                          <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                        </motion.a>
+                      )}
                     </div>
 
                     {/* Bottom accent line */}

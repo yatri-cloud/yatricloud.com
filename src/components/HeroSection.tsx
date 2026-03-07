@@ -9,7 +9,7 @@ export const HeroSection = () => {
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
       </div>
-      
+
       <div className="container relative">
         <div className="flex flex-col items-center justify-center min-h-[85vh] py-20 text-center">
           {/* Animated badge */}
@@ -55,7 +55,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
             className="mt-8 text-lg md:text-xl text-text-secondary max-w-2xl text-balance leading-relaxed"
           >
-            Limited-time discounts for cloud and associate-level certifications. 
+            Limited-time discounts for cloud and associate-level certifications.
             Start with our free practice tests and ace your exam.
           </motion.p>
 
@@ -67,16 +67,20 @@ export const HeroSection = () => {
             className="mt-10 flex flex-col sm:flex-row items-center gap-4"
           >
             <motion.a
-              href="https://certification.yatricloud.com/yatristore"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (window.Calendly) {
+                  window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/30min' });
+                }
+              }}
               whileHover={{ scale: 1.05, y: -3 }}
               whileTap={{ scale: 0.95 }}
-              className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-10 py-5 text-lg font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden"
+              className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-10 py-5 text-lg font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden cursor-pointer"
             >
               {/* Shine effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              
+
               <span className="relative z-10">Get Your 50% OFF</span>
               <motion.span
                 className="relative z-10"
@@ -85,7 +89,7 @@ export const HeroSection = () => {
               >
                 <ArrowDown className="h-5 w-5" />
               </motion.span>
-              
+
               {/* Glow effect */}
               <div className="absolute inset-0 rounded-2xl bg-primary/0 group-hover:bg-primary/25 blur-2xl transition-all duration-300" />
             </motion.a>
