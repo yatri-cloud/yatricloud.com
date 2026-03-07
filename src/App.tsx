@@ -131,7 +131,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CalendlyPopup />
-          <YatriAI />
+          {/* <YatriAI /> */}
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
