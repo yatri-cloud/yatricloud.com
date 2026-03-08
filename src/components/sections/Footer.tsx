@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Youtube, Linkedin, MessageCircle } from "lucide-react";
 
 export const Footer = () => {
   const currentYear = 2026;
@@ -12,47 +12,48 @@ export const Footer = () => {
     { href: "#faq", label: "FAQ" },
   ];
 
-  const resources = [
-    { href: "#resources", label: "Resources" },
-    { href: "#courses", label: "Udemy Courses" },
-  ];
-
   const legalLinks = [
     { href: "/privacy-policy", label: "Privacy Policy" },
     { href: "/terms-of-service", label: "Terms of Service" },
   ];
 
-  const contactLinks = [
-    {
-      href: "https://certification.yatricloud.com/yatristore",
-      label: "Payment & Registration",
-      external: true,
-    },
-    {
-      href: "https://chat.whatsapp.com/EEAZws1rcr6CkiATivaikf",
-      label: "WhatsApp Support Group",
-      external: true,
-    },
-  ];
 
+
+  const socialLinks = [
+    {
+      name: "YouTube",
+      href: "https://www.youtube.com/@yatricloud?sub_confirmation=1",
+      icon: <Youtube className="w-5 h-5" />
+    },
+    {
+      name: "LinkedIn",
+      href: "https://linkedin.com/company/yatricloud",
+      icon: <Linkedin className="w-5 h-5" />
+    },
+    {
+      name: "WhatsApp",
+      href: "https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s",
+      icon: <MessageCircle className="w-5 h-5" />
+    }
+  ];
 
   return (
     <footer className="relative bg-gradient-to-b from-background via-card/30 to-background border-t border-border/50 overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/2 to-transparent" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-      
+
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="py-16 md:py-20">
           {/* Main Footer Content */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
             {/* Company Info */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="space-y-4"
+              className="space-y-6"
             >
               <a href="/" className="flex items-center gap-3 group">
                 <img
@@ -69,6 +70,22 @@ export const Footer = () => {
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
                 Get AWS Associate certified at 50% OFF. Complete support package with exam dumps, resources, and personalized guidance.
               </p>
+              <div className="flex items-center gap-4 pt-2">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-card border border-border/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group shadow-sm hover:shadow-md hover:-translate-y-1"
+                    aria-label={social.name}
+                  >
+                    <div className="group-hover:scale-110 transition-transform duration-300">
+                      {social.icon}
+                    </div>
+                  </a>
+                ))}
+              </div>
             </motion.div>
 
             {/* Quick Links */}
@@ -104,67 +121,7 @@ export const Footer = () => {
               </ul>
             </motion.div>
 
-            {/* Resources */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="space-y-4"
-            >
-              <h3 className="text-lg font-bold text-foreground mb-4">Resources</h3>
-              <ul className="space-y-3">
-                {resources.map((resource) => (
-                  <li key={resource.href}>
-                    <a
-                      href={resource.href}
-                      onClick={(e) => {
-                        if (resource.href.startsWith('#')) {
-                          e.preventDefault();
-                          const element = document.querySelector(resource.href);
-                          if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }
-                        }
-                      }}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary/0 group-hover:bg-primary transition-colors" />
-                      {resource.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
 
-            {/* Contact & Support */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="space-y-4"
-            >
-              <h3 className="text-lg font-bold text-foreground mb-4">Contact & Support</h3>
-              <ul className="space-y-3">
-                {contactLinks.map((contact) => (
-                  <li key={contact.href}>
-                    <a
-                      href={contact.href}
-                      target={contact.external ? "_blank" : undefined}
-                      rel={contact.external ? "noopener noreferrer" : undefined}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary/0 group-hover:bg-primary transition-colors" />
-                      <span className="flex-1">{contact.label}</span>
-                      {contact.external && (
-                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      )}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
           </div>
 
           {/* Bottom Bar */}
@@ -186,18 +143,18 @@ export const Footer = () => {
               {/* Copyright */}
               <p className="text-sm text-muted-foreground text-center md:text-right">
                 © {currentYear}{' '}
-                <a 
-                  href="https://yatricloud.com" 
-                  target="_blank" 
+                <a
+                  href="https://yatricloud.com"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-primary transition-colors"
                 >
                   Yatri Cloud
                 </a>
                 {' '}· Designed by{' '}
-                <a 
-                  href="https://uimitra.com" 
-                  target="_blank" 
+                <a
+                  href="https://uimitra.com"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-primary transition-colors"
                 >
@@ -207,10 +164,10 @@ export const Footer = () => {
             </div>
 
           </div>
+        </div>
       </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
 };
 
 export default Footer;

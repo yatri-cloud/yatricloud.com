@@ -53,7 +53,7 @@ export const Navbar = () => {
     { href: "#courses", label: "Practice Tests" },
     { href: "/achievements", label: "Achievements" },
     { href: "/events", label: "Events" },
-    { href: "/yatristore", label: "Store" },
+    // { href: "/yatristore", label: "Store" },
     { href: "#team", label: "Team" },
     { href: "#faq", label: "FAQ" },
   ];

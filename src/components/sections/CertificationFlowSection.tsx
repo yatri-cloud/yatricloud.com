@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -177,45 +177,78 @@ export const CertificationFlowSection = () => {
 
               {/* Individual Benefit Boxes */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-                {bonusFeatures.map((feature, index) => (
-                  <ScrollReveal key={index} delay={0.2 + index * 0.15}>
-                    <motion.div
-                      className="group relative bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 rounded-3xl p-10 overflow-hidden hover:border-primary/40 transition-all duration-500"
-                      whileHover={{ y: -12, scale: 1.04 }}
-                    >
-                      {/* Animated gradient background */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                {bonusFeatures.map((feature, index) => {
+                  const [isFlipped, setIsFlipped] = React.useState(false);
 
-                      {/* Decorative corner elements */}
-                      <div className="absolute top-0 left-0 w-40 h-40 bg-primary/5 rounded-full -translate-x-20 -translate-y-20 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
-                      <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full translate-x-16 translate-y-16 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
+                  return (
+                    <ScrollReveal key={index} delay={0.2 + index * 0.15}>
+                      <div
+                        className="group relative h-full min-h-[320px] cursor-pointer"
+                        onClick={() => setIsFlipped(!isFlipped)}
+                        style={{ perspective: 1000 }}
+                      >
+                        <motion.div
+                          className="w-full h-full relative"
+                          animate={{ rotateY: isFlipped ? 180 : 0 }}
+                          transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+                          style={{ transformStyle: "preserve-3d" }}
+                        >
+                          {/* Front of card */}
+                          <div
+                            className="absolute inset-0 bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 hover:border-primary/40 rounded-3xl p-10 overflow-hidden text-left flex flex-col"
+                            style={{ backfaceVisibility: "hidden" }}
+                          >
+                            {/* Animated gradient background */}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                      {/* Content */}
-                      <div className="relative z-10">
-                        {/* Modern badge with number */}
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-primary/10">
-                          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{index + 1}</span>
-                        </div>
+                            {/* Decorative corner elements */}
+                            <div className="absolute top-0 left-0 w-40 h-40 bg-primary/5 rounded-full -translate-x-20 -translate-y-20 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
+                            <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full translate-x-16 translate-y-16 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
 
-                        <h4 className="text-2xl font-bold text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
-                          {feature.text}
-                        </h4>
+                            {/* Content */}
+                            <div className="relative z-10 flex-1 flex flex-col h-full">
+                              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-primary/10">
+                                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{index + 1}</span>
+                              </div>
 
-                        <div className="h-1.5 w-20 bg-gradient-to-r from-primary via-primary/50 to-primary/0 rounded-full mb-5 group-hover:w-28 transition-all duration-500" />
+                              <h4 className="text-2xl font-bold text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
+                                {feature.text}
+                              </h4>
 
-                        <p className="text-base text-muted-foreground leading-relaxed">
-                          {feature.description}
-                        </p>
+                              <div className="h-1.5 w-20 bg-gradient-to-r from-primary via-primary/50 to-primary/0 rounded-full mt-auto group-hover:w-28 transition-all duration-500" />
+                            </div>
+
+                            {/* Bottom accent line */}
+                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          </div>
+
+                          {/* Back of card */}
+                          <div
+                            className="absolute inset-0 bg-card border-2 border-primary/30 rounded-3xl p-8 shadow-xl flex flex-col justify-center text-center overflow-auto"
+                            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                          >
+                            <p className="text-sm font-bold text-primary mb-4 uppercase tracking-wider">
+                              {index === 0
+                                ? "DURING MEET YOU WILL GET NOT AFTER:"
+                                : index >= 4
+                                  ? "IF YOU PASS EXAM AND POST ON LINKEDIN WITH TAGGING YATRI CLOUD AND TEAMMATES YOU WILL GET THESE BENEFITS:"
+                                  : "AFTER SCHEDULING EXAM YOU WILL GET:"}
+                            </p>
+                            <p className="text-base md:text-lg text-foreground leading-relaxed font-medium">
+                              {feature.description}
+                            </p>
+                            <div className="mt-6 text-xs text-muted-foreground flex items-center justify-center gap-1">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                              </svg>
+                              Click to flip back
+                            </div>
+                          </div>
+                        </motion.div>
                       </div>
-
-                      {/* Bottom accent line */}
-                      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                      {/* Shine effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    </motion.div>
-                  </ScrollReveal>
-                ))}
+                    </ScrollReveal>
+                  );
+                })}
               </div>
             </div>
           </ScrollReveal>
