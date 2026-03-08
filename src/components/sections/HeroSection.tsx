@@ -23,7 +23,7 @@ export const HeroSection = () => {
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <span className="text-primary text-sm font-semibold">🏆 T20 Champion Team India Offer</span>
+              <span className="text-primary text-sm font-semibold">🇮🇳 T20 Champion Team India Offer</span>
               <div className="w-px h-4 bg-border" />
               <CountdownTimer targetDate={targetDate} className="scale-75 origin-left" />
             </motion.div>
