@@ -3,7 +3,7 @@ import { Check, X } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const forYouPoints = [
-  "You want to get AWS Associate certified with 50% OFF vouchers",
+  "You want to get AWS certified with 50% OFF vouchers",
   "You're ready to complete registration and join our WhatsApp group",
   "You need exam dumps, study resources, and personal support",
   "You value guided exam scheduling through our team's meeting calls",
@@ -36,7 +36,7 @@ export const TrustSection = () => {
         <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-20">
           {/* For You Box */}
           <ScrollReveal delay={0.1}>
-        <motion.div
+            <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -50,7 +50,7 @@ export const TrustSection = () => {
               </div>
               <div className="p-6 space-y-4">
                 {forYouPoints.map((point, index) => (
-        <motion.div
+                  <motion.div
                     key={index}
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -64,16 +64,16 @@ export const TrustSection = () => {
                     <p className="text-foreground text-sm md:text-base leading-relaxed">{point}</p>
                   </motion.div>
                 ))}
-      </div>
+              </div>
             </motion.div>
           </ScrollReveal>
-      
+
           {/* Not For You Box */}
           <ScrollReveal delay={0.2}>
-        <motion.div
+            <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6 }}
               className="border-2 border-foreground rounded-2xl overflow-hidden bg-card"
             >
@@ -84,11 +84,11 @@ export const TrustSection = () => {
               </div>
               <div className="p-6 space-y-4">
                 {notForYouPoints.map((point, index) => (
-          <motion.div
+                  <motion.div
                     key={index}
                     initial={{ opacity: 0, x: 20 }}
                     whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+                    viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
                     className="flex items-start gap-3"
                   >
@@ -99,7 +99,7 @@ export const TrustSection = () => {
                   </motion.div>
                 ))}
               </div>
-          </motion.div>
+            </motion.div>
           </ScrollReveal>
         </div>
 
@@ -111,7 +111,7 @@ export const TrustSection = () => {
             </span>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
               Why Learners <span className="gradient-text">Trust Us</span>
-          </h2>
+            </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Complete certification support from exam scheduling to study resources and personal guidance.
             </p>
@@ -121,7 +121,7 @@ export const TrustSection = () => {
         {/* Features */}
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-16 max-w-7xl mx-auto">
           <ScrollReveal delay={0.4}>
-        <motion.div
+            <motion.div
               className="group relative bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/5 border-2 border-amber-500/20 rounded-2xl p-6 hover:border-amber-500/40 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-500 overflow-hidden"
               whileHover={{ y: -8, scale: 1.03 }}
             >
@@ -140,7 +140,7 @@ export const TrustSection = () => {
               <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-amber-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
-          
+
           <ScrollReveal delay={0.5}>
             <motion.div
               className="group relative bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-indigo-500/5 border-2 border-blue-500/20 rounded-2xl p-6 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-500 overflow-hidden"
@@ -161,9 +161,9 @@ export const TrustSection = () => {
               <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-blue-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
-          
+
           <ScrollReveal delay={0.6}>
-              <motion.div
+            <motion.div
               className="group relative bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-rose-500/5 border-2 border-purple-500/20 rounded-2xl p-6 hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 overflow-hidden"
               whileHover={{ y: -8, scale: 1.03 }}
             >
@@ -182,7 +182,7 @@ export const TrustSection = () => {
               <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-purple-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
-          
+
           <ScrollReveal delay={0.7}>
             <motion.div
               className="group relative bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/5 border-2 border-green-500/20 rounded-2xl p-6 hover:border-green-500/40 hover:shadow-xl hover:shadow-green-500/20 transition-all duration-500 overflow-hidden"
@@ -203,7 +203,7 @@ export const TrustSection = () => {
               <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-green-500/10 transition-colors duration-500" />
             </motion.div>
           </ScrollReveal>
-          
+
           <ScrollReveal delay={0.8}>
             <motion.div
               className="group relative bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-orange-500/5 border-2 border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-500/40 hover:shadow-xl hover:shadow-yellow-500/20 transition-all duration-500 overflow-hidden"
@@ -241,23 +241,23 @@ export const TrustSection = () => {
               >
                 {/* Gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
+
                 {/* Content */}
                 <div className="relative z-10">
                   <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent mb-3 leading-none">
-                  {stat.value}
+                    {stat.value}
                   </div>
                   <div className="text-base font-medium text-muted-foreground uppercase tracking-wider">
-                  {stat.label}
+                    {stat.label}
                   </div>
                 </div>
-                
+
                 {/* Decorative accent line */}
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent group-hover:w-3/4 transition-all duration-500" />
               </motion.div>
             </ScrollReveal>
-            ))}
-          </div>
+          ))}
+        </div>
       </div>
     </section>
   );

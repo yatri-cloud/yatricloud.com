@@ -41,7 +41,7 @@ export const HeroSection = () => {
           {/* Subheadline */}
           <ScrollReveal delay={0.3}>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Get AWS Associate certified at 50% OFF. Register, join WhatsApp, and we'll schedule your exam. Dumps, resources, and support included!
+              Get AWS certified at 50% OFF. Book your time slot and we'll schedule your exam during the meeting. Dumps, resources, and support included!
             </p>
           </ScrollReveal>
 
@@ -114,7 +114,7 @@ export const HeroSection = () => {
                   <div className="flex items-start gap-3">
                     <div className="flex-1">
                       <p className="text-foreground text-left">
-                        <span className="text-primary font-medium">Get Certified Now</span> - Register, join WhatsApp, and we'll schedule your exam. Get dumps, resources, and support included!
+                        <span className="text-primary font-medium">Get Certified Now</span> - Book your time slot and we'll schedule your exam during the meeting. Get dumps, resources, and support included!
                       </p>
                       <div className="flex flex-wrap gap-2 mt-3">
                         <span className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-semibold">50% OFF</span>

@@ -68,7 +68,7 @@ export const Footer = () => {
                 </div>
               </a>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                Get AWS Associate certified at 50% OFF. Complete support package with exam dumps, resources, and personalized guidance.
+                Get AWS certified at 50% OFF. Complete support package with exam dumps, resources, and personalized guidance.
               </p>
               <div className="flex items-center gap-4 pt-2">
                 {socialLinks.map((social) => (
