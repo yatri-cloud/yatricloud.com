@@ -53,6 +53,9 @@ import AdminTrainers from "@/pages/admin/AdminTrainers";
 import TrainerLogin from "@/pages/trainer/TrainerLogin";
 import TrainerDashboard from "@/pages/trainer/TrainerDashboard";
 import TrainerCourseEditor from "@/pages/trainer/TrainerCourseEditor";
+import GuideView from "@/pages/GuideView";
+
+import TrainerCreateCourse from "@/pages/trainer/TrainerCreateCourse";
 
 const queryClient = new QueryClient();
 
@@ -101,10 +104,13 @@ const App = () => (
             {/* Profile Routes */}
             <Route path="/profile/my-events" element={<MyEvents />} />
             <Route path="/my-trainings" element={<MyTrainings />} />
+            <Route path="/profile/guide" element={<GuideView type="user" />} />
+            <Route path="/profile/sitemap" element={<GuideView type="user-access" />} />
 
             {/* Trainer Routes */}
             <Route path="/trainer/login" element={<TrainerLogin />} />
             <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
+            <Route path="/trainer/course/create" element={<TrainerCreateCourse />} />
             <Route path="/trainer/course/:courseId/edit" element={<TrainerCourseEditor />} />
 
             {/* Admin Routes */}
@@ -125,13 +131,15 @@ const App = () => (
               <Route path="providers" element={<AdminProviders />} />
               <Route path="enrollments" element={<AdminEnrollments />} />
               <Route path="trainers" element={<AdminTrainers />} />
+              <Route path="guide" element={<GuideView type="admin" />} />
+              <Route path="sitemap" element={<GuideView type="admin-access" />} />
             </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CalendlyPopup />
-          {/* <YatriAI /> */}
+          <YatriAI />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

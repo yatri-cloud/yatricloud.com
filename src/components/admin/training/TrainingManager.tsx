@@ -83,9 +83,10 @@ const STEPS = ["Identity", "Details", "Logistics", "Curriculum", "Quiz", "Resour
 interface TrainingManagerProps {
     initialId?: string;
     initialData?: any;
+    isTrainerMode?: boolean;
 }
 
-export default function TrainingManager({ initialId, initialData }: TrainingManagerProps = {}) {
+export default function TrainingManager({ initialId, initialData, isTrainerMode = false }: TrainingManagerProps = {}) {
     const navigate = useNavigate();
     const { id: paramId } = useParams();
     const editId = initialId || paramId;
@@ -103,6 +104,7 @@ export default function TrainingManager({ initialId, initialData }: TrainingMana
     const [resourceMode, setResourceMode] = useState<'link' | 'upload'>('link');
     const [isUploading, setIsUploading] = useState(false);
     const [approvedTrainers, setApprovedTrainers] = useState<{ fullName: string; email: string; trainerId: string }[]>([]);
+    const [trainerData, setTrainerData] = useState<{ fullName: string; trainerId: string } | null>(null);
 
     const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
 
@@ -166,6 +168,18 @@ export default function TrainingManager({ initialId, initialData }: TrainingMana
             }
         };
         fetchProviders();
+
+        if (isTrainerMode) {
+            const storedTrainer = localStorage.getItem("trainerData");
+            if (storedTrainer) {
+                const parsedData = JSON.parse(storedTrainer);
+                setTrainerData(parsedData);
+                setValue("instructor", parsedData.trainerId);
+            } else {
+                navigate("/trainer/login");
+                return;
+            }
+        }
 
         // Fetch approved trainers for instructor dropdown
         const fetchTrainers = async () => {
@@ -254,12 +268,12 @@ export default function TrainingManager({ initialId, initialData }: TrainingMana
                 toast.error("Failed to load training data");
                 // Don't redirect automatically on failure if instantiated via props,
                 // but for now default behavior is preserved for direct route access
-                if (!initialId) navigate("/admin/training");
+                if (!initialId) navigate(isTrainerMode ? "/trainer/dashboard" : "/admin/training");
             }
         } catch (error) {
             console.error("Error loading training:", error);
             toast.error("Error loading training");
-            if (!initialId) navigate("/admin/training");
+            if (!initialId) navigate(isTrainerMode ? "/trainer/dashboard" : "/admin/training");
         } finally {
             setIsLoadingData(false);
         }
@@ -286,8 +300,10 @@ export default function TrainingManager({ initialId, initialData }: TrainingMana
                     action: action,
                     id: editId || undefined, // Pass the training ID for updates
                     ...data,
-                    instructorId: data.instructor, // The select value is now trainerId
-                    instructor: approvedTrainers.find(t => t.trainerId === data.instructor)?.fullName || data.instructor, // Send name for display
+                    instructorId: isTrainerMode ? trainerData?.trainerId : data.instructor,
+                    instructor: isTrainerMode 
+                        ? trainerData?.fullName 
+                        : approvedTrainers.find(t => t.trainerId === data.instructor)?.fullName || data.instructor, 
                     startDate: data.startDate ? format(data.startDate, "yyyy-MM-dd") : "",
                     modulesCount: data.curriculum.length,
                     status: status,
@@ -308,6 +324,9 @@ export default function TrainingManager({ initialId, initialData }: TrainingMana
                     setThumbnailPreview("");
                     setActiveTab("Identity");
                 }
+                setTimeout(() => {
+                    navigate(isTrainerMode ? "/trainer/dashboard" : "/admin/training");
+                }, 1500);
             } else {
                 toast.error("Failed: " + result.error);
             }
@@ -602,16 +621,24 @@ export default function TrainingManager({ initialId, initialData }: TrainingMana
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="space-y-2">
                                     <Label className="flex items-center gap-1"><User className="w-3 h-3" /> Instructor Name</Label>
-                                    <Select onValueChange={(val) => setValue("instructor", val)} value={watch("instructor")}>
+                                    <Select 
+                                        onValueChange={(val) => !isTrainerMode && setValue("instructor", val)} 
+                                        value={isTrainerMode && trainerData ? trainerData.trainerId : watch("instructor")}
+                                        disabled={isTrainerMode}
+                                    >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Instructor" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {approvedTrainers.map((t) => (
-                                                <SelectItem key={t.trainerId} value={t.trainerId}>
-                                                    {t.fullName}
-                                                </SelectItem>
-                                            ))}
+                                            {isTrainerMode && trainerData ? (
+                                                <SelectItem value={trainerData.trainerId}>{trainerData.fullName}</SelectItem>
+                                            ) : (
+                                                approvedTrainers.map((t) => (
+                                                    <SelectItem key={t.trainerId} value={t.trainerId}>
+                                                        {t.fullName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>

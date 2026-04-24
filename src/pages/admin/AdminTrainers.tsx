@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2, Video, FileText, ExternalLink } from "lucide-react";
+import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2, Video, FileText, ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
     Table,
@@ -67,6 +68,17 @@ interface ProviderData {
     exists: boolean;
 }
 
+interface InstructorProfile {
+    trainerId: string;
+    fullName: string;
+    role: string;
+    bio: string;
+    rating: string;
+    studentsCount: string;
+    coursesCount: string;
+    photoUrl: string;
+}
+
 export const AdminTrainersNew = () => {
     const { toast } = useToast();
 
@@ -99,11 +111,18 @@ export const AdminTrainersNew = () => {
     const [allTrainings, setAllTrainings] = useState<any[]>([]);
     const [isGrantingMeet, setIsGrantingMeet] = useState(false);
 
+    // Instructor Profile states
+    const [instructorProfiles, setInstructorProfiles] = useState<InstructorProfile[]>([]);
+    const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+    const [editingProfile, setEditingProfile] = useState<InstructorProfile | null>(null);
+
     useEffect(() => {
         fetchApplications();
         fetchTrainers();
         fetchProviders();
         fetchTrainings();
+        fetchInstructorProfiles();
     }, []);
 
     useEffect(() => {
@@ -199,6 +218,28 @@ export const AdminTrainersNew = () => {
         }
     };
 
+    const fetchInstructorProfiles = async () => {
+        try {
+            setIsLoadingProfiles(true);
+            const response = await fetch(
+                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: "getInstructorProfiles" }),
+                }
+            );
+            const result = await response.json();
+            if (result.success) {
+                setInstructorProfiles(result.profiles || []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch instructor profiles:", error);
+        } finally {
+            setIsLoadingProfiles(false);
+        }
+    };
+
     const fetchTrainings = async () => {
         try {
             const response = await fetch(
@@ -215,6 +256,62 @@ export const AdminTrainersNew = () => {
             }
         } catch (error) {
             console.error("Failed to fetch trainings:", error);
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        if (!editingProfile) return;
+
+        try {
+            setIsSavingProfile(true);
+            const response = await fetch(
+                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "updateInstructorProfile",
+                        profile: editingProfile
+                    }),
+                }
+            );
+            const result = await response.json();
+            if (result.success) {
+                toast({
+                    title: "Success",
+                    description: "Instructor profile updated successfully",
+                });
+                await fetchInstructorProfiles();
+                setEditingProfile(null);
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update profile",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSavingProfile(false);
+        }
+    };
+
+    const startEditingProfile = (trainer: Trainer) => {
+        const existing = instructorProfiles.find(p => p.trainerId === trainer.trainerId);
+        if (existing) {
+            setEditingProfile({ ...existing });
+        } else {
+            setEditingProfile({
+                trainerId: trainer.trainerId,
+                fullName: trainer.fullName,
+                role: "",
+                bio: "",
+                rating: "4.8",
+                studentsCount: "1,000+",
+                coursesCount: "1",
+                photoUrl: ""
+            });
         }
     };
 
@@ -561,6 +658,7 @@ export const AdminTrainersNew = () => {
                 <TabsList>
                     <TabsTrigger value="applications">Applications</TabsTrigger>
                     <TabsTrigger value="trainers">Approved Trainers</TabsTrigger>
+                    <TabsTrigger value="profiles">Instructor Profiles</TabsTrigger>
                     <TabsTrigger value="assignments">Course Assignments</TabsTrigger>
                 </TabsList>
 
@@ -731,6 +829,147 @@ export const AdminTrainersNew = () => {
                             )}
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                {/* Instructor Profiles Tab */}
+                <TabsContent value="profiles" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Instructor Profiles</CardTitle>
+                            <CardDescription>Manage public profiles for approved trainers</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-6">
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {trainers.map((trainer) => {
+                                        const profile = instructorProfiles.find(p => p.trainerId === trainer.trainerId);
+                                        return (
+                                            <Card key={trainer.trainerId} className="overflow-hidden border-muted">
+                                                <CardHeader className="pb-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary shrink-0">
+                                                            {profile?.photoUrl ? (
+                                                                <img src={profile.photoUrl} alt={trainer.fullName} className="w-full h-full rounded-full object-cover" />
+                                                            ) : trainer.fullName.charAt(0)}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <CardTitle className="text-lg truncate">{trainer.fullName}</CardTitle>
+                                                            <CardDescription className="line-clamp-1">{profile?.role || "No role set"}</CardDescription>
+                                                        </div>
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent className="pb-4">
+                                                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4 h-[60px]">
+                                                        {profile?.bio || "No biography provided yet."}
+                                                    </p>
+                                                    <div className="flex justify-between text-xs font-medium bg-muted/30 p-2 rounded-lg">
+                                                        <span title="Rating">⭐ {profile?.rating || "4.8"}</span>
+                                                        <span title="Students">👥 {profile?.studentsCount || "0"}</span>
+                                                        <span title="Courses">📚 {profile?.coursesCount || "0"}</span>
+                                                    </div>
+                                                </CardContent>
+                                                <div className="p-4 bg-muted/50 border-t flex justify-end">
+                                                    <Button size="sm" variant="outline" onClick={() => startEditingProfile(trainer)}>
+                                                        <Pencil className="w-4 h-4 mr-2" />
+                                                        Edit Profile
+                                                    </Button>
+                                                </div>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+
+                                {trainers.length === 0 && !isLoadingTrainers && (
+                                    <div className="text-center py-12 bg-muted/20 rounded-xl border-2 border-dashed">
+                                        <p className="text-muted-foreground">No approved trainers available to manage profiles.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Edit Profile Dialog */}
+                    <Dialog open={!!editingProfile} onOpenChange={(open) => !open && setEditingProfile(null)}>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Edit Instructor Profile</DialogTitle>
+                                <DialogDescription>Update the public profile for {editingProfile?.fullName}</DialogDescription>
+                            </DialogHeader>
+
+                            {editingProfile && (
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="role">Role / Headline</Label>
+                                            <Input
+                                                id="role"
+                                                value={editingProfile.role}
+                                                onChange={(e) => setEditingProfile({ ...editingProfile, role: e.target.value })}
+                                                placeholder="e.g. Cloud Expert & Senior Architect"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="photoUrl">Photo URL</Label>
+                                            <Input
+                                                id="photoUrl"
+                                                value={editingProfile.photoUrl}
+                                                onChange={(e) => setEditingProfile({ ...editingProfile, photoUrl: e.target.value })}
+                                                placeholder="https://..."
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="bio">Biography</Label>
+                                        <Textarea
+                                            id="bio"
+                                            value={editingProfile.bio}
+                                            onChange={(e) => setEditingProfile({ ...editingProfile, bio: e.target.value })}
+                                            placeholder="Write a short professional bio..."
+                                            rows={5}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="rating">Rating</Label>
+                                            <Input
+                                                id="rating"
+                                                value={editingProfile.rating}
+                                                onChange={(e) => setEditingProfile({ ...editingProfile, rating: e.target.value })}
+                                                placeholder="4.8"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="students">Students Count</Label>
+                                            <Input
+                                                id="students"
+                                                value={editingProfile.studentsCount}
+                                                onChange={(e) => setEditingProfile({ ...editingProfile, studentsCount: e.target.value })}
+                                                placeholder="12,450+"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="courses">Courses Count</Label>
+                                            <Input
+                                                id="courses"
+                                                value={editingProfile.coursesCount}
+                                                onChange={(e) => setEditingProfile({ ...editingProfile, coursesCount: e.target.value })}
+                                                placeholder="15"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setEditingProfile(null)}>Cancel</Button>
+                                <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
+                                    {isSavingProfile ? "Saving..." : "Save Changes"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </TabsContent>
 
                 {/* Course Assignments Tab */}

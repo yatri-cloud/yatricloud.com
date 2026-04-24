@@ -215,7 +215,7 @@ export default function AdminEvents() {
                                                 onClick={() => navigate('/createevent', { state: { event } })}
                                             >
                                                 <Pencil className="w-4 h-4 mr-2" />
-                                                {activeTab === 'past' ? 'View Details' : 'Edit Event'}
+                                                {activeTab === 'past' ? 'Manage Gallery' : 'Edit Event'}
                                             </DropdownMenuItem>
                                         )}
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, User, Settings, LogOut, Calendar, BookOpen } from "lucide-react";
+import { Menu, X, User, Settings, LogOut, Calendar, BookOpen, Info, List } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAuthenticated, getStoredUser, logout } from "@/lib/yatris-api";
@@ -149,6 +149,14 @@ export const Navbar = () => {
                       <BookOpen className="w-4 h-4 mr-2" />
                       My Trainings
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/profile/guide")}>
+                      <Info className="w-4 h-4 mr-2" />
+                      User Guide
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/profile/sitemap")}>
+                      <List className="w-4 h-4 mr-2" />
+                      User Sitemap
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/manage-certifications")}>
                       <User className="w-4 h-4 mr-2" />
                       Manage Certifications
@@ -257,6 +265,17 @@ export const Navbar = () => {
                     >
                       <User className="w-4 h-4 mr-2" />
                       Profile
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigate("/profile/sitemap");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full"
+                    >
+                      <List className="w-4 h-4 mr-2" />
+                      User Sitemap
                     </Button>
                     <Button
                       variant="outline"

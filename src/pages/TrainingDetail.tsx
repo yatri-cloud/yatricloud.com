@@ -33,6 +33,17 @@ interface Course {
     folderUrl?: string;
 }
 
+interface InstructorProfile {
+    trainerId: string;
+    fullName: string;
+    role: string;
+    bio: string;
+    rating: string;
+    studentsCount: string;
+    coursesCount: string;
+    photoUrl: string;
+}
+
 export default function TrainingDetail() {
     const { id, certification, courseSlug } = useParams();
     const navigate = useNavigate();
@@ -40,6 +51,7 @@ export default function TrainingDetail() {
     const [isLoading, setIsLoading] = useState(true);
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
     const [isEnrolled, setIsEnrolled] = useState(false);
+    const [instructorProfile, setInstructorProfile] = useState<InstructorProfile | null>(null);
 
     const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
 
@@ -49,6 +61,21 @@ export default function TrainingDetail() {
             fetchCourse();
         }
     }, [id, courseSlug]);
+
+    // Trigger instructor profile fetch when course changes/is loaded
+    useEffect(() => {
+        if (course?.instructor) {
+            const levels = ["Beginner", "Intermediate", "Advanced", "All Levels"];
+            const isInstructorLevel = levels.some(l => course.instructor?.includes(l));
+            const isDescriptionName = course.description && course.description.length < 50 && !course.description.includes(',') && !levels.some(l => course.description?.includes(l));
+            
+            let instructorName = course.instructor;
+            if (isInstructorLevel && isDescriptionName) {
+                instructorName = course.description;
+            }
+            fetchInstructorProfile(instructorName);
+        }
+    }, [course]);
 
     const fetchCourse = async () => {
         setIsLoading(true);
@@ -85,6 +112,31 @@ export default function TrainingDetail() {
         }
     };
 
+    const fetchInstructorProfile = async (instructorName: string) => {
+        if (!instructorName) return;
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'getInstructorProfiles',
+                    instructorName: instructorName // Optional: filter by name on backend
+                })
+            });
+            const result = await response.json();
+            if (result.success && result.profiles) {
+                // Find matching profile by name
+                const profile = result.profiles.find((p: InstructorProfile) => 
+                    p.fullName.toLowerCase() === instructorName.toLowerCase()
+                );
+                if (profile) {
+                    setInstructorProfile(profile);
+                }
+            }
+        } catch (e) {
+            console.error("Failed to fetch instructor profile:", e);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
@@ -108,6 +160,34 @@ export default function TrainingDetail() {
 
     const skills = course.skills ? String(course.skills).split(',').map(s => s.trim()) : [];
     const outcomes = course.outcomes ? String(course.outcomes).split('•').filter(s => s.trim()).map(s => s.trim()) : [];
+    
+    // Advanced Data Normalization for mismatched API fields (e.g. CKA course)
+    const levels = ["Beginner", "Intermediate", "Advanced", "All Levels"];
+    const isInstructorLevel = levels.some(l => course.instructor?.includes(l));
+    const isDescriptionName = course.description && course.description.length < 50 && !course.description.includes(',') && !levels.some(l => course.description?.includes(l));
+    const isDurationTopics = course.duration && course.duration.length > 50;
+
+    let displayInstructor = course.instructor;
+    let displayLevel = course.level;
+    let displayDescription = course.description;
+    let displayDuration = course.duration;
+
+    if (isInstructorLevel && isDescriptionName) {
+        displayInstructor = course.description;
+        displayLevel = course.instructor;
+        displayDescription = isDurationTopics ? course.duration : "";
+    } else if (isDurationTopics) {
+        displayDescription = course.duration;
+    }
+
+    if (displayDuration && displayDuration.length > 50) {
+        displayDuration = "Self-paced";
+    }
+
+    // Common fixes for numeric/incorrect levels
+    if (/^\d+$/.test(displayLevel || "")) {
+        displayLevel = isInstructorLevel ? course.instructor : "All Levels";
+    }
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
@@ -124,7 +204,7 @@ export default function TrainingDetail() {
 
                         <h1 className="text-3xl md:text-5xl font-bold leading-tight">{course.courseName}</h1>
                         <div className="text-lg text-gray-300 leading-relaxed max-w-3xl prose prose-invert prose-p:text-gray-300 prose-headings:text-white prose-strong:text-white prose-ul:list-disc prose-ul:pl-4">
-                            <ReactMarkdown>{course.description}</ReactMarkdown>
+                            <ReactMarkdown>{displayDescription}</ReactMarkdown>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm mt-4">
@@ -134,7 +214,7 @@ export default function TrainingDetail() {
                                 <Award className="w-3 h-3" /> Best Seller
                             </Badge>
                             <span className="flex items-center gap-1 text-gray-300">
-                                <User className="w-3 h-3" /> Created by <span className="text-blue-300 underline underline-offset-4">{course.instructor}</span>
+                                <User className="w-3 h-3" /> Created by <span className="text-blue-300 underline underline-offset-4">{displayInstructor}</span>
                             </span>
                             <span className="flex items-center gap-1 text-gray-300">
                                 <Clock className="w-3 h-3" /> Last updated: {new Date(course.id).toLocaleDateString() === "Invalid Date" ? "Recently" : new Date(course.id).toLocaleDateString()}
@@ -144,9 +224,11 @@ export default function TrainingDetail() {
                         <div className="flex flex-wrap items-center gap-6 text-sm text-white font-medium pt-4">
                             <span className="flex items-center gap-2"><Globe className="w-4 h-4" /> {course.mode} Format</span>
                             {course.mode === "On-site" && <span className="flex items-center gap-2 text-amber-400"><MapPin className="w-4 h-4" /> {course.venue}</span>}
-                            <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {course.level} Level</span>
+                            <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {displayLevel} Level</span>
                         </div>
                     </div>
+
+
 
                     {/* Sidebar Card - Aligned with Title */}
                     <div className="lg:col-span-1 relative">
@@ -190,7 +272,7 @@ export default function TrainingDetail() {
 
                                     <div className="space-y-3 text-sm">
                                         <h4 className="font-bold">This course includes:</h4>
-                                        <div className="flex items-center gap-3 text-muted-foreground"><PlayCircle className="w-4 h-4" /> {course.duration} on-demand video</div>
+                                        <div className="flex items-center gap-3 text-muted-foreground"><PlayCircle className="w-4 h-4" /> {displayDuration} on-demand video</div>
                                         <div className="flex items-center gap-3 text-muted-foreground"><Share2 className="w-4 h-4" /> Full lifetime access</div>
                                         <div className="flex items-center gap-3 text-muted-foreground"><Award className="w-4 h-4" /> Certificate of completion</div>
                                     </div>
@@ -289,29 +371,38 @@ export default function TrainingDetail() {
                         <CardContent className="p-8">
                             <h2 className="text-2xl font-bold mb-8">Meet your Instructor</h2>
                             <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary ring-4 ring-primary/5 shrink-0">
-                                    {course.instructor.charAt(0)}
+                                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary ring-4 ring-primary/5 shrink-0 overflow-hidden">
+                                    {instructorProfile?.photoUrl ? (
+                                        <img src={instructorProfile.photoUrl} alt={displayInstructor} className="w-full h-full object-cover" />
+                                    ) : displayInstructor.charAt(0)}
                                 </div>
                                 <div className="space-y-4 text-center md:text-left">
                                     <div>
-                                        <h3 className="font-bold text-2xl text-primary">{course.instructor}</h3>
-                                        <p className="text-muted-foreground font-medium text-base">Cloud Expert & Senior Architect</p>
+                                        <h3 className="font-bold text-2xl text-primary">{displayInstructor}</h3>
+                                        <p className="text-muted-foreground font-medium text-base">
+                                            {instructorProfile?.role || "Cloud Expert & Senior Architect"}
+                                        </p>
                                     </div>
                                     <p className="text-base text-muted-foreground leading-relaxed max-w-xl">
-                                        {course.instructor} is a top-rated instructor with extensive experience in cloud computing.
-                                        They have helped thousands of students achieve their certification goals by simplifying complex concepts and providing hands-on labs.
+                                        {instructorProfile?.bio || (
+                                            <>
+                                                {displayInstructor} is a top-rated instructor with extensive experience in cloud computing.
+                                                They have helped thousands of students achieve their certification goals by simplifying complex concepts and providing hands-on labs.
+                                            </>
+                                        )}
                                     </p>
+
                                     <div className="flex flex-wrap justify-center md:justify-start gap-6 pt-2">
                                         <div className="flex flex-col">
-                                            <span className="font-bold text-primary text-xl">4.8</span>
+                                            <span className="font-bold text-primary text-xl">{instructorProfile?.rating || "4.8"}</span>
                                             <span className="text-xs text-muted-foreground uppercase tracking-widest">Instructor Rating</span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="font-bold text-primary text-xl">12,450+</span>
+                                            <span className="font-bold text-primary text-xl">{instructorProfile?.studentsCount || "12,450+"}</span>
                                             <span className="text-xs text-muted-foreground uppercase tracking-widest">Students</span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="font-bold text-primary text-xl">15</span>
+                                            <span className="font-bold text-primary text-xl">{instructorProfile?.coursesCount || "15"}</span>
                                             <span className="text-xs text-muted-foreground uppercase tracking-widest">Courses</span>
                                         </div>
                                     </div>

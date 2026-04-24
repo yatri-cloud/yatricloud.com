@@ -40,8 +40,30 @@ export interface Event {
     requiresLogin?: boolean;
     sponsors?: Sponsor[];
     speakers?: EventSpeaker[];
+    tickets?: Ticket[];
+    attendees?: Attendee[];
     gallery?: GalleryAlbum[];
     driveFolderId?: string; // Root event folder ID in Google Drive
+}
+
+export interface Ticket {
+    id: string;
+    type: string;
+    price: string | number;
+    description: string;
+    available: boolean;
+    capacity?: number;
+    benefits?: string[];
+}
+
+export interface Attendee {
+    id: string;
+    name: string;
+    role: string;
+    company?: string;
+    imageUrl: string;
+    registrationCode?: string;
+    status?: 'registered' | 'attended' | 'cancelled';
 }
 
 export interface EventSpeaker {

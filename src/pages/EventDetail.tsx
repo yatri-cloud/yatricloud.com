@@ -22,65 +22,7 @@ import { RegistrationModal } from "@/components/RegistrationModal";
 import { isAuthenticated, getStoredUser, getRegisteredEvents } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
-import { getAllEvents, getEventBySlug, Event as StoreEvent, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
-
-interface Speaker {
-    id: string;
-    name: string;
-    role: string;
-    company?: string;
-    imageUrl: string;
-    linkedinUrl?: string;
-}
-
-interface Ticket {
-    id: string;
-    type: string;
-    price: string | number;
-    description: string;
-    available: boolean;
-    benefits?: string[];
-}
-
-interface Attendee {
-    id: string;
-    name: string;
-    role: string;
-    company?: string;
-    imageUrl: string;
-}
-
-interface Event {
-    id: string;
-    name: string;
-    description?: string;
-    fullDescription?: string;
-    imageUrl: string;
-    date: string;
-    timezone: string;
-    location: {
-        type: 'online' | 'offline';
-        venue?: string;
-        city?: string;
-        state?: string;
-        country?: string;
-    };
-    category: 'Concert' | 'Conference' | 'Hackathon' | 'Marathon' | 'Workshop' | 'Meetup';
-    status: 'upcoming' | 'past';
-    price?: string | number;
-    registrationDeadline?: string;
-    seatsAvailable?: number;
-    organizer?: {
-        name: string;
-        logo?: string;
-    };
-    techStack?: string[];
-    communityLink?: string;
-    requiresLogin?: boolean;
-    speakers?: Speaker[];
-    tickets?: Ticket[];
-    attendees?: Attendee[];
-}
+import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
 
 // Fallback mock events - initially empty
 const MOCK_EVENTS: Event[] = [];
@@ -449,36 +391,37 @@ const EventDetail = () => {
                                                         key={speaker.id}
                                                         className="bg-card border-2 border-border rounded-2xl p-6 hover:border-primary/30 transition-all"
                                                     >
-                                                        <div className="flex items-end gap-6">
+                                                        <div className="flex flex-col md:flex-row items-end gap-6">
                                                             <img
-                                                                src={speaker.imageUrl}
-                                                                alt={speaker.name}
+                                                                src={speaker.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop"}
+                                                                alt={speaker.fullName}
                                                                 className="w-32 h-32 rounded-2xl bg-muted object-cover flex-shrink-0"
                                                             />
-                                                            <div className="flex-1 flex flex-col justify-between h-32">
+                                                            <div className="flex-1 flex flex-col justify-between h-auto md:h-32">
                                                                 <div>
-                                                                    <h3 className="text-2xl font-bold text-foreground mb-2">{speaker.name}</h3>
-                                                                    <p className="text-base font-medium text-muted-foreground mb-1">{speaker.role}</p>
-                                                                    {speaker.company && (
-                                                                        <p className="text-base text-muted-foreground">{speaker.company}</p>
+                                                                    <div className="flex justify-between items-start">
+                                                                        <h3 className="text-2xl font-bold text-foreground mb-2">{speaker.fullName}</h3>
+                                                                        {speaker.linkedinUrl && (
+                                                                            <a
+                                                                                href={speaker.linkedinUrl}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="inline-flex items-center justify-center w-8 h-8 hover:opacity-80 transition-opacity"
+                                                                                aria-label="LinkedIn Profile"
+                                                                            >
+                                                                                <Linkedin className="w-5 h-5 text-blue-600" />
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                    <p className="text-base font-medium text-muted-foreground mb-1">{speaker.sessionName || "Guest Speaker"}</p>
+                                                                    {speaker.companyName && (
+                                                                        <p className="text-base text-muted-foreground">{speaker.companyName}</p>
                                                                     )}
                                                                 </div>
-                                                                {speaker.linkedinUrl && (
-                                                                    <a
-                                                                        href={speaker.linkedinUrl}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="inline-flex items-center justify-center w-8 h-8 hover:opacity-80 transition-opacity self-start"
-                                                                        aria-label="LinkedIn Profile"
-                                                                    >
-                                                                        <img
-                                                                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png"
-                                                                            alt="LinkedIn"
-                                                                            className="w-6 h-6 object-contain"
-                                                                        />
-                                                                    </a>
-                                                                )}
                                                             </div>
+                                                        </div>
+                                                        <div className="mt-4 pt-4 border-t border-border">
+                                                            <p className="text-sm text-foreground">{speaker.about}</p>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -556,9 +499,9 @@ const EventDetail = () => {
                                 <ScrollReveal>
                                     <div>
                                         <h2 className="text-2xl font-bold mb-6">Event Gallery</h2>
-                                        {(event as StoreEvent).gallery && (event as StoreEvent).gallery!.length > 0 ? (
+                                        {(event as Event).gallery && (event as Event).gallery!.length > 0 ? (
                                             <div className="space-y-8">
-                                                {(event as StoreEvent).gallery!.map((album) => (
+                                                {(event as Event).gallery!.map((album) => (
                                                     <div key={album.id}>
                                                         <h3 className="text-xl font-semibold mb-4">{album.name}</h3>
                                                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -648,7 +591,7 @@ const EventDetail = () => {
                     onSuccess={(registration) => {
                         setIsRegistered(true);
                         // Reuse existing success logic or adapt if needed
-                        handleRegistrationSuccess(registration);
+                        handleRegistrationSuccess();
                     }}
                 />
             )}

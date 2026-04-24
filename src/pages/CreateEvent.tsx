@@ -21,7 +21,7 @@ import { createEventStructure } from "@/lib/event-automation-api";
 import { INDIAN_STATES } from "@/lib/indian-locations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { saveEvent, Event, Sponsor, EventSpeaker, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
+import { saveEvent, Event, Sponsor, EventSpeaker, GalleryAlbum, GalleryMedia, Ticket as EventTicket } from "@/lib/events-store";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -78,6 +78,9 @@ export default function CreateEvent() {
             // Skip collaboration selector for edit mode or past events
             setShowCollaborationSelector(false);
 
+            // If it's a past event, default to the Gallery step (5) for easier management
+            if (isPast) setStep(5);
+
             const startDateObj = new Date(editEvent.date);
             const endDateObj = editEvent.endDate ? new Date(editEvent.endDate) : null;
 
@@ -102,6 +105,7 @@ export default function CreateEvent() {
                 price: editEvent.price !== 'Free' ? String(editEvent.price) : "",
                 capacity: editEvent.seatsAvailable ? String(editEvent.seatsAvailable) : "",
                 registrationDeadline: editEvent.registrationDeadline || "",
+                tickets: editEvent.tickets || [],
                 organizerName: editEvent.organizer?.name || "",
                 organizerEmail: editEvent.organizer?.email || "",
                 organizerPhone: editEvent.organizer?.phone || "",
@@ -143,6 +147,7 @@ export default function CreateEvent() {
         price: "",
         capacity: "",
         registrationDeadline: "",
+        tickets: [] as EventTicket[],
         organizerName: "Yatri Cloud",
         organizerEmail: "events@yatricloud.com",
         organizerPhone: "+91 9724823602",
@@ -313,6 +318,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
             // Ticket Info
             seatsAvailable: formData.capacity ? parseInt(formData.capacity) : undefined,
             registrationDeadline: formData.registrationDeadline,
+            tickets: formData.tickets.length > 0 ? formData.tickets : undefined,
             communityLink: formData.communityLink,
 
             organizer: {
@@ -370,6 +376,29 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
         // @ts-ignore
         newSponsors[index] = { ...newSponsors[index], [field]: value };
         setFormData({ ...formData, sponsors: newSponsors });
+    };
+
+    const handleAddTicket = () => {
+        setFormData({
+            ...formData,
+            tickets: [
+                ...formData.tickets,
+                { id: crypto.randomUUID(), type: "General Admission", price: "Free", description: "Standard entry", available: true, capacity: 100, benefits: [] }
+            ]
+        });
+    };
+
+    const handleRemoveTicket = (index: number) => {
+        const newTickets = [...formData.tickets];
+        newTickets.splice(index, 1);
+        setFormData({ ...formData, tickets: newTickets });
+    };
+
+    const handleTicketChange = (index: number, field: keyof EventTicket, value: string | boolean | number | string[]) => {
+        const newTickets = [...formData.tickets];
+        // @ts-ignore
+        newTickets[index] = { ...newTickets[index], [field]: value };
+        setFormData({ ...formData, tickets: newTickets });
     };
 
     const handleSponsorLogoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -441,7 +470,8 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
             const result = await createEventStructure(eventDataPayload);
 
             if (result.success) {
-                const publishedEvent = constructEventObject('upcoming');
+                const eventStatus = new Date(startISO) < new Date() ? 'past' : 'upcoming';
+                const publishedEvent = constructEventObject(eventStatus);
 
                 // Add Drive folder ID to the event
                 if (result.eventFolderId) {
@@ -449,7 +479,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                 }
 
                 saveEvent(publishedEvent);
-                toast({ title: "Event Published!", description: "Event is now live on the public events page." });
+                toast({ title: "Event Published!", description: `Event is now live on the public ${eventStatus} events page.` });
                 navigate('/admin/events');
             } else {
                 throw new Error(result.error || "Failed to create event structure");
@@ -811,7 +841,6 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                                                 mode="single"
                                                                 selected={formData.startDate ? new Date(formData.startDate) : undefined}
                                                                 onSelect={(d) => handleDateSelect('startDate', d)}
-                                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                                                 initialFocus
                                                             />
                                                         </PopoverContent>
@@ -858,7 +887,6 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                                                     mode="single"
                                                                     selected={formData.endDate ? new Date(formData.endDate) : undefined}
                                                                     onSelect={(d) => handleDateSelect('endDate', d)}
-                                                                    disabled={(date) => !!formData.startDate && date < new Date(formData.startDate)}
                                                                     initialFocus
                                                                 />
                                                             </PopoverContent>
@@ -1024,18 +1052,75 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
                                     <div className="bg-card border rounded-xl p-6 shadow-sm">
                                         <div className="flex items-center gap-2 mb-6 pb-4 border-b"><Ticket className="w-5 h-5 text-primary" /><h2 className="text-lg font-semibold">Pricing & Tickets</h2></div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-2">
-                                                <Label>Pricing Type</Label>
-                                                <div className="flex gap-4">
-                                                    <label className="flex items-center gap-2 border p-4 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors w-full"><input type="radio" name="pricingType" checked={formData.pricingType === 'free'} onChange={() => setFormData({ ...formData, pricingType: 'free' })} className="w-4 h-4 text-primary" /><span className="font-medium">Free Event</span></label>
-                                                    <label className="flex items-center gap-2 border p-4 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors w-full"><input type="radio" name="pricingType" checked={formData.pricingType === 'paid'} onChange={() => setFormData({ ...formData, pricingType: 'paid' })} className="w-4 h-4 text-primary" /><span className="font-medium">Paid Ticket</span></label>
+                                        <div className="space-y-6">
+                                            {formData.tickets.map((ticket, index) => (
+                                                <div key={index} className="flex flex-col gap-4 p-6 border rounded-xl bg-card relative shadow-sm">
+                                                    <div className="flex justify-between items-start">
+                                                        <h3 className="font-semibold text-base">Ticket Tier #{index + 1}</h3>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleRemoveTicket(index)} className="text-destructive hover:bg-destructive/10">
+                                                            <Trash2 className="w-4 h-4 mr-2" /> Remove
+                                                        </Button>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label>Ticket Type</Label>
+                                                            <Input
+                                                                value={ticket.type}
+                                                                onChange={(e) => handleTicketChange(index, 'type', e.target.value)}
+                                                                placeholder="e.g. VIP, General Admission"
+                                                            />
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label>Price</Label>
+                                                            <Input
+                                                                value={ticket.price}
+                                                                onChange={(e) => handleTicketChange(index, 'price', e.target.value)}
+                                                                placeholder="e.g. Free, ₹499"
+                                                            />
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label>Description</Label>
+                                                            <Input
+                                                                value={ticket.description}
+                                                                onChange={(e) => handleTicketChange(index, 'description', e.target.value)}
+                                                                placeholder="What does this ticket include?"
+                                                            />
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label>Capacity (Total allowed)</Label>
+                                                            <Input
+                                                                type="number"
+                                                                value={ticket.capacity || ""}
+                                                                onChange={(e) => handleTicketChange(index, 'capacity', e.target.value ? parseInt(e.target.value) : 0)}
+                                                                placeholder="Leave 0 for unlimited"
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div className="md:col-span-2 space-y-2">
+                                                            <Label>Benefits (Comma Separated)</Label>
+                                                            <Input
+                                                                value={ticket.benefits?.join(", ") || ""}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value;
+                                                                    handleTicketChange(index, 'benefits', val ? val.split(",").map(s => s.trim()) : []);
+                                                                }}
+                                                                placeholder="e.g. Front row seat, Complementary dinner"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {formData.pricingType === 'paid' && (<div className="space-y-2"><Label htmlFor="price">Price (INR)</Label><Input id="price" type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="h-11" /></div>)}
-                                            <div className="space-y-2"><Label htmlFor="capacity">Capacity</Label><Input id="capacity" type="number" value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: e.target.value })} className="h-11" /></div>
+                                            ))}
+
+                                            <Button onClick={handleAddTicket} variant="outline" className="w-full border-dashed"><Plus className="w-4 h-4 mr-2" /> Add Ticket Tier</Button>
+                                        </div>
+
+                                        <div className="mt-8 pt-6 border-t md:w-1/2">
                                             <div className="space-y-2 flex flex-col">
-                                                <Label className="mb-1">Registration Deadline</Label>
+                                                <Label className="mb-1">Global Registration Deadline</Label>
                                                 <div className="flex gap-2">
                                                     <Popover>
                                                         <PopoverTrigger asChild>
@@ -1048,16 +1133,14 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                                             <Calendar
                                                                 mode="single"
                                                                 selected={formData.registrationDeadline ? new Date(formData.registrationDeadline) : undefined}
-                                                                onSelect={(d) => {
-                                                                    if (!d) return;
-                                                                    const current = formData.registrationDeadline ? new Date(formData.registrationDeadline) : new Date();
-                                                                    current.setFullYear(d.getFullYear(), d.getMonth(), d.getDate());
-                                                                    // Default to 23:59 if no time set
-                                                                    if (!formData.registrationDeadline) current.setHours(23, 59);
-                                                                    setFormData({ ...formData, registrationDeadline: format(current, "yyyy-MM-dd'T'HH:mm") });
-                                                                }}
-                                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                                                initialFocus
+                                                                    onSelect={(d) => {
+                                                                        if (!d) return;
+                                                                        const current = formData.registrationDeadline ? new Date(formData.registrationDeadline) : new Date();
+                                                                        current.setFullYear(d.getFullYear(), d.getMonth(), d.getDate());
+                                                                        if (!formData.registrationDeadline) current.setHours(23, 59);
+                                                                        setFormData({ ...formData, registrationDeadline: format(current, "yyyy-MM-dd'T'HH:mm") });
+                                                                    }}
+                                                                    initialFocus
                                                             />
                                                         </PopoverContent>
                                                     </Popover>

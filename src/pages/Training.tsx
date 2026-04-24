@@ -196,17 +196,15 @@ export default function Training() {
                                         <h3 className="font-bold text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">
                                             {course.courseName}
                                         </h3>
-                                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1 mb-auto">
-                                            {course.description}
-                                        </p>
+                                        {/* Description removed for better catalog UI - details still visible in individual training pages */}
+
 
                                         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-4 pt-4 border-t">
                                             <span className="flex items-center gap-1">
                                                 <User className="w-3 h-3" /> {course.instructor || "Yatri Team"}
                                             </span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3" /> {course.duration}
-                                            </span>
+                                            {/* Duration removed as it contains long topic list - kept for detail page */}
+
                                             <span className="flex items-center gap-1 ml-auto text-amber-500 font-medium">
                                                 <Star className="w-3 h-3 fill-current" /> 4.8
                                             </span>

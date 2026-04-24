@@ -48,6 +48,11 @@ import { CoursesSection } from "@/components/CoursesSection";
 
 // To:
 import { CoursesSection } from "@/components/CoursesSectionWithAPI";
+
+import { 
+    
+}
+
 ```
 
 ## 🎯 What Happens Next?

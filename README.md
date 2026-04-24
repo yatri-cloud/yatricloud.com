@@ -59,6 +59,12 @@ E-commerce store for certification vouchers.
 
 - `YATRI_STORE.md` - Complete Yatri Store documentation and setup guide
 
+### 📘 [User & Admin Guides](./guides/)
+Detailed guides for platform navigation and management.
+
+- `admin_guide.md` - Comprehensive guide for the Admin Sidebar and Portal.
+- `user_guide.md` - Professional guide for the User Profile Menu and Learner Portal.
+
 ## 🔍 Quick Links
 
 - **Main README**: See root `README.md` for project overview
