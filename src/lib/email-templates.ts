@@ -155,3 +155,27 @@ export const getEventFeedbackEmail = (name: string, eventName: string, feedbackL
   `;
   return BASE_TEMPLATE(content, `Feedback Request: ${eventName}`);
 };
+
+export const getExamDumpPurchaseEmail = (name: string, dumpTitle: string, amount: string, downloadUrl: string, paymentId: string) => {
+  const content = `
+    <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Exam Dump Access!</h2>
+    <p>Hi ${name},</p>
+    <p>Thank you for purchasing the <strong>${dumpTitle}</strong> exam dump.</p>
+    
+    <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 25px 0; border-radius: 4px;">
+      <p style="margin: 5px 0;"><strong>Order ID:</strong> ${paymentId}</p>
+      <p style="margin: 5px 0;"><strong>Total Paid:</strong> ${amount}</p>
+    </div>
+
+    <p><strong>Your Download Link:</strong></p>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${downloadUrl}" style="background-color: ${COLORS.primary}; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Download Exam Dump</a>
+    </div>
+    
+    <p style="font-size: 14px; color: ${COLORS.textMuted}; text-align: center;">If the button above doesn't work, copy and paste this link into your browser:<br>${downloadUrl}</p>
+
+    <p>Success in your certification journey!</p>
+    <p>Best regards,<br>The Yatri Cloud Team</p>
+  `;
+  return BASE_TEMPLATE(content, "Your Exam Dump Download Link - Yatri Cloud");
+};

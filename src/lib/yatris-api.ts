@@ -5,14 +5,10 @@
 
 // Use proxy API route to avoid CORS issues
 // In production, this goes through Vercel serverless function
-// In local dev, Vite proxy forwards to Google Apps Script
-// API Configuration
-const API_URL_AUTH = import.meta.env.VITE_API_URL_AUTH;
-const API_URL_EVENTS = import.meta.env.VITE_API_URL_EVENTS;
-
-// Validation
-if (!API_URL_AUTH) console.warn('VITE_API_URL_AUTH is missing');
-if (!API_URL_EVENTS) console.warn('VITE_API_URL_EVENTS is missing');
+// Use local proxy server to avoid CORS issues
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_URL_AUTH = `${API_BASE_URL}/api/yatris/auth`;
+const API_URL_EVENTS = `${API_BASE_URL}/api/yatris/events`;
 
 interface User {
   email: string;

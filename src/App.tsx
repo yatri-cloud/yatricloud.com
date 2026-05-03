@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { YatriAI } from "@/components/YatriAI";
 import { CalendlyPopup } from "@/components/CalendlyPopup";
+import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -54,6 +55,10 @@ import TrainerLogin from "@/pages/trainer/TrainerLogin";
 import TrainerDashboard from "@/pages/trainer/TrainerDashboard";
 import TrainerCourseEditor from "@/pages/trainer/TrainerCourseEditor";
 import GuideView from "@/pages/GuideView";
+import ExamDumps from "./pages/ExamDumps";
+import AdminExamDumps from "./pages/admin/AdminExamDumps";
+import AdminAddExamDump from "./pages/admin/AdminAddExamDump";
+
 
 import TrainerCreateCourse from "@/pages/trainer/TrainerCreateCourse";
 
@@ -64,85 +69,92 @@ const App = () => (
     <SpeedInsights />
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/certifiedyatris" element={<CertifiedYatris />} />
-            <Route path="/manage-certifications" element={<ManageCertifications />} />
-            <Route path="/edit-profile" element={<EditProfile />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/events/:id" element={<EventDetail />} />
-            <Route path="/udemy" element={<Udemy />} />
-            <Route path="/yatristore" element={<YatriStore />} />
-            <Route path="/training" element={<Training />} />
-            <Route path="/training/:id/dashboard" element={<StudentTrainingDashboard />} />
-            <Route path="/training/:id" element={<TrainingDetail />} />
-            <Route path="/training/:certification/:courseSlug" element={<TrainingDetail />} />
-            <Route path="/addproduct" element={<AddProduct />} />
-            <Route path="/feedback" element={<Review />} />
-            <Route path="/reviews" element={<Reviews />} />
-            <Route path="/creator" element={<BecomeTrainer />} />
+        <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* ... all routes ... */}
+              <Route path="/" element={<Index />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/certifiedyatris" element={<CertifiedYatris />} />
+              <Route path="/manage-certifications" element={<ManageCertifications />} />
+              <Route path="/edit-profile" element={<EditProfile />} />
+              <Route path="/achievements" element={<Achievements />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/udemy" element={<Udemy />} />
+              <Route path="/yatristore" element={<YatriStore />} />
+              <Route path="/examdumps" element={<ExamDumps />} />
+              <Route path="/training" element={<Training />} />
+              <Route path="/training/:id/dashboard" element={<StudentTrainingDashboard />} />
+              <Route path="/training/:id" element={<TrainingDetail />} />
+              <Route path="/training/:certification/:courseSlug" element={<TrainingDetail />} />
+              <Route path="/addproduct" element={<AddProduct />} />
+              <Route path="/feedback" element={<Review />} />
+              <Route path="/reviews" element={<Reviews />} />
+              <Route path="/creator" element={<BecomeTrainer />} />
 
-            {/* ... inside Routes ... */}
-            <Route path="/createevent" element={<CreateEvent />} />
-            <Route path="/events/:eventName/feedback" element={<EventFeedback />} />
+              {/* ... inside Routes ... */}
+              <Route path="/createevent" element={<CreateEvent />} />
+              <Route path="/events/:eventName/feedback" element={<EventFeedback />} />
 
-            {/* Upcoming Event Routes */}
-            <Route path="/upcoming-event/:slug" element={<UpcomingEventDetail />} />
-            <Route path="/upcoming-event/:slug/venue" element={<VenueSubmissionForm />} />
-            <Route path="/upcoming-event/:slug/speakers" element={<SpeakerSubmissionForm />} />
-            <Route path="/upcoming-event/:slug/sponsors" element={<SponsorSubmissionForm />} />
+              {/* Upcoming Event Routes */}
+              <Route path="/upcoming-event/:slug" element={<UpcomingEventDetail />} />
+              <Route path="/upcoming-event/:slug/venue" element={<VenueSubmissionForm />} />
+              <Route path="/upcoming-event/:slug/speakers" element={<SpeakerSubmissionForm />} />
+              <Route path="/upcoming-event/:slug/sponsors" element={<SponsorSubmissionForm />} />
 
-            {/* Event Media Upload Route */}
-            <Route path="/event/:slug/media" element={<EventMediaUpload />} />
+              {/* Event Media Upload Route */}
+              <Route path="/event/:slug/media" element={<EventMediaUpload />} />
 
-            {/* Profile Routes */}
-            <Route path="/profile/my-events" element={<MyEvents />} />
-            <Route path="/my-trainings" element={<MyTrainings />} />
-            <Route path="/profile/guide" element={<GuideView type="user" />} />
-            <Route path="/profile/sitemap" element={<GuideView type="user-access" />} />
+              {/* Profile Routes */}
+              <Route path="/profile/my-events" element={<MyEvents />} />
+              <Route path="/my-trainings" element={<MyTrainings />} />
+              <Route path="/profile/guide" element={<GuideView type="user" />} />
+              <Route path="/profile/sitemap" element={<GuideView type="user-access" />} />
 
-            {/* Trainer Routes */}
-            <Route path="/trainer/login" element={<TrainerLogin />} />
-            <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
-            <Route path="/trainer/course/create" element={<TrainerCreateCourse />} />
-            <Route path="/trainer/course/:courseId/edit" element={<TrainerCourseEditor />} />
+              {/* Trainer Routes */}
+              <Route path="/trainer/login" element={<TrainerLogin />} />
+              <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
+              <Route path="/trainer/course/create" element={<TrainerCreateCourse />} />
+              <Route path="/trainer/course/:courseId/edit" element={<TrainerCourseEditor />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminDashboard />}>
-              <Route index element={<Navigate to="/admin/events" replace />} />
-              <Route path="events" element={<AdminEvents />} />
-              <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
-              <Route path="attendees" element={<AdminAttendees />} />
-              <Route path="udemy" element={<UdemyAdmin />} />
-              <Route path="ai" element={<AdminYatriAI />} />
-              <Route path="submissions" element={<AdminSubmissions />} />
-              <Route path="products/add" element={<AdminAddProduct />} />
-              <Route path="training">
-                <Route index element={<AdminTrainingList />} />
-                <Route path="create" element={<AdminTraining />} />
-                <Route path="edit/:id" element={<AdminEditTraining />} />
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminDashboard />}>
+                <Route index element={<Navigate to="/admin/events" replace />} />
+                <Route path="events" element={<AdminEvents />} />
+                <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
+                <Route path="attendees" element={<AdminAttendees />} />
+                <Route path="udemy" element={<UdemyAdmin />} />
+                <Route path="ai" element={<AdminYatriAI />} />
+                <Route path="submissions" element={<AdminSubmissions />} />
+                <Route path="products/add" element={<AdminAddProduct />} />
+                <Route path="training">
+                  <Route index element={<AdminTrainingList />} />
+                  <Route path="create" element={<AdminTraining />} />
+                  <Route path="edit/:id" element={<AdminEditTraining />} />
+                </Route>
+                <Route path="providers" element={<AdminProviders />} />
+                <Route path="enrollments" element={<AdminEnrollments />} />
+                <Route path="trainers" element={<AdminTrainers />} />
+                <Route path="exam-dumps" element={<AdminExamDumps />} />
+                <Route path="exam-dumps/add" element={<AdminAddExamDump />} />
+                <Route path="guide" element={<GuideView type="admin" />} />
+                <Route path="sitemap" element={<GuideView type="admin-access" />} />
               </Route>
-              <Route path="providers" element={<AdminProviders />} />
-              <Route path="enrollments" element={<AdminEnrollments />} />
-              <Route path="trainers" element={<AdminTrainers />} />
-              <Route path="guide" element={<GuideView type="admin" />} />
-              <Route path="sitemap" element={<GuideView type="admin-access" />} />
-            </Route>
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <CalendlyPopup />
-          <YatriAI />
-        </BrowserRouter>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <CalendlyPopup />
+            <YatriAI />
+          </BrowserRouter>
+        </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>
+
   </ThemeProvider >
 );
 

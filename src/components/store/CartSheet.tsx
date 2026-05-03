@@ -65,12 +65,36 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
           // Send Confirmation Email
           if (customerEmail) {
             try {
-              const emailHtml = getProductPurchaseEmail(customerName, productNames, `₹${totalPrice.toLocaleString("en-IN")}`, paymentId);
-              await sendEmail({
-                to: customerEmail,
-                subject: "Order Confirmation - Yatri Cloud",
-                html: emailHtml
-              });
+              // Check if any item is an exam dump
+              const examDumps = items.filter(item => item.downloadUrl);
+              
+              if (examDumps.length > 0) {
+                // Send Exam Dump Email
+                const { getExamDumpPurchaseEmail } = await import("@/lib/email-templates");
+                // For simplicity, we send one email with the first dump link if multiple, 
+                // but ideally we should list all. Let's send the first one as requested for "the link".
+                const firstDump = examDumps[0];
+                const emailHtml = getExamDumpPurchaseEmail(
+                  customerName, 
+                  firstDump.title, 
+                  `₹${totalPrice.toLocaleString("en-IN")}`, 
+                  firstDump.downloadUrl!, 
+                  paymentId
+                );
+                await sendEmail({
+                  to: customerEmail,
+                  subject: "Your Exam Dump Download Link - Yatri Cloud",
+                  html: emailHtml
+                });
+              } else {
+                // Send Standard Product Email
+                const emailHtml = getProductPurchaseEmail(customerName, productNames, `₹${totalPrice.toLocaleString("en-IN")}`, paymentId);
+                await sendEmail({
+                  to: customerEmail,
+                  subject: "Order Confirmation - Yatri Cloud",
+                  html: emailHtml
+                });
+              }
               toast.success("Confirmation email sent!");
             } catch (emailErr) {
               console.error("Failed to send order email:", emailErr);

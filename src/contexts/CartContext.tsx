@@ -3,11 +3,12 @@ import { Product } from "@/data/store-products";
 import { StoreProduct } from "@/lib/store-products";
 import { toast } from "sonner";
 
-interface CartItem extends Product {
+interface CartItem extends StoreProduct {
   quantity: number;
+  downloadUrl?: string;
 }
 
-type CartProduct = Product | StoreProduct;
+type CartProduct = Product | StoreProduct | any;
 
 interface CartContextType {
   items: CartItem[];

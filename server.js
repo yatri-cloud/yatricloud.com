@@ -380,6 +380,111 @@ app.get('/api/reviews', async (req, res) => {
 });
 
 /**
+ * Exam Dumps Proxy Endpoint
+ * GET /api/exam-dumps - Fetch dumps
+ * POST /api/exam-dumps - Add/Submit dump
+ */
+app.get('/api/exam-dumps', async (req, res) => {
+  try {
+    const webhookUrl = process.env.VITE_EXAM_DUMPS_WEBHOOK_URL;
+    if (!webhookUrl) return res.status(500).json({ error: 'Exam Dumps Webhook URL not configured' });
+
+    console.log('📡 Fetching Exam Dumps from Apps Script...');
+    const response = await fetch(webhookUrl);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('❌ Error fetching exam dumps:', error);
+    res.status(500).json({ error: 'Failed to fetch exam dumps', message: error.message });
+  }
+});
+
+app.post('/api/exam-dumps', async (req, res) => {
+  try {
+    const webhookUrl = process.env.VITE_EXAM_DUMPS_WEBHOOK_URL;
+    if (!webhookUrl) return res.status(500).json({ error: 'Exam Dumps Webhook URL not configured' });
+
+    console.log('📡 Submitting Exam Dump to Apps Script...');
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      body: JSON.stringify(req.body),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('❌ Error submitting exam dump:', error);
+    res.status(500).json({ error: 'Failed to submit exam dump', message: error.message });
+  }
+});
+
+/**
+ * Yatris Auth and Events Proxy
+ */
+console.log('📝 Proxy Config Check:', {
+  EXAM_DUMPS: !!process.env.VITE_EXAM_DUMPS_WEBHOOK_URL,
+  AUTH: !!process.env.VITE_API_URL_AUTH,
+  EVENTS: !!process.env.VITE_API_URL_EVENTS
+});
+
+app.post('/api/yatris/auth', async (req, res) => {
+  try {
+    const url = process.env.VITE_API_URL_AUTH;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/yatris/auth', async (req, res) => {
+  try {
+    const url = process.env.VITE_API_URL_AUTH;
+    const query = req.originalUrl.split('?')[1] || '';
+    const targetUrl = url + (query ? `?${query}` : '');
+    const response = await fetch(targetUrl);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/yatris/events', async (req, res) => {
+  try {
+    const url = process.env.VITE_API_URL_EVENTS;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/yatris/events', async (req, res) => {
+  try {
+    const url = process.env.VITE_API_URL_EVENTS;
+    const query = req.originalUrl.split('?')[1] || '';
+    const targetUrl = url + (query ? `?${query}` : '');
+    const response = await fetch(targetUrl);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * Yatri AI Chat endpoint using Ollama with live streaming
  * POST /api/chat
  * Body: { message: string }

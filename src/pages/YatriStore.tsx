@@ -57,7 +57,7 @@ const YatriStore = () => {
   };
 
   return (
-    <CartProvider>
+    <>
       <div className="min-h-screen bg-background text-foreground pb-20 md:pb-0">
         <SEO />
         <div className="noise-overlay" />
@@ -279,10 +279,9 @@ const YatriStore = () => {
 
         <Footer />
 
-        {/* Mobile Cart Bar - Fixed at bottom */}
         <MobileCartBar />
       </div>
-    </CartProvider>
+    </>
   );
 };
 

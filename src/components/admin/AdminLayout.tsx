@@ -50,6 +50,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                 { name: "Udemy Management", path: "/admin/udemy", icon: GraduationCap },
                 { name: "Yatri AI", path: "/admin/ai", icon: Bot },
                 { name: "Store Product", path: "/admin/products/add", icon: Plus },
+                { name: "Exam Dumps", path: "/admin/exam-dumps", icon: List },
                 { name: "Admin Guide", path: "/admin/guide", icon: Info },
                 { name: "Admin Sitemap", path: "/admin/sitemap", icon: List },
             ],
