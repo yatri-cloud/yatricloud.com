@@ -75,13 +75,8 @@ function doPost(e) {
           const rowNum = i + 1;
           
           if (action === 'delete') {
-            if (statusIndex !== -1) {
-              sheet.getRange(rowNum, statusIndex + 1).setValue('deleted');
-              return createJsonResponse({ success: true, message: 'Exam dump marked as deleted' });
-            } else {
-              sheet.deleteRow(rowNum);
-              return createJsonResponse({ success: true, message: 'Exam dump hard-deleted' });
-            }
+            sheet.deleteRow(rowNum);
+            return createJsonResponse({ success: true, message: 'Exam dump permanently deleted' });
           }
           
           if (action === 'update') {

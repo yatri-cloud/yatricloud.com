@@ -48,7 +48,7 @@ export async function fetchExamDumps(): Promise<ExamDump[]> {
       downloadUrl: dump.downloadUrl || dump.downloadurl || '',
       description: dump.description || '',
       status: dump.status || 'active',
-    })).filter(d => d.status?.toLowerCase() === 'active');
+    }));
     
   } catch (error) {
     console.error("❌ Error fetching exam dumps:", error);
