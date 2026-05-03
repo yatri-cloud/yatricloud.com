@@ -435,7 +435,7 @@ app.post('/api/yatris/auth', async (req, res) => {
     const url = process.env.VITE_API_URL_AUTH;
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(req.body),
     });
     const data = await response.json();
@@ -463,7 +463,7 @@ app.post('/api/yatris/events', async (req, res) => {
     const url = process.env.VITE_API_URL_EVENTS;
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(req.body),
     });
     const data = await response.json();
