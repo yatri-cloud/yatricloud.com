@@ -58,6 +58,7 @@ import GuideView from "@/pages/GuideView";
 import ExamDumps from "./pages/ExamDumps";
 import AdminExamDumps from "./pages/admin/AdminExamDumps";
 import AdminAddExamDump from "./pages/admin/AdminAddExamDump";
+import AdminEditExamDump from "./pages/admin/AdminEditExamDump";
 
 
 import TrainerCreateCourse from "@/pages/trainer/TrainerCreateCourse";
@@ -141,6 +142,7 @@ const App = () => (
                 <Route path="trainers" element={<AdminTrainers />} />
                 <Route path="exam-dumps" element={<AdminExamDumps />} />
                 <Route path="exam-dumps/add" element={<AdminAddExamDump />} />
+                <Route path="exam-dumps/edit/:id" element={<AdminEditExamDump />} />
                 <Route path="guide" element={<GuideView type="admin" />} />
                 <Route path="sitemap" element={<GuideView type="admin-access" />} />
               </Route>

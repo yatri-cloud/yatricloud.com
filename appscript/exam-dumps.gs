@@ -59,8 +59,56 @@ function doPost(e) {
       return createJsonResponse({ success: true, message: 'Exam dump added', id });
     }
 
-    // Update and Delete would require searching for the ID row, which I'll implement if needed.
-    // For now, let's stick to adding as requested.
+    if (action === 'update' || action === 'delete') {
+      const sheetData = sheet.getDataRange().getValues();
+      const headers = sheetData[0];
+      const idIndex = headers.indexOf('ID');
+      
+      if (idIndex === -1) {
+        return createJsonResponse({ success: false, error: 'ID column not found' });
+      }
+
+      for (let i = 1; i < sheetData.length; i++) {
+        if (sheetData[i][idIndex] === data.id) {
+          const rowNum = i + 1;
+          
+          if (action === 'delete') {
+            // Soft delete by setting status to 'deleted'
+            const statusIndex = headers.indexOf('Status');
+            if (statusIndex !== -1) {
+              sheet.getRange(rowNum, statusIndex + 1).setValue('deleted');
+              return createJsonResponse({ success: true, message: 'Exam dump deleted' });
+            } else {
+              // Fallback to hard delete if status column missing
+              sheet.deleteRow(rowNum);
+              return createJsonResponse({ success: true, message: 'Exam dump hard-deleted' });
+            }
+          }
+          
+          if (action === 'update') {
+            const updateMap = {
+              'Title': data.title,
+              'Provider': data.provider,
+              'Original Price': data.originalPrice,
+              'Price': data.price,
+              'Image': data.image,
+              'Download URL': data.downloadUrl,
+              'Description': data.description,
+              'Status': data.status || 'active'
+            };
+
+            headers.forEach((header, idx) => {
+              if (updateMap[header] !== undefined) {
+                sheet.getRange(rowNum, idx + 1).setValue(updateMap[header]);
+              }
+            });
+            
+            return createJsonResponse({ success: true, message: 'Exam dump updated' });
+          }
+        }
+      }
+      return createJsonResponse({ success: false, error: 'Exam dump not found' });
+    }
 
     return createJsonResponse({ success: false, error: 'Unsupported action' });
     

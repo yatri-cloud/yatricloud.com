@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { fetchExamDumps, ExamDump } from "@/lib/exam-dumps";
+import { fetchExamDumps, deleteExamDump, ExamDump } from "@/lib/exam-dumps";
 import { toast } from "sonner";
 
 const AdminExamDumps = () => {
@@ -36,6 +36,19 @@ const AdminExamDumps = () => {
     dump.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     dump.provider.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this exam dump?")) return;
+    
+    try {
+      await deleteExamDump(id);
+      toast.success("Exam dump deleted successfully");
+      loadDumps(); // Refresh list
+    } catch (error) {
+      console.error("Error deleting dump:", error);
+      toast.error("Failed to delete exam dump");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -88,11 +101,19 @@ const AdminExamDumps = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {/* Placeholder for edit/delete functionality if implemented in backend */}
-                    <Button variant="ghost" size="icon" disabled>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => navigate(`/admin/exam-dumps/edit/${dump.id}`)}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive" disabled>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-destructive" 
+                      onClick={() => handleDelete(dump.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

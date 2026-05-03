@@ -75,3 +75,42 @@ export async function submitExamDump(dump: Omit<ExamDump, 'id' | 'status'>): Pro
     throw error;
   }
 }
+
+/**
+ * Update an existing exam dump
+ */
+export async function updateExamDump(id: string, data: Partial<ExamDump>): Promise<void> {
+  try {
+    await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...data,
+        id,
+        action: 'update'
+      }),
+    });
+  } catch (error) {
+    console.error('❌ Error updating exam dump:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete an exam dump (soft delete)
+ */
+export async function deleteExamDump(id: string): Promise<void> {
+  try {
+    await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id,
+        action: 'delete'
+      }),
+    });
+  } catch (error) {
+    console.error('❌ Error deleting exam dump:', error);
+    throw error;
+  }
+}
