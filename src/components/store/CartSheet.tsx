@@ -60,15 +60,6 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
         }
       });
 
-      const user = getStoredUser();
-      const customerEmail = user?.email || guestEmail;
-      
-      if (!customerEmail) {
-        toast.error("Please provide an email address for your order");
-        setIsProcessing(false);
-        return;
-      }
-
       const customerName = user?.fullName || "Guest Customer";
       const customerPhone = user?.phoneNumber || "";
 
