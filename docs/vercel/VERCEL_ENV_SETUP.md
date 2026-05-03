@@ -18,10 +18,8 @@ This guide explains how to add environment variables to your Vercel project for 
 
 ### Option 1: Copy from `.env.vercel.test` (TEST MODE - Recommended for Testing)
 
-Use these for testing with **no real money**:
-
-```env
-VITE_RAZORPAY_KEY_ID=rzp_test_S05Hqy9qMsJRVs
+Use these for testing with **no real mone```env
+VITE_RAZORPAY_KEY_ID=[YOUR_TEST_KEY_ID]
 VITE_API_BASE_URL=https://api.certification.yatricloud.com
 VITE_STORE_PRODUCTS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbzQLPzAi5aD6uyjJnAUPYOkEKisUNvMwzmTIKqUObRlgsS-9gsexkuEMurKOgZgKb8-8w/exec
 VITE_AZURE_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbyJvIQi0ynKIIgA401IbDFjB4D_aTSGRYGjiaicQaoguIXpfcoYUgM6FvRP9IlzV5iN/exec
@@ -34,7 +32,7 @@ VITE_SERVICENOW_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/AK
 VITE_UDEMY_YATHARTH_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbzG7mJbtL9kCJxRhKPEawImuKVphW4Dj4H0gI_rxzDCo73exucrgRqqCa9rz9_Pa1Nv/exec
 VITE_UDEMY_NENSI_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbxo_PNFMqIZttrLkCzPM6oxaXDA_LJ702_FwCj3hbwv2yHvHzuGV4tZgZktLj9PgIHA/exec
 VITE_UDEMY_CREDENTIALS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbwsL5nNkmskfCqKQAwdykxWX0bDj7kaeTE0DIVM9ZioVwKtNVLkhUkAP7AiXjxGDInM/exec
-VITE_UDEMY_INSTRUCTOR_TOKEN=YrCJK4kzRFSoPjB3tRQLBpEL7LLQOzC7
+VITE_UDEMY_INSTRUCTOR_TOKEN=[YOUR_INSTRUCTOR_TOKEN]
 ```
 
 ### Option 2: Copy from `.env.vercel.production` (LIVE MODE - Real Money!)
@@ -42,7 +40,7 @@ VITE_UDEMY_INSTRUCTOR_TOKEN=YrCJK4kzRFSoPjB3tRQLBpEL7LLQOzC7
 Use these for **production** with **real payments**:
 
 ```env
-VITE_RAZORPAY_KEY_ID=rzp_live_S07MgTfbQRNHFr
+VITE_RAZORPAY_KEY_ID=[YOUR_LIVE_KEY_ID]
 VITE_API_BASE_URL=https://api.certification.yatricloud.com
 VITE_STORE_PRODUCTS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbzQLPzAi5aD6uyjJnAUPYOkEKisUNvMwzmTIKqUObRlgsS-9gsexkuEMurKOgZgKb8-8w/exec
 VITE_AZURE_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbyJvIQi0ynKIIgA401IbDFjB4D_aTSGRYGjiaicQaoguIXpfcoYUgM6FvRP9IlzV5iN/exec
@@ -55,7 +53,7 @@ VITE_SERVICENOW_CERTIFICATIONS_WEBHOOK_URL=https://script.google.com/macros/s/AK
 VITE_UDEMY_YATHARTH_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbzG7mJbtL9kCJxRhKPEawImuKVphW4Dj4H0gI_rxzDCo73exucrgRqqCa9rz9_Pa1Nv/exec
 VITE_UDEMY_NENSI_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbxo_PNFMqIZttrLkCzPM6oxaXDA_LJ702_FwCj3hbwv2yHvHzuGV4tZgZktLj9PgIHA/exec
 VITE_UDEMY_CREDENTIALS_WEBHOOK_URL=https://script.google.com/macros/s/AKfycbwsL5nNkmskfCqKQAwdykxWX0bDj7kaeTE0DIVM9ZioVwKtNVLkhUkAP7AiXjxGDInM/exec
-VITE_UDEMY_INSTRUCTOR_TOKEN=YrCJK4kzRFSoPjB3tRQLBpEL7LLQOzC7
+VITE_UDEMY_INSTRUCTOR_TOKEN=[YOUR_INSTRUCTOR_TOKEN]
 ```
 
 ---
@@ -75,7 +73,7 @@ For each variable:
 
 1. Click **Add New**
 2. Enter the **Key** (e.g., `VITE_RAZORPAY_KEY_ID`)
-3. Enter the **Value** (e.g., `rzp_test_S05Hqy9qMsJRVs`)
+3. Enter the **Value** (e.g., `rzp_test_...`)
 4. Select **Environments**:
    - ✅ **Production** (for live site)
    - ✅ **Preview** (for pull request previews)
@@ -104,8 +102,8 @@ After adding all variables:
 Your **backend server** (`server.js`) needs these variables on **its own hosting** (Render, Railway, etc.):
 
 ```env
-RAZORPAY_KEY_ID=rzp_live_S07MgTfbQRNHFr  # or test key for testing
-RAZORPAY_KEY_SECRET=s3FE9fKVBsTE794cGfYtfzmi  # or test secret for testing
+RAZORPAY_KEY_ID=[YOUR_LIVE_KEY_ID]
+RAZORPAY_KEY_SECRET=[YOUR_LIVE_KEY_SECRET]
 PORT=3001
 ```
 
