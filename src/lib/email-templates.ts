@@ -42,12 +42,14 @@ const BASE_TEMPLATE = (content: string, title: string) => `
       
       <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="margin-bottom: 10px;">Connect with us:</p>
-        <a href="https://www.youtube.com/@yatricloud?sub_confirmation=1&sub_confirmation=1" style="text-decoration: none; margin: 0 5px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/youtube-play.png" alt="YouTube" width="24" height="24" style="vertical-align: middle;"></a>
-        <a href="https://linkedin.com/company/yatricloud" style="text-decoration: none; margin: 0 5px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/linkedin.png" alt="LinkedIn" width="24" height="24" style="vertical-align: middle;"></a>
-        <a href="https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s" style="text-decoration: none; margin: 0 5px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/whatsapp.png" alt="WhatsApp" width="24" height="24" style="vertical-align: middle;"></a>
-        <a href="https://twitter.com/yatricloud" style="text-decoration: none; margin: 0 5px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/twitter.png" alt="Twitter" width="24" height="24" style="vertical-align: middle;"></a>
-        <a href="https://instagram.com/yatricloud" style="text-decoration: none; margin: 0 5px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/instagram-new.png" alt="Instagram" width="24" height="24" style="vertical-align: middle;"></a>
-        <a href="https://discord.com/invite/92warrKq9j" style="text-decoration: none; margin: 0 5px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/discord-logo.png" alt="Discord" width="24" height="24" style="vertical-align: middle;"></a>
+        <a href="https://www.youtube.com/@yatricloud?sub_confirmation=1" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/youtube-play.png" alt="YouTube" width="24" height="24" style="vertical-align: middle;"></a>
+        <a href="https://linkedin.com/company/yatricloud" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/linkedin.png" alt="LinkedIn" width="24" height="24" style="vertical-align: middle;"></a>
+        <a href="https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/whatsapp.png" alt="WhatsApp" width="24" height="24" style="vertical-align: middle;"></a>
+      </div>
+
+      <div style="margin-top: 15px;">
+        <p style="margin: 5px 0;">Join Yatri Cloud Community: <a href="https://community.yatricloud.com" style="color: ${COLORS.primary}; text-decoration: none; font-weight: bold;">community.yatricloud.com</a></p>
+        <p style="margin: 5px 0; color: #dc2626; font-weight: bold;">🔥 Special Offer: <a href="https://calendly.com/yatricloud/30min" style="color: #dc2626; text-decoration: underline;">Get 50% OFF on AWS Exam</a></p>
       </div>
     </div>
   </div>
