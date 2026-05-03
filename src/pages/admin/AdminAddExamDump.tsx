@@ -38,8 +38,8 @@ const AdminAddExamDump = () => {
   } = useForm<DumpFormData>({
     resolver: zodResolver(dumpSchema),
     defaultValues: {
-      originalPrice: 1999,
-      price: 499,
+      originalPrice: 499,
+      price: 99,
     },
   });
 

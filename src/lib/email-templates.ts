@@ -74,7 +74,7 @@ export const getRegistrationEmail = (name: string, eventName: string, code: stri
     ` : ''}
 
     <p>We're excited to see you there! Make sure to add this to your calendar.</p>
-    <p>Best regards,<br>The Yatri Cloud Team</p>
+    <p>Best regards,<br>Team Yatri Cloud</p>
   `;
   return BASE_TEMPLATE(content, `Registration Confirmed: ${eventName}`);
 };
@@ -95,7 +95,7 @@ export const getProductPurchaseEmail = (name: string, productNames: string, amou
     <p>You will receive a separate email shortly with a <strong>meeting link</strong> to schedule your exam with our team.</p>
     
     <p>If you have any questions, feel free to reply to this email.</p>
-    <p>Best regards,<br>The Yatri Cloud Team</p>
+    <p>Best regards,<br>Team Yatri Cloud</p>
   `;
   return BASE_TEMPLATE(content, "Order Confirmation - Yatri Cloud");
 };
@@ -112,7 +112,7 @@ export const getCertificateSubmissionEmail = (name: string, certName: string, pr
     </div>
 
     <p>Keep learning and collecting those badges!</p>
-    <p>Best regards,<br>The Yatri Cloud Team</p>
+    <p>Best regards,<br>Team Yatri Cloud</p>
   `;
   return BASE_TEMPLATE(content, `Submission Received: ${certName}`);
 };
@@ -134,7 +134,7 @@ export const getWelcomeEmail = (name: string) => {
     </div>
 
     <p>If you have any questions, feel free to reply to this email.</p>
-    <p>Happy Learning!<br>The Yatri Cloud Team</p>
+    <p>Happy Learning!<br>Team Yatri Cloud</p>
   `;
   return BASE_TEMPLATE(content, "Welcome to Yatri Cloud");
 };
@@ -151,7 +151,7 @@ export const getEventFeedbackEmail = (name: string, eventName: string, feedbackL
     </div>
 
     <p>See you at the next event!</p>
-    <p>Best regards,<br>The Yatri Cloud Team</p>
+    <p>Best regards,<br>Team Yatri Cloud</p>
   `;
   return BASE_TEMPLATE(content, `Feedback Request: ${eventName}`);
 };
@@ -175,7 +175,7 @@ export const getExamDumpPurchaseEmail = (name: string, dumpTitle: string, amount
     <p style="font-size: 14px; color: ${COLORS.textMuted}; text-align: center;">If the button above doesn't work, copy and paste this link into your browser:<br>${downloadUrl}</p>
 
     <p>Success in your certification journey!</p>
-    <p>Best regards,<br>The Yatri Cloud Team</p>
+    <p>Best regards,<br>Team Yatri Cloud</p>
   `;
   return BASE_TEMPLATE(content, "Your Exam Dump Download Link - Yatri Cloud");
 };
