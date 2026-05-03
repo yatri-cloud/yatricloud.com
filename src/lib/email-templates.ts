@@ -174,7 +174,7 @@ export const getExamDumpPurchaseEmail = (name: string, dumpTitle: string, amount
       <a href="${downloadUrl}" style="background-color: ${COLORS.primary}; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Download Exam Dump</a>
     </div>
     
-    <p style="font-size: 14px; color: ${COLORS.textMuted}; text-align: center;">If the button above doesn't work, copy and paste this link into your browser:<br>${downloadUrl}</p>
+    <p style="font-size: 14px; color: ${COLORS.textMuted}; text-align: center;">you can also access using this link:<br>${downloadUrl}</p>
 
     <p>Success in your certification journey!</p>
     <p>Best regards,<br>Team Yatri Cloud</p>
