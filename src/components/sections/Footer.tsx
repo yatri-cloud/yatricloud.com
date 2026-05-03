@@ -138,13 +138,6 @@ export const Footer = () => {
                     {legal.label}
                   </a>
                 ))}
-                <div className="h-4 w-px bg-border/50 hidden sm:block" />
-                <a
-                  href="/profile/sitemap"
-                  className="text-primary/80 hover:text-primary transition-colors font-medium flex items-center gap-2"
-                >
-                  Lost on the Platform? Use our URL Sitemap Guide
-                </a>
               </div>
 
               {/* Copyright */}
