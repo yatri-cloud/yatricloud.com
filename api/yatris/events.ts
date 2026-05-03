@@ -28,8 +28,18 @@ export default async function handler(
     }
 
     const res = await fetch(url, options);
-    const data = await res.json();
-    return response.status(200).json(data);
+    const responseText = await res.text();
+
+    try {
+      const data = JSON.parse(responseText);
+      return response.status(200).json(data);
+    } catch (parseError) {
+      console.error('❌ Failed to parse Apps Script response:', responseText);
+      return response.status(500).json({ 
+        error: 'Invalid response from Apps Script', 
+        details: responseText 
+      });
+    }
   } catch (error: any) {
     return response.status(500).json({ error: error.message });
   }

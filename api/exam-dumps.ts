@@ -45,9 +45,18 @@ export default async function handler(
     }
 
     const proxyResponse = await fetch(url, fetchOptions);
-    const data = await proxyResponse.json();
-    
-    return response.status(200).json(data);
+    const responseText = await proxyResponse.text();
+
+    try {
+      const data = JSON.parse(responseText);
+      return response.status(200).json(data);
+    } catch (parseError) {
+      console.error('❌ Failed to parse Apps Script response:', responseText);
+      return response.status(500).json({ 
+        error: 'Invalid response from Apps Script', 
+        details: responseText 
+      });
+    }
   } catch (error: any) {
     console.error('Proxy error:', error);
     return response.status(500).json({ error: 'Proxy error', message: error.message });
