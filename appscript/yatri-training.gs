@@ -2308,7 +2308,7 @@ function approveTrainer(data) {
                   Access Trainer Dashboard
                 </a>
               </p>
-              <p>If the button doesn't work, copy and paste this link: <br> ${data.portalUrl || 'https://yatri-practice-hub.vercel.app/trainer/login'}</p>
+              <p>You can also access Exam Dump via this link: <br> ${data.portalUrl || 'https://yatri-practice-hub.vercel.app/trainer/login'}</p>
               <br>
               <p>We look forward to collaborating with you!</p>
               <p><strong>Yatri Training Team</strong></p>
