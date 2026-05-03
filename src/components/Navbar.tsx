@@ -51,6 +51,7 @@ export const Navbar = () => {
     { href: "#certification-process", label: "Get Certified" },
     { href: "#benefits", label: "Benefits" },
     { href: "#courses", label: "Practice Tests" },
+    { href: "/training", label: "Training" },
     { href: "/achievements", label: "Achievements" },
     { href: "/events", label: "Events" },
     // { href: "/yatristore", label: "Store" },

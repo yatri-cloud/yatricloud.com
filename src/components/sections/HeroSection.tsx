@@ -17,7 +17,7 @@ export const HeroSection = () => {
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
           {/* Countdown Badge */}
-          <ScrollReveal delay={0.1}>
+          {/* <ScrollReveal delay={0.1}>
             <motion.div
               className="inline-flex items-center gap-3 bg-card border border-border rounded-full px-4 py-2 mb-8"
               animate={{ y: [0, -5, 0] }}
@@ -27,7 +27,9 @@ export const HeroSection = () => {
               <div className="w-px h-4 bg-border" />
               <CountdownTimer targetDate={targetDate} className="scale-75 origin-left" />
             </motion.div>
-          </ScrollReveal>
+          </ScrollReveal> */}
+
+          <br /><br /><br />
 
           {/* Main Headline */}
           <ScrollReveal delay={0.2}>
