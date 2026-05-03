@@ -61,45 +61,48 @@ function doPost(e) {
 
     if (action === 'update' || action === 'delete') {
       const sheetData = sheet.getDataRange().getValues();
-      const headers = sheetData[0];
-      const idIndex = headers.indexOf('ID');
+      const headers = sheetData[0].map(h => h.toString().toLowerCase());
+      const idIndex = headers.indexOf('id');
+      const statusIndex = headers.indexOf('status');
       
       if (idIndex === -1) {
         return createJsonResponse({ success: false, error: 'ID column not found' });
       }
 
+      const targetId = String(data.id);
       for (let i = 1; i < sheetData.length; i++) {
-        if (sheetData[i][idIndex] === data.id) {
+        if (String(sheetData[i][idIndex]) === targetId) {
           const rowNum = i + 1;
           
           if (action === 'delete') {
-            // Soft delete by setting status to 'deleted'
-            const statusIndex = headers.indexOf('Status');
             if (statusIndex !== -1) {
               sheet.getRange(rowNum, statusIndex + 1).setValue('deleted');
-              return createJsonResponse({ success: true, message: 'Exam dump deleted' });
+              return createJsonResponse({ success: true, message: 'Exam dump marked as deleted' });
             } else {
-              // Fallback to hard delete if status column missing
               sheet.deleteRow(rowNum);
               return createJsonResponse({ success: true, message: 'Exam dump hard-deleted' });
             }
           }
           
           if (action === 'update') {
+            const originalHeaders = sheetData[0];
             const updateMap = {
-              'Title': data.title,
-              'Provider': data.provider,
-              'Original Price': data.originalPrice,
-              'Price': data.price,
-              'Image': data.image,
-              'Download URL': data.downloadUrl,
-              'Description': data.description,
-              'Status': data.status || 'active'
+              'title': data.title,
+              'provider': data.provider,
+              'original price': data.originalPrice,
+              'originalprice': data.originalPrice,
+              'price': data.price,
+              'image': data.image,
+              'download url': data.downloadUrl,
+              'downloadurl': data.downloadUrl,
+              'description': data.description,
+              'status': data.status || 'active'
             };
 
-            headers.forEach((header, idx) => {
-              if (updateMap[header] !== undefined) {
-                sheet.getRange(rowNum, idx + 1).setValue(updateMap[header]);
+            originalHeaders.forEach((header, idx) => {
+              const hLower = header.toString().toLowerCase();
+              if (updateMap[hLower] !== undefined) {
+                sheet.getRange(rowNum, idx + 1).setValue(updateMap[hLower]);
               }
             });
             
