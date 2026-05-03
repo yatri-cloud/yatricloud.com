@@ -71,23 +71,22 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
         customerEmail,
         customerPhone,
         async (paymentId) => {
-          console.log("💳 Payment Success Callback Received. ID:", paymentId);
           toast.success(`Payment successful! Payment ID: ${paymentId}`);
 
           // Send Confirmation Email
           if (customerEmail) {
-            console.log("📨 Starting email sequence for:", customerEmail);
             try {
               // Check if any item is an exam dump
               const examDumps = items.filter(item => item.downloadUrl);
-              console.log("🛒 Items to process:", items.length, "Exam dumps:", examDumps.length);
+              console.log("🛒 Purchase Items:", JSON.stringify(items.map(i => ({ title: i.title, hasUrl: !!i.downloadUrl }))));
+              console.log("📦 Detected Exam Dumps:", examDumps.length);
               
               if (examDumps.length > 0) {
                 // Send Exam Dump Email
-                console.log("📧 Sending Exam Dump email...");
+                console.log("📧 Sending Exam Dump email to:", customerEmail);
                 const { getExamDumpPurchaseEmail } = await import("@/lib/email-templates");
                 const firstDump = examDumps[0];
-                console.log("🔗 Download link found:", firstDump.downloadUrl);
+                console.log("🔗 Using download URL:", firstDump.downloadUrl);
 
                 const emailHtml = getExamDumpPurchaseEmail(
                   customerName, 
@@ -96,15 +95,14 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                   firstDump.downloadUrl!, 
                   paymentId
                 );
-                const emailResult = await sendEmail({
+                await sendEmail({
                   to: customerEmail,
                   subject: "Your Exam Dump Download Link - Yatri Cloud",
                   html: emailHtml
                 });
-                console.log("✅ Email service response:", emailResult);
               } else {
                 // Send Standard Product Email
-                console.log("📧 Sending Standard Product email...");
+                console.log("📧 Sending Standard Product email to:", customerEmail);
                 const emailHtml = getProductPurchaseEmail(customerName, productNames, `₹${totalPrice.toLocaleString("en-IN")}`, paymentId);
                 await sendEmail({
                   to: customerEmail,
@@ -114,15 +112,13 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
               }
               toast.success("Confirmation email sent!");
             } catch (emailErr) {
-              console.error("❌ Failed to send order email:", emailErr);
+              console.error("Failed to send order email:", emailErr);
               toast.error("Payment successful, but failed to send email.");
             }
           }
 
-          console.log("🧹 Clearing cart and resetting state...");
           clearCart();
           setIsProcessing(false);
-          console.log("✨ Checkout flow complete!");
         },
         (error) => {
           toast.error(`Payment failed: ${error}`);

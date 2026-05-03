@@ -186,7 +186,6 @@ export function initiatePayment(
     order_id: orderId,
     image: "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png",
     handler: function (response: any) {
-      console.log("✅ RAZORPAY SUCCESS HANDLER REACHED", response);
       onSuccess(response.razorpay_payment_id);
     },
     prefill: {
