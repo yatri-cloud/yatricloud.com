@@ -56,7 +56,7 @@ export async function registerUser(data: {
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'register',
@@ -126,7 +126,7 @@ export async function loginUser(
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'login',
@@ -194,7 +194,7 @@ export async function googleLogin(userProfile: {
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'googleLogin',
@@ -399,7 +399,7 @@ export async function submitCertification(data: {
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'submitCertification',
@@ -444,7 +444,7 @@ export async function updateProfile(data: {
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'updateProfile',
@@ -519,7 +519,7 @@ export async function updateCertification(
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'updateCertification',
@@ -558,7 +558,7 @@ export async function deleteCertification(
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'deleteCertification',
@@ -597,7 +597,7 @@ export async function changePassword(
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'changePassword',
@@ -637,7 +637,7 @@ export async function changeEmail(
     const response = await fetch(API_URL_AUTH, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'changeEmail',
@@ -730,7 +730,7 @@ export async function registerForEvent(
     const response = await fetch(API_URL_EVENTS, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'registerEvent',
@@ -796,7 +796,7 @@ export async function fetchPublishedEvents(): Promise<any[]> {
     const response = await fetch(API_URL_EVENTS, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ action: 'getEvents' })
     });

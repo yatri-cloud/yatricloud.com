@@ -433,14 +433,31 @@ console.log('📝 Proxy Config Check:', {
 app.post('/api/yatris/auth', async (req, res) => {
   try {
     const url = process.env.VITE_API_URL_AUTH;
+    console.log(`📡 Proxying Auth request to: ${url}`);
+    console.log(`📦 Request Body:`, JSON.stringify(req.body));
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),
+      redirect: 'follow'
     });
-    const data = await response.json();
-    res.json(data);
+
+    const responseText = await response.text();
+    console.log(`📥 Apps Script Response (${response.status}):`, responseText);
+
+    try {
+      const data = JSON.parse(responseText);
+      res.json(data);
+    } catch (parseError) {
+      console.error('❌ Failed to parse Apps Script response as JSON:', parseError);
+      res.status(500).json({ 
+        error: 'Invalid response from Apps Script', 
+        details: responseText 
+      });
+    }
   } catch (error) {
+    console.error('❌ Auth Proxy Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -461,14 +478,26 @@ app.get('/api/yatris/auth', async (req, res) => {
 app.post('/api/yatris/events', async (req, res) => {
   try {
     const url = process.env.VITE_API_URL_EVENTS;
+    console.log(`📡 Proxying Events request to: ${url}`);
+    
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),
+      redirect: 'follow'
     });
-    const data = await response.json();
-    res.json(data);
+
+    const responseText = await response.text();
+    console.log(`📥 Apps Script Events Response (${response.status}):`, responseText);
+
+    try {
+      const data = JSON.parse(responseText);
+      res.json(data);
+    } catch (parseError) {
+      res.status(500).json({ error: 'Invalid response from Apps Script', details: responseText });
+    }
   } catch (error) {
+    console.error('❌ Events Proxy Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
