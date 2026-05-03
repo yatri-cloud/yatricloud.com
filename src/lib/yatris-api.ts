@@ -6,9 +6,8 @@
 // Use proxy API route to avoid CORS issues
 // In production, this goes through Vercel serverless function
 // Use local proxy server to avoid CORS issues
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-const API_URL_AUTH = `${API_BASE_URL}/api/yatris/auth`;
-const API_URL_EVENTS = `${API_BASE_URL}/api/yatris/events`;
+const API_URL_AUTH = '/api/yatris/auth';
+const API_URL_EVENTS = '/api/yatris/events';
 
 interface User {
   email: string;

@@ -36,6 +36,12 @@ export default defineConfig(({ mode }) => ({
         secure: true,
         rewrite: (path) => path.replace(/^\/api\/reviews/, ''),
       },
+      // Proxy for local backend server
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   // Optimize for development

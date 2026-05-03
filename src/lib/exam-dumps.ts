@@ -16,8 +16,7 @@ export interface ExamDump {
   status?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-const PROXY_URL = `${API_BASE_URL}/api/exam-dumps`;
+const PROXY_URL = '/api/exam-dumps';
 
 /**
  * Fetch exam dumps from Google Sheets
