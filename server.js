@@ -37,6 +37,8 @@ app.use(express.json());
 
 // Logging middleware for debugging
 app.use((req, res, next) => {
+  // Allow Google Login popups to communicate back to the parent window
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   console.log(`${req.method} ${req.path}`, req.body ? JSON.stringify(req.body) : '');
   next();
 });

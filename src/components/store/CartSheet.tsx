@@ -19,7 +19,9 @@ interface CartSheetProps {
 export const CartSheet = ({ trigger }: CartSheetProps) => {
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [guestEmail, setGuestEmail] = useState("");
   const testMode = isTestMode();
+  const user = getStoredUser();
 
   const handleCheckout = async () => {
     if (items.length === 0) {
@@ -36,20 +38,38 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
       const productNames = items.map(item => item.title).join(", ");
 
       // Create Razorpay order via API
+      const user = getStoredUser();
+      const customerEmail = user?.email || guestEmail;
+      
+      if (!customerEmail) {
+        toast.error("Please provide an email address for your order");
+        setIsProcessing(false);
+        return;
+      }
+
       const { createRazorpayOrder } = await import("@/lib/razorpay");
       const orderId = await createRazorpayOrder({
         amount: amountInPaise,
         currency: "INR",
         receipt: `receipt_${Date.now()}`,
         notes: {
+          email: customerEmail,
+          customerName: user?.fullName || "Guest Customer",
           products: productNames,
           items: JSON.stringify(items.map(item => ({ id: item.id, title: item.title, quantity: item.quantity })))
         }
       });
 
       const user = getStoredUser();
+      const customerEmail = user?.email || guestEmail;
+      
+      if (!customerEmail) {
+        toast.error("Please provide an email address for your order");
+        setIsProcessing(false);
+        return;
+      }
+
       const customerName = user?.fullName || "Guest Customer";
-      const customerEmail = user?.email || "";
       const customerPhone = user?.phoneNumber || "";
 
       await initiatePayment(
@@ -238,6 +258,22 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                       This checkout session is configured for non-production testing. In production, real payments will be processed securely via Razorpay.
                     </AlertDescription>
                   </Alert>
+                )}
+                {!user && (
+                  <div className="space-y-2 p-3 bg-secondary/30 rounded-lg border border-border/50">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Order Delivery Email</p>
+                    <div className="flex flex-col gap-1">
+                      <input 
+                        type="email" 
+                        placeholder="your@email.com" 
+                        className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        required
+                      />
+                      <p className="text-[10px] text-muted-foreground">This is where we will send your download links.</p>
+                    </div>
+                  </div>
                 )}
                 <div className="space-y-2">
                   <div className="flex justify-between text-lg font-bold">

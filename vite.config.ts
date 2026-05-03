@@ -16,9 +16,12 @@ export default defineConfig(({ mode }) => ({
       // Ignore node_modules and other large directories
       ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**'],
     },
-    // Enable HMR
     hmr: {
       overlay: true,
+    },
+    // Set headers to allow Google Login popups
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
     },
     // Proxy API routes for local development
     // In production, these routes are handled by Vercel serverless functions
