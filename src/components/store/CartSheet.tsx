@@ -78,13 +78,16 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
             try {
               // Check if any item is an exam dump
               const examDumps = items.filter(item => item.downloadUrl);
+              console.log("🛒 Purchase Items:", JSON.stringify(items.map(i => ({ title: i.title, hasUrl: !!i.downloadUrl }))));
+              console.log("📦 Detected Exam Dumps:", examDumps.length);
               
               if (examDumps.length > 0) {
                 // Send Exam Dump Email
+                console.log("📧 Sending Exam Dump email to:", customerEmail);
                 const { getExamDumpPurchaseEmail } = await import("@/lib/email-templates");
-                // For simplicity, we send one email with the first dump link if multiple, 
-                // but ideally we should list all. Let's send the first one as requested for "the link".
                 const firstDump = examDumps[0];
+                console.log("🔗 Using download URL:", firstDump.downloadUrl);
+
                 const emailHtml = getExamDumpPurchaseEmail(
                   customerName, 
                   firstDump.title, 
@@ -99,6 +102,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                 });
               } else {
                 // Send Standard Product Email
+                console.log("📧 Sending Standard Product email to:", customerEmail);
                 const emailHtml = getProductPurchaseEmail(customerName, productNames, `₹${totalPrice.toLocaleString("en-IN")}`, paymentId);
                 await sendEmail({
                   to: customerEmail,

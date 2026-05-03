@@ -153,7 +153,7 @@ export const createRazorpayOrder = async (orderData: any) => {
     }
 
     const data = await response.json();
-    return data.id;
+    return data.orderId;
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
     throw error;
