@@ -112,6 +112,15 @@ const renderMarkdown = (text: string) => {
   return <div className="text-sm space-y-1">{elements}</div>;
 };
 
+/**
+ * YatriAI Chatbot Component
+ * 
+ * A production-grade AI assistant that:
+ * - Loads dynamic context (events, website sections) to answer accurately.
+ * - Supports real-time streaming responses from a local Ollama API.
+ * - Handles auto-scrolling with user override detection.
+ * - Renders markdown with copy-to-clipboard functionality.
+ */
 export const YatriAI = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
