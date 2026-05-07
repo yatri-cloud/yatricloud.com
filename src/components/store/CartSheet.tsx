@@ -37,15 +37,18 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
       // Create order description
       const productNames = items.map(item => item.title).join(", ");
 
-      // Create Razorpay order via API
+      // Get customer details (logged in or guest)
       const user = getStoredUser();
-      const customerEmail = user?.email || guestEmail;
+      const rawEmail = user?.email || guestEmail;
+      const customerEmail = rawEmail?.trim();
       
-      if (!customerEmail) {
-        toast.error("Please provide an email address for your order");
+      if (!customerEmail || !customerEmail.includes('@')) {
+        toast.error("Please provide a valid email address for your order");
         setIsProcessing(false);
         return;
       }
+
+      console.log(`🛒 Starting checkout for: ${customerEmail} (${user ? 'Member' : 'Guest'})`);
 
       const { createRazorpayOrder } = await import("@/lib/razorpay");
       const orderId = await createRazorpayOrder({
@@ -71,7 +74,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
         customerEmail,
         customerPhone,
         async (paymentId) => {
-          toast.success(`Payment successful! Payment ID: ${paymentId}`);
+          // toast.success(`Payment successful! Payment ID: ${paymentId}`); // Removed per request
 
           // Send Confirmation Email
           if (customerEmail) {
@@ -95,22 +98,32 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                   firstDump.downloadUrl!, 
                   paymentId
                 );
-                await sendEmail({
+                
+                const emailResult = await sendEmail({
                   to: customerEmail,
                   subject: "Your Exam Dump Download Link - Yatri Cloud",
                   html: emailHtml
                 });
+
+                if (!emailResult.success) {
+                  throw new Error(emailResult.error || "Email delivery failed");
+                }
               } else {
                 // Send Standard Product Email
                 console.log("📧 Sending Standard Product email to:", customerEmail);
                 const emailHtml = getProductPurchaseEmail(customerName, productNames, `₹${totalPrice.toLocaleString("en-IN")}`, paymentId);
-                await sendEmail({
+                
+                const emailResult = await sendEmail({
                   to: customerEmail,
                   subject: "Order Confirmation - Yatri Cloud",
                   html: emailHtml
                 });
+
+                if (!emailResult.success) {
+                  throw new Error(emailResult.error || "Email delivery failed");
+                }
               }
-              toast.success("Confirmation email sent!");
+              // toast.success("Confirmation email sent!"); // Removed per request
             } catch (emailErr) {
               console.error("Failed to send order email:", emailErr);
               toast.error("Payment successful, but failed to send email.");

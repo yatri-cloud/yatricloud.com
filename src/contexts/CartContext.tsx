@@ -75,7 +75,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = () => {
     setItems([]);
-    toast.success("Cart cleared");
+    // toast.success("Cart cleared"); // Removed per request
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
