@@ -60,7 +60,7 @@ const BASE_TEMPLATE = (content: string, title: string) => `
 export const getRegistrationEmail = (name: string, eventName: string, code: string, date: string, meetLink?: string) => {
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Registration Confirmed!</h2>
-    <p>Hi ${name},</p>
+    <p>Hello ${name},</p>
     <p>You have successfully registered for <strong>${eventName}</strong>.</p>
     
     <div style="background-color: #eff6ff; border-left: 4px solid ${COLORS.primary}; padding: 15px; margin: 25px 0; border-radius: 4px;">
@@ -84,7 +84,7 @@ export const getRegistrationEmail = (name: string, eventName: string, code: stri
 export const getProductPurchaseEmail = (name: string, productNames: string, amount: string, paymentId: string) => {
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Order Confirmed!</h2>
-    <p>Hi ${name},</p>
+    <p>Hello ${name},</p>
     <p>Thank you for your purchase from the Yatri Store.</p>
     
     <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 25px 0; border-radius: 4px;">
@@ -105,7 +105,7 @@ export const getProductPurchaseEmail = (name: string, productNames: string, amou
 export const getCertificateSubmissionEmail = (name: string, certName: string, provider: string) => {
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Achievement Unlocked!</h2>
-    <p>Hi ${name},</p>
+    <p>Hello ${name},</p>
     <p>Congratulations on earning your <strong>${certName}</strong> from <strong>${provider}</strong>!</p>
     <p>We've successfully received your submission. It will now appear on your public profile and the "Yatri Stars" wall.</p>
     
@@ -122,7 +122,7 @@ export const getCertificateSubmissionEmail = (name: string, certName: string, pr
 export const getWelcomeEmail = (name: string) => {
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Welcome to Yatri Cloud!</h2>
-    <p>Hi ${name},</p>
+    <p>Hello ${name},</p>
     <p>We're thrilled to have you join our community of cloud enthusiasts.</p>
     <p>Here at Yatri Cloud, you can:</p>
     <ul style="padding-left: 20px; color: ${COLORS.text};">
@@ -144,7 +144,7 @@ export const getWelcomeEmail = (name: string) => {
 export const getEventFeedbackEmail = (name: string, eventName: string, feedbackLink: string) => {
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Thank You for Attending!</h2>
-    <p>Hi ${name},</p>
+    <p>Hello ${name},</p>
     <p>Thanks for joining us at <strong>${eventName}</strong>. We hope you found it valuable!</p>
     <p>To help us improve and bring you better events, please take a moment to share your feedback. Completing this form is also required to receive your participation certificate.</p>
     
@@ -161,7 +161,7 @@ export const getEventFeedbackEmail = (name: string, eventName: string, feedbackL
 export const getExamDumpPurchaseEmail = (name: string, dumpTitle: string, amount: string, downloadUrl: string, paymentId: string) => {
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Exam Dump Access!</h2>
-    <p>Hi ${name},</p>
+    <p>Hello ${name},</p>
     <p>Thank you for purchasing the <strong>${dumpTitle}</strong> exam dump.</p>
     
     <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 25px 0; border-radius: 4px;">

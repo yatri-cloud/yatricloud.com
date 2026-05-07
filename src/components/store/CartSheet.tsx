@@ -2,6 +2,7 @@ import { useState, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -20,6 +21,8 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [purchasedDumps, setPurchasedDumps] = useState<any[]>([]);
   const testMode = isTestMode();
   const user = getStoredUser();
 
@@ -41,7 +44,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
       const user = getStoredUser();
       const rawEmail = user?.email || guestEmail;
       const customerEmail = rawEmail?.trim();
-      
+
       if (!customerEmail || !customerEmail.includes('@')) {
         toast.error("Please provide a valid email address for your order");
         setIsProcessing(false);
@@ -57,13 +60,13 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
         receipt: `receipt_${Date.now()}`,
         notes: {
           email: customerEmail,
-          customerName: user?.fullName || "Guest Customer",
+          customerName: user?.fullName || "Yatris",
           products: productNames,
           items: JSON.stringify(items.map(item => ({ id: item.id, title: item.title, quantity: item.quantity })))
         }
       });
 
-      const customerName = user?.fullName || "Guest Customer";
+      const customerName = user?.fullName || "Yatris";
       const customerPhone = user?.phoneNumber || "";
 
       await initiatePayment(
@@ -74,16 +77,15 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
         customerEmail,
         customerPhone,
         async (paymentId) => {
-          // toast.success(`Payment successful! Payment ID: ${paymentId}`); // Removed per request
-
+          // Check if any item is an exam dump for both email and success popup
+          const examDumps = items.filter(item => item.downloadUrl);
+          
           // Send Confirmation Email
           if (customerEmail) {
             try {
-              // Check if any item is an exam dump
-              const examDumps = items.filter(item => item.downloadUrl);
               console.log("🛒 Purchase Items:", JSON.stringify(items.map(i => ({ title: i.title, hasUrl: !!i.downloadUrl }))));
               console.log("📦 Detected Exam Dumps:", examDumps.length);
-              
+
               if (examDumps.length > 0) {
                 // Send Exam Dump Email
                 console.log("📧 Sending Exam Dump email to:", customerEmail);
@@ -92,13 +94,13 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                 console.log("🔗 Using download URL:", firstDump.downloadUrl);
 
                 const emailHtml = getExamDumpPurchaseEmail(
-                  customerName, 
-                  firstDump.title, 
-                  `₹${totalPrice.toLocaleString("en-IN")}`, 
-                  firstDump.downloadUrl!, 
+                  customerName,
+                  firstDump.title,
+                  `₹${totalPrice.toLocaleString("en-IN")}`,
+                  firstDump.downloadUrl!,
                   paymentId
                 );
-                
+
                 const emailResult = await sendEmail({
                   to: customerEmail,
                   subject: "Your Exam Dump Download Link - Yatri Cloud",
@@ -112,7 +114,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                 // Send Standard Product Email
                 console.log("📧 Sending Standard Product email to:", customerEmail);
                 const emailHtml = getProductPurchaseEmail(customerName, productNames, `₹${totalPrice.toLocaleString("en-IN")}`, paymentId);
-                
+
                 const emailResult = await sendEmail({
                   to: customerEmail,
                   subject: "Order Confirmation - Yatri Cloud",
@@ -123,13 +125,14 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                   throw new Error(emailResult.error || "Email delivery failed");
                 }
               }
-              // toast.success("Confirmation email sent!"); // Removed per request
             } catch (emailErr) {
               console.error("Failed to send order email:", emailErr);
               toast.error("Payment successful, but failed to send email.");
             }
           }
 
+          setPurchasedDumps(examDumps);
+          setIsSuccessModalOpen(true);
           clearCart();
           setIsProcessing(false);
         },
@@ -146,6 +149,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
   };
 
   return (
+    <>
     <Sheet>
       <SheetTrigger asChild>
         {trigger || (
@@ -271,9 +275,9 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                   <div className="space-y-2 p-3 bg-secondary/30 rounded-lg border border-border/50">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Order Delivery Email</p>
                     <div className="flex flex-col gap-1">
-                      <input 
-                        type="email" 
-                        placeholder="your@email.com" 
+                      <input
+                        type="email"
+                        placeholder="your@email.com"
                         className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                         value={guestEmail}
                         onChange={(e) => setGuestEmail(e.target.value)}
@@ -315,6 +319,41 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
         </div>
       </SheetContent>
     </Sheet>
+
+    <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-green-600">Payment Successful!</DialogTitle>
+          <DialogDescription>
+            Your order has been processed successfully. 
+            {purchasedDumps.length > 0 ? "You can access your exam dumps below." : "A confirmation email has been sent to you."}
+          </DialogDescription>
+        </DialogHeader>
+        
+        {purchasedDumps.length > 0 && (
+          <div className="space-y-4 my-4">
+            <p className="text-sm font-semibold">Purchased Exam Dumps:</p>
+            {purchasedDumps.map((dump, idx) => (
+              <div key={idx} className="p-3 bg-secondary/30 rounded-lg border border-border flex flex-col gap-2">
+                <p className="text-sm font-medium">{dump.title}</p>
+                <Button asChild size="sm" className="w-full">
+                  <a href={dump.downloadUrl} target="_blank" rel="noopener noreferrer">
+                    Access Exam Dump
+                  </a>
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button onClick={() => setIsSuccessModalOpen(false)} className="w-full sm:w-auto">
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
