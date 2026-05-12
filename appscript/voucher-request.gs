@@ -53,7 +53,8 @@ function doPost(e) {
     
     // 2. Optional: Create/Append to provider-specific sheets (Subsets)
     // Extract provider name for sheet tab (e.g., "AWS", "Microsoft")
-    var providerName = data.provider.split(" ")[0].replace(/[^a-zA-Z0-9]/g, ""); 
+    // If it's a custom provider, we'll clean up the name to be a valid sheet tab name
+    var providerName = data.provider.split("(")[0].trim().substring(0, 30).replace(/[^a-zA-Z0-9 ]/g, ""); 
     var providerSheet = ss.getSheetByName(providerName) || ss.insertSheet(providerName);
     
     if (providerSheet.getLastRow() === 0) {

@@ -44,13 +44,10 @@ const RequestVoucher = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [exams, setExams] = useState([""]);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    whatsapp: "",
     provider: "",
     reason: ""
   });
+  const [customProvider, setCustomProvider] = useState("");
 
   const addExam = () => setExams([...exams, ""]);
   const removeExam = (index: number) => {
@@ -80,10 +77,16 @@ const RequestVoucher = () => {
       return;
     }
 
+    if (formData.provider === "Other" && !customProvider.trim()) {
+      toast.error("Please enter the provider name");
+      return;
+    }
+
     setIsLoading(true);
     try {
       await submitVoucherRequest({
         ...formData,
+        provider: formData.provider === "Other" ? customProvider : formData.provider,
         exams: validExams
       });
       setIsSubmitted(true);
@@ -230,6 +233,30 @@ const RequestVoucher = () => {
                         </div>
                       </div>
 
+                      <AnimatePresence>
+                        {formData.provider === "Other" && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-2 overflow-hidden"
+                          >
+                            <Label htmlFor="customProvider" className="text-sm font-semibold flex items-center gap-2">
+                              Custom Provider Name <span className="text-primary">*</span>
+                            </Label>
+                            <Input
+                              id="customProvider"
+                              placeholder="e.g. Red Hat, LPI, Oracle, etc."
+                              required
+                              value={customProvider}
+                              onChange={(e) => setCustomProvider(e.target.value)}
+                              className="bg-background/50 border-border/50 focus:border-primary h-12 px-4 rounded-xl transition-all"
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       {/* Dynamic Exam Fields */}
                       <div className="space-y-4">
                         <Label className="text-sm font-semibold flex items-center justify-between">
@@ -365,7 +392,7 @@ const RequestVoucher = () => {
                 <h2 className="text-4xl font-bold mb-6">Request Received!</h2>
                 <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
                   Thank you for sharing your journey with us, <span className="text-primary font-semibold">{formData.fullName}</span>. 
-                  We've received your request for <span className="text-foreground font-semibold">{formData.provider}</span> vouchers.
+                  We've received your request for <span className="text-foreground font-semibold">{formData.provider === "Other" ? customProvider : formData.provider}</span> vouchers.
                 </p>
                 
                 <div className="bg-secondary/30 border border-border rounded-3xl p-8 mb-12 text-left">
