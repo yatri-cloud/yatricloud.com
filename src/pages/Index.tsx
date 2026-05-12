@@ -21,10 +21,10 @@ const Index = () => {
       <main>
         <HeroSection />
         <CertificationFlowSection />
+        <VoucherPromoSection />
         <CurriculumSection />
         <LatestExamDumpsSection />
         <TrustSection />
-        <VoucherPromoSection />
         <HomeReviewsSection />
         <InstructorSection />
         <FAQSection />
