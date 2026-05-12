@@ -6,6 +6,7 @@ import CertificationFlowSection from "@/components/sections/CertificationFlowSec
 import InstructorSection from "@/components/sections/InstructorSection";
 import { TrustSection } from "@/components/TrustSection";
 import { HomeReviewsSection } from "@/components/sections/HomeReviewsSection";
+import { VoucherPromoSection } from "@/components/sections/VoucherPromoSection";
 import FAQSection from "@/components/sections/FAQSection";
 import CommunitySection from "@/components/sections/CommunitySection";
 import Footer from "@/components/sections/Footer";
@@ -23,6 +24,7 @@ const Index = () => {
         <CurriculumSection />
         <LatestExamDumpsSection />
         <TrustSection />
+        <VoucherPromoSection />
         <HomeReviewsSection />
         <InstructorSection />
         <FAQSection />

@@ -6,6 +6,8 @@ export interface VoucherRequestData {
   fullName: string;
   email: string;
   whatsapp: string;
+  contactNumber?: string;
+  country: string;
   provider: string;
   exams: string[];
   reason?: string;

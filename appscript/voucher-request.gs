@@ -26,12 +26,14 @@ function doPost(e) {
         "Timestamp", 
         "Full Name", 
         "Email", 
-        "WhatsApp/Contact", 
+        "WhatsApp Number",
+        "Secondary Contact",
+        "Country",
         "Exam Provider", 
         "Exams Requested", 
         "Reason/Message"
       ]);
-      masterSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#f3f3f3");
+      masterSheet.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#f3f3f3");
     }
     
     // Prepare the data row
@@ -43,6 +45,8 @@ function doPost(e) {
       data.fullName,
       data.email,
       data.whatsapp,
+      data.contactNumber || "N/A",
+      data.country || "N/A",
       data.provider,
       examsString,
       data.reason || "N/A"
@@ -58,10 +62,10 @@ function doPost(e) {
     var providerSheet = ss.getSheetByName(providerName) || ss.insertSheet(providerName);
     
     if (providerSheet.getLastRow() === 0) {
-      providerSheet.appendRow(["Timestamp", "Full Name", "Email", "Exams", "Reason"]);
-      providerSheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#e6f3ff");
+      providerSheet.appendRow(["Timestamp", "Full Name", "Email", "Country", "Exams", "Reason"]);
+      providerSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#e6f3ff");
     }
-    providerSheet.appendRow([new Date(), data.fullName, data.email, examsString, data.reason || "N/A"]);
+    providerSheet.appendRow([new Date(), data.fullName, data.email, data.country || "N/A", examsString, data.reason || "N/A"]);
 
     // Return success response
     return ContentService.createTextOutput(JSON.stringify({

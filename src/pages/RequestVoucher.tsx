@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Heart, 
+  Ticket, 
   Send, 
   Plus, 
   Trash2, 
   CheckCircle2, 
-  Sparkles, 
-  Cloud, 
+  BadgeCheck, 
+  Globe, 
   GraduationCap, 
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { submitVoucherRequest } from "@/lib/voucher-api";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { HomeReviewsSection } from "@/components/sections/HomeReviewsSection";
 
 const PROVIDERS = [
   "AWS (Amazon Web Services)",
@@ -51,6 +53,8 @@ const RequestVoucher = () => {
     fullName: "",
     email: "",
     whatsapp: "",
+    contactNumber: "",
+    country: "",
     provider: "",
     reason: ""
   });
@@ -135,14 +139,14 @@ const RequestVoucher = () => {
                     transition={{ delay: 0.3, type: "spring" }}
                     className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6"
                   >
-                    <Heart className="w-4 h-4 fill-current" />
-                    <span>Invest in Your Future, We've Got Your Back</span>
+                    <Ticket className="w-4 h-4" />
+                    <span>Your Potential is Priceless</span>
                   </motion.div>
                   
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-tight">
-                    Financial barriers shouldn't <br />
+                    Certification should <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-indigo-600">
-                      stop your growth.
+                      be for everyone.
                     </span>
                   </h1>
                   
@@ -217,6 +221,34 @@ const RequestVoucher = () => {
                             required
                             value={formData.whatsapp}
                             onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                            className="bg-background/50 border-border/50 focus:border-primary h-12 px-4 rounded-xl transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="contactNumber" className="text-sm font-semibold flex items-center gap-2">
+                            Secondary Contact Number (Optional)
+                          </Label>
+                          <Input
+                            id="contactNumber"
+                            placeholder="e.g. +91 9876543211"
+                            value={formData.contactNumber}
+                            onChange={(e) => setFormData({...formData, contactNumber: e.target.value})}
+                            className="bg-background/50 border-border/50 focus:border-primary h-12 px-4 rounded-xl transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="country" className="text-sm font-semibold flex items-center gap-2">
+                            Country <span className="text-primary">*</span>
+                          </Label>
+                          <Input
+                            id="country"
+                            placeholder="e.g. India, USA, UK"
+                            required
+                            value={formData.country}
+                            onChange={(e) => setFormData({...formData, country: e.target.value})}
                             className="bg-background/50 border-border/50 focus:border-primary h-12 px-4 rounded-xl transition-all"
                           />
                         </div>
@@ -349,25 +381,9 @@ const RequestVoucher = () => {
                   </div>
                 </div>
 
-                {/* Trust Indicators */}
-                <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
-                  {[
-                    { label: "Community Support", icon: Heart, color: "text-red-500" },
-                    { label: "Verified Partners", icon: ShieldCheck, color: "text-blue-500" },
-                    { label: "Career Focused", icon: GraduationCap, color: "text-amber-500" },
-                    { label: "Global Reach", icon: Cloud, color: "text-indigo-500" }
-                  ].map((item, idx) => (
-                    <motion.div 
-                      key={idx}
-                      whileHover={{ y: -5 }}
-                      className="flex flex-col items-center gap-3 text-center"
-                    >
-                      <div className={`p-3 rounded-2xl bg-white dark:bg-card shadow-lg border border-border/50 ${item.color}`}>
-                        <item.icon className="w-6 h-6" />
-                      </div>
-                      <span className="text-sm font-semibold">{item.label}</span>
-                    </motion.div>
-                  ))}
+                {/* Direct Reviews Section */}
+                <div className="mt-20">
+                  <HomeReviewsSection />
                 </div>
               </motion.div>
             ) : (
@@ -427,7 +443,7 @@ const RequestVoucher = () => {
                     <a href="/">Back to Home</a>
                   </Button>
                   <Button asChild variant="outline" size="lg" className="rounded-2xl h-14 px-8">
-                    <a href="/achievements">Explore Achievements <ChevronRight className="ml-2 w-4 h-4" /></a>
+                    <a href="/reviews">Explore Reviews <ChevronRight className="ml-2 w-4 h-4" /></a>
                   </Button>
                 </div>
               </motion.div>
@@ -436,7 +452,7 @@ const RequestVoucher = () => {
         </div>
       </main>
 
-      <Footer />
+      <Footer simple={true} />
     </div>
   );
 };
