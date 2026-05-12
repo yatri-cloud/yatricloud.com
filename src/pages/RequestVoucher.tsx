@@ -44,6 +44,10 @@ const RequestVoucher = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [exams, setExams] = useState([""]);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    whatsapp: "",
     provider: "",
     reason: ""
   });
