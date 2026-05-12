@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ExternalLink, BookOpen, FileText, Video, Download, Globe } from "lucide-react";
+import { ExternalLink, BookOpen, FileText, Video, Download, Globe, Sparkles } from "lucide-react";
 
 interface TeamMember {
   name: string;
@@ -51,6 +51,13 @@ const resources = [
     description: "Offline study resources",
     link: "#",
     color: "from-amber-500 to-orange-500",
+  },
+  {
+    icon: Sparkles,
+    title: "Voucher Request",
+    description: "Request discounted exam vouchers",
+    link: "/requestvoucher",
+    color: "from-blue-600 to-indigo-600",
   },
 ];
 

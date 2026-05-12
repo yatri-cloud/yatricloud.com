@@ -59,6 +59,7 @@ import ExamDumps from "./pages/ExamDumps";
 import AdminExamDumps from "./pages/admin/AdminExamDumps";
 import AdminAddExamDump from "./pages/admin/AdminAddExamDump";
 import AdminEditExamDump from "./pages/admin/AdminEditExamDump";
+import RequestVoucher from "./pages/RequestVoucher";
 
 
 import TrainerCreateCourse from "@/pages/trainer/TrainerCreateCourse";
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/feedback" element={<Review />} />
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/creator" element={<BecomeTrainer />} />
+              <Route path="/requestvoucher" element={<RequestVoucher />} />
 
               {/* ... inside Routes ... */}
               <Route path="/createevent" element={<CreateEvent />} />
