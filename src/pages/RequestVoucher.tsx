@@ -33,10 +33,13 @@ const PROVIDERS = [
   "AWS (Amazon Web Services)",
   "Microsoft Azure",
   "Google Cloud (GCP)",
+  "GitHub",
   "Oracle Cloud",
-  "HashiCorp",
   "Salesforce",
-  "CompTIA",
+  "ServiceNow",
+  "OpenAI",
+  "HashiCorp Certified",
+  "Kubernetes Certified",
   "Other"
 ];
 
@@ -167,7 +170,7 @@ const RequestVoucher = () => {
                         />
                       </div>
                       <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center text-secondary-foreground border border-border">
-                        <Sparkles className="w-6 h-6" />
+                        <CheckCircle2 className="w-6 h-6" />
                       </div>
                     </div>
 
@@ -401,7 +404,6 @@ const RequestVoucher = () => {
                 
                 <div className="bg-secondary/30 border border-border rounded-3xl p-8 mb-12 text-left">
                   <h3 className="font-bold mb-4 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
                     What happens next?
                   </h3>
                   <ul className="space-y-4 text-sm text-muted-foreground">
