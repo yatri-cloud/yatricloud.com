@@ -335,7 +335,7 @@ export const CertificationFlowSection = () => {
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (step.action?.isPopup && window.Calendly) {
-                                  window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/30min' });
+                                  window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
                                 } else if (step.action?.url?.startsWith('#')) {
                                   const element = document.querySelector(step.action.url);
                                   if (element) {
@@ -396,7 +396,7 @@ export const CertificationFlowSection = () => {
               >
                 <div
                   className="calendly-inline-widget w-full"
-                  data-url="https://calendly.com/yatricloud/30min?hide_gdpr_banner=1"
+                  data-url="https://calendly.com/yatricloud/40min?hide_gdpr_banner=1"
                   style={{ minWidth: "320px", height: "700px" }}
                 />
               </motion.div>

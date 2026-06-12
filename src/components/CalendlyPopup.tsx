@@ -37,7 +37,7 @@ export const CalendlyPopup = () => {
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
         if (window.Calendly) {
-            window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/30min' });
+            window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
         }
     };
 

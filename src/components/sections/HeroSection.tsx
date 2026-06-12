@@ -55,7 +55,7 @@ export const HeroSection = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   if (window.Calendly) {
-                    window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/30min' });
+                    window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
                   }
                 }}
                 whileHover={{ scale: 1.05, y: -3 }}
@@ -242,7 +242,7 @@ export const HeroSection = () => {
                           onClick={(e) => {
                             e.preventDefault();
                             if (window.Calendly) {
-                              window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/30min' });
+                              window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
                             }
                           }}
                           whileHover={{ x: 5 }}

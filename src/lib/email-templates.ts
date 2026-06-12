@@ -49,7 +49,7 @@ const BASE_TEMPLATE = (content: string, title: string) => `
 
       <div style="margin-top: 15px;">
         <p style="margin: 5px 0;">Join Yatri Cloud Community: <a href="https://community.yatricloud.com" style="color: ${COLORS.primary}; text-decoration: none; font-weight: bold;">community.yatricloud.com</a></p>
-        <p style="margin: 5px 0; color: #dc2626; font-weight: bold;">🔥 Special Offer: <a href="https://calendly.com/yatricloud/30min" style="color: #dc2626; text-decoration: underline;">Get 50% OFF on AWS Exam</a></p>
+        <p style="margin: 5px 0; color: #dc2626; font-weight: bold;">🔥 Special Offer: <a href="https://calendly.com/yatricloud/40min" style="color: #dc2626; text-decoration: underline;">Get 50% OFF on AWS Exam</a></p>
       </div>
     </div>
   </div>
