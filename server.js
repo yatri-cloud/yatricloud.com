@@ -540,7 +540,9 @@ app.post('/api/chat', async (req, res) => {
     const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434';
 
     // Create a system prompt for better formatting
-    const systemPrompt = `You are Yatri AI, a friendly assistant for Yatri Cloud.
+    const systemPrompt = context && (context.includes("Mermaid") || context.includes("diagram"))
+      ? `${context}\n\n### USER QUESTION:\n${message}`
+      : `You are Yatri AI, a friendly assistant for Yatri Cloud.
 Your goal is to explain technical concepts clearly and help users with Yatri Cloud events and courses.
 
 ### INSTRUCTIONS:

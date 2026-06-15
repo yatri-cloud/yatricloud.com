@@ -12,7 +12,7 @@ const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434';
 
 app.post('/api/chat', async (req, res) => {
     try {
-        const { message } = req.body;
+        const { message, context } = req.body;
 
         if (!message || typeof message !== 'string') {
             return res.status(400).json({ error: 'Message is required' });
@@ -24,7 +24,7 @@ app.post('/api/chat', async (req, res) => {
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
 
-        const systemPrompt = `You are Yatri AI, a friendly assistant for Yatri Cloud.
+        const systemPrompt = context ? `${context}\n\n### USER QUESTION:\n${message}` : `You are Yatri AI, a friendly assistant for Yatri Cloud.
 Your goal is to explain technical concepts clearly.
 
 ### INSTRUCTIONS:
