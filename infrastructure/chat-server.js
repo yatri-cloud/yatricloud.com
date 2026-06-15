@@ -49,6 +49,7 @@ ${message}`;
                 model: 'gemma3',
                 prompt: systemPrompt,
                 stream: true,
+                keep_alive: -1, // Keep model loaded in memory indefinitely to prevent timeouts
             }),
         });
 

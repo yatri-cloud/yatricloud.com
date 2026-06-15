@@ -571,6 +571,7 @@ ${message}`;
         model: req.body.model || 'gemma3',
         prompt: systemPrompt,
         stream: true, // Enable streaming
+        keep_alive: -1, // Keep model loaded in memory indefinitely to prevent timeouts
       }),
     });
 
