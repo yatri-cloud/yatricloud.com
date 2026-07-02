@@ -3,6 +3,8 @@ import HeroSection from "@/components/sections/HeroSection";
 import CurriculumSection from "@/components/sections/CurriculumSection";
 import { LatestExamDumpsSection } from "@/components/sections/LatestExamDumpsSection";
 import CertificationFlowSection from "@/components/sections/CertificationFlowSection";
+import { IndustryLeadersSection } from "@/components/sections/IndustryLeadersSection";
+import { RecognitionsSection } from "@/components/sections/RecognitionsSection";
 import InstructorSection from "@/components/sections/InstructorSection";
 import { TrustSection } from "@/components/TrustSection";
 import { HomeReviewsSection } from "@/components/sections/HomeReviewsSection";
@@ -23,10 +25,12 @@ const Index = () => {
         <CertificationFlowSection />
         <VoucherPromoSection />
         <CurriculumSection />
+        <IndustryLeadersSection />
         <LatestExamDumpsSection />
         <TrustSection />
         <HomeReviewsSection />
         <InstructorSection />
+        <RecognitionsSection />
         <FAQSection />
         <CommunitySection />
       </main>
