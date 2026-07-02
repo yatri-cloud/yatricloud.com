@@ -16,6 +16,7 @@ import CertifiedYatris from "./pages/CertifiedYatris";
 import Achievements from "./pages/Achievements";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
+import Community from "./pages/Community";
 import Udemy from "./pages/Udemy";
 import YatriStore from "./pages/YatriStore";
 import AddProduct from "./pages/AddProduct";
@@ -86,6 +87,7 @@ const App = () => (
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/events" element={<Events />} />
               <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/community" element={<Community />} />
               <Route path="/udemy" element={<Udemy />} />
               <Route path="/yatristore" element={<YatriStore />} />
               <Route path="/examdumps" element={<ExamDumps />} />
