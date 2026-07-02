@@ -328,14 +328,16 @@ const MentorServiceDetail = () => {
           setSubmitting(false);
         },
       });
-      return; // openMentorshipCheckout owns setSubmitting from here
+      return;
     } catch {
       toast({
         title: "Something went wrong",
         description: "We could not start your booking. Please try again.",
       });
     } finally {
-      // Paid flow returns early; this only runs for free flow and errors.
+      // Runs for every path, including right after the Razorpay modal
+      // opens. That is intended: the modal overlays the page, and its
+      // success and failure callbacks settle the flow from there.
       setSubmitting(false);
     }
   };

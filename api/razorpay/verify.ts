@@ -107,6 +107,103 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           body: JSON.stringify({ status: 'completed' }),
         });
       }
+
+      // ── Mentorship: flip the paid pending booking to confirmed.
+      //    This endpoint (service role) is the ONLY writer allowed to do it.
+      if (booking_id) {
+        try {
+          const bookingPatch = await fetch(
+            `${supabaseUrl}/rest/v1/mentorship_bookings?id=eq.${encodeURIComponent(
+              booking_id
+            )}&status=eq.pending`,
+            {
+              method: 'PATCH',
+              headers: {
+                apikey: serviceKey,
+                Authorization: `Bearer ${serviceKey}`,
+                'Content-Type': 'application/json',
+                Prefer: 'return=representation',
+              },
+              body: JSON.stringify({
+                status: 'confirmed',
+                ...(paymentRowId ? { payment_id: paymentRowId } : {}),
+                ...(order_id ? { order_id } : {}),
+              }),
+            }
+          );
+          if (!bookingPatch.ok) {
+            console.error('⚠️ booking confirm failed:', await bookingPatch.text());
+          } else {
+            // Fire-and-forget mentor notification: never affects the verdict.
+            try {
+              const patched = await bookingPatch.json().catch(() => []);
+              const booking = Array.isArray(patched) ? patched[0] : null;
+              if (booking?.mentor_id) {
+                const [privateRes, mentorRes, serviceRes] = await Promise.all([
+                  fetch(
+                    `${supabaseUrl}/rest/v1/mentor_private?mentor_id=eq.${encodeURIComponent(
+                      booking.mentor_id
+                    )}&select=contact_email`,
+                    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+                  ),
+                  fetch(
+                    `${supabaseUrl}/rest/v1/mentors?id=eq.${encodeURIComponent(
+                      booking.mentor_id
+                    )}&select=name`,
+                    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+                  ),
+                  fetch(
+                    `${supabaseUrl}/rest/v1/mentorship_services?id=eq.${encodeURIComponent(
+                      booking.service_id
+                    )}&select=title`,
+                    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+                  ),
+                ]);
+                const contactEmail = (await privateRes.json().catch(() => []))?.[0]?.contact_email;
+                const mentorName = (await mentorRes.json().catch(() => []))?.[0]?.name || 'Mentor';
+                const serviceTitle =
+                  (await serviceRes.json().catch(() => []))?.[0]?.title || 'Mentorship session';
+
+                if (contactEmail) {
+                  const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
+                  const host = req.headers.host;
+                  const slotLine = booking.slot_start
+                    ? `<p style="margin: 5px 0;"><strong>When:</strong> ${new Date(
+                        booking.slot_start
+                      ).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</p>`
+                    : '';
+                  await fetch(`${proto}://${host}/api/send-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      to: contactEmail,
+                      subject: `New booking: ${serviceTitle}`,
+                      html: `
+                        <div style="font-family: 'Segoe UI', Tahoma, sans-serif; color: #1f2937; line-height: 1.6;">
+                          <h2 style="color: #1e3a8a;">New mentorship booking</h2>
+                          <p>Hello ${mentorName},</p>
+                          <p>A new session was just booked and paid on Yatri Cloud.</p>
+                          <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                            <p style="margin: 5px 0;"><strong>Session:</strong> ${serviceTitle}</p>
+                            <p style="margin: 5px 0;"><strong>Yatri:</strong> ${booking.customer_name || ''} (${booking.customer_email || ''})</p>
+                            ${slotLine}
+                          </div>
+                          <p>Please add the meeting link from your dashboard before the session.</p>
+                          <p>Team Yatri Cloud</p>
+                        </div>
+                      `,
+                    }),
+                  });
+                }
+              }
+            } catch (notifyError) {
+              console.error('⚠️ mentor notification failed (ignored):', notifyError);
+            }
+          }
+        } catch (bookingError) {
+          console.error('⚠️ booking confirm errored (payment still verified):', bookingError);
+        }
+      }
     } else {
       console.warn('⚠️ SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set — payment verified but not recorded');
     }
