@@ -1,0 +1,34 @@
+name: Mentorship reminders
+
+# Free tier friendly. Vercel Hobby runs crons only once a day, so this
+# GitHub Actions workflow pings the reminder endpoint every hour. The
+# endpoint is idempotent (per booking flags), so extra calls are harmless.
+#
+# Setup (one time):
+#   Repo Settings -> Secrets and variables -> Actions -> New repository secret
+#     CRON_SECRET   = the same value as the CRON_SECRET env var on Vercel
+#     REMINDERS_URL = https://www.yatricloud.com/api/cron/mentorship-reminders
+#   (REMINDERS_URL may also be set as a repository variable instead of a secret.)
+
+on:
+  schedule:
+    - cron: "0 * * * *" # top of every hour (UTC)
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the reminders endpoint
+        run: |
+          URL="${REMINDERS_URL:-https://www.yatricloud.com/api/cron/mentorship-reminders}"
+          echo "Calling reminders endpoint"
+          code=$(curl -s -o /tmp/out.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" "$URL")
+          echo "HTTP $code"
+          cat /tmp/out.json || true
+          # Do not fail the workflow on a transient non 200; reminders retry next hour.
+          if [ "$code" != "200" ]; then echo "Non 200 response, will try again next hour"; fi
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          REMINDERS_URL: ${{ secrets.REMINDERS_URL }}
