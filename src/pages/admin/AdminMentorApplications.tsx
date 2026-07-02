@@ -164,7 +164,7 @@ const approvalEmailHtml = (name: string) =>
       <p style="margin: 5px 0;"><strong>Your mentor dashboard is ready.</strong></p>
       <p style="margin: 5px 0;">Sign in with the account you applied with and visit <a href="https://yatricloud.com/mentor/dashboard" style="color: #3b82f6; font-weight: bold; text-decoration: none;">yatricloud.com/mentor/dashboard</a> to set up your services and weekly availability.</p>
     </div>
-    <p>Take your time and make your profile shine. Our team will review everything and publish your profile once your services are ready, so it goes live looking its very best.</p>
+    <p>Take your time and make your profile shine. Once you sign in, add your services and set your availability, then flip your profile to live from your dashboard whenever you are ready.</p>
     <p>We are so glad you are here. Welcome aboard.</p>
     <p style="margin-bottom: 0;">Warm regards,<br><strong>The Yatri Cloud team</strong></p>
   `
@@ -423,7 +423,7 @@ const AdminMentorApplications = () => {
         if (failures.length === 0) {
             toast({
                 title: `${app.name} is now a mentor`,
-                description: "Their draft profile is created and the welcome email is on its way. Publish the profile once their services are ready.",
+                description: "Their mentor account is ready and the welcome email is on its way. They set up services and go live from their own dashboard.",
             });
         } else {
             toast({
@@ -519,7 +519,7 @@ const AdminMentorApplications = () => {
                                 Mentor <span className="gradient-text">Applications</span>
                             </h1>
                             <p className="text-muted-foreground">
-                                Review the people who want to mentor on Yatri Cloud. Approving creates a draft mentor profile you publish once their services are ready.
+                                Review the people who want to mentor on Yatri Cloud. Approving gives them a mentor account they set up and publish themselves.
                             </p>
                         </div>
                     </div>
@@ -775,7 +775,7 @@ const AdminMentorApplications = () => {
 
                             {selected.status === "approved" && selected.mentor_id && (
                                 <p className="rounded-xl border border-brand-100 bg-brand-50/40 p-3 text-sm text-muted-foreground">
-                                    Approved. Their mentor profile lives under Mentors with id {selected.mentor_id}. Publish it once their services are ready.
+                                    Approved. Their mentor account is ready. They can now sign in, set up their services and go live from their own dashboard. You can also find them any time under Mentors.
                                 </p>
                             )}
                         </div>
@@ -820,7 +820,7 @@ const AdminMentorApplications = () => {
                             Approve {approveTarget?.name ?? "this applicant"} as a mentor?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This creates a draft mentor profile from their application, saves their email for booking alerts, and sends them a warm welcome pointing to their dashboard. You publish the profile once their services are ready.
+                            This creates their mentor account from the application, saves their email for booking alerts, and sends them a warm welcome pointing to their dashboard. They add services and go live themselves whenever they are ready.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
