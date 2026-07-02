@@ -54,14 +54,12 @@ export const ContactSection = () => {
             {CONTACT_INFO.map((info) => {
               const Icon = info.icon;
               const inner = (
-                <div className="flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-brand-200">
-                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{info.label}</div>
-                    <div className="mt-0.5 font-medium">{info.value}</div>
+                <div className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-brand-200">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <Icon className="h-4 w-4 text-primary" />
+                    {info.label}
                   </div>
+                  <div className="mt-1.5 font-medium">{info.value}</div>
                 </div>
               );
               return info.href ? (

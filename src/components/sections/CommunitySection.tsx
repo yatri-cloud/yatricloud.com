@@ -329,41 +329,8 @@ export const CommunitySection = () => {
           <p className="text-center text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground mb-8 md:mb-10">
             Certifications we help you master
           </p>
-          {/* Scrolling Company Logos - Two Rows */}
-          <div className="space-y-6 md:space-y-8">
-            {/* First Row - Left to Right */}
-            <Marquee speed="slow" className="py-2 md:py-4">
-              {[...companies, ...companies].map((company, index) => (
-                <div
-                  key={`${company.name}-1-${index}`}
-                  className="flex items-center justify-center px-4 sm:px-8 md:px-12 h-12 sm:h-16 md:h-20 opacity-60 hover:opacity-100 transition-opacity duration-300"
-                >
-                  <img
-                    src={
-                      company.name === 'AWS'
-                        ? (theme === 'dark' ? company.logoLight || company.logo : company.logo)
-                        : company.name === 'GitHub'
-                        ? (theme === 'dark' ? company.logo : (company.logoLight || company.logo))
-                        : company.logo
-                    }
-                    alt={company.name}
-                    className={`h-6 sm:h-8 md:h-12 w-auto object-contain max-w-[120px] sm:max-w-[150px] md:max-w-none opacity-60 hover:opacity-100 transition-opacity ${
-                      company.name === 'GitHub' && theme === 'light' ? 'invert' : ''
-                    }`}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const fallback = document.createElement('span');
-                      fallback.className = 'text-sm sm:text-lg md:text-2xl font-bold text-foreground whitespace-nowrap';
-                      fallback.textContent = company.name;
-                      target.parentElement?.appendChild(fallback);
-                    }}
-                  />
-                </div>
-              ))}
-            </Marquee>
-            
-            {/* Second Row - Right to Left */}
+          {/* Scrolling Company Logos - single row, right to left */}
+          <div>
             <Marquee speed="normal" direction="right" className="py-2 md:py-4">
               {[...companies, ...companies].map((company, index) => (
                 <div
