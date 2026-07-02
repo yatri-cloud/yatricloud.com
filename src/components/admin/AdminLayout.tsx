@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink, Globe } from "lucide-react";
+import { Award, Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Accordion,
@@ -31,6 +31,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
             icon: Globe,
             items: [
                 { name: "Site & Homepage", path: "/admin/site", icon: Globe },
+                { name: "Certifications", path: "/admin/certifications", icon: Award },
             ],
         },
         {

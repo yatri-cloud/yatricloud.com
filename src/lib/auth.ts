@@ -196,6 +196,15 @@ function friendly(message: string): string {
 
 // Keep the mirror in sync with real session state (login/logout/refresh/expiry)
 supabase.auth.onAuthStateChange((event, session) => {
+  if (event === "PASSWORD_RECOVERY") {
+    // The user clicked a reset link in their email. Supabase may land them on
+    // any whitelisted page (often the site root), so always take them to the
+    // set new password screen.
+    if (!window.location.pathname.startsWith("/reset-password")) {
+      window.location.replace("/reset-password");
+    }
+    return;
+  }
   if (event === "SIGNED_OUT" || !session) {
     setMirror(null);
   } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
