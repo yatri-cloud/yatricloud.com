@@ -63,6 +63,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { listAllTrainings, deleteTraining, updateTrainingSchedule } from "@/lib/training-api";
 
 interface Course {
     id: string;
@@ -100,8 +101,6 @@ export default function AdminTrainingList() {
     const [scheduleTime, setScheduleTime] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
-
     useEffect(() => {
         fetchCourses();
     }, []);
@@ -128,19 +127,11 @@ export default function AdminTrainingList() {
     const fetchCourses = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "getAllTraining" })
-            });
-            const result = await response.json();
-            if (result.success) {
-                setCourses(result.structure);
-            } else {
-                toast.error("Failed to load training: " + result.error);
-            }
-        } catch (e) {
+            const structure = await listAllTrainings();
+            setCourses(structure as unknown as Course[]);
+        } catch (e: any) {
             console.error(e);
-            toast.error("Failed to connect to backend");
+            toast.error("Failed to load training: " + (e?.message || "Failed to connect to backend"));
         } finally {
             setIsLoading(false);
         }
@@ -151,20 +142,12 @@ export default function AdminTrainingList() {
 
         toast.loading("Deleting training...");
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "deleteTraining", id: courseId })
-            });
-            const result = await response.json();
-            if (result.success) {
-                toast.dismiss();
-                toast.success("Training deleted successfully");
-                fetchCourses();
-            } else {
-                toast.error("Delete failed: " + result.error);
-            }
-        } catch (e) {
-            toast.error("Network error during deletion");
+            await deleteTraining(courseId);
+            toast.dismiss();
+            toast.success("Training deleted successfully");
+            fetchCourses();
+        } catch (e: any) {
+            toast.error("Delete failed: " + (e?.message || "Network error during deletion"));
         }
     };
 
@@ -177,27 +160,14 @@ export default function AdminTrainingList() {
         setIsUpdating(true);
         try {
             const formattedDate = format(scheduleDate, "yyyy-MM-dd");
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({
-                    action: "updateTrainingSchedule",
-                    id: selectedCourse.id,
-                    startDate: formattedDate,
-                    startTime: scheduleTime
-                })
-            });
-            const result = await response.json();
-            if (result.success) {
-                toast.success("Schedule updated & Meet link generated!");
-                // Update local state
-                setSelectedCourse(prev => prev ? ({ ...prev, meetLink: result.meetLink, startDate: formattedDate, startTime: scheduleTime }) : null);
-                // Refresh list
-                fetchCourses();
-            } else {
-                toast.error("Failed: " + result.error);
-            }
-        } catch (e) {
-            toast.error("Network error");
+            const result = await updateTrainingSchedule(selectedCourse.id, formattedDate, scheduleTime);
+            toast.success("Schedule updated & Meet link generated!");
+            // Update local state
+            setSelectedCourse(prev => prev ? ({ ...prev, meetLink: result.meetLink, startDate: formattedDate, startTime: scheduleTime }) : null);
+            // Refresh list
+            fetchCourses();
+        } catch (e: any) {
+            toast.error("Failed: " + (e?.message || "Network error"));
         } finally {
             setIsUpdating(false);
         }

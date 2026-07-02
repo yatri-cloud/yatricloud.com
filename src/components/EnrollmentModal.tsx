@@ -14,6 +14,7 @@ import { initiateRazorpayPayment, formatEventPrice } from "@/lib/razorpay";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
 import { getStoredUser, isProfileComplete } from "@/lib/yatris-api";
+import { enroll } from "@/lib/training-api";
 import { Country } from "country-state-city";
 
 interface EnrollmentModalProps {
@@ -50,8 +51,6 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
         country: "",
         linkedIn: "",
     });
-
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
 
     // Helper to resolve country ISO code to country name
     const getCountryName = (code: string): string => {
@@ -117,56 +116,35 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
 
     const submitEnrollment = async (paymentData?: any) => {
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "enrollUser",
-                    trainingId: courseId,
-                    trainingName: courseName,
-                    userName: formData.name,
-                    userEmail: formData.email,
-                    userPhone: formData.phone,
-                    city: formData.city,
-                    state: formData.state,
-                    country: formData.country,
-                    linkedIn: formData.linkedIn,
-                    status: 'Enrolled',
-                    paymentStatus: isPaid ? 'Paid' : 'Free',
-                    paymentId: paymentData?.paymentId || '',
-                    amount: paymentData?.amount || '',
-                    currency: currency || 'USD'
-                })
+            await enroll({
+                trainingId: courseId,
+                email: formData.email,
+                paymentId: paymentData?.paymentId || undefined,
             });
-            const result = await response.json();
 
-            if (result.success) {
-                const emailHtml = `
-                    <div style="font-family: sans-serif; padding: 20px;">
-                        <h1>Welcome to ${courseName}!</h1>
-                        <p>Hi ${formData.name},</p>
-                        <p>You have successfully enrolled in <strong>${courseName}</strong>.</p>
-                        <p>Our team will contact you shortly with the access details.</p>
-                        <br/>
-                        <p>Happy Learning,<br/>Yatri Cloud Team</p>
-                    </div>
-                `;
+            const emailHtml = `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h1>Welcome to ${courseName}!</h1>
+                    <p>Hi ${formData.name},</p>
+                    <p>You have successfully enrolled in <strong>${courseName}</strong>.</p>
+                    <p>Our team will contact you shortly with the access details.</p>
+                    <br/>
+                    <p>Happy Learning,<br/>Yatri Cloud Team</p>
+                </div>
+            `;
 
-                await sendEmail({
-                    to: formData.email,
-                    subject: `Enrollment Confirmed: ${courseName}`,
-                    html: emailHtml
-                });
+            await sendEmail({
+                to: formData.email,
+                subject: `Enrollment Confirmed: ${courseName}`,
+                html: emailHtml
+            });
 
-                toast({ title: "Enrollment Successful!", description: "Welcome aboard! Check your email." });
-                onSuccess();
-                onClose();
-            } else {
-                toast({ title: "Enrollment Failed", description: result.error, variant: "destructive" });
-            }
-        } catch (e) {
+            toast({ title: "Enrollment Successful!", description: "Welcome aboard! Check your email." });
+            onSuccess();
+            onClose();
+        } catch (e: any) {
             console.error(e);
-            toast({ title: "Network Error", variant: "destructive" });
+            toast({ title: "Enrollment Failed", description: e?.message || "Please try again.", variant: "destructive" });
         }
     };
 

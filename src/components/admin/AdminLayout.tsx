@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, BookOpen, LogOut, Bot, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink } from "lucide-react";
+import { Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Accordion,
@@ -50,10 +50,9 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
         {
             id: "admin-tools",
             label: "Other Tools",
-            icon: Bot,
+            icon: Wrench,
             items: [
                 { name: "Udemy Management", path: "/admin/udemy", icon: GraduationCap },
-                { name: "Yatri AI", path: "/admin/ai", icon: Bot },
                 { name: "Store Product", path: "/admin/products/add", icon: Plus },
                 { name: "Exam Dumps", path: "/admin/exam-dumps", icon: List },
                 { name: "Admin Guide", path: "/admin/guide", icon: Info },

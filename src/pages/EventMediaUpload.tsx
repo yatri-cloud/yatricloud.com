@@ -34,11 +34,12 @@ export default function EventMediaUpload() {
 
     useEffect(() => {
         if (slug) {
-            const eventData = getEventBySlug(slug);
-            if (eventData) {
-                setEvent(eventData);
-            }
-            setLoading(false);
+            getEventBySlug(slug).then((eventData) => {
+                if (eventData) {
+                    setEvent(eventData);
+                }
+                setLoading(false);
+            });
         }
     }, [slug]);
 
@@ -124,32 +125,12 @@ export default function EventMediaUpload() {
         setFiles(files.filter(f => f.id !== id));
     };
 
-    const fileToBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const result = reader.result as string;
-                // Remove data:image/jpeg;base64, prefix
-                const base64 = result.split(',')[1];
-                resolve(base64);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
-
     const uploadFile = async (uploadFile: UploadFile) => {
-        if (!event?.driveFolderId) {
-            return { success: false, error: 'Event not configured for uploads' };
-        }
-
         try {
             // Update status to uploading
             setFiles(prev => prev.map(f =>
                 f.id === uploadFile.id ? { ...f, status: 'uploading', progress: 30 } : f
             ));
-
-            const base64Data = await fileToBase64(uploadFile.file);
 
             // Update progress
             setFiles(prev => prev.map(f =>
@@ -157,9 +138,8 @@ export default function EventMediaUpload() {
             ));
 
             const result = await uploadEventMedia(
-                event.driveFolderId,
                 uploadFile.file.name,
-                base64Data,
+                uploadFile.file,
                 uploadFile.file.type
             );
 
@@ -225,23 +205,6 @@ export default function EventMediaUpload() {
                     <h1 className="text-2xl font-bold mb-2">Event Not Found</h1>
                     <p className="text-muted-foreground mb-4">The event you're looking for doesn't exist.</p>
                     <Button onClick={() => navigate('/events')}>Back to Events</Button>
-                </div>
-            </div>
-        );
-    }
-
-    if (!event.driveFolderId) {
-        return (
-            <div className="min-h-screen flex items-center justify-center p-4">
-                <div className="text-center max-w-md">
-                    <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold mb-2">Upload Not Available</h1>
-                    <p className="text-muted-foreground mb-4">
-                        This event is not configured to accept media uploads.
-                    </p>
-                    <Button onClick={() => navigate(`/events/${slug}`)}>
-                        View Event Details
-                    </Button>
                 </div>
             </div>
         );

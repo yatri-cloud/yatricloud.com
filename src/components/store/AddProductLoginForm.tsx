@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
+import { signInWithPassword, signOut } from "@/lib/auth";
 
 interface LoginFormData {
   email: string;
@@ -35,70 +36,31 @@ const AddProductLoginForm = ({ onLoginSuccess }: AddProductLoginFormProps) => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const webhookUrl = import.meta.env.VITE_ADDPRODUCT_CREDENTIALS_WEBHOOK_URL || "";
-
-      if (!webhookUrl) {
-        throw new Error("Authentication service not configured. Please check environment variables.");
-      }
-
-      console.log("🔐 Attempting Yatri Store login for:", data.email);
-      console.log("🌐 Webhook URL:", webhookUrl);
-
-      // Prefer URL-encoded form data for Apps Script compatibility
-      const formData = new URLSearchParams();
-      formData.append("email", data.email);
-      formData.append("password", data.password);
-
-      let response: Response;
-      try {
-        response = await fetch(webhookUrl, {
-          method: "POST",
-          mode: "cors",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: formData.toString(),
-        });
-      } catch (corsError) {
-        console.warn("⚠️ Form data CORS failed, trying JSON:", corsError);
-        response = await fetch(webhookUrl, {
-          method: "POST",
-          mode: "cors",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: data.email,
-            password: data.password,
-          }),
-        });
-      }
-
-      if (!response || !response.ok) {
-        throw new Error(`HTTP error! status: ${response?.status || "unknown"}`);
-      }
-
-      const result = await response.json();
-      console.log("✅ Yatri Store login response:", result);
-
-      if (result.success) {
-        // Store authentication token in sessionStorage
-        sessionStorage.setItem("yatri_store_auth_token", result.token || "authenticated");
-        sessionStorage.setItem("yatri_store_auth_email", data.email);
-
-        toast({
-          title: "Success!",
-          description: "Yatri Store admin login successful",
-        });
-
-        onLoginSuccess();
-      } else {
+      // Authenticate against Supabase; only admins may access this form.
+      const { user, error } = await signInWithPassword(data.email, data.password);
+      if (error || !user) {
         toast({
           title: "Authentication Failed",
-          description: result.error || "Invalid email or password",
+          description: error || "Invalid email or password",
           variant: "destructive",
         });
+        return;
       }
+
+      if (user.role !== "admin") {
+        await signOut();
+        toast({
+          title: "Access Denied",
+          description: "This area is restricted to admins.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      sessionStorage.setItem("yatri_store_auth_token", "authenticated");
+      sessionStorage.setItem("yatri_store_auth_email", user.email);
+      toast({ title: "Success!", description: "Yatri Store admin login successful" });
+      onLoginSuccess();
     } catch (error: any) {
       console.error("❌ Yatri Store login error:", error);
       toast({

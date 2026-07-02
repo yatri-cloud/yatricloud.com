@@ -1,10 +1,9 @@
 /**
- * Exam Dumps Integration Service
- * Reads: Supabase (`exam_dumps` table) when VITE_USE_SUPABASE, else legacy proxy.
- * Writes: legacy Apps Script path until the admin-auth swap lands.
+ * Exam Dumps service — Supabase `exam_dumps` table.
+ * Reads published dumps; admin CRUD is enforced by RLS.
  */
 
-import { supabase, USE_SUPABASE } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export interface ExamDump {
   id: string;
@@ -20,31 +19,29 @@ export interface ExamDump {
 
 
 /**
- * Fetch exam dumps (Supabase-first, legacy fallback).
+ * Fetch published exam dumps.
  */
 export async function fetchExamDumps(): Promise<ExamDump[]> {
-  if (USE_SUPABASE) {
-    const { data, error } = await supabase
-      .from("exam_dumps")
-      .select("id,title,provider,original_price_inr,price_inr,image_url,download_url,file_path,description,status")
-      .eq("status", "published")
-      .order("created_at", { ascending: false });
-    if (!error && data) {
-      return data.map((d) => ({
-        id: d.id,
-        title: d.title || "",
-        provider: d.provider || "",
-        originalPrice: Number(d.original_price_inr ?? 0),
-        price: Number(d.price_inr ?? 0),
-        image: d.image_url || "",
-        downloadUrl: d.download_url || "",
-        description: d.description || "",
-        status: "active",
-      }));
-    }
+  const { data, error } = await supabase
+    .from("exam_dumps")
+    .select("id,title,provider,original_price_inr,price_inr,image_url,download_url,file_path,description,status")
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
+  if (error || !data) {
     console.error("❌ Supabase exam_dumps fetch failed:", error?.message);
+    return [];
   }
-  return [];
+  return data.map((d) => ({
+    id: d.id,
+    title: d.title || "",
+    provider: d.provider || "",
+    originalPrice: Number(d.original_price_inr ?? 0),
+    price: Number(d.price_inr ?? 0),
+    image: d.image_url || "",
+    downloadUrl: d.download_url || "",
+    description: d.description || "",
+    status: "active",
+  }));
 }
 
 /** Map the UI shape → DB columns. */

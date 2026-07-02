@@ -17,7 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { createEventStructure } from "@/lib/event-automation-api";
 import { INDIAN_STATES } from "@/lib/indian-locations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -60,7 +59,6 @@ export default function CreateEvent() {
     const [showCollaborationSelector, setShowCollaborationSelector] = useState(true);
     const [step, setStep] = useState<Step>(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isFetchingAddress, setIsFetchingAddress] = useState(false);
     const locationState = useLocation();
     const [eventId, setEventId] = useState<string>(() => crypto.randomUUID());
     const [isEditMode, setIsEditMode] = useState(false);
@@ -178,102 +176,6 @@ export default function CreateEvent() {
         }
     };
 
-    const handleFetchAddressFromMap = () => {
-        if (!formData.mapLink) {
-            toast({ title: "No Link Provided", description: "Please paste a Google Maps link first.", variant: "destructive" });
-            return;
-        }
-
-        setIsFetchingAddress(true);
-        // Simulate API delay
-        setTimeout(() => {
-            // Mock logic: Try to parse generic names or just fallback
-            // In a real app, this would call a Maps API proxy
-            const mockAddress = "Nexus Mall, Koramangala, Bangalore, Karnataka 560095";
-            setFormData(prev => ({
-                ...prev,
-                location: mockAddress,
-                city: "bangalore", // Simulating city extraction
-                state: "karnataka" // Simulating state extraction
-            }));
-            setIsFetchingAddress(false);
-            toast({ title: "Address Fetched", description: "Location details updated from Map Link." });
-        }, 1500);
-    };
-
-    const handleGenerateDescription = async () => {
-        if (!formData.eventName) {
-            toast({ title: "Event Name Required", description: "Please enter an event name first.", variant: "destructive" });
-            return;
-        }
-
-        // setIsGeneratingAI(true);
-        setFormData(prev => ({ ...prev, aboutEvent: "" }));
-
-        try {
-            const prompt = `Write a comprehensive and engaging event description for:
-Event Name: ${formData.eventName}
-Date: ${formData.startDate} ${formData.startTime}
-Location: ${formData.location || formData.city}
-Type: ${formData.pricingType}
-Organizer: ${formData.organizerName}
-Brief Summary/Context: ${formData.description || "N/A"}
-
-Include:
-- An exciting introduction
-- Key takeaways/agenda points
-- Why people should attend
-- Call to action for registration
-
-Keep it professional yet enthusiastic. Use markdown formatting.`;
-
-            // Use environment variable for API URL or default
-            const apiUrl = import.meta.env.VITE_OLLAMA_API_URL || 'http://localhost:3001/api/chat';
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: prompt })
-            });
-
-            const reader = response.body?.getReader();
-            const decoder = new TextDecoder();
-            if (!reader) return;
-
-            let fullText = "";
-            let buffer = "";
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value, { stream: true });
-                buffer += chunk;
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || "";
-
-                for (const line of lines) {
-                    const trimmed = line.trim();
-                    if (trimmed.startsWith('data: ')) {
-                        const data = trimmed.slice(6);
-                        if (data === '[DONE]') break;
-                        try {
-                            const parsed = JSON.parse(data);
-                            if (parsed.token) {
-                                fullText += parsed.token;
-                                setFormData(prev => ({ ...prev, aboutEvent: fullText }));
-                            }
-                        } catch (e) { }
-                    }
-                }
-            }
-        } catch (error) {
-            toast({ title: "AI Error", description: "Failed to generate description. Make sure AI server is running.", variant: "destructive" });
-        } finally {
-            // setIsGeneratingAI(false);
-        }
-    };
-
     const getStartISO = () => {
         if (!formData.startDate || !formData.startTime) return "";
         return `${formData.startDate}T${formData.startTime}`;
@@ -337,10 +239,14 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
         };
     };
 
-    const handleSaveDraft = (sectionName: string) => {
+    const handleSaveDraft = async (sectionName: string) => {
         const draftEvent = constructEventObject('draft');
-        saveEvent(draftEvent);
-        toast({ title: "Draft Saved", description: `${sectionName} saved to drafts.` });
+        try {
+            await saveEvent(draftEvent);
+            toast({ title: "Draft Saved", description: `${sectionName} saved to drafts.` });
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message || "Failed to save draft", variant: "destructive" });
+        }
     };
 
     const handleSaveDetail = () => {
@@ -434,56 +340,12 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
         setIsSubmitting(true);
 
         try {
-            const eventDataPayload: any = {
-                eventName: formData.eventName,
-                eventDate: startISO,
-                endDate: endISO,
-                timezone: formData.timezone,
-                state: formData.state,
-                city: formData.city,
-                location: formData.location,
-                mapLink: formData.mapLink,
-                communityLink: formData.communityLink,
-                description: formData.description,
-                aboutEvent: formData.aboutEvent,
-                imageUrl: formData.posterUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop",
-                pricingType: formData.pricingType,
-                price: formData.price && formData.pricingType === 'paid' ? parseFloat(formData.price) : undefined,
-                capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
-                registrationDeadline: formData.registrationDeadline,
-                organizerName: formData.organizerName,
-                organizerEmail: formData.organizerEmail,
-                organizerPhone: formData.organizerPhone,
-                sponsors: formData.noSponsorsRequired ? [] : formData.sponsors,
-                speakers: formData.speakers.map(s => ({
-                    name: s.fullName,
-                    role: "Speaker",
-                    company: s.companyName || "",
-                    bio: s.about,
-                    email: s.email,
-                    phone: s.phone,
-                    imageUrl: s.profileImage || "",
-                    linkedinUrl: s.linkedinUrl
-                }))
-            };
+            const eventStatus = new Date(startISO) < new Date() ? 'past' : 'upcoming';
+            const publishedEvent = constructEventObject(eventStatus);
 
-            const result = await createEventStructure(eventDataPayload);
-
-            if (result.success) {
-                const eventStatus = new Date(startISO) < new Date() ? 'past' : 'upcoming';
-                const publishedEvent = constructEventObject(eventStatus);
-
-                // Add Drive folder ID to the event
-                if (result.eventFolderId) {
-                    publishedEvent.driveFolderId = result.eventFolderId;
-                }
-
-                saveEvent(publishedEvent);
-                toast({ title: "Event Published!", description: `Event is now live on the public ${eventStatus} events page.` });
-                navigate('/admin/events');
-            } else {
-                throw new Error(result.error || "Failed to create event structure");
-            }
+            await saveEvent(publishedEvent);
+            toast({ title: "Event Published!", description: `Event is now live on the public ${eventStatus} events page.` });
+            navigate('/admin/events');
         } catch (error: any) {
             toast({ title: "Error", description: error.message || "Something went wrong", variant: "destructive" });
         } finally {
@@ -521,42 +383,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
             const upcomingEvent = constructEventObject('draft'); // Status is draft until confirmed, but we use isUpcoming flag
             upcomingEvent.isUpcoming = true; // Mark as upcoming event
 
-            // Call API to create backend structure (Sheets/Folders)
-            // This ensures we have a spreadsheet to store submissions in
-            const automationResponse = await createEventStructure({
-                eventName: upcomingEvent.name,
-                eventDate: upcomingEvent.date,
-                state: upcomingEvent.location.state || 'Karnataka',
-                city: upcomingEvent.location.city || 'Bangalore',
-                location: upcomingEvent.location.venue,
-                description: upcomingEvent.description,
-                organizerName: upcomingEvent.organizer?.name,
-                organizerEmail: upcomingEvent.organizer?.email
-            });
-
-            if (automationResponse.success && automationResponse.spreadsheetId) {
-                upcomingEvent.spreadsheetId = automationResponse.spreadsheetId;
-
-                // Add Drive folder ID to the event
-                if (automationResponse.eventFolderId) {
-                    upcomingEvent.driveFolderId = automationResponse.eventFolderId;
-                }
-
-                toast({
-                    title: "Backend Setup Complete",
-                    description: "Google Sheets and Folders created successfully."
-                });
-            } else if (automationResponse.error) {
-                console.error("Automation Error:", automationResponse.error);
-                // We proceed anyway, but warn
-                toast({
-                    title: "Warning",
-                    description: "Event created but backend setup failed. Data will be saved locally only.",
-                    variant: "destructive"
-                });
-            }
-
-            saveEvent(upcomingEvent);
+            await saveEvent(upcomingEvent);
 
             toast({
                 title: "Published as Upcoming!",
@@ -967,27 +794,16 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
 
                                                 <div className="space-y-2">
                                                     <Label>Google Maps Link {formData.lookingForVenue ? <span className="text-muted-foreground font-normal">(Optional)</span> : <span className="text-destructive">*</span>}</Label>
-                                                    <div className="flex gap-2">
-                                                        <div className="relative flex-1">
-                                                            <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                                            <Input
-                                                                value={formData.mapLink}
-                                                                onChange={(e) => setFormData({ ...formData, mapLink: e.target.value })}
-                                                                placeholder="https://maps.google.com/..."
-                                                                className="pl-9 h-10"
-                                                            />
-                                                        </div>
-                                                        <Button
-                                                            variant="secondary"
-                                                            onClick={handleFetchAddressFromMap}
-                                                            disabled={isFetchingAddress || !formData.mapLink}
-                                                            className="shrink-0"
-                                                        >
-                                                            {isFetchingAddress ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
-                                                            Fetch Address
-                                                        </Button>
+                                                    <div className="relative">
+                                                        <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                                        <Input
+                                                            value={formData.mapLink}
+                                                            onChange={(e) => setFormData({ ...formData, mapLink: e.target.value })}
+                                                            placeholder="https://maps.google.com/..."
+                                                            className="pl-9 h-10"
+                                                        />
                                                     </div>
-                                                    <p className="text-[10px] text-muted-foreground">Paste full Google Maps link to auto-fill address details below.</p>
+                                                    <p className="text-[10px] text-muted-foreground">Paste the full Google Maps link, then fill in the address details below.</p>
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -9,9 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/ThemeProvider";
-
-// Placeholder URL - User needs to replace this
-const EXECUTABLE_URL = import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL || "";
+import { supabase } from "@/lib/supabase";
 
 export default function EventFeedback() {
     const { eventName } = useParams();
@@ -46,45 +44,28 @@ export default function EventFeedback() {
             return;
         }
 
-        if (!EXECUTABLE_URL) {
-            toast({
-                title: "Configuration Error",
-                description: "Feedback endpoint not configured. Please contact support.",
-                variant: "destructive"
-            });
-            return;
-        }
-
         setIsSubmitting(true);
 
         try {
-            // Using no-cors mode for Google Apps Script Web App
-            await fetch(EXECUTABLE_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    action: 'submitFeedback',
-                    eventName: displayEventName,
-                    rating,
+            const { error } = await supabase.from("event_feedback").insert({
+                event_name: displayEventName,
+                name: formData.name || null,
+                email: formData.email || null,
+                rating,
+                comments: formData.likes || null,
+                answers: {
                     likes: formData.likes,
                     improvements: formData.improvements,
-                    name: formData.name,
-                    email: formData.email,
                     source: window.location.href,
-                    timestamp: new Date().toISOString()
-                })
+                },
             });
+            if (error) throw error;
 
-            // Since no-cors returns opaque response, we assume success if no network error
             setIsSubmitted(true);
             toast({
                 title: "Feedback Submitted!",
                 description: "Thank you for helping us improve.",
             });
-
         } catch (error) {
             console.error("Submission error:", error);
             toast({

@@ -32,6 +32,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Navbar from "@/components/Navbar";
+import {
+    getCourseContent as apiGetCourseContent,
+    saveCourseContent as apiSaveCourseContent,
+    submitCourseForApproval as apiSubmitCourseForApproval,
+} from "@/lib/training-api";
 
 interface TrainerData {
     trainerId: string;
@@ -88,7 +93,6 @@ export const TrainerCourseEditor = () => {
     const { courseId } = useParams();
     const navigate = useNavigate();
     const { toast } = useToast();
-    const scriptUrl = import.meta.env.VITE_TRAINING_SCRIPT_URL || "";
 
     const [activeTab, setActiveTab] = useState<"curriculum" | "quizzes" | "resources" | "live">("curriculum");
     const [isLoading, setIsLoading] = useState(true);
@@ -140,24 +144,13 @@ export const TrainerCourseEditor = () => {
                 setCourseName(courseId?.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()) || "Course");
             }
 
-            if (!scriptUrl) {
-                console.warn("VITE_TRAINING_SCRIPT_URL not configured. Running in offline mode.");
-                return;
-            }
+            if (!courseId) return;
 
-            const response = await fetch(scriptUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "getCourseContent", courseId }),
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                if (result.modules) setModules(result.modules);
-                if (result.quizzes) setQuizzes(result.quizzes);
-                if (result.resources) setResources(result.resources);
-                if (result.liveSession) setLiveSession(result.liveSession);
-            }
+            const result = await apiGetCourseContent(courseId);
+            if (result.modules) setModules(result.modules);
+            if (result.quizzes) setQuizzes(result.quizzes);
+            if (result.resources) setResources(result.resources);
+            if (result.liveSession) setLiveSession(result.liveSession);
         } catch (error) {
             console.error("Failed to load course content:", error);
         } finally {
@@ -204,39 +197,16 @@ export const TrainerCourseEditor = () => {
     };
 
     const saveCourseContent = async () => {
-        if (!scriptUrl) {
-            toast({ 
-                title: "Draft Saved Locally", 
-                description: "Content saved. Backend URL not configured — connect backend to persist." 
-            });
-            return;
-        }
+        if (!courseId) return;
         try {
             setIsSaving(true);
-            const response = await fetch(scriptUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "saveCourseContent",
-                    courseId,
-                    trainerId: trainerData?.trainerId,
-                    modules,
-                    quizzes,
-                    resources,
-                    liveSession
-                }),
-            });
-            const result = await response.json();
-            if (result.success) {
-                toast({ title: "✅ Progress Saved", description: "All content has been saved to draft." });
-            } else {
-                throw new Error(result.error || "Save failed");
-            }
+            await apiSaveCourseContent({ courseId, modules, resources, liveSession });
+            toast({ title: "✅ Progress Saved", description: "All content has been saved to draft." });
         } catch (error: any) {
-            toast({ 
-                title: "Save Failed", 
+            toast({
+                title: "Save Failed",
                 description: error.message || "Could not connect to backend.",
-                variant: "destructive" 
+                variant: "destructive"
             });
         } finally {
             setIsSaving(false);
@@ -249,28 +219,11 @@ export const TrainerCourseEditor = () => {
             return;
         }
         await saveCourseContent();
-        if (!scriptUrl) {
-            toast({ title: "Submitted Locally", description: "Course submitted. Connect backend to notify admin." });
-            navigate("/trainer/dashboard");
-            return;
-        }
         try {
             setIsSubmitting(true);
-            const res = await fetch(scriptUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "submitCourseForApproval",
-                    courseId,
-                    courseName,
-                    trainerId: trainerData?.trainerId,
-                }),
-            });
-            const result = await res.json();
-            if (result.success) {
-                toast({ title: "🎉 Submitted for Review", description: "Admin will review your course shortly." });
-                navigate("/trainer/dashboard");
-            }
+            await apiSubmitCourseForApproval({ courseId: courseId! });
+            toast({ title: "🎉 Submitted for Review", description: "Admin will review your course shortly." });
+            navigate("/trainer/dashboard");
         } catch {
             toast({ title: "Submission Failed", variant: "destructive" });
         } finally {
@@ -350,8 +303,8 @@ export const TrainerCourseEditor = () => {
                             <h3 className="text-xl font-extrabold capitalize tracking-tight text-primary">{activeTab}</h3>
                             <p className="text-[11px] text-muted-foreground uppercase font-semibold">Organize and manage your content types.</p>
                         </div>
-                        <Button onClick={() => setIsSubmitting(true)} variant="default" className="shadow-lg shadow-primary/20 font-bold">
-                            <CheckCircle className="w-4 h-4 mr-2" /> Submit for Approval
+                        <Button onClick={submitForApproval} disabled={isSubmitting} variant="default" className="shadow-lg shadow-primary/20 font-bold">
+                            <CheckCircle className="w-4 h-4 mr-2" /> {isSubmitting ? "Submitting..." : "Submit for Approval"}
                         </Button>
                     </header>
 

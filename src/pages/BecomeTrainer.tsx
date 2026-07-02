@@ -16,6 +16,7 @@ import {
 import { Country } from "country-state-city";
 import { useGoogleLogin } from "@react-oauth/google";
 import Navbar from "@/components/Navbar";
+import { listProviders, submitTrainerApplication } from "@/lib/training-api";
 
 interface GoogleUser {
     name: string;
@@ -50,18 +51,8 @@ export const BecomeTrainer = () => {
     useEffect(() => {
         const fetchProviders = async () => {
             try {
-                const response = await fetch(
-                    import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({ action: "getProviders" }),
-                    }
-                );
-                const result = await response.json();
-                if (result.success && result.providers) {
-                    setProviders(result.providers);
-                }
+                const result = await listProviders();
+                setProviders(result);
             } catch (e) {
                 console.error("Failed to fetch providers", e);
             }
@@ -140,51 +131,23 @@ export const BecomeTrainer = () => {
         setIsSubmitting(true);
 
         try {
-            // Convert resume to base64 if present
-            let resumeBase64 = "";
-            if (formData.resume) {
-                const reader = new FileReader();
-                resumeBase64 = await new Promise((resolve, reject) => {
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(formData.resume!);
-                });
-            }
+            await submitTrainerApplication({
+                fullName: formData.fullName,
+                email: formData.email,
+                countryCode: formData.countryCode,
+                phoneNumber: formData.phoneNumber,
+                linkedinUrl: formData.linkedinUrl,
+                expertise: formData.expertise,
+                certificationProvider: formData.certificationProvider === "Other"
+                    ? formData.customProvider
+                    : formData.certificationProvider,
+                credentialsLinks: JSON.stringify(formData.credentials.filter(c => c.providerName && c.link)),
+                yearsOfExperience: formData.yearsOfExperience,
+                motivation: formData.motivation,
+                resumeFile: formData.resume,
+            });
 
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8",
-                    },
-                    body: JSON.stringify({
-                        action: "submitTrainerApplication",
-                        fullName: formData.fullName,
-                        email: formData.email,
-                        countryCode: formData.countryCode,
-                        phoneNumber: formData.phoneNumber,
-                        linkedinUrl: formData.linkedinUrl,
-                        expertise: formData.expertise,
-                        certificationProvider: formData.certificationProvider === "Other"
-                            ? formData.customProvider
-                            : formData.certificationProvider,
-                        credentialsLinks: JSON.stringify(formData.credentials.filter(c => c.providerName && c.link)),
-                        yearsOfExperience: formData.yearsOfExperience,
-                        motivation: formData.motivation,
-                        resumeData: resumeBase64,
-                        resumeFileName: formData.resume?.name || "",
-                    }),
-                }
-            );
-
-            const result = await response.json();
-
-            if (result.success) {
-                setIsSubmitted(true);
-            } else {
-                throw new Error(result.error || "Submission failed");
-            }
+            setIsSubmitted(true);
         } catch (error: any) {
             toast({
                 title: "Submission Failed",

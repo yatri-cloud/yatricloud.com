@@ -29,7 +29,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { getEventRegistrations, EventRegistration, cancelRegistration, updateRegistration } from "@/lib/registration-store";
+import type { EventRegistration } from "@/lib/registration-store";
+import { getEventRegistrations, cancelRegistration, updateRegistrationDetails } from "@/lib/events-api";
 import { getEventById } from "@/lib/events-store";
 
 export default function EventRegistrationsList() {
@@ -63,14 +64,14 @@ export default function EventRegistrationsList() {
         }
     }, [eventId]);
 
-    const loadData = () => {
+    const loadData = async () => {
         if (!eventId) return;
         // Get event details
-        const eventData = getEventById(eventId);
+        const eventData = await getEventById(eventId);
         setEvent(eventData);
 
         // Get registrations
-        const regs = getEventRegistrations(eventId);
+        const regs = await getEventRegistrations(eventId);
         setRegistrations(regs);
         setFilteredRegistrations(regs);
     };
@@ -126,9 +127,9 @@ export default function EventRegistrationsList() {
         a.click();
     };
 
-    const handleDeleteClick = (reg: EventRegistration) => {
+    const handleDeleteClick = async (reg: EventRegistration) => {
         if (confirm(`Are you sure you want to cancel the registration for ${reg.userDetails.name}?`)) {
-            const success = cancelRegistration(reg.id);
+            const success = await cancelRegistration(reg.id);
             if (success) {
                 toast({
                     title: "Registration Cancelled",
@@ -159,10 +160,10 @@ export default function EventRegistrationsList() {
         setIsEditModalOpen(true);
     };
 
-    const handleSaveEdit = () => {
+    const handleSaveEdit = async () => {
         if (!editingRegistration) return;
 
-        const updated = updateRegistration(editingRegistration.id, editForm);
+        const updated = await updateRegistrationDetails(editingRegistration.id, editForm);
         if (updated) {
             toast({
                 title: "Registration Updated",

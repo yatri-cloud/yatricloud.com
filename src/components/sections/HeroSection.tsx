@@ -181,6 +181,8 @@ export const HeroSection = () => {
                   e.preventDefault();
                   if (window.Calendly) {
                     window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
+                  } else {
+                    window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
                   }
                 }}
                 whileHover={reduceMotion ? undefined : { scale: 1.03, y: -2 }}
@@ -309,6 +311,8 @@ export const HeroSection = () => {
                         e.preventDefault();
                         if (window.Calendly) {
                           window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
+                        } else {
+                          window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
                         }
                       }}
                       whileHover={reduceMotion ? undefined : { x: 4 }}

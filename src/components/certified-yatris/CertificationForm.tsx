@@ -1568,23 +1568,23 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     );
   }
 
-  // Handle delete certification
-  // Note: Since certifications are in separate provider sheets, 
-  // deletion would require updating each provider's Apps Script.
-  // For now, we'll show a message that deletion isn't available.
+  // Handle delete certification — removes the user's own row (RLS-enforced).
   const handleDeleteCertification = async (cert: any) => {
     if (!confirm("Are you sure you want to delete this certification?\n\nNote: This action cannot be undone. The certification will be removed from the achievements section.")) {
       return;
     }
 
-    toast({
-      title: "Delete Not Available",
-      description: "Certification deletion requires updating the provider's Apps Script. Please contact support or resubmit with updated information.",
-      variant: "destructive",
-    });
+    const result = await deleteCertification(cert.id);
+    if (result.success) {
+      toast({ title: "Deleted", description: "Your certification has been removed." });
+    } else {
+      toast({
+        title: "Delete Failed",
+        description: result.error || "Could not delete certification. Please try again.",
+        variant: "destructive",
+      });
+    }
 
-    // TODO: Implement delete functionality by calling provider-specific webhook
-    // For now, we'll just reload to show current state
     await loadUserCertifications();
   };
 

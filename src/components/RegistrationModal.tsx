@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { Event } from "@/lib/events-store";
 import { initiateRazorpayPayment, isEventPaid, formatEventPrice } from "@/lib/razorpay";
-import { generateUniqueCode, addRegistration, isUserRegistered, type EventRegistration } from "@/lib/registration-store";
-import { registerForEvent } from "@/lib/registration-api";
+import type { EventRegistration } from "@/lib/registration-store";
+import { createRegistration as apiCreateRegistration } from "@/lib/events-api";
+import { getCachedUser } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
 import { getRegistrationEmail } from "@/lib/email-templates";
@@ -49,10 +50,11 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     });
 
     const isPaid = isEventPaid(event.price);
-    const userId = "user123"; // TODO: Get from auth context
+    const userId = getCachedUser()?.id || "";
 
-    // Check if already registered
-    const alreadyRegistered = isUserRegistered(userId, event.id);
+    // Duplicate registrations are prevented by the DB unique (event_id, email)
+    // constraint; the insert surfaces an error if the Yatri is already registered.
+    const alreadyRegistered = false;
 
     const handleInputChange = (field: keyof FormData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -93,8 +95,6 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
             amount: number;
         }
     ): Promise<EventRegistration> => {
-        // We no longer generate code here, we wait for backend or use a temporary one
-        const tempCode = `PENDING_${Date.now()}`;
         const ticketPrice = typeof event.price === 'string' ? parseFloat(event.price) : (event.price || 0);
 
         // Extract Tech Stack for prefix
@@ -111,13 +111,30 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
         // Clean prefix
         codePrefix = codePrefix.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 10);
 
+        // Insert into Supabase and get the generated registration code.
+        const { registrationCode } = await apiCreateRegistration({
+            eventId: event.id,
+            userId,
+            codePrefix,
+            userDetails: {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                city: formData.city,
+                state: formData.state,
+                country: formData.country,
+                linkedIn: formData.linkedIn || undefined,
+            },
+            paymentId: paymentData?.paymentId,
+        });
+
         const registrationPayload: EventRegistration = {
             id: `reg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             userId,
             eventId: event.id,
             eventSlug: event.slug || event.id,
             eventName: event.name,
-            registrationCode: tempCode, // Will be updated
+            registrationCode,
             registeredAt: new Date().toISOString(),
             status: 'registered',
             userDetails: {
@@ -138,45 +155,6 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
             paymentAmount: paymentData?.amount,
             paymentTimestamp: paymentData ? new Date().toISOString() : undefined,
         };
-
-        // Sync to backend and get REAL code
-        try {
-            const apiResponse = await registerForEvent({
-                userId,
-                eventId: event.id,
-                eventSlug: event.slug || event.id,
-                eventName: event.name,
-                spreadsheetId: event.spreadsheetId,
-                registrationCode: "", // Backend will generate
-                codePrefix: codePrefix, // Pass the prefix!
-                userDetails: registrationPayload.userDetails,
-                ticketType: registrationPayload.ticketType,
-                ticketPrice: registrationPayload.ticketPrice,
-                paymentStatus: registrationPayload.paymentStatus,
-                paymentId: registrationPayload.paymentId,
-                orderId: registrationPayload.orderId,
-                paymentAmount: registrationPayload.paymentAmount,
-                paymentTimestamp: registrationPayload.paymentTimestamp,
-                currency: registrationPayload.currency,
-            });
-
-            if (apiResponse.success && apiResponse.registrationCode) {
-                registrationPayload.registrationCode = apiResponse.registrationCode;
-            } else {
-                console.warn("Backend did not return a code, using fallback/temp");
-            }
-
-        } catch (error) {
-            console.error('Failed to sync registration to backend:', error);
-            // If backend fails, we might still want to save locally with a fallback, 
-            // OR fail the whole process. 
-            // For now, adhering to fail-safe of saving locally, but we need the code...
-            // Let's generate a fallback local code if backend fails so user isn't stuck
-            registrationPayload.registrationCode = `OFFLINE_${generateUniqueCode()}`;
-        }
-
-        // Save to localStorage with final code
-        addRegistration(registrationPayload);
 
         return registrationPayload;
     };

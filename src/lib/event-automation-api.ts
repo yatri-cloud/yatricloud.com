@@ -1,32 +1,32 @@
 /**
- * Event Automation API
- * Handles communication with Google Apps Script for automated event creation
+ * Event Automation API — Supabase edition.
+ *
+ * The legacy Google Apps Script / Drive / Sheets automation is gone. Events now
+ * live entirely in the `events` table, so structure creation is a no-op and media
+ * uploads go to Supabase Storage ("product-images", `events/` prefix).
  */
 
-const EVENT_AUTOMATION_SCRIPT_URL = import.meta.env.VITE_EVENT_AUTOMATION_SCRIPT_URL || '';
+import { uploadEventMediaFile } from "@/lib/events-api";
 
 export interface EventCreationData {
     eventName: string;
     eventDate?: string;
-    state: string; // State name
-    city: string; // City name
+    state: string;
+    city: string;
     location?: string;
     description?: string;
-    aboutEvent?: string; // Detailed about section
+    aboutEvent?: string;
     communityLink?: string;
-    // Pricing
     pricingType?: 'free' | 'paid';
-    price?: number; // Price in INR
-    // Registration details
+    price?: number;
     capacity?: number;
     registrationDeadline?: string;
-    // Organizer information
     organizerName?: string;
     organizerEmail?: string;
     organizerPhone?: string;
     speakers?: {
         name: string;
-        role: string; // Mapped to Title
+        role: string;
         company: string;
         bio?: string;
         email?: string;
@@ -44,143 +44,35 @@ export interface EventCreationData {
 
 export interface EventCreationResponse {
     success: boolean;
-    eventFolderId?: string;
-    eventFolderUrl?: string;
-    spreadsheetId?: string;
-    spreadsheetUrl?: string;
-    subfolders?: {
-        gallery: string;
-        speakers: string;
-        media: string;
-    };
     error?: string;
 }
 
 /**
- * Create event folder and spreadsheet structure
+ * No-op: events are stored in the `events` table (see events-api.saveEvent).
+ * We no longer create Drive folders or spreadsheets.
  */
 export async function createEventStructure(
-    eventData: EventCreationData
+    _eventData: EventCreationData
 ): Promise<EventCreationResponse> {
-    if (!EVENT_AUTOMATION_SCRIPT_URL) {
-        console.warn('VITE_EVENT_AUTOMATION_SCRIPT_URL is not configured');
-        return {
-            success: false,
-            error: 'Event automation is not configured. Please contact administrator.',
-        };
-    }
-
-    try {
-        const response = await fetch(EVENT_AUTOMATION_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify({
-                action: 'createEvent',
-                ...eventData,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result;
-    } catch (error: any) {
-        console.error('Error creating event structure:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to create event structure',
-        };
-    }
+    return { success: true };
 }
 
 /**
- * Delete event folder from Google Drive
+ * No-op: there is no external Drive folder to delete anymore.
  */
 export async function deleteEventFolder(
-    eventFolderId: string
+    _eventFolderId?: string
 ): Promise<{ success: boolean; error?: string }> {
-    if (!EVENT_AUTOMATION_SCRIPT_URL) {
-        console.warn('VITE_EVENT_AUTOMATION_SCRIPT_URL is not configured');
-        return {
-            success: false,
-            error: 'Event automation is not configured. Please contact administrator.',
-        };
-    }
-
-    try {
-        const response = await fetch(EVENT_AUTOMATION_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify({
-                action: 'deleteEvent',
-                eventFolderId: eventFolderId,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result;
-    } catch (error: any) {
-        console.error('Error deleting event folder:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to delete event folder',
-        };
-    }
+    return { success: true };
 }
 
 /**
- * Upload media file to event's media folder
+ * Upload a media file to Supabase Storage under the `events/` prefix.
  */
 export async function uploadEventMedia(
-    eventFolderId: string,
     fileName: string,
-    fileData: string,
+    fileData: File | Blob,
     mimeType: string
-): Promise<{ success: boolean; fileId?: string; fileUrl?: string; error?: string }> {
-    if (!EVENT_AUTOMATION_SCRIPT_URL) {
-        console.warn('VITE_EVENT_AUTOMATION_SCRIPT_URL is not configured');
-        return {
-            success: false,
-            error: 'Event automation is not configured. Please contact administrator.',
-        };
-    }
-
-    try {
-        const response = await fetch(EVENT_AUTOMATION_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify({
-                action: 'uploadMedia',
-                eventFolderId: eventFolderId,
-                fileName: fileName,
-                fileData: fileData,
-                mimeType: mimeType,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result;
-    } catch (error: any) {
-        console.error('Error uploading media:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to upload media',
-        };
-    }
+): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
+    return uploadEventMediaFile(fileName, fileData, mimeType);
 }

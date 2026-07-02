@@ -32,6 +32,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    listTrainerApplications,
+    listApprovedTrainers,
+    listProviders,
+    listAllTrainings,
+    listInstructorProfiles,
+    updateInstructorProfile,
+    grantMeetAccess,
+    updateApplicationStatus as apiUpdateApplicationStatus,
+    approveTrainer,
+    rejectTrainerApplication,
+    assignTrainerToCourse as apiAssignTrainerToCourse,
+    deleteTrainerApplication,
+    deleteTrainer,
+} from "@/lib/training-api";
 
 interface TrainerApplication {
     timestamp: string;
@@ -150,18 +165,8 @@ export const AdminTrainersNew = () => {
     const fetchApplications = async () => {
         try {
             setIsLoadingApplications(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "getTrainerApplications" }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                setApplications(result.applications || []);
-            }
+            const applications = await listTrainerApplications();
+            setApplications(applications || []);
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -176,18 +181,8 @@ export const AdminTrainersNew = () => {
     const fetchTrainers = async () => {
         try {
             setIsLoadingTrainers(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "getApprovedTrainers" }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                setTrainers(result.trainers || []);
-            }
+            const trainers = await listApprovedTrainers();
+            setTrainers(trainers || []);
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -201,18 +196,8 @@ export const AdminTrainersNew = () => {
 
     const fetchProviders = async () => {
         try {
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "getProviders" }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                setAllProviders(result.providers || []);
-            }
+            const providers = await listProviders();
+            setAllProviders(providers || []);
         } catch (error) {
             console.error("Failed to fetch providers:", error);
         }
@@ -221,18 +206,8 @@ export const AdminTrainersNew = () => {
     const fetchInstructorProfiles = async () => {
         try {
             setIsLoadingProfiles(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "getInstructorProfiles" }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                setInstructorProfiles(result.profiles || []);
-            }
+            const profiles = await listInstructorProfiles();
+            setInstructorProfiles(profiles || []);
         } catch (error) {
             console.error("Failed to fetch instructor profiles:", error);
         } finally {
@@ -242,18 +217,8 @@ export const AdminTrainersNew = () => {
 
     const fetchTrainings = async () => {
         try {
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "getTrainings" }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                setAllTrainings(result.structure || []);
-            }
+            const structure = await listAllTrainings();
+            setAllTrainings(structure || []);
         } catch (error) {
             console.error("Failed to fetch trainings:", error);
         }
@@ -264,28 +229,13 @@ export const AdminTrainersNew = () => {
 
         try {
             setIsSavingProfile(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "updateInstructorProfile",
-                        profile: editingProfile
-                    }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: "Instructor profile updated successfully",
-                });
-                await fetchInstructorProfiles();
-                setEditingProfile(null);
-            } else {
-                throw new Error(result.error);
-            }
+            await updateInstructorProfile(editingProfile);
+            toast({
+                title: "Success",
+                description: "Instructor profile updated successfully",
+            });
+            await fetchInstructorProfiles();
+            setEditingProfile(null);
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -327,29 +277,16 @@ export const AdminTrainersNew = () => {
 
         try {
             setIsGrantingMeet(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "grantMeetAccess",
-                        trainerEmail: meetTrainerEmail,
-                        trainingId: meetTrainingId,
-                    }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                toast({
-                    title: "Meet Access Granted! ✅",
-                    description: `${meetTrainerName} now has host access. ${result.meetLink ? "Meet link: " + result.meetLink : ""}`,
-                });
-                setMeetDialogOpen(false);
-                setMeetTrainingId("");
-            } else {
-                throw new Error(result.error);
-            }
+            const result = await grantMeetAccess({
+                trainerEmail: meetTrainerEmail,
+                trainingId: meetTrainingId,
+            });
+            toast({
+                title: "Meet Access Granted! ✅",
+                description: `${meetTrainerName} now has host access. ${result.meetLink ? "Meet link: " + result.meetLink : ""}`,
+            });
+            setMeetDialogOpen(false);
+            setMeetTrainingId("");
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -371,30 +308,13 @@ export const AdminTrainersNew = () => {
     const updateApplicationStatus = async (email: string, status: string, adminNotes?: string) => {
         try {
             setIsProcessing(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "updateApplicationStatus",
-                        email,
-                        status,
-                        adminNotes: adminNotes || "",
-                    }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: `Application ${status.toLowerCase()} successfully`,
-                });
-                await fetchApplications();
-                setDetailsDialogOpen(false);
-            } else {
-                throw new Error(result.error);
-            }
+            await apiUpdateApplicationStatus(email, status);
+            toast({
+                title: "Success",
+                description: `Application ${status.toLowerCase()} successfully`,
+            });
+            await fetchApplications();
+            setDetailsDialogOpen(false);
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -411,28 +331,13 @@ export const AdminTrainersNew = () => {
 
         try {
             setIsProcessing(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "approveTrainer",
-                        email: application.email,
-                    }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: `Trainer approved! ${application.fullName} can now log in.`,
-                });
-                await fetchApplications();
-                await fetchTrainers();
-            } else {
-                throw new Error(result.error);
-            }
+            await approveTrainer(application.email);
+            toast({
+                title: "Success",
+                description: `Trainer approved! ${application.fullName} can now log in.`,
+            });
+            await fetchApplications();
+            await fetchTrainers();
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -449,28 +354,13 @@ export const AdminTrainersNew = () => {
 
         try {
             setIsProcessing(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "rejectTrainerApplication",
-                        email: application.email,
-                    }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: "Application rejected successfully",
-                });
-                await fetchApplications();
-                await fetchTrainers();
-            } else {
-                throw new Error(result.error);
-            }
+            await rejectTrainerApplication(application.email);
+            toast({
+                title: "Success",
+                description: "Application rejected successfully",
+            });
+            await fetchApplications();
+            await fetchTrainers();
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -499,34 +389,21 @@ export const AdminTrainersNew = () => {
             // Construct a Course ID since we are using Provider/Exam structure
             const courseId = `${selectedProvider}_${selectedExam}`.replace(/\s+/g, '_').toUpperCase();
 
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "assignTrainerToCourse",
-                        trainerId: selectedTrainer,
-                        trainerName: trainer?.fullName || "",
-                        courseId: courseId,
-                        courseName: selectedExam,
-                        provider: selectedProvider,
-                        examName: selectedExam
-                    }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: "Trainer assigned to course successfully",
-                });
-                setSelectedTrainer("");
-                setSelectedProvider("");
-                setSelectedExam("");
-            } else {
-                throw new Error(result.error);
-            }
+            await apiAssignTrainerToCourse({
+                trainerId: selectedTrainer,
+                trainerName: trainer?.fullName || "",
+                courseId: courseId,
+                courseName: selectedExam,
+                provider: selectedProvider,
+                examName: selectedExam,
+            });
+            toast({
+                title: "Success",
+                description: "Trainer assigned to course successfully",
+            });
+            setSelectedTrainer("");
+            setSelectedProvider("");
+            setSelectedExam("");
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -545,28 +422,13 @@ export const AdminTrainersNew = () => {
 
         try {
             setIsProcessing(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "deleteTrainerApplication",
-                        email: application.email,
-                    }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: "Application deleted successfully",
-                });
-                await fetchApplications();
-                setDetailsDialogOpen(false);
-            } else {
-                throw new Error(result.error);
-            }
+            await deleteTrainerApplication(application.email);
+            toast({
+                title: "Success",
+                description: "Application deleted successfully",
+            });
+            await fetchApplications();
+            setDetailsDialogOpen(false);
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -583,28 +445,12 @@ export const AdminTrainersNew = () => {
 
         try {
             setIsProcessing(true);
-            const response = await fetch(
-                import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "deleteTrainer",
-                        email: trainer.email,
-                        trainerId: trainer.trainerId
-                    }),
-                }
-            );
-            const result = await response.json();
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: "Trainer deleted successfully",
-                });
-                await fetchTrainers();
-            } else {
-                throw new Error(result.error);
-            }
+            await deleteTrainer(trainer.trainerId);
+            toast({
+                title: "Success",
+                description: "Trainer deleted successfully",
+            });
+            await fetchTrainers();
         } catch (error: any) {
             toast({
                 title: "Error",

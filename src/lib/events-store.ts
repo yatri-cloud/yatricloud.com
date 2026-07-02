@@ -115,65 +115,39 @@ export interface Sponsor {
 // Initial Mock Data
 export const INITIAL_MOCK_EVENTS: Event[] = [];
 
-const STORAGE_KEY = 'yatris_events_v1';
+/**
+ * Data access now lives in the Supabase-backed layer (events-api.ts).
+ * These are thin async wrappers so existing call-sites keep the same names
+ * (callers must now `await` them). Interfaces above remain the source of
+ * truth for the rich frontend `Event` shape.
+ */
+import * as eventsApi from "./events-api";
 
-export function getAllEvents(): Event[] {
-    try {
-        const storedEventsStr = localStorage.getItem(STORAGE_KEY);
-        const storedEvents: Event[] = storedEventsStr ? JSON.parse(storedEventsStr) : [];
-        return [...INITIAL_MOCK_EVENTS, ...storedEvents];
-    } catch (e) {
-        console.error("Error fetching events", e);
-        return INITIAL_MOCK_EVENTS;
-    }
+export async function getAllEvents(): Promise<Event[]> {
+    return eventsApi.getAllEvents();
 }
 
-export function getEventBySlug(slug: string): Event | undefined {
-    try {
-        const events = getAllEvents();
-        return events.find(e => e.slug === slug || e.id === slug);
-    } catch (e) {
-        return undefined;
-    }
+export async function getPublishedEvents(): Promise<Event[]> {
+    return eventsApi.getPublishedEvents();
 }
 
-export function getEventById(id: string): Event | undefined {
-    try {
-        const events = getAllEvents();
-        return events.find(e => e.id === id);
-    } catch (e) {
-        return undefined;
-    }
+export async function getEventBySlug(slug: string): Promise<Event | undefined> {
+    return eventsApi.getEventBySlug(slug);
 }
 
-export function saveEvent(event: Event): void {
-    try {
-        const storedEventsStr = localStorage.getItem(STORAGE_KEY);
-        const storedEvents: Event[] = storedEventsStr ? JSON.parse(storedEventsStr) : [];
-
-        // Check if updating or creating
-        const index = storedEvents.findIndex(e => e.id === event.id);
-        if (index >= 0) {
-            storedEvents[index] = event;
-        } else {
-            storedEvents.push(event);
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(storedEvents));
-    } catch (e) {
-        console.error("Error saving event", e);
-    }
+export async function getEventById(id: string): Promise<Event | undefined> {
+    return eventsApi.getEventById(id);
 }
 
-export function deleteEvent(id: string): void {
-    try {
-        const storedEventsStr = localStorage.getItem(STORAGE_KEY);
-        const storedEvents: Event[] = storedEventsStr ? JSON.parse(storedEventsStr) : [];
-        const filteredEvents = storedEvents.filter(e => e.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredEvents));
-    } catch (e) {
-        console.error("Error deleting event", e);
-    }
+export async function saveEvent(event: Event): Promise<Event | undefined> {
+    return eventsApi.saveEvent(event);
+}
+
+export const createEvent = saveEvent;
+export const updateEvent = saveEvent;
+
+export async function deleteEvent(id: string): Promise<void> {
+    return eventsApi.deleteEvent(id);
 }
 
 // Helper to determine status based on date

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, animate, useInView, useReducedMotion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -96,7 +97,12 @@ export const IndustryLeadersSection = () => {
               viewport={{ once: true, margin: "-40px" }}
               transition={{ delay: Math.min(i * 0.04, 0.3), duration: 0.5, ease: EASE }}
               whileHover={reduce ? undefined : { y: -5 }}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-5 transition-colors duration-300 hover:border-brand-200 hover:shadow-card"
+              className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-colors duration-300 hover:border-brand-200 hover:shadow-card"
+            >
+            <Link
+              to="/training"
+              aria-label={`Explore ${p.name} certification training`}
+              className="flex h-full flex-col justify-between p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <span aria-hidden="true" className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-primary/10 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
 
@@ -128,6 +134,7 @@ export const IndustryLeadersSection = () => {
                   {p.count}+ certifications
                 </span>
               </div>
+            </Link>
             </motion.div>
           ))}
         </div>

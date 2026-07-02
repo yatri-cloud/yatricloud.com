@@ -60,7 +60,12 @@ export const Footer = () => {
     if (href.startsWith("#")) {
       e.preventDefault();
       const element = document.querySelector(href);
-      if (element) element.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        // Anchor lives on the homepage — navigate there with the hash.
+        window.location.href = `/${href}`;
+      }
     }
   };
 

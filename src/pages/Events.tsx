@@ -28,9 +28,8 @@ const Events = () => {
         // Scroll to top when component mounts
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Load local events (drafts/local storage)
-        const localEvents = getAllEvents();
-        setEvents(localEvents);
+        // Load events from Supabase
+        getAllEvents().then(setEvents);
 
         // Fetch published events from Sheets
         fetchPublishedEvents().then(publishedEvents => {

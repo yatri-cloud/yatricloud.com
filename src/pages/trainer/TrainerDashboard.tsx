@@ -66,6 +66,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
+import { listTrainerTrainings, deleteTraining, updateTrainingSchedule } from "@/lib/training-api";
 
 interface TrainerData {
     trainerId: string;
@@ -114,8 +115,6 @@ export const TrainerDashboard = () => {
     const [scheduleTime, setScheduleTime] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
-
     useEffect(() => {
         // Check if trainer is logged in
         const storedTrainer = localStorage.getItem("trainerData");
@@ -150,56 +149,12 @@ export const TrainerDashboard = () => {
 
     const fetchCourses = async (trainerId: string) => {
         setIsLoading(true);
-        if (!SCRIPT_URL) {
-            // Mock data fallback if backend is missing (for local testing parity)
-            const storedAssignments = localStorage.getItem("trainerAssignments");
-            if (storedAssignments) {
-                const mocked = JSON.parse(storedAssignments).map((a: any) => ({
-                    id: a.courseId || a.assignmentId,
-                    courseName: a.courseName,
-                    subType: "Mocked Type",
-                    instructor: trainerData?.fullName || "You",
-                    status: a.status || "Draft",
-                    timestamp: a.assignedDate || new Date().toISOString(),
-                    folderUrl: "",
-                }));
-                setCourses(mocked);
-            }
-            setIsLoading(false);
-            return;
-        }
-
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "getAllTraining" }) // We fetch all, and filter locally by instructorId
-            });
-            const result = await response.json();
-            if (result.success) {
-                // Filter the courses so the trainer ONLY sees their own courses
-                const myCourses = result.structure.filter((c: any) => c.instructorId === trainerId || c.instructor === trainerData?.fullName);
-                setCourses(myCourses);
-            } else {
-                toast.error("Failed to load training: " + result.error);
-            }
+            const myCourses = await listTrainerTrainings(trainerId);
+            setCourses(myCourses as unknown as Course[]);
         } catch (e) {
             console.error(e);
             toast.error("Failed to connect to backend");
-            
-            // Fallback to localStorage assignments if fetch fails entirely
-            const storedAssignments = localStorage.getItem("trainerAssignments");
-            if (storedAssignments) {
-                const mocked = JSON.parse(storedAssignments).map((a: any) => ({
-                    id: a.courseId || a.assignmentId,
-                    courseName: a.courseName,
-                    subType: "Mocked Type",
-                    instructor: trainerData?.fullName || "You",
-                    status: a.status || "Draft",
-                    timestamp: a.assignedDate || new Date().toISOString(),
-                    folderUrl: "",
-                }));
-                setCourses(mocked);
-            }
         } finally {
             setIsLoading(false);
         }
@@ -216,20 +171,12 @@ export const TrainerDashboard = () => {
 
         toast.loading("Deleting training...");
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "deleteTraining", id: courseId })
-            });
-            const result = await response.json();
-            if (result.success) {
-                toast.dismiss();
-                toast.success("Training deleted successfully");
-                fetchCourses(trainerData!.trainerId);
-            } else {
-                toast.error("Delete failed: " + result.error);
-            }
-        } catch (e) {
-            toast.error("Network error during deletion");
+            await deleteTraining(courseId);
+            toast.dismiss();
+            toast.success("Training deleted successfully");
+            fetchCourses(trainerData!.trainerId);
+        } catch (e: any) {
+            toast.error("Delete failed: " + (e?.message || "Network error during deletion"));
         }
     };
 
@@ -242,25 +189,12 @@ export const TrainerDashboard = () => {
         setIsUpdating(true);
         try {
             const formattedDate = format(scheduleDate, "yyyy-MM-dd");
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({
-                    action: "updateTrainingSchedule",
-                    id: selectedCourse.id,
-                    startDate: formattedDate,
-                    startTime: scheduleTime
-                })
-            });
-            const result = await response.json();
-            if (result.success) {
-                toast.success("Schedule updated & Meet link generated!");
-                setSelectedCourse(prev => prev ? ({ ...prev, meetLink: result.meetLink, startDate: formattedDate, startTime: scheduleTime }) : null);
-                fetchCourses(trainerData!.trainerId);
-            } else {
-                toast.error("Failed: " + result.error);
-            }
-        } catch (e) {
-            toast.error("Network error");
+            const result = await updateTrainingSchedule(selectedCourse.id, formattedDate, scheduleTime);
+            toast.success("Schedule updated & Meet link generated!");
+            setSelectedCourse(prev => prev ? ({ ...prev, meetLink: result.meetLink, startDate: formattedDate, startTime: scheduleTime }) : null);
+            fetchCourses(trainerData!.trainerId);
+        } catch (e: any) {
+            toast.error("Failed: " + (e?.message || "Network error"));
         } finally {
             setIsUpdating(false);
         }

@@ -97,9 +97,14 @@ export const CertificationFlowSection = () => {
     action: (typeof steps)[number]["action"]
   ) => {
     e.preventDefault();
-    if (action?.isPopup && window.Calendly) {
-      window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
-    } else if (action?.url?.startsWith('#')) {
+    if (action?.isPopup) {
+      if (window.Calendly) {
+        window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
+      } else {
+        // Calendly script blocked/slow — open the booking page directly.
+        window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
+      }
+    } else if (action?.url?.startsWith('#') && action.url.length > 1) {
       const element = document.querySelector(action.url);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { YatriAI } from "@/components/YatriAI";
 import { CalendlyPopup } from "@/components/CalendlyPopup";
 import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
@@ -30,7 +29,6 @@ import AdminEvents from "./pages/admin/AdminEvents";
 import UdemyAdmin from "./pages/admin/UdemyAdmin";
 import AdminAddProduct from "./pages/admin/AdminAddProduct";
 import CreateEvent from "./pages/CreateEvent";
-import AdminYatriAI from "./pages/admin/AdminYatriAI"; // Import AdminYatriAI
 import UpcomingEventDetail from "./pages/UpcomingEventDetail";
 import VenueSubmissionForm from "./pages/VenueSubmissionForm";
 import SpeakerSubmissionForm from "./pages/SpeakerSubmissionForm";
@@ -40,7 +38,6 @@ import EventMediaUpload from "./pages/EventMediaUpload";
 import MyEvents from "./pages/MyEvents";
 import AdminAttendees from "./pages/admin/AdminAttendees";
 import EventRegistrationsList from "./pages/admin/EventRegistrationsList";
-import { Bot } from "lucide-react"; // Import Bot icon
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import EventFeedback from "./pages/EventFeedback";
 import AdminTraining from "./pages/admin/AdminTraining";
@@ -136,7 +133,6 @@ const App = () => (
                 <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
                 <Route path="attendees" element={<AdminAttendees />} />
                 <Route path="udemy" element={<UdemyAdmin />} />
-                <Route path="ai" element={<AdminYatriAI />} />
                 <Route path="submissions" element={<AdminSubmissions />} />
                 <Route path="products/add" element={<AdminAddProduct />} />
                 <Route path="training">
@@ -159,7 +155,6 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <CalendlyPopup />
-            {/* <YatriAI /> */}
           </BrowserRouter>
         </CartProvider>
       </TooltipProvider>

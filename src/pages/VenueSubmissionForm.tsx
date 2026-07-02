@@ -30,12 +30,13 @@ export default function VenueSubmissionForm() {
 
     useEffect(() => {
         if (slug) {
-            const foundEvent = getEventBySlug(slug);
-            if (foundEvent && foundEvent.isUpcoming && foundEvent.lookingForVenue) {
-                setEvent(foundEvent);
-            } else {
-                navigate('/events');
-            }
+            getEventBySlug(slug).then((foundEvent) => {
+                if (foundEvent && foundEvent.isUpcoming && foundEvent.lookingForVenue) {
+                    setEvent(foundEvent);
+                } else {
+                    navigate('/events');
+                }
+            });
         }
     }, [slug, navigate]);
 
@@ -57,7 +58,7 @@ export default function VenueSubmissionForm() {
         setIsSubmitting(true);
 
         try {
-            submitVenue({
+            await submitVenue({
                 eventId: event.id,
                 eventName: event.name,
                 venueName: formData.venueName,

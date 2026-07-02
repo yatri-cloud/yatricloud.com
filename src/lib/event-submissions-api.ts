@@ -1,10 +1,8 @@
-// Event Submissions API
-// Handles venue, speaker, and sponsor submissions for upcoming events
+// Event Submissions API — Supabase backend.
+// Handles venue, speaker, and sponsor submissions for upcoming events.
+// Writes to the `event_submissions` table (kind = 'venue' | 'speaker' | 'sponsor').
 
-import { Event, getAllEvents, saveEvent } from "./events-store";
-
-// Use the same script URL as the event automation API
-const EVENT_AUTOMATION_SCRIPT_URL = import.meta.env.VITE_EVENT_AUTOMATION_SCRIPT_URL || '';
+import { supabase } from "@/lib/supabase";
 
 export interface VenueSubmission {
     id: string;
@@ -57,193 +55,209 @@ export interface SponsorSubmission {
     status: 'pending' | 'approved' | 'rejected';
 }
 
-// Local storage keys (still used for caching/admin view speed)
-const VENUE_SUBMISSIONS_KEY = 'event_venue_submissions';
-const SPEAKER_SUBMISSIONS_KEY = 'event_speaker_submissions';
-const SPONSOR_SUBMISSIONS_KEY = 'event_sponsor_submissions';
+type SubmissionKind = 'venue' | 'speaker' | 'sponsor';
 
-// Helper to get local submissions
-function getLocalSubmissions<T>(key: string): T[] {
-    try {
-        const stored = localStorage.getItem(key);
-        return stored ? JSON.parse(stored) : [];
-    } catch (e) {
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// event_registrations / events use real UUIDs. We only attach event_id when it
+// resolves to a real UUID; otherwise keep it null and fall back to eventName in details.
+function resolveEventId(eventId?: string): string | null {
+    return eventId && UUID_RE.test(eventId) ? eventId : null;
+}
+
+// The full submission payload is stored in `details` (jsonb) so we can rebuild
+// the rich frontend shape on read; the standard columns mirror key fields.
+function rowToVenue(row: Record<string, any>): VenueSubmission {
+    const d = row.details || {};
+    return {
+        ...d,
+        id: row.id,
+        eventId: row.event_id || d.eventId || "",
+        eventName: d.eventName || "",
+        submittedAt: row.created_at,
+        status: row.status,
+    };
+}
+
+function rowToSpeaker(row: Record<string, any>): SpeakerSubmission {
+    const d = row.details || {};
+    return {
+        ...d,
+        id: row.id,
+        eventId: row.event_id || d.eventId || "",
+        eventName: d.eventName || "",
+        submittedAt: row.created_at,
+        status: row.status,
+    };
+}
+
+function rowToSponsor(row: Record<string, any>): SponsorSubmission {
+    const d = row.details || {};
+    return {
+        ...d,
+        id: row.id,
+        eventId: row.event_id || d.eventId || "",
+        eventName: d.eventName || "",
+        sponsorshipAreas: d.sponsorshipAreas || [],
+        submittedAt: row.created_at,
+        status: row.status,
+    };
+}
+
+async function insertSubmission(
+    kind: SubmissionKind,
+    eventId: string | undefined,
+    columns: {
+        name: string;
+        email?: string;
+        phone?: string;
+        organization?: string;
+        title?: string;
+        bio?: string;
+        links?: Record<string, unknown>;
+    },
+    details: Record<string, unknown>
+) {
+    const { data, error } = await supabase
+        .from("event_submissions")
+        .insert({
+            event_id: resolveEventId(eventId),
+            kind,
+            name: columns.name,
+            email: columns.email || null,
+            phone: columns.phone || null,
+            organization: columns.organization || null,
+            title: columns.title || null,
+            bio: columns.bio || null,
+            links: columns.links || {},
+            details,
+            status: "pending",
+        })
+        .select("*")
+        .single();
+    if (error) {
+        console.error("[event-submissions-api] insert", error.message);
+        throw error;
+    }
+    return data;
+}
+
+export async function submitVenue(
+    data: Omit<VenueSubmission, 'id' | 'submittedAt' | 'status'>
+): Promise<VenueSubmission> {
+    const row = await insertSubmission(
+        "venue",
+        data.eventId,
+        {
+            name: data.venueName,
+            email: data.contactEmail,
+            phone: data.contactPhone,
+            organization: data.venueName,
+            title: data.venueName,
+            bio: data.facilities,
+            links: data.googleMapsLink ? { googleMapsLink: data.googleMapsLink } : {},
+        },
+        data
+    );
+    return rowToVenue(row);
+}
+
+export async function getVenueSubmissions(eventId?: string): Promise<VenueSubmission[]> {
+    let query = supabase.from("event_submissions").select("*").eq("kind", "venue");
+    if (eventId && UUID_RE.test(eventId)) query = query.eq("event_id", eventId);
+    const { data, error } = await query.order("created_at", { ascending: false });
+    if (error) {
+        console.error("[event-submissions-api] getVenueSubmissions", error.message);
         return [];
     }
+    return (data || []).map(rowToVenue);
 }
 
-// Helper to save local submissions
-function saveLocalSubmissions<T>(key: string, data: T[]) {
-    localStorage.setItem(key, JSON.stringify(data));
+export async function submitSpeaker(
+    data: Omit<SpeakerSubmission, 'id' | 'submittedAt' | 'status'>
+): Promise<SpeakerSubmission> {
+    const row = await insertSubmission(
+        "speaker",
+        data.eventId,
+        {
+            name: data.fullName,
+            email: data.email,
+            title: data.talkTitle,
+            bio: data.bio,
+            links: data.linkedinWebsite ? { linkedinWebsite: data.linkedinWebsite } : {},
+        },
+        data
+    );
+    return rowToSpeaker(row);
 }
 
-// Helper to submit to Google Apps Script
-async function submitToSheet(eventId: string, type: 'venue' | 'speaker' | 'sponsor', submission: any) {
-    if (!EVENT_AUTOMATION_SCRIPT_URL) {
-        console.warn('Google Sheets API URL not configured. Saving locally only.');
+export async function getSpeakerSubmissions(eventId?: string): Promise<SpeakerSubmission[]> {
+    let query = supabase.from("event_submissions").select("*").eq("kind", "speaker");
+    if (eventId && UUID_RE.test(eventId)) query = query.eq("event_id", eventId);
+    const { data, error } = await query.order("created_at", { ascending: false });
+    if (error) {
+        console.error("[event-submissions-api] getSpeakerSubmissions", error.message);
+        return [];
+    }
+    return (data || []).map(rowToSpeaker);
+}
+
+export async function submitSponsor(
+    data: Omit<SponsorSubmission, 'id' | 'submittedAt' | 'status'>
+): Promise<SponsorSubmission> {
+    const row = await insertSubmission(
+        "sponsor",
+        data.eventId,
+        {
+            name: data.companyName,
+            email: data.contactEmail,
+            phone: data.contactPhone,
+            organization: data.companyName,
+            title: data.sponsorshipTier,
+            bio: data.additionalNotes,
+        },
+        data
+    );
+    return rowToSponsor(row);
+}
+
+export async function getSponsorSubmissions(eventId?: string): Promise<SponsorSubmission[]> {
+    let query = supabase.from("event_submissions").select("*").eq("kind", "sponsor");
+    if (eventId && UUID_RE.test(eventId)) query = query.eq("event_id", eventId);
+    const { data, error } = await query.order("created_at", { ascending: false });
+    if (error) {
+        console.error("[event-submissions-api] getSponsorSubmissions", error.message);
+        return [];
+    }
+    return (data || []).map(rowToSponsor);
+}
+
+export async function updateSubmissionStatus(
+    _type: SubmissionKind,
+    id: string,
+    status: 'approved' | 'rejected'
+): Promise<boolean> {
+    const { error } = await supabase
+        .from("event_submissions")
+        .update({ status })
+        .eq("id", id);
+    if (error) {
+        console.error("[event-submissions-api] updateSubmissionStatus", error.message);
         return false;
     }
-
-    const events = getAllEvents();
-    const event = events.find(e => e.id === eventId);
-
-    if (!event || !event.spreadsheetId) {
-        console.warn(`Event ${eventId} not found or missing spreadsheetId. Saving locally only.`);
-        return false;
-    }
-
-    try {
-        const response = await fetch(EVENT_AUTOMATION_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-                action: 'submitProposal',
-                spreadsheetId: event.spreadsheetId,
-                type: type,
-                submission: submission
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result.success;
-    } catch (error) {
-        console.error('Error submitting to Google Sheet:', error);
-        return false;
-    }
-}
-
-export async function submitVenue(data: Omit<VenueSubmission, 'id' | 'submittedAt' | 'status'>): Promise<VenueSubmission> {
-    const submission: VenueSubmission = {
-        ...data,
-        id: crypto.randomUUID(),
-        submittedAt: new Date().toISOString(),
-        status: 'pending'
-    };
-
-    // Save locally
-    const existing = getLocalSubmissions<VenueSubmission>(VENUE_SUBMISSIONS_KEY);
-    existing.push(submission);
-    saveLocalSubmissions(VENUE_SUBMISSIONS_KEY, existing);
-
-    // Sync to Sheet (fire and forget or await if critical)
-    await submitToSheet(data.eventId, 'venue', submission);
-
-    return submission;
-}
-
-export function getVenueSubmissions(): VenueSubmission[] {
-    return getLocalSubmissions<VenueSubmission>(VENUE_SUBMISSIONS_KEY);
-}
-
-export async function submitSpeaker(data: Omit<SpeakerSubmission, 'id' | 'submittedAt' | 'status'>): Promise<SpeakerSubmission> {
-    const submission: SpeakerSubmission = {
-        ...data,
-        id: crypto.randomUUID(),
-        submittedAt: new Date().toISOString(),
-        status: 'pending'
-    };
-
-    const existing = getLocalSubmissions<SpeakerSubmission>(SPEAKER_SUBMISSIONS_KEY);
-    existing.push(submission);
-    saveLocalSubmissions(SPEAKER_SUBMISSIONS_KEY, existing);
-
-    await submitToSheet(data.eventId, 'speaker', submission);
-
-    return submission;
-}
-
-export function getSpeakerSubmissions(): SpeakerSubmission[] {
-    return getLocalSubmissions<SpeakerSubmission>(SPEAKER_SUBMISSIONS_KEY);
-}
-
-export async function submitSponsor(data: Omit<SponsorSubmission, 'id' | 'submittedAt' | 'status'>): Promise<SponsorSubmission> {
-    const submission: SponsorSubmission = {
-        ...data,
-        id: crypto.randomUUID(),
-        submittedAt: new Date().toISOString(),
-        status: 'pending'
-    };
-
-    const existing = getLocalSubmissions<SponsorSubmission>(SPONSOR_SUBMISSIONS_KEY);
-    existing.push(submission);
-    saveLocalSubmissions(SPONSOR_SUBMISSIONS_KEY, existing);
-
-    await submitToSheet(data.eventId, 'sponsor', submission);
-
-    return submission;
-}
-
-export function getSponsorSubmissions(): SponsorSubmission[] {
-    return getLocalSubmissions<SponsorSubmission>(SPONSOR_SUBMISSIONS_KEY);
-}
-
-export function updateSubmissionStatus(type: 'venue' | 'speaker' | 'sponsor', id: string, status: 'approved' | 'rejected') {
-    if (type === 'venue') {
-        const items = getVenueSubmissions();
-        const item = items.find(i => i.id === id);
-        if (item) {
-            item.status = status;
-            saveLocalSubmissions(VENUE_SUBMISSIONS_KEY, items);
-            // TODO: Update status in Google Sheet as well (requires another API action)
-            return true;
-        }
-    } else if (type === 'speaker') {
-        const items = getSpeakerSubmissions();
-        const item = items.find(i => i.id === id);
-        if (item) {
-            item.status = status;
-            saveLocalSubmissions(SPEAKER_SUBMISSIONS_KEY, items);
-            return true;
-        }
-    } else if (type === 'sponsor') {
-        const items = getSponsorSubmissions();
-        const item = items.find(i => i.id === id);
-        if (item) {
-            item.status = status;
-            saveLocalSubmissions(SPONSOR_SUBMISSIONS_KEY, items);
-            return true;
-        }
-    }
-    return false;
+    return true;
 }
 
 // Get all submissions for an event
-export function getAllSubmissionsForEvent(eventId: string) {
-    const venues = getVenueSubmissions().filter(s => s.eventId === eventId);
-    const speakers = getSpeakerSubmissions().filter(s => s.eventId === eventId);
-    const sponsors = getSponsorSubmissions().filter(s => s.eventId === eventId);
-
+export async function getAllSubmissionsForEvent(eventId: string): Promise<{
+    venues: VenueSubmission[];
+    speakers: SpeakerSubmission[];
+    sponsors: SponsorSubmission[];
+}> {
+    const [venues, speakers, sponsors] = await Promise.all([
+        getVenueSubmissions(eventId),
+        getSpeakerSubmissions(eventId),
+        getSponsorSubmissions(eventId),
+    ]);
     return { venues, speakers, sponsors };
-}
-
-export async function deleteEventFolder(folderId: string): Promise<boolean> {
-    if (!EVENT_AUTOMATION_SCRIPT_URL) {
-        console.warn('Google Sheets API URL not configured.');
-        return false;
-    }
-
-    try {
-        const response = await fetch(EVENT_AUTOMATION_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-                action: 'deleteEvent',
-                folderId: folderId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result.success;
-    } catch (error) {
-        console.error('Error deleting event folder:', error);
-        return false;
-    }
 }

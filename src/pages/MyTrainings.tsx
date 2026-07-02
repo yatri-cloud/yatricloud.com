@@ -16,6 +16,7 @@ import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { getStoredUser } from "@/lib/yatris-api";
+import { listMyEnrollments } from "@/lib/training-api";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,8 +53,6 @@ export default function MyTrainings() {
     const [trainings, setTrainings] = useState<Record<string, TrainingDetails>>({});
     const [isLoading, setIsLoading] = useState(true);
 
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL;
-
     useEffect(() => {
         const stored = getStoredUser();
         if (stored) {
@@ -76,35 +75,9 @@ export default function MyTrainings() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            // Fetch User Enrollments
-            const enrollResp = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getEnrollments' })
-            });
-            const enrollResult = await enrollResp.json();
-
-            // Filter for current user
-            const userEmail = user?.email?.toLowerCase().trim();
-            const myEnrollments = enrollResult.enrollments.filter((e: any) =>
-                (e.userEmail || "").toLowerCase().trim() === userEmail
-            );
-            setEnrollments(myEnrollments);
-
-            // Fetch Training Details
-            const trainingResp = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getTrainingStructure' })
-            });
-            const trainingResult = await trainingResp.json();
-
-            const trainingMap: Record<string, TrainingDetails> = {};
-            if (trainingResult.success) {
-                trainingResult.structure.forEach((t: any) => {
-                    trainingMap[t.id] = t;
-                });
-            }
-            setTrainings(trainingMap);
-
+            const { enrollments: myEnrollments, trainings: trainingMap } = await listMyEnrollments();
+            setEnrollments(myEnrollments as Enrollment[]);
+            setTrainings(trainingMap as Record<string, TrainingDetails>);
         } catch (e) {
             console.error(e);
             toast.error("Failed to load your trainings.");

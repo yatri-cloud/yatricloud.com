@@ -14,9 +14,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { listAllEnrollments, deleteEnrollment } from "@/lib/training-api";
 
 interface Enrollment {
-    rowIndex: number;
+    rowIndex: string;
     timestamp: string;
     trainingName: string;
     userName: string;
@@ -33,8 +34,6 @@ export default function AdminEnrollments() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
-
     useEffect(() => {
         fetchEnrollments();
     }, []);
@@ -42,41 +41,25 @@ export default function AdminEnrollments() {
     const fetchEnrollments = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "getEnrollments" }),
-            });
-            const result = await response.json();
-            if (result.success) {
-                setEnrollments(result.enrollments);
-            } else {
-                toast.error("Failed to fetch enrollments");
-            }
+            const result = await listAllEnrollments();
+            setEnrollments(result as Enrollment[]);
         } catch (error) {
             console.error(error);
-            toast.error("Network error");
+            toast.error("Failed to fetch enrollments");
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleDelete = async (rowIndex: number) => {
+    const handleDelete = async (rowIndex: string) => {
         if (!confirm("Are you sure you want to delete this enrollment?")) return;
 
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "deleteEnrollment", rowIndex }),
-            });
-            const result = await response.json();
-            if (result.success) {
-                toast.success("Enrollment deleted");
-                fetchEnrollments();
-            } else {
-                toast.error("Delete failed: " + result.error);
-            }
-        } catch (e) {
-            toast.error("Network error");
+            await deleteEnrollment(rowIndex);
+            toast.success("Enrollment deleted");
+            fetchEnrollments();
+        } catch (e: any) {
+            toast.error("Delete failed: " + (e?.message || "Network error"));
         }
     };
 

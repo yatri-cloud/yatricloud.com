@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import AdminLayout from "@/components/admin/AdminLayout"; // Re-using layout for this independent page
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { listProviders, getFoldersInPath, addProvider, updateProvider, deleteProvider } from "@/lib/training-api";
 
 interface ProviderData {
     type: string;
@@ -35,8 +36,6 @@ export default function AdminProviders() {
     const [isCustomProvider, setIsCustomProvider] = useState(false);
     const [isCustomExam, setIsCustomExam] = useState(false);
 
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
-
     useEffect(() => {
         fetchProviders();
     }, []);
@@ -58,21 +57,11 @@ export default function AdminProviders() {
     const fetchFolders = async (typ: string, prov?: string) => {
         setIsFetchingFolders(true);
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'getFoldersInPath',
-                    type: typ,
-                    provider: prov
-                })
-            });
-            const result = await response.json();
-            if (result.success) {
-                if (prov) {
-                    setAvailableExams(result.folders || []);
-                } else {
-                    setAvailableProviders(result.folders || []);
-                }
+            const folders = await getFoldersInPath(typ, prov);
+            if (prov) {
+                setAvailableExams(folders || []);
+            } else {
+                setAvailableProviders(folders || []);
             }
         } catch (e) {
             console.error("Folder fetch error:", e);
@@ -84,14 +73,8 @@ export default function AdminProviders() {
     const fetchProviders = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getProviders' })
-            });
-            const result = await response.json();
-            if (result.success) {
-                setProviders(result.providers || []);
-            }
+            const result = await listProviders();
+            setProviders(result || []);
         } catch (e) {
             console.error("Fetch error:", e);
             // Don't show toast on load error, just leave list empty as requested
@@ -105,17 +88,7 @@ export default function AdminProviders() {
 
         setIsLoading(true);
         try {
-            for (const exam of p.exams) {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'deleteProvider',
-                        type: p.type,
-                        provider: p.name,
-                        exam: exam
-                    })
-                });
-            }
+            await deleteProvider({ type: p.type, provider: p.name, exams: p.exams });
             toast.success("Deleted from Sheet and Drive");
             fetchProviders();
         } catch (e) {
@@ -129,23 +102,16 @@ export default function AdminProviders() {
         if (!editName) return;
         setIsSubmitting(true);
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'updateProvider',
-                    type: p.type,
-                    oldProvider: p.name,
-                    oldExam: p.exams[0],
-                    provider: editName,
-                    exam: p.exams[0]
-                })
+            await updateProvider({
+                type: p.type,
+                oldProvider: p.name,
+                oldExam: p.exams[0],
+                provider: editName,
+                exam: p.exams[0],
             });
-            const result = await response.json();
-            if (result.success) {
-                toast.success("Renamed!");
-                setEditingRow(null);
-                fetchProviders();
-            }
+            toast.success("Renamed!");
+            setEditingRow(null);
+            fetchProviders();
         } catch (e) {
             toast.error("Update failed");
         } finally {
@@ -159,27 +125,14 @@ export default function AdminProviders() {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'addProvider',
-                    provider: newProvider,
-                    exam: newExam,
-                    type: type
-                })
-            });
-            const result = await response.json();
-            if (result.success) {
-                toast.success("Provider/Exam added!");
-                setNewProvider("");
-                setNewExam("");
-                fetchProviders(); // Refresh list
-            } else {
-                toast.error("Failed to add: " + result.error);
-            }
+            await addProvider({ provider: newProvider, exam: newExam, type: type });
+            toast.success("Provider/Exam added!");
+            setNewProvider("");
+            setNewExam("");
+            fetchProviders(); // Refresh list
         } catch (e) {
             console.error("Add Provider Error:", e);
-            toast.error("Connection failed. Check your script deployment.");
+            toast.error("Failed to add provider.");
         } finally {
             setIsSubmitting(false);
         }

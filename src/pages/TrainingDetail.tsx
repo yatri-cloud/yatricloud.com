@@ -12,6 +12,7 @@ import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { EnrollmentModal } from "@/components/EnrollmentModal";
+import { listPublishedTrainings, listInstructorProfiles } from "@/lib/training-api";
 
 interface Course {
     id: string;
@@ -53,8 +54,6 @@ export default function TrainingDetail() {
     const [isEnrolled, setIsEnrolled] = useState(false);
     const [instructorProfile, setInstructorProfile] = useState<InstructorProfile | null>(null);
 
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
-
     useEffect(() => {
         // Fetch course if we have an ID or slugs (certification/courseSlug)
         if (id || courseSlug) {
@@ -80,30 +79,24 @@ export default function TrainingDetail() {
     const fetchCourse = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getTrainingStructure' })
-            });
-            const result = await response.json();
-            if (result.success) {
-                const createSlug = (name: string) => {
-                    return String(name || '')
-                        .toLowerCase()
-                        .trim()
-                        .replace(/[^\w\s-]/g, '')
-                        .replace(/[\s_]+/g, '-')
-                        .replace(/-+/g, '-');
-                };
+            const structure = await listPublishedTrainings();
+            const createSlug = (name: string) => {
+                return String(name || '')
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/[\s_]+/g, '-')
+                    .replace(/-+/g, '-');
+            };
 
-                const found = result.structure.find((c: Course) => {
-                    if (id) return c.id === id;
-                    if (courseSlug) {
-                        return createSlug(c.courseName) === courseSlug;
-                    }
-                    return false;
-                });
-                setCourse(found || null);
-            }
+            const found = structure.find((c) => {
+                if (id) return c.id === id;
+                if (courseSlug) {
+                    return createSlug(c.courseName) === courseSlug;
+                }
+                return false;
+            });
+            setCourse((found as unknown as Course) || null);
         } catch (e) {
             console.error(e);
             toast.error("Failed to load course details");
@@ -115,22 +108,12 @@ export default function TrainingDetail() {
     const fetchInstructorProfile = async (instructorName: string) => {
         if (!instructorName) return;
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    action: 'getInstructorProfiles',
-                    instructorName: instructorName // Optional: filter by name on backend
-                })
-            });
-            const result = await response.json();
-            if (result.success && result.profiles) {
-                // Find matching profile by name
-                const profile = result.profiles.find((p: InstructorProfile) => 
-                    p.fullName.toLowerCase() === instructorName.toLowerCase()
-                );
-                if (profile) {
-                    setInstructorProfile(profile);
-                }
+            const profiles = await listInstructorProfiles();
+            const profile = profiles.find((p: InstructorProfile) =>
+                p.fullName.toLowerCase() === instructorName.toLowerCase()
+            );
+            if (profile) {
+                setInstructorProfile(profile);
             }
         } catch (e) {
             console.error("Failed to fetch instructor profile:", e);

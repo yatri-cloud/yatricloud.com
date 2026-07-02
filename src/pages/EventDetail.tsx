@@ -38,6 +38,7 @@ const EventDetail = () => {
     const { toast } = useToast();
     const reduceMotion = useReducedMotion();
     const [event, setEvent] = useState<Event | null>(null);
+    const [allEvents, setAllEvents] = useState<Event[]>([]);
     const [activeTab, setActiveTab] = useState<'about' | 'tickets' | 'speakers' | 'attendees' | 'community' | 'gallery'>('about');
     const [lightboxAlbum, setLightboxAlbum] = useState<GalleryAlbum | null>(null);
     const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -53,21 +54,24 @@ const EventDetail = () => {
 
     useEffect(() => {
         // Find event by ID or Slug
-        const foundEvent = getEventBySlug(id || "");
-
-        if (foundEvent) {
-            // Map store event to detail event if needed, or just use as is
-            // For now, the interfaces are mostly compatible for common fields
-            setEvent(foundEvent as any);
-        } else {
-            // Check if it's one of the internal MOCK_EVENTS as fallback
-            const mockEvent = MOCK_EVENTS.find(e => e.id === id); // Mocks don't have slugs yet usually
-            if (mockEvent) {
-                setEvent(mockEvent);
+        getEventBySlug(id || "").then((foundEvent) => {
+            if (foundEvent) {
+                // Map store event to detail event if needed, or just use as is
+                // For now, the interfaces are mostly compatible for common fields
+                setEvent(foundEvent as any);
             } else {
-                navigate('/events');
+                // Check if it's one of the internal MOCK_EVENTS as fallback
+                const mockEvent = MOCK_EVENTS.find(e => e.id === id); // Mocks don't have slugs yet usually
+                if (mockEvent) {
+                    setEvent(mockEvent);
+                } else {
+                    navigate('/events');
+                }
             }
-        }
+        });
+
+        // Load related events for the "more events" section
+        getAllEvents().then(setAllEvents);
 
         // Scroll to top
         window.scrollTo(0, 0);
@@ -586,7 +590,21 @@ const EventDetail = () => {
 
                             {/* Share Button */}
                             <ScrollReveal>
-                                <button className="flex items-center justify-center gap-2 w-full min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-6 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            if (navigator.share) {
+                                                await navigator.share({ title: event.name, url: window.location.href });
+                                            } else {
+                                                await navigator.clipboard.writeText(window.location.href);
+                                                toast({ title: "Link copied!", description: "Share it with a friend." });
+                                            }
+                                        } catch {
+                                            /* user dismissed the share sheet — ignore */
+                                        }
+                                    }}
+                                    className="flex items-center justify-center gap-2 w-full min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-6 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                >
                                     <Share2 className="w-4 h-4" />
                                     Share with a friend
                                 </button>
@@ -628,7 +646,7 @@ const EventDetail = () => {
                 </ScrollReveal>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {getAllEvents()
+                    {allEvents
                         .filter(e => e.id !== id && e.status === 'upcoming' && new Date(e.date) > new Date())
                         .slice(0, 3)
                         .map((otherEvent, index) => (
@@ -659,7 +677,7 @@ const EventDetail = () => {
                         ))}
 
                     {/* Fallback if no local events, show MOCK_EVENTS */}
-                    {getAllEvents().filter(e => e.id !== id && e.status === 'upcoming').length === 0 &&
+                    {allEvents.filter(e => e.id !== id && e.status === 'upcoming').length === 0 &&
                         MOCK_EVENTS.filter(e => e.id !== id).slice(0, 3).map((otherEvent, index) => (
                             <ScrollReveal key={otherEvent.id} delay={index * 0.1}>
                                 <Link to={`/events/${otherEvent.id}`} className="block h-full">

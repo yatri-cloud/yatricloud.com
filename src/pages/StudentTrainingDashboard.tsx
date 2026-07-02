@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import { getStoredUser } from "@/lib/yatris-api";
+import { getTrainingDetail, checkEnrollment } from "@/lib/training-api";
 import Navbar from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
 
@@ -48,17 +49,15 @@ export default function StudentTrainingDashboard() {
     const [quizzes, setQuizzes] = useState<any[]>([]);
     const [resources, setResources] = useState<any[]>([]);
 
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
-
     useEffect(() => {
         const stored = getStoredUser();
         if (!stored) {
             toast.error("Please login to access this training");
-            navigate('/login');
+            navigate(`/training/${id}`);
             return;
         }
         setUser(stored);
-    }, [navigate]);
+    }, [navigate, id]);
 
     useEffect(() => {
         if (user && id) {
@@ -77,83 +76,32 @@ export default function StudentTrainingDashboard() {
         setIsLoading(true);
         try {
             // Fetch training details
-            const trainingResp = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getTrainingStructure' })
-            });
-            const trainingResult = await trainingResp.json();
-
-            const foundTraining = trainingResult.structure?.find((t: any) => t.id === id);
+            const foundTraining = await getTrainingDetail(id!);
             if (!foundTraining) {
                 toast.error("Training not found");
                 navigate('/training');
                 return;
             }
-            setTraining(foundTraining);
+            setTraining(foundTraining as unknown as TrainingDetails);
 
             // Check enrollment
-            const enrollResp = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getEnrollments' })
-            });
-            const enrollResult = await enrollResp.json();
-
-            const userEmail = user?.email?.toLowerCase().trim();
-            const enrolled = enrollResult.enrollments?.some((e: any) =>
-                e.trainingId === id && (e.userEmail || "").toLowerCase().trim() === userEmail
-            );
-
+            const enrolled = await checkEnrollment(id!);
             if (!enrolled) {
                 toast.error("You are not enrolled in this training");
-                navigate(`/training/detail/${id}`);
+                navigate(`/training/${id}`);
                 return;
             }
             setIsEnrolled(true);
 
-            // Fetch quizzes and resources
-            await Promise.all([fetchQuizData(), fetchResourcesData()]);
+            // Quizzes have no Supabase table yet; resources come from the training row.
+            setQuizzes([]);
+            setResources(Array.isArray(foundTraining.resources) ? foundTraining.resources : []);
 
         } catch (e) {
             console.error(e);
             toast.error("Failed to load training data");
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const fetchQuizData = async () => {
-        try {
-            const resp = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'getTrainingQuizzes',
-                    trainingId: id
-                })
-            });
-            const result = await resp.json();
-            if (result.success) {
-                setQuizzes(result.quizzes || []);
-            }
-        } catch (err) {
-            console.error('Error fetching quizzes:', err);
-        }
-    };
-
-    const fetchResourcesData = async () => {
-        try {
-            const resp = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'getTrainingResources',
-                    trainingId: id
-                })
-            });
-            const result = await resp.json();
-            if (result.success) {
-                setResources(result.resources || []);
-            }
-        } catch (err) {
-            console.error('Error fetching resources:', err);
         }
     };
 

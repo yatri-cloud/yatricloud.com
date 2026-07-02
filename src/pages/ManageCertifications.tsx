@@ -7,7 +7,7 @@ import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { getUserCertifications, getStoredUser } from "@/lib/yatris-api";
+import { getUserCertifications, getStoredUser, deleteCertification } from "@/lib/yatris-api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -183,11 +183,16 @@ const ManageCertifications = () => {
       return;
     }
 
-    toast({
-      title: "Delete Not Available",
-      description: "Certification deletion requires updating the provider's Apps Script. Please contact support or resubmit with updated information.",
-      variant: "destructive",
-    });
+    const result = await deleteCertification(cert.id);
+    if (result.success) {
+      toast({ title: "Deleted", description: "Your certification has been removed." });
+    } else {
+      toast({
+        title: "Delete Failed",
+        description: result.error || "Could not delete certification. Please try again.",
+        variant: "destructive",
+      });
+    }
 
     // Reload certifications
     await loadCertifications();

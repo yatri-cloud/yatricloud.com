@@ -32,12 +32,13 @@ export default function SponsorSubmissionForm() {
 
     useEffect(() => {
         if (slug) {
-            const foundEvent = getEventBySlug(slug);
-            if (foundEvent && foundEvent.isUpcoming && foundEvent.lookingForSponsors) {
-                setEvent(foundEvent);
-            } else {
-                navigate('/events');
-            }
+            getEventBySlug(slug).then((foundEvent) => {
+                if (foundEvent && foundEvent.isUpcoming && foundEvent.lookingForSponsors) {
+                    setEvent(foundEvent);
+                } else {
+                    navigate('/events');
+                }
+            });
         }
     }, [slug, navigate]);
 
@@ -67,7 +68,7 @@ export default function SponsorSubmissionForm() {
         setIsSubmitting(true);
 
         try {
-            submitSponsor({
+            await submitSponsor({
                 eventId: event.id,
                 eventName: event.name,
                 companyName: formData.companyName,

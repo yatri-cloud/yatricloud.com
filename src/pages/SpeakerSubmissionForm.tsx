@@ -30,12 +30,13 @@ export default function SpeakerSubmissionForm() {
 
     useEffect(() => {
         if (slug) {
-            const foundEvent = getEventBySlug(slug);
-            if (foundEvent && foundEvent.isUpcoming && foundEvent.lookingForSpeakers) {
-                setEvent(foundEvent);
-            } else {
-                navigate('/events');
-            }
+            getEventBySlug(slug).then((foundEvent) => {
+                if (foundEvent && foundEvent.isUpcoming && foundEvent.lookingForSpeakers) {
+                    setEvent(foundEvent);
+                } else {
+                    navigate('/events');
+                }
+            });
         }
     }, [slug, navigate]);
 
@@ -57,7 +58,7 @@ export default function SpeakerSubmissionForm() {
         setIsSubmitting(true);
 
         try {
-            submitSpeaker({
+            await submitSpeaker({
                 eventId: event.id,
                 eventName: event.name,
                 fullName: formData.fullName,

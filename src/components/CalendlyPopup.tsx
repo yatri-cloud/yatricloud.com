@@ -38,6 +38,8 @@ export const CalendlyPopup = () => {
         e.preventDefault();
         if (window.Calendly) {
             window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
+        } else {
+            window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
         }
     };
 

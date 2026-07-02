@@ -351,15 +351,6 @@ const Achievements = () => {
       // Update with fresh data
       setCertifications(data);
       setIsLoading(false);
-
-      // If no data and no error, check if it's a CORS issue
-      if (data.length === 0) {
-        // Check console for CORS errors
-        const hasCorsError = window.location.href.includes('localhost') || window.location.href.includes('127.0.0.1');
-        if (hasCorsError) {
-          // Don't set error here - let the user check console
-        }
-      }
     } catch (error: any) {
       console.error("❌ Error loading certifications:", error);
 
@@ -379,11 +370,7 @@ const Achievements = () => {
       }
 
       setIsLoading(false);
-      if (error.message && error.message.includes("CORS")) {
-        setError("CORS Error: Please update your Google Apps Script with the doOptions() function. See FIX_CORS_GET_REQUEST.md for instructions.");
-      } else {
-        setError("Failed to load certifications. Please check the browser console for details.");
-      }
+      setError("Failed to load certifications. Please try again shortly.");
     }
   };
 

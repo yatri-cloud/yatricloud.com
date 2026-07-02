@@ -10,6 +10,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LogoMarquee } from "@/components/TechLogos";
+import { listPublishedTrainings } from "@/lib/training-api";
 
 interface Course {
     id: string;
@@ -31,8 +32,6 @@ export default function Training() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterCertification, setFilterCertification] = useState("All");
-
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
 
     useEffect(() => {
         fetchCourses();
@@ -59,14 +58,8 @@ export default function Training() {
 
     const fetchCourses = async () => {
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getTrainingStructure' })
-            });
-            const result = await response.json();
-            if (result.success) {
-                setCourses(result.structure);
-            }
+            const structure = await listPublishedTrainings();
+            setCourses(structure as unknown as Course[]);
         } catch (e) {
             console.error(e);
         } finally {

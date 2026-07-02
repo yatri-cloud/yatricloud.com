@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { verifyTrainerAccess } from "@/lib/training-api";
 
 export const TrainerLogin = () => {
     const { toast } = useToast();
@@ -28,41 +29,20 @@ export const TrainerLogin = () => {
                 );
                 const googleUser = await userInfoRes.json();
 
-                // 2. Verify Trainer Access with Backend
-                const response = await fetch(
-                    import.meta.env.VITE_TRAINING_SCRIPT_URL || "",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "text/plain;charset=utf-8",
-                        },
-                        body: JSON.stringify({
-                            action: "verifyTrainerAccess",
-                            email: googleUser.email,
-                            googleId: googleUser.sub,
-                            picture: googleUser.picture,
-                            name: googleUser.name
-                        }),
-                    }
-                );
+                // 2. Verify Trainer Access against Supabase (role must be 'trainer')
+                const result = await verifyTrainerAccess(googleUser.email);
 
-                const result = await response.json();
+                // Store trainer data in localStorage
+                localStorage.setItem("trainerData", JSON.stringify(result.trainer));
+                localStorage.setItem("trainerAssignments", JSON.stringify(result.assignments));
 
-                if (result.success) {
-                    // Store trainer data in localStorage
-                    localStorage.setItem("trainerData", JSON.stringify(result.trainer));
-                    localStorage.setItem("trainerAssignments", JSON.stringify(result.assignments));
+                toast({
+                    title: "Login Successful!",
+                    description: `Welcome back, ${result.trainer.fullName}!`,
+                });
 
-                    toast({
-                        title: "Login Successful!",
-                        description: `Welcome back, ${result.trainer.fullName}!`,
-                    });
-
-                    // Redirect to trainer dashboard
-                    navigate("/trainer/dashboard");
-                } else {
-                    throw new Error(result.error || "Access denied. You might not be an approved trainer.");
-                }
+                // Redirect to trainer dashboard
+                navigate("/trainer/dashboard");
             } catch (error: any) {
                 console.error("Login Error:", error);
                 toast({

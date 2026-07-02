@@ -1,39 +1,10 @@
-const EVENT_AUTOMATION_SCRIPT_URL = import.meta.env.VITE_EVENT_AUTOMATION_SCRIPT_URL;
+/**
+ * Attendee check-in — Supabase `event_registrations` table.
+ * Used by the admin Attendees tool to verify a registration code and
+ * mark attendance. (Registration itself lives in events-api.ts.)
+ */
 
-export interface RegistrationRequest {
-    eventId: string;
-    eventSlug: string;
-    eventName: string;
-    userId: string;
-    registrationCode: string;
-    spreadsheetId?: string;
-    userDetails: {
-        name: string;
-        email: string;
-        phone: string;
-        city: string;
-        state: string;
-        country: string;
-        linkedIn?: string;
-    };
-    // Payment fields
-    ticketType?: 'free' | 'paid';
-    ticketPrice?: number;
-    paymentStatus?: 'pending' | 'completed' | 'failed';
-    paymentId?: string;
-    paymentAmount?: number;
-    paymentTimestamp?: string;
-    orderId?: string;
-    currency?: string;
-    codePrefix?: string; // e.g. AWS, REACT, etc.
-}
-
-export interface RegistrationResponse {
-    success: boolean;
-    registrationCode?: string;
-    message?: string;
-    error?: string;
-}
+import { supabase } from "@/lib/supabase";
 
 export interface AttendeeDetails {
     code: string;
@@ -64,124 +35,60 @@ export interface ConfirmAttendanceResponse {
 }
 
 /**
- * Register user for an event
+ * Verify an attendee by registration code (admin — enforced by RLS).
  */
-export async function registerForEvent(
-    data: RegistrationRequest
-): Promise<RegistrationResponse> {
-    if (!EVENT_AUTOMATION_SCRIPT_URL) {
-        console.warn('VITE_EVENT_AUTOMATION_SCRIPT_URL is not configured');
-        return {
-            success: false,
-            error: 'Event registration is not configured. Please contact administrator.',
-        };
+export async function verifyAttendee(code: string): Promise<VerifyAttendeeResponse> {
+    const { data, error } = await supabase
+        .from('event_registrations')
+        .select('registration_code,name,email,phone,city,state,country,linkedin_url,status,attended_at,created_at,event_id,events(name)')
+        .eq('registration_code', code.trim())
+        .maybeSingle();
+
+    if (error) {
+        console.error('Error verifying attendee:', error.message);
+        return { success: false, error: 'Could not verify the code — please try again.' };
+    }
+    if (!data) {
+        return { success: false, error: 'No registration found for this code.' };
     }
 
-    try {
-        const response = await fetch(EVENT_AUTOMATION_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify({
-                action: 'registerEvent',
-                ...data,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result;
-    } catch (error: any) {
-        console.error('Error registering for event:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to register for event',
-        };
-    }
+    const eventName = (data.events as unknown as { name?: string } | null)?.name || '';
+    return {
+        success: true,
+        attendee: {
+            code: data.registration_code,
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            city: data.city || '',
+            state: data.state || '',
+            country: data.country || '',
+            linkedIn: data.linkedin_url || undefined,
+            eventName,
+            eventId: data.event_id,
+            registeredAt: data.created_at,
+            status: data.status,
+            attendedAt: data.attended_at || undefined,
+        },
+    };
 }
 
 /**
- * Verify attendee by registration code
+ * Mark an attendee as attended (admin — enforced by RLS).
  */
-export async function verifyAttendee(
-    code: string
-): Promise<VerifyAttendeeResponse> {
-    if (!EVENT_AUTOMATION_SCRIPT_URL) {
-        console.warn('VITE_EVENT_AUTOMATION_SCRIPT_URL is not configured');
-        return {
-            success: false,
-            error: 'Event automation is not configured. Please contact administrator.',
-        };
+export async function confirmAttendance(code: string): Promise<ConfirmAttendanceResponse> {
+    const { data, error } = await supabase
+        .from('event_registrations')
+        .update({ status: 'attended', attended_at: new Date().toISOString() })
+        .eq('registration_code', code.trim())
+        .select('id');
+
+    if (error) {
+        console.error('Error confirming attendance:', error.message);
+        return { success: false, error: 'Could not confirm attendance — please try again.' };
     }
-
-    try {
-        const response = await fetch(EVENT_AUTOMATION_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify({
-                action: 'verifyAttendee',
-                code: code,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result;
-    } catch (error: any) {
-        console.error('Error verifying attendee:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to verify attendee',
-        };
+    if (!data || data.length === 0) {
+        return { success: false, error: 'No registration found for this code.' };
     }
-}
-
-/**
- * Confirm attendee attendance
- */
-export async function confirmAttendance(
-    code: string
-): Promise<ConfirmAttendanceResponse> {
-    if (!EVENT_AUTOMATION_SCRIPT_URL) {
-        console.warn('VITE_EVENT_AUTOMATION_SCRIPT_URL is not configured');
-        return {
-            success: false,
-            error: 'Event automation is not configured. Please contact administrator.',
-        };
-    }
-
-    try {
-        const response = await fetch(EVENT_AUTOMATION_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify({
-                action: 'confirmAttendance',
-                code: code,
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result;
-    } catch (error: any) {
-        console.error('Error confirming attendance:', error);
-        return {
-            success: false,
-            error: error.message || 'Failed to confirm attendance',
-        };
-    }
+    return { success: true, message: 'Attendance confirmed.' };
 }

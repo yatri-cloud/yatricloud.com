@@ -27,12 +27,14 @@ export default function AdminSubmissions() {
 
     useEffect(() => {
         // Load upcoming events
-        const events = getAllEvents().filter(e => e.isUpcoming);
-        setUpcomingEvents(events);
+        getAllEvents().then((all) => {
+            const events = all.filter(e => e.isUpcoming);
+            setUpcomingEvents(events);
 
-        if (events.length > 0 && !selectedEventId) {
-            setSelectedEventId(events[0].id);
-        }
+            if (events.length > 0 && !selectedEventId) {
+                setSelectedEventId(events[0].id);
+            }
+        });
     }, []);
 
     useEffect(() => {
@@ -41,29 +43,29 @@ export default function AdminSubmissions() {
         }
     }, [selectedEventId]);
 
-    const loadSubmissions = () => {
-        const data = getAllSubmissionsForEvent(selectedEventId);
+    const loadSubmissions = async () => {
+        const data = await getAllSubmissionsForEvent(selectedEventId);
         setSubmissions(data);
     };
 
-    const handleApprove = (type: 'venue' | 'speaker' | 'sponsor', id: string) => {
-        const success = updateSubmissionStatus(type, id, 'approved');
+    const handleApprove = async (type: 'venue' | 'speaker' | 'sponsor', id: string) => {
+        const success = await updateSubmissionStatus(type, id, 'approved');
         if (success) {
             toast({ title: "Approved!", description: `Submission approved successfully.` });
             loadSubmissions();
         }
     };
 
-    const handleReject = (type: 'venue' | 'speaker' | 'sponsor', id: string) => {
-        const success = updateSubmissionStatus(type, id, 'rejected');
+    const handleReject = async (type: 'venue' | 'speaker' | 'sponsor', id: string) => {
+        const success = await updateSubmissionStatus(type, id, 'rejected');
         if (success) {
             toast({ title: "Rejected", description: `Submission rejected.`, variant: "destructive" });
             loadSubmissions();
         }
     };
 
-    const handleApproveAndEdit = (type: 'venue' | 'speaker' | 'sponsor', submission: any) => {
-        updateSubmissionStatus(type, submission.id, 'approved');
+    const handleApproveAndEdit = async (type: 'venue' | 'speaker' | 'sponsor', submission: any) => {
+        await updateSubmissionStatus(type, submission.id, 'approved');
         toast({ title: "Approved & Redirecting", description: `Submission approved. Redirecting to event editor...` });
 
         // Get current event data

@@ -23,23 +23,10 @@ export default defineConfig(({ mode }) => ({
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
     },
-    // Proxy API routes for local development
-    // In production, these routes are handled by Vercel serverless functions
-    // In local dev, we proxy directly to Google Apps Script to avoid CORS
+    // Proxy API routes to the local dev server (server.js on :3001) so the
+    // frontend can always use relative `/api/*` paths. In production these
+    // routes are served by Vercel serverless functions under `api/`.
     proxy: {
-      '/api/yatris-proxy': {
-        target: process.env.VITE_YATRIS_USERS_API_URL || 'https://script.google.com/macros/s/AKfycbxHqWK2-fa7hRWf40_jZBKOUxLktgeVawx6e7pe68V83-dx9Ol34ShdqPtXTn0fNiOT5g/exec',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => '', // Remove /api/yatris-proxy, proxy to root of target
-      },
-      '/api/reviews': {
-        target: process.env.VITE_CERTIFICATE_REVIEWS_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbw-LbPpzjLhGAXmgHqzcafhsEaYurhcxwBp5kWmCPA_iqwC_uj4dARB52TKItDaerPmvg/exec',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api\/reviews/, ''),
-      },
-      // Proxy for local backend server
       '/api': {
         target: 'http://127.0.0.1:3001',
         changeOrigin: true,

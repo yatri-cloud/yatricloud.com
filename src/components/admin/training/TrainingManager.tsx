@@ -24,6 +24,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { listProviders, listApprovedTrainers, getTrainingForEdit, createTraining, updateTraining, uploadResource } from "@/lib/training-api";
 
 interface Lesson {
     title: string;
@@ -106,8 +107,6 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     const [approvedTrainers, setApprovedTrainers] = useState<{ fullName: string; email: string; trainerId: string }[]>([]);
     const [trainerData, setTrainerData] = useState<{ fullName: string; trainerId: string } | null>(null);
 
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
-
     const { register, control, handleSubmit, setValue, watch, reset, trigger } = useForm<TrainingForm>({
         defaultValues: {
             level: "Beginner",
@@ -155,14 +154,8 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     useEffect(() => {
         const fetchProviders = async () => {
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'getProviders' })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    setProviders(result.providers);
-                }
+                const result = await listProviders();
+                setProviders(result);
             } catch (e) {
                 console.error("Failed to fetch providers", e);
             }
@@ -184,23 +177,12 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         // Fetch approved trainers for instructor dropdown
         const fetchTrainers = async () => {
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'getApprovedTrainers' })
-                });
-                const result = await response.json();
-                console.log("Joined Trainers API Result:", result);
-                if (result.success && result.trainers) {
-                    console.log("Setting Approved Trainers:", result.trainers);
-                    setApprovedTrainers(result.trainers.map((t: any) => ({
-                        fullName: t.fullName,
-                        email: t.email,
-                        trainerId: t.trainerId
-                    })));
-                } else {
-                    console.warn("No trainers found or success false:", result);
-                }
+                const trainers = await listApprovedTrainers();
+                setApprovedTrainers(trainers.map((t: any) => ({
+                    fullName: t.fullName,
+                    email: t.email,
+                    trainerId: t.trainerId
+                })));
             } catch (e) {
                 console.error("Failed to fetch trainers", e);
             }
@@ -254,15 +236,10 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     const loadTrainingData = async (trainingId: string) => {
         setIsLoadingData(true);
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "getTrainingById", id: trainingId })
-            });
-            const result = await response.json();
+            const training = await getTrainingForEdit(trainingId);
 
-            if (result.success && result.training) {
-                populateForm(result.training);
+            if (training) {
+                populateForm(training);
                 toast.success("Training loaded successfully");
             } else {
                 toast.error("Failed to load training data");
@@ -291,45 +268,47 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
         try {
             const isEditing = !!editId;
-            const action = isEditing ? "updateTraining" : "createTraining";
 
-            const response = await fetch(SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: action,
-                    id: editId || undefined, // Pass the training ID for updates
-                    ...data,
-                    instructorId: isTrainerMode ? trainerData?.trainerId : data.instructor,
-                    instructor: isTrainerMode 
-                        ? trainerData?.fullName 
-                        : approvedTrainers.find(t => t.trainerId === data.instructor)?.fullName || data.instructor, 
-                    startDate: data.startDate ? format(data.startDate, "yyyy-MM-dd") : "",
-                    modulesCount: data.curriculum.length,
-                    status: status,
-                    thumbnailBase64: thumbnailBase64,
-                    thumbnailMimeType: thumbnailMimeType,
-                    quizQuestions: quizQuestions,
-                    resources: resources
-                })
-            });
+            const payload = {
+                subType: data.subType,
+                courseName: data.courseName,
+                description: data.description,
+                instructorId: isTrainerMode ? trainerData?.trainerId : data.instructor,
+                instructor: isTrainerMode
+                    ? trainerData?.fullName
+                    : approvedTrainers.find(t => t.trainerId === data.instructor)?.fullName || data.instructor,
+                duration: data.duration,
+                mode: data.mode,
+                venueName: data.venueName,
+                capacityType: data.capacityType,
+                capacityCount: data.capacityCount,
+                paymentType: data.paymentType,
+                price: data.price,
+                startDate: data.startDate ? format(data.startDate, "yyyy-MM-dd") : "",
+                startTime: data.startTime,
+                thumbnailBase64: thumbnailBase64,
+                thumbnailMimeType: thumbnailMimeType,
+                curriculum: data.curriculum,
+                resources: resources,
+                status: status,
+            };
 
-            const result = await response.json();
-
-            if (result.success) {
-                toast.success(result.message);
-                if (!isEditing && status === 'Published') {
-                    reset();
-                    setThumbnailBase64("");
-                    setThumbnailPreview("");
-                    setActiveTab("Identity");
-                }
-                setTimeout(() => {
-                    navigate(isTrainerMode ? "/trainer/dashboard" : "/admin/training");
-                }, 1500);
+            if (isEditing) {
+                await updateTraining(editId!, payload);
             } else {
-                toast.error("Failed: " + result.error);
+                await createTraining(payload);
             }
+
+            toast.success(isEditing ? "Training updated" : "Training saved");
+            if (!isEditing && status === 'Published') {
+                reset();
+                setThumbnailBase64("");
+                setThumbnailPreview("");
+                setActiveTab("Identity");
+            }
+            setTimeout(() => {
+                navigate(isTrainerMode ? "/trainer/dashboard" : "/admin/training");
+            }, 1500);
         } catch (error) {
             console.error("Training save error", error);
             toast.error("Network error. Please try again.");
@@ -353,49 +332,28 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
         setIsUploading(true);
         try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const base64 = (reader.result as string).split(',')[1];
+            const url = await uploadResource(file);
 
-                const response = await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "uploadResource",
-                        base64,
-                        mimeType: file.type,
-                        fileName: file.name,
-                        folderId: editId // Backend handles if this is undefined
-                    })
-                });
+            let type = "Document";
+            if (file.type.includes("pdf")) type = "PDF";
+            else if (file.type.includes("video")) type = "Video";
 
-                const result = await response.json();
-                if (result.success) {
-                    let type = "Document";
-                    if (file.type.includes("pdf")) type = "PDF";
-                    else if (file.type.includes("video")) type = "Video";
-
-                    setResources([...resources, {
-                        id: result.id || Date.now().toString(),
-                        name: name,
-                        url: result.url,
-                        type: type,
-                        description: description
-                    }]);
-                    toast.success("File uploaded and added");
-                    // Reset fields
-                    if (fileInput) fileInput.value = '';
-                    (document.getElementById('resource-name-upload') as HTMLInputElement).value = '';
-                    (document.getElementById('resource-desc-upload') as HTMLInputElement).value = '';
-                } else {
-                    toast.error("Upload failed: " + result.error);
-                }
-                setIsUploading(false);
-            };
-        } catch (e) {
+            setResources([...resources, {
+                id: Date.now().toString(),
+                name: name,
+                url: url,
+                type: type,
+                description: description
+            }]);
+            toast.success("File uploaded and added");
+            // Reset fields
+            if (fileInput) fileInput.value = '';
+            (document.getElementById('resource-name-upload') as HTMLInputElement).value = '';
+            (document.getElementById('resource-desc-upload') as HTMLInputElement).value = '';
+        } catch (e: any) {
             console.error(e);
-            toast.error("Error uploading file");
+            toast.error("Upload failed: " + (e?.message || "Error uploading file"));
+        } finally {
             setIsUploading(false);
         }
     };

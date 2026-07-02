@@ -3,13 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import TrainingManager from "@/components/admin/training/TrainingManager";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { getTrainingForEdit } from "@/lib/training-api";
 
 export default function AdminEditTraining() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [trainingData, setTrainingData] = useState<any>(null);
-    const SCRIPT_URL = import.meta.env.VITE_TRAINING_SCRIPT_URL || import.meta.env.VITE_EVENT_FEEDBACK_SCRIPT_URL;
 
     useEffect(() => {
         if (!id) {
@@ -19,20 +19,11 @@ export default function AdminEditTraining() {
 
         const load = async () => {
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "getTrainingById", id })
-                });
-                const result = await response.json();
-                if (result.success && result.training) {
-                    setTrainingData(result.training);
+                const training = await getTrainingForEdit(id);
+                if (training) {
+                    setTrainingData(training);
                 } else {
-                    toast.error("Failed to load training: " + (result.error || "Unknown error"));
-                    if (result.debug) {
-                        console.error("Debug Info:", result.debug);
-                        toast.error("Debug: " + JSON.stringify(result.debug, null, 2));
-                    }
+                    toast.error("Failed to load training: Unknown error");
                     navigate("/admin/training");
                 }
             } catch (e) {
@@ -44,7 +35,7 @@ export default function AdminEditTraining() {
             }
         };
         load();
-    }, [id, navigate, SCRIPT_URL]);
+    }, [id, navigate]);
 
     if (loading) {
         return (

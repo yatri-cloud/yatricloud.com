@@ -14,18 +14,9 @@ interface SendEmailParams {
  */
 export async function sendEmail({ to, subject, html }: SendEmailParams): Promise<{ success: boolean; error?: string }> {
     try {
-        // Determine API URL with strict production check
-        // In PROD: Always use relative path to hit Vercel functions
-        // In DEV: Use env var or default to localhost
-        const API_BASE = import.meta.env.PROD
-            ? ""
-            : (import.meta.env.VITE_API_URL || "http://localhost:3001");
-
-        const targetUrl = `${API_BASE}/api/send-email`;
-
-        console.log('📧 Sending email to:', to);
-
-        const response = await fetch(targetUrl, {
+        // Relative path: served by the Vercel serverless function in prod and
+        // by the Vite dev proxy → server.js in local dev. No hardcoded hosts.
+        const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

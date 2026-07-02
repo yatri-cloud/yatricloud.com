@@ -14,14 +14,15 @@ export default function UpcomingEventDetail() {
 
     useEffect(() => {
         if (slug) {
-            const foundEvent = getEventBySlug(slug);
-            if (foundEvent && foundEvent.isUpcoming) {
-                setEvent(foundEvent);
-            } else {
-                // Redirect if not found or not an upcoming event
-                navigate('/events');
-            }
-            setLoading(false);
+            getEventBySlug(slug).then((foundEvent) => {
+                if (foundEvent && foundEvent.isUpcoming) {
+                    setEvent(foundEvent);
+                } else {
+                    // Redirect if not found or not an upcoming event
+                    navigate('/events');
+                }
+                setLoading(false);
+            });
         }
     }, [slug, navigate]);
 

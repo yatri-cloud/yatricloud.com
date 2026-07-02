@@ -26,8 +26,7 @@ export default function AdminEvents() {
 
     useEffect(() => {
         // Fetch events on mount
-        const allEvents = getAllEvents();
-        setEvents(allEvents);
+        getAllEvents().then(setEvents);
     }, []);
 
     const filteredEvents = events.filter(event => {
@@ -69,11 +68,11 @@ export default function AdminEvents() {
                     });
                 }
 
-                // Delete from localStorage
-                deleteEvent(id);
+                // Delete from Supabase
+                await deleteEvent(id);
 
                 // Refresh local state
-                setEvents(getAllEvents());
+                setEvents(await getAllEvents());
             } catch (error: any) {
                 toast({
                     title: "Error",
