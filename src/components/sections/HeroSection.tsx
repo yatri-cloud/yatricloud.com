@@ -9,6 +9,16 @@ import {
 import { ArrowRight, Users, Star, Layers } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { YatriGreeting } from "@/components/YatriGreeting";
+import {
+  useSiteContent,
+  getSiteStats,
+  getSiteSettings,
+  getActivePromotion,
+  statValue,
+  FALLBACK_STATS,
+  FALLBACK_SETTINGS,
+  FALLBACK_PROMOTION,
+} from "@/lib/site-content";
 
 const EASE_EDITORIAL = [0.16, 1, 0.3, 1] as const;
 
@@ -83,18 +93,58 @@ const CountUp = ({ value, decimals = 0, suffix = "", ariaLabel }: CountUpProps) 
   );
 };
 
-const STATS = [
-  { value: 50, decimals: 0, suffix: "K+", label: "Learners", aria: "50K+", icon: Users },
-  { value: 4.8, decimals: 1, suffix: "", label: "Rating", aria: "4.8", icon: Star },
-  { value: 6, decimals: 0, suffix: "", label: "Cloud Tracks", aria: "6", icon: Layers },
-];
-
-/* Headline copy split for a word-by-word kinetic reveal. */
-const HEADLINE_LINE_ONE = ["Get", "50%", "OFF", "on"];
-const HEADLINE_LINE_TWO = ["Certification", "Vouchers"];
+/* Parse a stat string like "50K+" → { value: 50, decimals: 0, suffix: "K+" }
+ * or "4.8" → { value: 4.8, decimals: 1, suffix: "" } for the count-up. */
+const parseStatValue = (raw: string) => {
+  const match = String(raw).match(/^([\d.]+)(.*)$/);
+  const numStr = match?.[1] ?? "0";
+  const parsed = parseFloat(numStr);
+  return {
+    value: Number.isNaN(parsed) ? 0 : parsed,
+    decimals: numStr.includes(".") ? numStr.split(".")[1].length : 0,
+    suffix: match?.[2] ?? "",
+  };
+};
 
 export const HeroSection = () => {
   const reduceMotion = useReducedMotion();
+
+  /* Live site content — renders the exact fallback first, then swaps in
+   * Supabase values (seeded identical, so nothing visibly changes). */
+  const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
+  const settings = useSiteContent(getSiteSettings, FALLBACK_SETTINGS);
+  const promotion = useSiteContent(
+    () => getActivePromotion("voucher-offer"),
+    FALLBACK_PROMOTION
+  );
+
+  const calendlyUrl =
+    settings.booking?.calendly_url || FALLBACK_SETTINGS.booking.calendly_url;
+
+  const openCalendly = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (window.Calendly) {
+      window.Calendly.initPopupWidget({ url: calendlyUrl });
+    } else {
+      window.open(calendlyUrl, "_blank", "noopener");
+    }
+  };
+
+  const STATS = [
+    { ...parseStatValue(statValue(siteStats, "learners", "50K+")), label: "Learners", aria: statValue(siteStats, "learners", "50K+"), icon: Users },
+    { ...parseStatValue(statValue(siteStats, "rating", "4.8")), label: "Rating", aria: statValue(siteStats, "rating", "4.8"), icon: Star },
+    { ...parseStatValue(statValue(siteStats, "tracks", "6")), label: "Cloud Tracks", aria: statValue(siteStats, "tracks", "6"), icon: Layers },
+  ];
+
+  /* Headline copy split for a word-by-word kinetic reveal — line one runs
+   * up to and including "on", line two carries the rest. */
+  const headlineWords = String(promotion?.headline || FALLBACK_PROMOTION.headline)
+    .split(/\s+/)
+    .filter(Boolean);
+  const onIndex = headlineWords.findIndex((w) => w.toLowerCase() === "on");
+  const splitAt = onIndex >= 0 ? onIndex + 1 : Math.ceil(headlineWords.length / 2);
+  const HEADLINE_LINE_ONE = headlineWords.slice(0, splitAt);
+  const HEADLINE_LINE_TWO = headlineWords.slice(splitAt);
 
   const wordContainer: Variants = {
     hidden: {},
@@ -177,20 +227,13 @@ export const HeroSection = () => {
               <motion.a
                 href="#"
                 aria-label="Get your 50% off certification voucher — book a slot"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (window.Calendly) {
-                    window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
-                  } else {
-                    window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
-                  }
-                }}
+                onClick={openCalendly}
                 whileHover={reduceMotion ? undefined : { scale: 1.03, y: -2 }}
                 whileTap={reduceMotion ? undefined : { scale: 0.97 }}
                 className="group relative inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground shadow-inset-btn shadow-glow-soft transition-colors duration-base hover:bg-brand-600"
               >
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
-                <span className="relative z-10">Get Your 50% OFF</span>
+                <span className="relative z-10">{promotion?.cta_label || FALLBACK_PROMOTION.cta_label}</span>
                 <ArrowRight className="relative z-10 h-5 w-5 transition-transform duration-base group-hover:translate-x-1" />
               </motion.a>
 
@@ -307,14 +350,7 @@ export const HeroSection = () => {
                     <motion.a
                       href="#"
                       aria-label="Book your certification meeting now"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (window.Calendly) {
-                          window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
-                        } else {
-                          window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
-                        }
-                      }}
+                      onClick={openCalendly}
                       whileHover={reduceMotion ? undefined : { x: 4 }}
                       className="group/link mt-5 inline-flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-semibold text-primary"
                     >

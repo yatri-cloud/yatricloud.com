@@ -10,6 +10,7 @@ import { Footer } from "@/components/sections/Footer";
 // Removed dropdown Select import — using star-based UI instead
 import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
+import { SEO } from "@/components/SEO";
 import { COUNTRY_OPTIONS, getCountryFlag } from "@/lib/country-flag";
 
 type ReviewFormData = {
@@ -97,6 +98,10 @@ const Review = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO
+        title="Share Your Feedback · Yatri Cloud"
+        description="Tell us how Yatri Cloud helped you get certified. Your honest words guide thousands of learners on the same journey."
+      />
       <Navbar />
       <main className="pt-24 pb-16">
         <section className="py-16 md:py-24">

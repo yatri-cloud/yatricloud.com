@@ -47,7 +47,25 @@ const ExamDumps = () => {
   return (
     <>
       <div className="min-h-screen bg-background text-foreground pb-20 md:pb-0">
-        <SEO title="Exam Dumps - Yatri Cloud" description="Get the latest and verified exam dumps for your cloud certifications." />
+        <SEO
+          title="Verified Exam Dumps · AWS, Azure, GCP | Yatri Cloud"
+          description="Real, verified exam dumps for AWS, Azure and GCP certifications. Practice with the same style of questions and pass on your first attempt."
+          jsonLd={
+            dumps.length > 0
+              ? {
+                  "@context": "https://schema.org",
+                  "@type": "ItemList",
+                  name: "Verified Cloud Certification Exam Dumps",
+                  itemListElement: dumps.slice(0, 20).map((d, i) => ({
+                    "@type": "ListItem",
+                    position: i + 1,
+                    name: d.title,
+                    url: "https://yatricloud.com/examdumps",
+                  })),
+                }
+              : undefined
+          }
+        />
         <div className="noise-overlay" />
         <Navbar />
 

@@ -7,9 +7,8 @@ const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
-        title="Terms of Service - Yatri Cloud"
-        description="Terms of Service for Yatri Cloud certification practice hub. Read our terms and conditions for using our free practice tests and resources."
-        url="https://certification.yatricloud.com/terms-of-service"
+        title="Terms of Service · Yatri Cloud"
+        description="The simple terms for using Yatri Cloud practice tests, exam dumps, vouchers, courses and community events."
       />
       <Navbar />
       <main className="container mx-auto px-4 md:px-6 py-24 max-w-4xl">

@@ -214,7 +214,11 @@ const ManageCertifications = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO />
+      <SEO
+        title="Manage Certifications · Yatri Cloud"
+        description="Add and manage the certifications on your Yatri Cloud profile."
+        noindex
+      />
       <Navbar />
 
       <main className="pt-24 pb-12">

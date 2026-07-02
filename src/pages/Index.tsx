@@ -18,7 +18,10 @@ import { SEO } from "@/components/SEO";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO />
+      <SEO
+        title="Yatri Cloud · 50% OFF Cloud Certification Vouchers"
+        description="Free AWS practice tests, verified exam dumps and 50% OFF certification vouchers for AWS, Azure, GCP and Kubernetes. Trusted by 50K+ learners."
+      />
       <div className="noise-overlay" />
       <Navbar />
       <main>

@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, animate, useReducedMotion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
+import {
+  useSiteContent,
+  getSiteStats,
+  statValue,
+  FALLBACK_STATS,
+} from "@/lib/site-content";
 
 const forYouPoints = [
   "You want to get AWS certified with 50% OFF vouchers",
@@ -40,13 +46,6 @@ const trustFeatures = [
     title: "Yatri Wall of Fame",
     description: "Get featured on our Wall of Fame after successfully passing your AWS certification.",
   },
-];
-
-const stats = [
-  { value: "50K+", label: "Learners" },
-  { value: "6+", label: "Practice Tests" },
-  { value: "4.8", label: "Avg. Rating" },
-  { value: "95%", label: "Success Rate" },
 ];
 
 /* --------------------------------------------------------------------------
@@ -164,6 +163,16 @@ const MarqueeRow = ({
 );
 
 export const TrustSection = () => {
+  /* Stat values come from Supabase (seeded identical to these fallbacks).
+   * "6+ Practice Tests" stays hardcoded — no site_stats key matches "6+". */
+  const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
+  const stats = [
+    { value: statValue(siteStats, "learners", "50K+"), label: "Learners" },
+    { value: "6+", label: "Practice Tests" },
+    { value: statValue(siteStats, "rating", "4.8"), label: "Avg. Rating" },
+    { value: statValue(siteStats, "success_rate", "95%"), label: "Success Rate" },
+  ];
+
   return (
     <section className="band-tint py-20 md:py-28 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 relative z-10">

@@ -59,6 +59,7 @@ import ExamDumps from "./pages/ExamDumps";
 import AdminExamDumps from "./pages/admin/AdminExamDumps";
 import AdminAddExamDump from "./pages/admin/AdminAddExamDump";
 import AdminEditExamDump from "./pages/admin/AdminEditExamDump";
+import AdminSiteContent from "./pages/admin/AdminSiteContent";
 import RequestVoucher from "./pages/RequestVoucher";
 
 
@@ -129,6 +130,7 @@ const App = () => (
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />}>
                 <Route index element={<Navigate to="/admin/events" replace />} />
+                <Route path="site" element={<AdminSiteContent />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
                 <Route path="attendees" element={<AdminAttendees />} />

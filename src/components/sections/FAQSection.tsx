@@ -2,52 +2,37 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, ArrowUpRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
-
-const faqs = [
-  {
-    question: "Step 1: How do I schedule my exam meeting?",
-    answer: "To schedule your certification processing meeting, simply select a suitable time slot and book a meet through our Calendly widget on the website. This is the first step to get started with the certification process."
-  },
-  {
-    question: "Step 2: What happens during the scheduling meeting?",
-    answer: "During the meeting call, our team will coordinate with you to start processing your exam scheduling ahead. We'll finalize the date and time together to ensure correct exam selection. We handle everything for you to make the process smooth and error-free."
-  },
-  {
-    question: "Is there still a WhatsApp group requirement?",
-    answer: "No, we have streamlined our process! You no longer need to join a WhatsApp group beforehand. Simply schedule a meeting directly through our Calendly widget at your convenience to get started."
-  },
-  {
-    question: "Which AWS Associate exams are eligible for the 50% OFF discount?",
-    answer: "list",
-    listItems: [
-      "AWS Cloud Practitioner",
-      "AWS AI Practitioner",
-      "AWS Certified Solutions Architect – Associate (SAA-C03)",
-      "AWS Certified Developer – Associate (DVA-C02)",
-      "AWS Certified CloudOps Engineer – Associate (SOA-C03)",
-      "AWS Certified Data Engineer – Associate (DEA-C01)",
-      "AWS Certified Machine Learning Engineer – Associate (MLA-C01)"
-    ]
-  },
-  {
-    question: "What bonus features are included with my certification?",
-    answer: "These benefits are available only after getting 50% OFF. You'll receive: 50% OFF Vouchers, Exam Dumps & Resources, Udemy Course Free Access, Topmate Free Connect with Yatharth & Nensi, and LinkedIn Recommendation. These resources are designed to help you prepare effectively and pass your exam with confidence."
-  },
-  {
-    question: "What happens after I schedule the meet?",
-    answer: "Once you book a slot through our Calendly widget, you will receive a calendar invitation. Please join the meeting at the scheduled time where our team will help you finalize your exam date, ensure everything is set up correctly, and process your certification request."
-  },
-  {
-    question: "How long does the entire certification process take?",
-    answer: "The process is straightforward: Simply book a meeting slot (takes just a minute!), and attend the short meeting where we schedule your exam. The timeline depends entirely on your availability for the scheduling meeting, but we work to make it as quick as possible."
-  },
-];
+import { useSiteContent, getFaqs, FALLBACK_FAQS } from "@/lib/site-content";
 
 export const FAQSection = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  /* FAQs come from Supabase (seeded identical to the fallback list). */
+  const faqs = useSiteContent(getFaqs, FALLBACK_FAQS);
+
+  /* FAQPage structured data for search engines — built from the same list. */
+  const faqJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text:
+          faq.answer === "list" && faq.listItems
+            ? faq.listItems.join(", ")
+            : faq.answer,
+      },
+    })),
+  });
+
   return (
     <section id="faq" className="py-20 md:py-28 bg-background overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: faqJsonLd }}
+      />
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-10 lg:gap-16 items-start">
           {/* LEFT — sticky large-type panel */}

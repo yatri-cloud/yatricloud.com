@@ -90,7 +90,7 @@ export default function MyEvents() {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <SEO title="My Events | Yatri Cloud" description="Manage your event registrations" />
+            <SEO title="My Events · Yatri Cloud" description="See and manage your event registrations." noindex />
             <Navbar />
 
             <main className="pt-24 pb-12">

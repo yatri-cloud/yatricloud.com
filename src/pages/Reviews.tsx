@@ -16,6 +16,7 @@ import {
 } from "@/lib/certification-logos";
 import { getCountryFlag, getCountryName } from "@/lib/country-flag";
 import { useReviews } from "@/hooks/use-reviews";
+import { SEO } from "@/components/SEO";
 
 const Reviews = () => {
   const { theme } = useTheme();
@@ -59,6 +60,26 @@ const Reviews = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO
+        title="Reviews · What Yatris Say About Yatri Cloud"
+        description="Rated 4.8 out of 5 by learners worldwide. Read honest reviews from Yatris who passed AWS, Azure, GCP and Kubernetes exams with us."
+        jsonLd={
+          reviews.length > 0
+            ? {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "Yatri Cloud",
+                url: "https://yatricloud.com",
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: avg,
+                  reviewCount: reviews.length,
+                  bestRating: "5",
+                },
+              }
+            : undefined
+        }
+      />
       <Navbar />
       <main className="pt-24 pb-16">
         <section className="py-12">

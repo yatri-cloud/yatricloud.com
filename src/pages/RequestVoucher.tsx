@@ -29,6 +29,7 @@ import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { submitVoucherRequest } from "@/lib/voucher-api";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { SEO } from "@/components/SEO";
 import { HomeReviewsSection } from "@/components/sections/HomeReviewsSection";
 
 const PROVIDERS = [
@@ -112,8 +113,12 @@ const RequestVoucher = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="AWS Certification Voucher 50% OFF · Yatri Cloud"
+        description="Get your AWS, Azure, GCP or Kubernetes exam voucher at 50 percent off. Request in one minute and save real money on your certification."
+      />
       <Navbar />
-      
+
       <main className="flex-1 pt-24 pb-20">
         {/* Background Decorative Elements */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">

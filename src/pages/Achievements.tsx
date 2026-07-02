@@ -914,7 +914,10 @@ const Achievements = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO />
+      <SEO
+        title="Achievements · Celebrate Your Certification Win"
+        description="You worked hard for that certificate. Share your achievement, create a celebration card and inspire 50K+ Yatris on their cloud journey."
+      />
       <div className="noise-overlay" />
       <Navbar />
 

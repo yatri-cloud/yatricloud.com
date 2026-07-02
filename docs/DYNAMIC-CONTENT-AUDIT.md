@@ -8,6 +8,11 @@
 ## Status legend
 - [ ] todo · [x] done · (dead) = file not rendered anywhere — delete, don't migrate
 
+## Progress log
+- **2026-07-02:** Cleanup (step 0) DONE — 8 dead files archived. CTA fixes #1,2,4,5,7,8,9,10 + Calendly fallback SHIPPED (commit 5d93705). Migration **009 applied live**: `site_settings` (contact/social/booking/brand), `site_stats` (6 rows), `promotions` (voucher-offer), `faqs` (7 rows) — all seeded with current live values, RLS verified (anon read ✓, anon write 401 ✓). Frontend wiring + `/admin/site` editor + full SEO overhaul in progress (agents).
+- **Standing rules added (docs/VOICE.md §6b/6c):** no "-" dashes in copy, simple English, warm human tone, full SEO on every page.
+- **Google Tag Manager GTM-KZ4L6JFK** installed in index.html (head script + body noscript) as part of the SEO pass — covers all pages (SPA). REMINDER (user side): add a History Change trigger in GTM / enable GA4 page changes based on browser history, so SPA route changes count as page views.
+
 ---
 
 ## 0. Cleanup first (zero-risk — dead files that duplicate live content)

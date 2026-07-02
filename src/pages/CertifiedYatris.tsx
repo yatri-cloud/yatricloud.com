@@ -120,7 +120,10 @@ const CertifiedYatris = () => {
   if (!isAuthenticated && !checkingAuth) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <SEO />
+        <SEO
+          title="Certified Yatris · Wall of Cloud Achievers"
+          description="Meet the Yatris who passed AWS, Azure, GCP and Kubernetes exams. Real people, real certificates. Add your name to the wall and inspire others."
+        />
         <Navbar />
         <LoginSignup onSuccess={handleLoginSuccess} />
         <Footer />
@@ -144,7 +147,10 @@ const CertifiedYatris = () => {
   if (isAuthenticated && showChoice) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <SEO />
+        <SEO
+          title="Certified Yatris · Wall of Cloud Achievers"
+          description="Meet the Yatris who passed AWS, Azure, GCP and Kubernetes exams. Real people, real certificates. Add your name to the wall and inspire others."
+        />
         <Navbar />
         <div className="pt-20">
           <UserActionChoice
@@ -159,7 +165,10 @@ const CertifiedYatris = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO />
+      <SEO
+        title="Certified Yatris · Wall of Cloud Achievers"
+        description="Meet the Yatris who passed AWS, Azure, GCP and Kubernetes exams. Real people, real certificates. Add your name to the wall and inspire others."
+      />
       <div className="noise-overlay" />
       <Navbar />
 

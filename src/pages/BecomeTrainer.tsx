@@ -16,6 +16,7 @@ import {
 import { Country } from "country-state-city";
 import { useGoogleLogin } from "@react-oauth/google";
 import Navbar from "@/components/Navbar";
+import { SEO } from "@/components/SEO";
 import { listProviders, submitTrainerApplication } from "@/lib/training-api";
 
 interface GoogleUser {
@@ -161,6 +162,10 @@ export const BecomeTrainer = () => {
 
     return (
         <div className="min-h-screen bg-background">
+            <SEO
+                title="Become a Trainer · Teach with Yatri Cloud"
+                description="Love cloud and DevOps? Teach what you know, reach 50K+ learners and grow your name as a cloud trainer with Yatri Cloud."
+            />
             <Navbar />
 
             {/* Hero Section */}

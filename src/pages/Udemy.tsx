@@ -215,7 +215,10 @@ const Udemy = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <SEO />
+        <SEO
+          title="Udemy Cloud Courses · Yatri Cloud"
+          description="Free and discounted Udemy courses for AWS, Azure, GCP and Kubernetes. Share a great course and help 50K+ Yatris learn cloud for less."
+        />
         <Navbar />
         <LoginForm onLoginSuccess={handleLoginSuccess} />
         <Footer />
@@ -225,7 +228,10 @@ const Udemy = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO />
+      <SEO
+        title="Udemy Cloud Courses · Yatri Cloud"
+        description="Free and discounted Udemy courses for AWS, Azure, GCP and Kubernetes. Share a great course and help 50K+ Yatris learn cloud for less."
+      />
       <Navbar />
       <main className="pt-24 pb-16">
         <section className="py-12 md:py-20">

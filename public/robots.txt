@@ -1,12 +1,14 @@
-# robots.txt for certification.yatricloud.com
+# robots.txt for yatricloud.com
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /trainer
+Disallow: /reset-password
+Disallow: /edit-profile
+Disallow: /manage-certifications
+Disallow: /profile
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://certification.yatricloud.com/sitemap.xml
-
-# Crawl-delay
-User-agent: *
-Crawl-delay: 1
+Sitemap: https://yatricloud.com/sitemap.xml

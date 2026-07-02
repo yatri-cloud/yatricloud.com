@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink } from "lucide-react";
+import { Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Accordion,
@@ -25,6 +25,14 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
 
     // Grouped Menu Items
     const menuGroups = [
+        {
+            id: "site-content",
+            label: "Site Content",
+            icon: Globe,
+            items: [
+                { name: "Site & Homepage", path: "/admin/site", icon: Globe },
+            ],
+        },
         {
             id: "events",
             label: "Events",
@@ -61,9 +69,13 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
         },
     ];
 
+    // Path matcher with a segment boundary so "/admin/site" never matches "/admin/sitemap".
+    const isPathActive = (path: string) =>
+        location.pathname === path || location.pathname.startsWith(`${path}/`);
+
     // Determine current active group to open it by default
     const currentActiveGroup = menuGroups.find(group =>
-        group.items.some(item => location.pathname.startsWith(item.path))
+        group.items.some(item => isPathActive(item.path))
     )?.id;
 
     const [openGroups, setOpenGroups] = useState<string[]>(
@@ -100,7 +112,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
     const isDashboard = location.pathname === "/admin" || location.pathname === "/admin/events";
 
     // Route-aware page label for the header breadcrumb (presentational only).
-    const currentItem = menuGroups.flatMap(g => g.items).find(i => location.pathname.startsWith(i.path));
+    const currentItem = menuGroups.flatMap(g => g.items).find(i => isPathActive(i.path));
     const pageTitle = isDashboard ? "Dashboard" : (currentItem?.name ?? "Admin");
 
     /* ── Collapsed icon rail (desktop only) ── */
@@ -129,7 +141,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
 
                 {menuGroups.map((group) => {
                     const GroupIcon = group.icon;
-                    const isGroupActive = group.items.some(item => location.pathname.startsWith(item.path));
+                    const isGroupActive = group.items.some(item => isPathActive(item.path));
                     return (
                         <button
                             key={group.id}
@@ -197,7 +209,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                 <Accordion type="multiple" value={openGroups} onValueChange={setOpenGroups} className="w-full space-y-1">
                     {menuGroups.map((group) => {
                         const GroupIcon = group.icon;
-                        const isGroupActive = group.items.some(item => location.pathname.startsWith(item.path));
+                        const isGroupActive = group.items.some(item => isPathActive(item.path));
 
                         return (
                             <AccordionItem key={group.id} value={group.id} className="border-none">
@@ -211,7 +223,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                                     <div className="space-y-1 border-l border-border ml-2.5 pl-4 px-2">
                                         {group.items.map((item) => {
                                             const ItemIcon = item.icon;
-                                            const active = location.pathname.startsWith(item.path);
+                                            const active = isPathActive(item.path);
 
                                             return (
                                                 <Link

@@ -12,6 +12,7 @@ import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { EnrollmentModal } from "@/components/EnrollmentModal";
+import { SEO } from "@/components/SEO";
 import { listPublishedTrainings, listInstructorProfiles } from "@/lib/training-api";
 
 interface Course {
@@ -174,6 +175,29 @@ export default function TrainingDetail() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
+            <SEO
+                title={`${course.courseName} · Yatri Cloud Training`}
+                description={
+                    displayDescription && displayDescription.length > 20
+                        ? displayDescription.slice(0, 157)
+                        : `Learn ${course.courseName} with Yatri Cloud. Expert led cloud certification training with lifetime access and a certificate of completion.`
+                }
+                image={course.thumbnailUrl || undefined}
+                jsonLd={{
+                    "@context": "https://schema.org",
+                    "@type": "Course",
+                    name: course.courseName,
+                    description:
+                        displayDescription ||
+                        `${course.courseName} cloud certification training by Yatri Cloud.`,
+                    provider: {
+                        "@type": "Organization",
+                        name: "Yatri Cloud",
+                        url: "https://yatricloud.com",
+                    },
+                    ...(course.thumbnailUrl ? { image: course.thumbnailUrl } : {}),
+                }}
+            />
             <Navbar />
 
             {/* Header / Hero */}

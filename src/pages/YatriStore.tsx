@@ -61,7 +61,25 @@ const YatriStore = () => {
   return (
     <>
       <div className="min-h-screen bg-background text-foreground pb-20 md:pb-0">
-        <SEO />
+        <SEO
+          title="Yatri Store · Practice Tests and Study Packs"
+          description="Affordable practice tests and study packs for AWS, Azure, GCP and Kubernetes exams. Prepare well, spend less and pass with confidence."
+          jsonLd={
+            products.length > 0
+              ? {
+                  "@context": "https://schema.org",
+                  "@type": "ItemList",
+                  name: "Yatri Store Practice Tests and Study Packs",
+                  itemListElement: products.slice(0, 20).map((p, i) => ({
+                    "@type": "ListItem",
+                    position: i + 1,
+                    name: p.title,
+                    url: "https://yatricloud.com/yatristore",
+                  })),
+                }
+              : undefined
+          }
+        />
         <div className="noise-overlay" />
         <Navbar />
 

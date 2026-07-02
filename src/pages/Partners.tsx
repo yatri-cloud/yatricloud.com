@@ -103,7 +103,10 @@ const Partners = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO title="Partner with Yatri Cloud" description="Bring industry-ready cloud and DevOps skills to your campus or company. Partner with Yatri Cloud, or just say hello." />
+      <SEO
+        title="Partner with Yatri Cloud"
+        description="Bring real cloud and DevOps skills to your campus or company. Team up with Yatri Cloud for training, events and certification support."
+      />
       <div className="noise-overlay" />
       <Navbar />
 

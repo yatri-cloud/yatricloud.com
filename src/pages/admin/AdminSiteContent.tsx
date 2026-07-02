@@ -1,0 +1,760 @@
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+    Globe,
+    Phone,
+    Share2,
+    CalendarClock,
+    Sparkles,
+    BarChart3,
+    Megaphone,
+    HelpCircle,
+    Plus,
+    Trash2,
+    ArrowUp,
+    ArrowDown,
+    Loader2,
+    Save,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import ScrollReveal from "@/components/ScrollReveal";
+import {
+    FALLBACK_SETTINGS,
+    FALLBACK_PROMOTION,
+} from "@/lib/site-content";
+
+/* ------------------------------------------------------------------ */
+/* Types                                                               */
+/* ------------------------------------------------------------------ */
+
+interface StatRow {
+    id: string;
+    key: string;
+    value: string;
+    label: string;
+    sort_order: number;
+    active: boolean;
+}
+
+interface PromoRow {
+    id: string | null;
+    slug: string;
+    headline: string;
+    discount_text: string;
+    cta_label: string;
+    cta_url: string;
+    active: boolean;
+}
+
+interface FaqRow {
+    id: string | null;
+    question: string;
+    answer: string;
+    listText: string; // list items, one per line (maps to list_items[])
+    sort_order: number;
+    active: boolean;
+}
+
+/* ------------------------------------------------------------------ */
+/* Small presentational helpers (match the admin design system)        */
+/* ------------------------------------------------------------------ */
+
+const SectionHeader = ({
+    icon: Icon,
+    title,
+    hint,
+}: {
+    icon: typeof Globe;
+    title: string;
+    hint: string;
+}) => (
+    <div className="flex items-start gap-3 border-b border-border pb-4 mb-5">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Icon className="h-5 w-5" />
+        </span>
+        <div>
+            <h2 className="font-display text-lg font-bold tracking-tight">{title}</h2>
+            <p className="text-sm text-muted-foreground">{hint}</p>
+        </div>
+    </div>
+);
+
+const FieldLabel = ({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) => (
+    <Label htmlFor={htmlFor} className="text-sm font-medium">
+        {children}
+    </Label>
+);
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
+
+const AdminSiteContent = () => {
+    const { toast } = useToast();
+
+    const [loading, setLoading] = useState(true);
+    const [savingSettings, setSavingSettings] = useState(false);
+    const [savingStats, setSavingStats] = useState(false);
+    const [savingPromo, setSavingPromo] = useState(false);
+    const [savingFaqId, setSavingFaqId] = useState<string | null>(null);
+
+    const [contact, setContact] = useState({ ...FALLBACK_SETTINGS.contact });
+    const [social, setSocial] = useState({ ...FALLBACK_SETTINGS.social });
+    const [booking, setBooking] = useState({ ...FALLBACK_SETTINGS.booking });
+    const [brand, setBrand] = useState({ ...FALLBACK_SETTINGS.brand });
+
+    const [stats, setStats] = useState<StatRow[]>([]);
+    const [promo, setPromo] = useState<PromoRow>({
+        id: null,
+        slug: "voucher-offer",
+        headline: FALLBACK_PROMOTION.headline,
+        discount_text: FALLBACK_PROMOTION.discount_text,
+        cta_label: FALLBACK_PROMOTION.cta_label,
+        cta_url: FALLBACK_PROMOTION.cta_url,
+        active: true,
+    });
+    const [faqs, setFaqs] = useState<FaqRow[]>([]);
+
+    /* ---------------------------- load ---------------------------- */
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const [settingsRes, statsRes, promoRes, faqsRes] = await Promise.all([
+                    supabase.from("site_settings").select("key, value"),
+                    supabase
+                        .from("site_stats")
+                        .select("id, key, value, label, sort_order, active")
+                        .order("sort_order", { ascending: true }),
+                    supabase
+                        .from("promotions")
+                        .select("id, slug, headline, discount_text, cta_label, cta_url, active")
+                        .order("sort_order", { ascending: true })
+                        .limit(1),
+                    supabase
+                        .from("faqs")
+                        .select("id, question, answer, list_items, sort_order, active")
+                        .order("sort_order", { ascending: true }),
+                ]);
+
+                if (settingsRes.data) {
+                    for (const row of settingsRes.data) {
+                        const value = row.value ?? {};
+                        if (row.key === "contact") setContact((prev: any) => ({ ...prev, ...value }));
+                        if (row.key === "social") setSocial((prev: any) => ({ ...prev, ...value }));
+                        if (row.key === "booking") setBooking((prev: any) => ({ ...prev, ...value }));
+                        if (row.key === "brand") setBrand((prev: any) => ({ ...prev, ...value }));
+                    }
+                }
+
+                if (statsRes.data) {
+                    setStats(
+                        statsRes.data.map((row: any) => ({
+                            id: row.id,
+                            key: row.key,
+                            value: row.value ?? "",
+                            label: row.label ?? "",
+                            sort_order: row.sort_order ?? 0,
+                            active: row.active !== false,
+                        }))
+                    );
+                }
+
+                if (promoRes.data && promoRes.data.length > 0) {
+                    const row: any = promoRes.data[0];
+                    setPromo({
+                        id: row.id,
+                        slug: row.slug ?? "voucher-offer",
+                        headline: row.headline ?? "",
+                        discount_text: row.discount_text ?? "",
+                        cta_label: row.cta_label ?? "",
+                        cta_url: row.cta_url ?? "",
+                        active: row.active !== false,
+                    });
+                }
+
+                if (faqsRes.data) {
+                    setFaqs(
+                        faqsRes.data.map((row: any) => ({
+                            id: row.id,
+                            question: row.question ?? "",
+                            answer: row.answer ?? "",
+                            listText: Array.isArray(row.list_items) ? row.list_items.join("\n") : "",
+                            sort_order: row.sort_order ?? 0,
+                            active: row.active !== false,
+                        }))
+                    );
+                }
+            } catch (e) {
+                console.error("Failed to load site content", e);
+                toast({
+                    title: "Could not load everything",
+                    description: "Some values may be missing. Please refresh and try again.",
+                    variant: "destructive",
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const saveFailed = () =>
+        toast({
+            title: "That did not save",
+            description: "Please try again in a moment.",
+            variant: "destructive",
+        });
+
+    const saveDone = () =>
+        toast({
+            title: "Saved",
+            description: "Your changes are live on the site.",
+        });
+
+    /* -------------------------- settings -------------------------- */
+
+    const saveSettings = async () => {
+        setSavingSettings(true);
+        const { error } = await supabase.from("site_settings").upsert(
+            [
+                { key: "contact", value: contact },
+                { key: "social", value: social },
+                { key: "booking", value: booking },
+                { key: "brand", value: brand },
+            ],
+            { onConflict: "key" }
+        );
+        setSavingSettings(false);
+        if (error) return saveFailed();
+        saveDone();
+    };
+
+    /* ---------------------------- stats --------------------------- */
+
+    const updateStat = (id: string, field: "value" | "label", next: string) => {
+        setStats((prev) => prev.map((s) => (s.id === id ? { ...s, [field]: next } : s)));
+    };
+
+    const toggleStat = (id: string, active: boolean) => {
+        setStats((prev) => prev.map((s) => (s.id === id ? { ...s, active } : s)));
+    };
+
+    const saveStats = async () => {
+        setSavingStats(true);
+        try {
+            const results = await Promise.all(
+                stats.map((s) =>
+                    supabase
+                        .from("site_stats")
+                        .update({ value: s.value, label: s.label, active: s.active })
+                        .eq("id", s.id)
+                )
+            );
+            setSavingStats(false);
+            if (results.some((r) => r.error)) return saveFailed();
+            saveDone();
+        } catch {
+            setSavingStats(false);
+            saveFailed();
+        }
+    };
+
+    /* -------------------------- promotion ------------------------- */
+
+    const savePromo = async () => {
+        setSavingPromo(true);
+        const payload = {
+            slug: promo.slug || "voucher-offer",
+            headline: promo.headline,
+            discount_text: promo.discount_text,
+            cta_label: promo.cta_label,
+            cta_url: promo.cta_url,
+            active: promo.active,
+        };
+        const { error } = promo.id
+            ? await supabase.from("promotions").update(payload).eq("id", promo.id)
+            : await supabase.from("promotions").upsert(payload, { onConflict: "slug" });
+        setSavingPromo(false);
+        if (error) return saveFailed();
+        saveDone();
+    };
+
+    /* ----------------------------- FAQs --------------------------- */
+
+    const updateFaq = (index: number, patch: Partial<FaqRow>) => {
+        setFaqs((prev) => prev.map((f, i) => (i === index ? { ...f, ...patch } : f)));
+    };
+
+    const addFaq = () => {
+        const nextOrder = faqs.length > 0 ? Math.max(...faqs.map((f) => f.sort_order)) + 1 : 1;
+        setFaqs((prev) => [
+            ...prev,
+            { id: null, question: "", answer: "", listText: "", sort_order: nextOrder, active: true },
+        ]);
+    };
+
+    const faqPayload = (faq: FaqRow) => {
+        const listItems = faq.listText
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean);
+        return {
+            question: faq.question.trim(),
+            answer: faq.answer.trim(),
+            list_items: listItems.length > 0 ? listItems : null,
+            sort_order: faq.sort_order,
+            active: faq.active,
+        };
+    };
+
+    const saveFaq = async (index: number) => {
+        const faq = faqs[index];
+        if (!faq.question.trim() || !faq.answer.trim()) {
+            toast({
+                title: "Almost there",
+                description: "Please fill in both the question and the answer before saving.",
+                variant: "destructive",
+            });
+            return;
+        }
+        setSavingFaqId(faq.id ?? `new-${index}`);
+        if (faq.id) {
+            const { error } = await supabase.from("faqs").update(faqPayload(faq)).eq("id", faq.id);
+            setSavingFaqId(null);
+            if (error) return saveFailed();
+        } else {
+            const { data, error } = await supabase
+                .from("faqs")
+                .insert(faqPayload(faq))
+                .select("id")
+                .single();
+            setSavingFaqId(null);
+            if (error) return saveFailed();
+            if (data?.id) updateFaq(index, { id: data.id });
+        }
+        saveDone();
+    };
+
+    const deleteFaq = async (index: number) => {
+        const faq = faqs[index];
+        if (faq.id) {
+            const { error } = await supabase.from("faqs").delete().eq("id", faq.id);
+            if (error) return saveFailed();
+        }
+        setFaqs((prev) => prev.filter((_, i) => i !== index));
+        toast({
+            title: "Question removed",
+            description: "That FAQ is no longer shown on the site.",
+        });
+    };
+
+    const moveFaq = async (index: number, direction: -1 | 1) => {
+        const target = index + direction;
+        if (target < 0 || target >= faqs.length) return;
+        const a = faqs[index];
+        const b = faqs[target];
+        // Swap sort orders locally first, then persist saved rows.
+        const next = [...faqs];
+        next[index] = { ...b, sort_order: a.sort_order };
+        next[target] = { ...a, sort_order: b.sort_order };
+        setFaqs(next);
+        try {
+            const updates: Promise<any>[] = [];
+            if (a.id) {
+                updates.push(
+                    Promise.resolve(
+                        supabase.from("faqs").update({ sort_order: b.sort_order }).eq("id", a.id)
+                    )
+                );
+            }
+            if (b.id) {
+                updates.push(
+                    Promise.resolve(
+                        supabase.from("faqs").update({ sort_order: a.sort_order }).eq("id", b.id)
+                    )
+                );
+            }
+            const results = await Promise.all(updates);
+            if (results.some((r) => r?.error)) saveFailed();
+        } catch {
+            saveFailed();
+        }
+    };
+
+    /* ----------------------------- view --------------------------- */
+
+    const saveButtonClass =
+        "min-h-[44px] rounded-xl bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn";
+
+    if (loading) {
+        return (
+            <div className="flex min-h-[50vh] items-center justify-center gap-3 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span>Loading your site content…</span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="px-4 md:px-8 py-8 md:py-10">
+            <div className="max-w-5xl mx-auto space-y-6 md:space-y-8">
+                {/* Header band — matches the admin workspace panels */}
+                <ScrollReveal>
+                    <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                        <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                        <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
+
+                        <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                            <div className="space-y-1.5">
+                                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Site content
+                                </p>
+                                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
+                                    Site & <span className="gradient-text">Homepage</span>
+                                </h1>
+                                <p className="text-muted-foreground">
+                                    Edit the words and numbers Yatris see across the site. Every save goes live right away.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </ScrollReveal>
+
+                {/* ── Site settings ── */}
+                <ScrollReveal delay={0.05}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-card border border-border rounded-2xl p-5 md:p-6"
+                    >
+                        <SectionHeader
+                            icon={Globe}
+                            title="Site Settings"
+                            hint="Contact details, social links, booking, and brand copy."
+                        />
+
+                        <div className="space-y-8">
+                            {/* Contact */}
+                            <div>
+                                <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    <Phone className="h-3.5 w-3.5" /> Contact
+                                </p>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor="contact-email">Email</FieldLabel>
+                                        <Input id="contact-email" className="min-h-[44px] rounded-xl" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor="contact-phone">Phone</FieldLabel>
+                                        <Input id="contact-phone" className="min-h-[44px] rounded-xl" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor="contact-phone-href">Phone link (tel: format)</FieldLabel>
+                                        <Input id="contact-phone-href" className="min-h-[44px] rounded-xl" value={contact.phone_href} onChange={(e) => setContact({ ...contact, phone_href: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor="contact-location">Location</FieldLabel>
+                                        <Input id="contact-location" className="min-h-[44px] rounded-xl" value={contact.location} onChange={(e) => setContact({ ...contact, location: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <FieldLabel htmlFor="contact-hours">Office hours</FieldLabel>
+                                        <Input id="contact-hours" className="min-h-[44px] rounded-xl" value={contact.hours} onChange={(e) => setContact({ ...contact, hours: e.target.value })} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Social */}
+                            <div>
+                                <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    <Share2 className="h-3.5 w-3.5" /> Social links
+                                </p>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor="social-youtube">YouTube</FieldLabel>
+                                        <Input id="social-youtube" className="min-h-[44px] rounded-xl" value={social.youtube} onChange={(e) => setSocial({ ...social, youtube: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor="social-linkedin">LinkedIn</FieldLabel>
+                                        <Input id="social-linkedin" className="min-h-[44px] rounded-xl" value={social.linkedin} onChange={(e) => setSocial({ ...social, linkedin: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <FieldLabel htmlFor="social-whatsapp">WhatsApp</FieldLabel>
+                                        <Input id="social-whatsapp" className="min-h-[44px] rounded-xl" value={social.whatsapp} onChange={(e) => setSocial({ ...social, whatsapp: e.target.value })} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Booking */}
+                            <div>
+                                <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    <CalendarClock className="h-3.5 w-3.5" /> Booking
+                                </p>
+                                <div className="space-y-2">
+                                    <FieldLabel htmlFor="booking-calendly">Calendly URL</FieldLabel>
+                                    <Input id="booking-calendly" className="min-h-[44px] rounded-xl" value={booking.calendly_url} onChange={(e) => setBooking({ ...booking, calendly_url: e.target.value })} />
+                                </div>
+                            </div>
+
+                            {/* Brand */}
+                            <div>
+                                <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    <Sparkles className="h-3.5 w-3.5" /> Brand
+                                </p>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor="brand-name">Brand name</FieldLabel>
+                                        <Input id="brand-name" className="min-h-[44px] rounded-xl" value={brand.name} onChange={(e) => setBrand({ ...brand, name: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor="brand-designed-by">Designed by</FieldLabel>
+                                        <Input id="brand-designed-by" className="min-h-[44px] rounded-xl" value={brand.designed_by} onChange={(e) => setBrand({ ...brand, designed_by: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <FieldLabel htmlFor="brand-tagline">Tagline (shown in the footer)</FieldLabel>
+                                        <Textarea id="brand-tagline" className="min-h-[80px] rounded-xl" value={brand.tagline} onChange={(e) => setBrand({ ...brand, tagline: e.target.value })} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Button onClick={saveSettings} disabled={savingSettings} className={saveButtonClass}>
+                                {savingSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                Save site settings
+                            </Button>
+                        </div>
+                    </motion.div>
+                </ScrollReveal>
+
+                {/* ── Stats ── */}
+                <ScrollReveal delay={0.05}>
+                    <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+                        <SectionHeader
+                            icon={BarChart3}
+                            title="Stats"
+                            hint="The numbers shown on the homepage, community, and training pages."
+                        />
+
+                        <div className="space-y-3">
+                            {stats.map((stat) => (
+                                <div
+                                    key={stat.id}
+                                    className="grid grid-cols-1 items-center gap-3 rounded-xl border border-border bg-background p-4 sm:grid-cols-[110px_1fr_1fr_auto]"
+                                >
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                        {stat.key}
+                                    </span>
+                                    <div className="space-y-1">
+                                        <FieldLabel htmlFor={`stat-value-${stat.id}`}>Value</FieldLabel>
+                                        <Input
+                                            id={`stat-value-${stat.id}`}
+                                            className="min-h-[44px] rounded-xl"
+                                            value={stat.value}
+                                            onChange={(e) => updateStat(stat.id, "value", e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <FieldLabel htmlFor={`stat-label-${stat.id}`}>Label</FieldLabel>
+                                        <Input
+                                            id={`stat-label-${stat.id}`}
+                                            className="min-h-[44px] rounded-xl"
+                                            value={stat.label}
+                                            onChange={(e) => updateStat(stat.id, "label", e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2 sm:flex-col sm:gap-1">
+                                        <span className="text-xs text-muted-foreground">Visible</span>
+                                        <Switch
+                                            checked={stat.active}
+                                            onCheckedChange={(checked) => toggleStat(stat.id, checked)}
+                                            aria-label={`Show the ${stat.key} stat on the site`}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                            {stats.length === 0 && (
+                                <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                                    No stats found yet. They will appear here once the table has rows.
+                                </p>
+                            )}
+
+                            <Button onClick={saveStats} disabled={savingStats || stats.length === 0} className={saveButtonClass}>
+                                {savingStats ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                Save stats
+                            </Button>
+                        </div>
+                    </div>
+                </ScrollReveal>
+
+                {/* ── Promotion ── */}
+                <ScrollReveal delay={0.05}>
+                    <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+                        <SectionHeader
+                            icon={Megaphone}
+                            title="Promotion"
+                            hint="The voucher offer shown in the homepage hero."
+                        />
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <FieldLabel htmlFor="promo-headline">Headline</FieldLabel>
+                                <Input id="promo-headline" className="min-h-[44px] rounded-xl" value={promo.headline} onChange={(e) => setPromo({ ...promo, headline: e.target.value })} />
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <FieldLabel htmlFor="promo-discount">Discount text</FieldLabel>
+                                    <Input id="promo-discount" className="min-h-[44px] rounded-xl" value={promo.discount_text} onChange={(e) => setPromo({ ...promo, discount_text: e.target.value })} />
+                                </div>
+                                <div className="space-y-2">
+                                    <FieldLabel htmlFor="promo-cta-label">Button label</FieldLabel>
+                                    <Input id="promo-cta-label" className="min-h-[44px] rounded-xl" value={promo.cta_label} onChange={(e) => setPromo({ ...promo, cta_label: e.target.value })} />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <FieldLabel htmlFor="promo-cta-url">Button URL</FieldLabel>
+                                <Input id="promo-cta-url" className="min-h-[44px] rounded-xl" value={promo.cta_url} onChange={(e) => setPromo({ ...promo, cta_url: e.target.value })} />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Switch
+                                    id="promo-active"
+                                    checked={promo.active}
+                                    onCheckedChange={(checked) => setPromo({ ...promo, active: checked })}
+                                    aria-label="Promotion is live"
+                                />
+                                <Label htmlFor="promo-active" className="text-sm font-medium">
+                                    Promotion is live
+                                </Label>
+                            </div>
+
+                            <Button onClick={savePromo} disabled={savingPromo} className={saveButtonClass}>
+                                {savingPromo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                Save promotion
+                            </Button>
+                        </div>
+                    </div>
+                </ScrollReveal>
+
+                {/* ── FAQs ── */}
+                <ScrollReveal delay={0.05}>
+                    <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+                        <SectionHeader
+                            icon={HelpCircle}
+                            title="FAQs"
+                            hint="The questions and answers shown on the homepage. Save each card after editing."
+                        />
+
+                        <div className="space-y-4">
+                            {faqs.map((faq, index) => (
+                                <div key={faq.id ?? `new-${index}`} className="rounded-xl border border-border bg-background p-4 md:p-5 space-y-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
+                                            {index + 1}
+                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => moveFaq(index, -1)}
+                                                disabled={index === 0}
+                                                aria-label="Move this question up"
+                                                className="h-10 w-10 rounded-xl"
+                                            >
+                                                <ArrowUp className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => moveFaq(index, 1)}
+                                                disabled={index === faqs.length - 1}
+                                                aria-label="Move this question down"
+                                                className="h-10 w-10 rounded-xl"
+                                            >
+                                                <ArrowDown className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => deleteFaq(index)}
+                                                aria-label="Delete this question"
+                                                className="h-10 w-10 rounded-xl text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor={`faq-q-${index}`}>Question</FieldLabel>
+                                        <Textarea
+                                            id={`faq-q-${index}`}
+                                            className="min-h-[60px] rounded-xl"
+                                            value={faq.question}
+                                            onChange={(e) => updateFaq(index, { question: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor={`faq-a-${index}`}>Answer (type the word list to show bullet points instead)</FieldLabel>
+                                        <Textarea
+                                            id={`faq-a-${index}`}
+                                            className="min-h-[100px] rounded-xl"
+                                            value={faq.answer}
+                                            onChange={(e) => updateFaq(index, { answer: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <FieldLabel htmlFor={`faq-list-${index}`}>List items, one per line (optional)</FieldLabel>
+                                        <Textarea
+                                            id={`faq-list-${index}`}
+                                            className="min-h-[80px] rounded-xl"
+                                            value={faq.listText}
+                                            onChange={(e) => updateFaq(index, { listText: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <Switch
+                                                id={`faq-active-${index}`}
+                                                checked={faq.active}
+                                                onCheckedChange={(checked) => updateFaq(index, { active: checked })}
+                                                aria-label="Show this question on the site"
+                                            />
+                                            <Label htmlFor={`faq-active-${index}`} className="text-sm font-medium">
+                                                Show on the site
+                                            </Label>
+                                        </div>
+                                        <Button
+                                            onClick={() => saveFaq(index)}
+                                            disabled={savingFaqId === (faq.id ?? `new-${index}`)}
+                                            className={saveButtonClass}
+                                        >
+                                            {savingFaqId === (faq.id ?? `new-${index}`) ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Save className="mr-2 h-4 w-4" />
+                                            )}
+                                            Save question
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            <Button variant="outline" onClick={addFaq} className="min-h-[44px] rounded-xl">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add a question
+                            </Button>
+                        </div>
+                    </div>
+                </ScrollReveal>
+            </div>
+        </div>
+    );
+};
+
+export default AdminSiteContent;

@@ -337,7 +337,11 @@ const EditProfile = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO />
+      <SEO
+        title="Edit Profile · Yatri Cloud"
+        description="Update your Yatri Cloud profile details."
+        noindex
+      />
       <Navbar />
 
       <main className="pt-24 pb-12">

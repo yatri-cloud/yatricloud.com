@@ -38,6 +38,20 @@ Weave in proof near every claim: **50K+ learners · 4.8★ · 6 cloud tracks · 
 **Do:** short sentences; specific nouns; one idea per line; warmth + credibility together; real names/faces; India-friendly, globally clear.
 **Don't:** generic AI phrasing ("Unlock the power of…", "Elevate your…", "In today's fast-paced world"); walls of adjectives; "everyone/users"; **AI-generated sparkle ✨/✦ icons** as decoration; emojis as structural icons (the greeting 👋 and rare celebration 🎉 are the allowed exceptions).
 
+### 6b. Anti AI-tell rules (user directive, 2026-07-02 — applies to ALL site copy)
+- **No "-" dashes inside sentences.** No em dashes, no "cost‑effective" style hyphen chains. Write it as two words or rephrase. ("First attempt confidence", not "first-attempt confidence". "Get certified and get hired", not "Get certified — get hired".) Product names that officially contain a hyphen (SAA-C03 exam codes, T-shirt sizes) are fine.
+- **Simple everyday English.** Most Yatris read English as a second language. Prefer "help" over "facilitate", "use" over "leverage", "start" over "commence". If a 12 year old would stumble on a word, pick a simpler one.
+- **Personal and emotional first.** Every heading should feel like a friend talking, not a brochure. Lead with the feeling (relief, pride, belonging) and back it with a real number.
+
+## 6c. SEO rules (user directive, 2026-07-02 — every page, always)
+Goal: maximum discoverability. Every route ships with:
+- Unique **title** (under 60 chars) + **meta description** (under 160 chars) written in searchable words people actually type: "aws certification voucher discount", "free cloud practice tests", "azure exam dumps", "kubernetes certification course".
+- **OpenGraph + Twitter card** tags (title, description, image, url) so shares look rich on LinkedIn and WhatsApp.
+- **Canonical URL** per page.
+- **JSON-LD structured data** where it fits: Organization + WebSite (sitewide), Course (training/udemy), Event (events), Product (store/dumps/vouchers), FAQPage (FAQ section), AggregateRating (reviews).
+- `public/robots.txt` + `public/sitemap.xml` kept current when routes change.
+- SEO copy follows the same voice rules above: simple, human, no dashes.
+
 ## 7. Icons
 UI icons = **Lucide only**, contextual and meaningful. Replace decorative `Sparkles` with the right icon (empty search → `FileSearch`/`SearchX`; empty list → `Inbox`/`PackageOpen`; achievement → `Award`/`Trophy`; idea → `Lightbulb`). Brand/tech logos = `LogoMarquee` (local SVGs).
 

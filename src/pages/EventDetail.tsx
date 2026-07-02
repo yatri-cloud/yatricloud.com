@@ -148,7 +148,57 @@ const EventDetail = () => {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <SEO title={event.name} description={event.description} />
+            <SEO
+                title={`${event.name} · Yatri Cloud Events`}
+                description={event.description || `Join us for ${event.name}, a friendly cloud community event by Yatri Cloud. Save your spot for free.`}
+                image={event.imageUrl}
+                type="article"
+                jsonLd={{
+                    "@context": "https://schema.org",
+                    "@type": "Event",
+                    name: event.name,
+                    startDate: event.date,
+                    ...(event.endDate ? { endDate: event.endDate } : {}),
+                    ...(event.description ? { description: event.description } : {}),
+                    image: event.imageUrl,
+                    eventAttendanceMode:
+                        event.location?.type === "online"
+                            ? "https://schema.org/OnlineEventAttendanceMode"
+                            : "https://schema.org/OfflineEventAttendanceMode",
+                    location:
+                        event.location?.type === "online"
+                            ? {
+                                  "@type": "VirtualLocation",
+                                  url: `https://yatricloud.com/events/${event.slug || event.id}`,
+                              }
+                            : {
+                                  "@type": "Place",
+                                  name: event.location?.venue || event.location?.city || "Event venue",
+                                  address: [event.location?.city, event.location?.state, event.location?.country]
+                                      .filter(Boolean)
+                                      .join(", "),
+                              },
+                    organizer: {
+                        "@type": "Organization",
+                        name: event.organizer?.name || "Yatri Cloud",
+                        url: "https://yatricloud.com",
+                    },
+                    ...(event.tickets && event.tickets.length > 0
+                        ? {
+                              offers: event.tickets.map((t) => ({
+                                  "@type": "Offer",
+                                  name: t.type,
+                                  price: Number(String(t.price).replace(/[^\d.]/g, "")) || 0,
+                                  priceCurrency: "INR",
+                                  url: `https://yatricloud.com/events/${event.slug || event.id}`,
+                                  availability: t.available
+                                      ? "https://schema.org/InStock"
+                                      : "https://schema.org/SoldOut",
+                              })),
+                          }
+                        : {}),
+                }}
+            />
             <div className="noise-overlay" />
             <Navbar />
 

@@ -3,12 +3,19 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Youtube, Linkedin, MessageCircle, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useSiteContent, getSiteSettings, FALLBACK_SETTINGS } from "@/lib/site-content";
 
 export const Footer = () => {
   const currentYear = 2026;
   const reduce = useReducedMotion();
   const { toast } = useToast();
   const [subscribing, setSubscribing] = useState(false);
+
+  /* Social links + brand tagline come from Supabase site_settings
+   * (seeded identical to the fallbacks, so nothing visibly changes). */
+  const settings = useSiteContent(getSiteSettings, FALLBACK_SETTINGS);
+  const social = settings.social || FALLBACK_SETTINGS.social;
+  const brandTagline = settings.brand?.tagline || FALLBACK_SETTINGS.brand.tagline;
 
   const handleSubscribe = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,9 +58,9 @@ export const Footer = () => {
   ];
 
   const socialLinks = [
-    { name: "YouTube", href: "https://www.youtube.com/@yatricloud?sub_confirmation=1", icon: <Youtube className="w-5 h-5" /> },
-    { name: "LinkedIn", href: "https://linkedin.com/company/yatricloud", icon: <Linkedin className="w-5 h-5" /> },
-    { name: "WhatsApp", href: "https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s", icon: <MessageCircle className="w-5 h-5" /> },
+    { name: "YouTube", href: social.youtube || FALLBACK_SETTINGS.social.youtube, icon: <Youtube className="w-5 h-5" /> },
+    { name: "LinkedIn", href: social.linkedin || FALLBACK_SETTINGS.social.linkedin, icon: <Linkedin className="w-5 h-5" /> },
+    { name: "WhatsApp", href: social.whatsapp || FALLBACK_SETTINGS.social.whatsapp, icon: <MessageCircle className="w-5 h-5" /> },
   ];
 
   const handleHashScroll = (e: React.MouseEvent, href: string) => {
@@ -136,7 +143,7 @@ export const Footer = () => {
               </span>
             </a>
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Master cloud certifications the affordable way — AWS, Azure & GCP at 50% OFF, with exam dumps, resources, and personal guidance.
+              {brandTagline}
             </p>
             {/* Newsletter — saves to Supabase `subscribers` */}
             <form onSubmit={handleSubscribe} className="flex max-w-xs items-center gap-2">

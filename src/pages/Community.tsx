@@ -15,6 +15,12 @@ import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
+import {
+  useSiteContent,
+  getSiteStats,
+  statValue,
+  FALLBACK_STATS,
+} from "@/lib/site-content";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -43,13 +49,6 @@ const MS_SUBS: Community[] = [
   { name: "Azure Yatri", url: "https://chat.whatsapp.com/JUl0ysEOLZGKVSHnsuIoJb", tagline: "Microsoft's cloud platform", logo: "/logos/azure.svg" },
   { name: "MLSA Yatri", url: "https://chat.whatsapp.com/CRPn0N5V2lbDsexLrXY0l4", tagline: "Microsoft Learn Student Ambassadors", logo: "/logos/microsoft.svg" },
   { name: "MVP Yatri", url: "https://chat.whatsapp.com/GIqTRS29D8iIQodRNNXblr", tagline: "Most Valuable Professionals", logo: "/logos/microsoft.svg" },
-];
-
-const STATS = [
-  { value: "17", label: "Communities" },
-  { value: "50K+", label: "Yatris" },
-  { value: "6", label: "Cloud tracks" },
-  { value: "24/7", label: "Always active" },
 ];
 
 const CommunityCard = ({ c, index }: { c: Community; index: number }) => {
@@ -90,6 +89,16 @@ const CommunityCard = ({ c, index }: { c: Community; index: number }) => {
 
 const Community = () => {
   const reduce = useReducedMotion();
+
+  /* Stat card values come from Supabase site_stats (seeded identical).
+   * "24/7 Always active" stays hardcoded — no site_stats key fits it. */
+  const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
+  const STATS = [
+    { value: statValue(siteStats, "communities", "17"), label: "Communities" },
+    { value: statValue(siteStats, "learners", "50K+"), label: "Yatris" },
+    { value: statValue(siteStats, "tracks", "6"), label: "Cloud tracks" },
+    { value: "24/7", label: "Always active" },
+  ];
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });

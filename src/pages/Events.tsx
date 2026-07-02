@@ -196,7 +196,10 @@ const Events = () => {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <SEO />
+            <SEO
+                title="Cloud Community Events · Yatri Cloud"
+                description="Free cloud and DevOps meetups, workshops and study sessions. Meet other Yatris, learn together and grow your career. Save your spot today."
+            />
             <div className="noise-overlay" />
             <Navbar />
 

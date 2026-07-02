@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useSiteContent, getSiteSettings, FALLBACK_SETTINGS } from "@/lib/site-content";
 
 const Field = ({ id, label, children }: { id: string; label: string; children: ReactNode }) => (
   <div className="space-y-1.5">
@@ -15,16 +16,20 @@ const Field = ({ id, label, children }: { id: string; label: string; children: R
   </div>
 );
 
-const CONTACT_INFO = [
-  { label: "Email", value: "info@yatricloud.com", href: "mailto:info@yatricloud.com" },
-  { label: "Phone", value: "+91 97248 23602", href: "tel:+919724823602" },
-  { label: "Location", value: "Bengaluru, Karnataka, India" },
-  { label: "Office hours (IST)", value: "Mon to Fri: 9:00 AM to 6:00 PM · Sat & Sun: 10:00 AM to 4:00 PM" },
-];
-
 export const ContactSection = () => {
   const { toast } = useToast();
   const [sending, setSending] = useState(false);
+
+  /* Contact details come from Supabase site_settings (seeded identical). */
+  const settings = useSiteContent(getSiteSettings, FALLBACK_SETTINGS);
+  const contact = settings.contact || FALLBACK_SETTINGS.contact;
+
+  const CONTACT_INFO = [
+    { label: "Email", value: contact.email, href: `mailto:${contact.email}` },
+    { label: "Phone", value: contact.phone, href: contact.phone_href },
+    { label: "Location", value: contact.location },
+    { label: "Office hours (IST)", value: contact.hours },
+  ];
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,7 +46,7 @@ export const ContactSection = () => {
     if (error) {
       toast({
         title: "That didn't go through",
-        description: "Please try again in a moment, or email us directly at info@yatricloud.com.",
+        description: `Please try again in a moment, or email us directly at ${contact.email}.`,
         variant: "destructive",
       });
       return;

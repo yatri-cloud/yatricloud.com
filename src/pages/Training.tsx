@@ -11,6 +11,21 @@ import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LogoMarquee } from "@/components/TechLogos";
 import { listPublishedTrainings } from "@/lib/training-api";
+import {
+    useSiteContent,
+    getSiteStats,
+    statValue,
+    FALLBACK_STATS,
+} from "@/lib/site-content";
+
+/* Expand "50K+" style stat values to "50,000+" so the trust cue reads
+ * exactly like today's copy. Non K values pass through untouched. */
+const expandK = (raw: string): string => {
+    const match = String(raw).match(/^(\d+(?:\.\d+)?)K(\+?)$/i);
+    if (!match) return raw;
+    const expanded = Math.round(parseFloat(match[1]) * 1000);
+    return `${expanded.toLocaleString("en-US")}${match[2]}`;
+};
 
 interface Course {
     id: string;
@@ -84,10 +99,12 @@ export default function Training() {
         show: { opacity: 1, y: 0 },
     };
 
+    /* Trust cue numbers come from Supabase site_stats (seeded identical). */
+    const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
     const trustCues = [
-        { icon: Users, label: "50,000+ Yatris learning" },
-        { icon: GraduationCap, label: "6 cloud tracks" },
-        { icon: Star, label: "4.8★ average rating" },
+        { icon: Users, label: `${expandK(statValue(siteStats, "learners", "50K+"))} Yatris learning` },
+        { icon: GraduationCap, label: `${statValue(siteStats, "tracks", "6")} cloud tracks` },
+        { icon: Star, label: `${statValue(siteStats, "rating", "4.8")}★ average rating` },
         { icon: Wallet, label: "Free tracks included" },
     ];
 

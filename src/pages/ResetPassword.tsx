@@ -64,7 +64,7 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO title="Reset password — Yatri Cloud" description="Set a new password for your Yatri Cloud account." />
+      <SEO title="Reset Password · Yatri Cloud" description="Set a new password for your Yatri Cloud account." noindex />
       <Navbar />
       <main className="container mx-auto flex min-h-[70vh] items-center justify-center px-4 py-28">
         <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-card">
