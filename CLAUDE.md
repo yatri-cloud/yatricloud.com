@@ -17,6 +17,9 @@ Read **[docs/SESSION-GUIDE.md](docs/SESSION-GUIDE.md)** first — how to behave,
 
 **Working agreement:** after *every* meaningful change, update `DESIGN.md` (patterns/tokens/§10 catalog), `MEMORY.md` (decision line), and the persistent memory progress file. **No duplicate UI** — each section/page gets a distinct layout + signature motion (see DESIGN.md §10).
 
+## Second initiative: BACKEND MIGRATION (Sheets → Supabase) — LIVE
+Backend runs on **Supabase** (`yatricloud.com` project, ap-south-1 Mumbai): 22 RLS-secured tables, 5 storage buckets, all legacy data imported. Rules: credentials only in git-ignored `.env` (never hardcode/paste in chat) · schema changes only via numbered `supabase/migrations/*.sql` · every frontend input ↔ DB column (no orphans either way) · RLS is the security boundary — never weaken policies. Read **[docs/SYSTEM-DESIGN.md](docs/SYSTEM-DESIGN.md)** + SESSION-GUIDE §5b before backend work. Client: `src/lib/supabase.ts`; importer: `scripts/supabase-import.mjs`.
+
 ## Read these before UI work
 - **[DESIGN.md](DESIGN.md)** — the design system: tokens (light+dark), typography, components, section banding, motion. **Source of truth.**
 - **[docs/brief.md](docs/brief.md)** — product goal, audience, scope.

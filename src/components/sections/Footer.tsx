@@ -1,9 +1,30 @@
+import { useState, type FormEvent } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Youtube, Linkedin, MessageCircle } from "lucide-react";
+import { Youtube, Linkedin, MessageCircle, ArrowRight, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 export const Footer = () => {
   const currentYear = 2026;
   const reduce = useReducedMotion();
+  const { toast } = useToast();
+  const [subscribing, setSubscribing] = useState(false);
+
+  const handleSubscribe = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const email = String(new FormData(form).get("email") || "").trim().toLowerCase();
+    if (!email.includes("@")) return;
+    setSubscribing(true);
+    const { error } = await supabase.from("subscribers").insert({ email });
+    setSubscribing(false);
+    if (error && !error.message.includes("duplicate")) {
+      toast({ title: "Couldn't subscribe", description: "Please try again in a moment.", variant: "destructive" });
+      return;
+    }
+    toast({ title: "You're in, Yatri! 🎉", description: "We'll keep you posted on new dumps, events, and offers." });
+    form.reset();
+  };
 
   const exploreLinks = [
     { href: "/examdumps", label: "Exam Dumps" },
@@ -112,6 +133,26 @@ export const Footer = () => {
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
               Master cloud certifications the affordable way — AWS, Azure & GCP at 50% OFF, with exam dumps, resources, and personal guidance.
             </p>
+            {/* Newsletter — saves to Supabase `subscribers` */}
+            <form onSubmit={handleSubscribe} className="flex max-w-xs items-center gap-2">
+              <label htmlFor="footer-subscribe" className="sr-only">Email address</label>
+              <input
+                id="footer-subscribe"
+                name="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <button
+                type="submit"
+                disabled={subscribing}
+                aria-label="Subscribe for updates"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-inset-btn transition-colors hover:bg-brand-600"
+              >
+                {subscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+              </button>
+            </form>
             <div className="flex items-center gap-3 pt-1">
               {socialLinks.map((social, index) => (
                 <motion.a

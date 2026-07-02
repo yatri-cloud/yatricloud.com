@@ -1,10 +1,18 @@
 /**
  * Store Products Integration Service
- * 
- * Fetches products from Google Sheets via Apps Script webhook
+ * Reads: Supabase (`products` table) when VITE_USE_SUPABASE, else legacy webhook.
+ * Writes: legacy Apps Script path until the admin-auth swap lands.
  */
 
+import { supabase, USE_SUPABASE } from "@/lib/supabase";
+
 const STORE_PRODUCTS_WEBHOOK_URL = import.meta.env.VITE_STORE_PRODUCTS_WEBHOOK_URL || "";
+
+/** DB provider enum → display category used across the store UI. */
+const PROVIDER_TO_CATEGORY: Record<string, StoreProduct["category"]> = {
+  AWS: "AWS", AZURE: "Azure", GCP: "GCP", ORACLE: "Oracle",
+  SALESFORCE: "Salesforce", SERVICENOW: "ServiceNow", GITHUB: "GitHub",
+};
 
 export interface StoreProduct {
   id: string;
@@ -24,6 +32,35 @@ export interface StoreProduct {
  * Fetch products from Google Sheets
  */
 export async function fetchStoreProducts(): Promise<StoreProduct[]> {
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id,title,provider,exam_code,level,original_price_inr,discounted_price_inr,image_url,description,status")
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+    if (!error && data) {
+      return data
+        .map((p) => {
+          const orig = Number(p.original_price_inr ?? 0);
+          const disc = Number(p.discounted_price_inr ?? 0);
+          return {
+            id: p.id,
+            title: p.title || "",
+            category: PROVIDER_TO_CATEGORY[p.provider] ?? "AWS",
+            originalPrice: orig,
+            discountedPrice: disc,
+            discount: orig > 0 ? Math.round(((orig - disc) / orig) * 100) : 0,
+            image: p.image_url || "",
+            description: p.description || "",
+            examCode: p.exam_code || "",
+            level: (p.level as StoreProduct["level"]) || "Associate",
+            status: "active",
+          } satisfies StoreProduct;
+        })
+        .filter((p) => p.title && p.discountedPrice > 0);
+    }
+    console.error("❌ Supabase products fetch failed, falling back:", error?.message);
+  }
   if (!STORE_PRODUCTS_WEBHOOK_URL) {
     console.warn("⚠️ Store products webhook URL not configured. No products will be loaded.");
     return [];

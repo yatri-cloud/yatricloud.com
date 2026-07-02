@@ -1,13 +1,31 @@
 /**
- * Yatris Users API
- * Handles authentication and CRUD operations for certified yatris
+ * Yatris Users API — now backed by Supabase Auth + RLS-protected `profiles`
+ * and `certifications` tables. Legacy function signatures are preserved so
+ * all 13 consumer files keep working; the internals are fully modern:
+ *  - real JWT sessions with auto-refresh (no tokens in spreadsheets)
+ *  - no hardcoded test-credential backdoor (removed for security)
+ *  - single-query certification lookups (no localStorage cache gymnastics)
  */
 
-// Use proxy API route to avoid CORS issues
-// In production, this goes through Vercel serverless function
-// Use local proxy server to avoid CORS issues
-const API_URL_AUTH = '/api/yatris/auth';
+import {
+  signUpWithPassword, signInWithPassword, signInWithGoogleIdToken,
+  signOut, hasSession, getCachedUser, fetchMyProfile, updateMyProfile,
+  changePassword as authChangePassword, changeEmail as authChangeEmail,
+  type YatriUser,
+} from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+
 const API_URL_EVENTS = '/api/yatris/events';
+
+/** Display provider name → DB enum. */
+const PROVIDER_TO_ENUM: Record<string, string> = {
+  AWS: 'AWS', Azure: 'AZURE', GCP: 'GCP', GitHub: 'GITHUB', Oracle: 'ORACLE',
+  Salesforce: 'SALESFORCE', ServiceNow: 'SERVICENOW', OpenAI: 'OPENAI',
+  HashiCorp: 'HASHICORP', Kubernetes: 'KUBERNETES',
+};
+const ENUM_TO_PROVIDER: Record<string, string> = Object.fromEntries(
+  Object.entries(PROVIDER_TO_ENUM).map(([k, v]) => [v, k])
+);
 
 interface User {
   email: string;
@@ -52,38 +70,15 @@ export async function registerUser(data: {
   countryCode?: string;
   phoneNumber?: string;
 }): Promise<RegisterResponse> {
-  try {
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'register',
-        ...data,
-      }),
-    });
-
-    const result = await response.json();
-
-    // Check if response has an error (even if status is 200)
-    if (!response.ok || result.error || !result.success) {
-      const errorMessage = result.error || result.message || 'Registration failed';
-      console.error('Registration error:', errorMessage, result);
-      return {
-        success: false,
-        error: errorMessage,
-      };
-    }
-
-    return result;
-  } catch (error: any) {
-    console.error('Registration error:', error);
+  const { user, error, needsEmailConfirm } = await signUpWithPassword(data);
+  if (error) return { success: false, error };
+  if (needsEmailConfirm) {
     return {
-      success: false,
-      error: error.message || 'Registration failed. Please check your connection and try again.',
+      success: true,
+      message: 'Check your inbox to confirm your email, then sign in.',
     };
   }
+  return { success: true, token: 'supabase-session', user: user ?? undefined };
 }
 
 /**
@@ -93,93 +88,9 @@ export async function loginUser(
   email: string,
   password: string
 ): Promise<LoginResponse> {
-  // Test credentials for development
-  const TEST_USER = {
-    email: 'test@yatricloud.com',
-    password: 'test123',
-    user: {
-      email: 'test@yatricloud.com',
-      fullName: 'Test User',
-      linkedinUrl: 'https://linkedin.com/in/testuser',
-      photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Test',
-      country: 'IN',
-      stateProvince: 'Karnataka',
-      city: 'Bangalore',
-      countryCode: '+91',
-      phoneNumber: '9876543210',
-    }
-  };
-
-  // Check for test credentials first (development only)
-  if (email === TEST_USER.email && password === TEST_USER.password) {
-    const testToken = 'test_token_' + Date.now();
-    localStorage.setItem('yatris_token', testToken);
-    localStorage.setItem('yatris_user', JSON.stringify(TEST_USER.user));
-    return {
-      success: true,
-      token: testToken,
-      user: TEST_USER.user,
-    };
-  }
-
-  try {
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'login',
-        email,
-        password,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Login failed');
-    }
-
-    const result = await response.json();
-
-    // Safe storage helper
-    const safeSetItem = (key: string, value: string) => {
-      try {
-        localStorage.setItem(key, value);
-      } catch (e: any) {
-        if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
-          console.warn('LocalStorage quota exceeded. Clearing old cache...');
-          // Clear large items
-          // Iterate over all keys and remove certification caches
-          Object.keys(localStorage).forEach(k => {
-            if (k.startsWith('yatris_user_certifications_')) {
-              localStorage.removeItem(k);
-            }
-          });
-
-          // Try again
-          try {
-            localStorage.setItem(key, value);
-          } catch (retryError) {
-            console.error('Failed to save to localStorage even after cleanup', retryError);
-          }
-        }
-      }
-    };
-
-    // Store token if login successful
-    if (result.success && result.token) {
-      safeSetItem('yatris_token', result.token);
-      safeSetItem('yatris_user', JSON.stringify(result.user));
-    }
-
-    return result;
-  } catch (error: any) {
-    console.error('Login error:', error);
-    return {
-      success: false,
-      error: error.message || 'Login failed',
-    };
-  }
+  const { user, error } = await signInWithPassword(email, password);
+  if (error) return { success: false, error };
+  return { success: true, token: 'supabase-session', user: user ?? undefined };
 }
 
 /**
@@ -189,64 +100,32 @@ export async function googleLogin(userProfile: {
   email: string;
   fullName: string;
   photoUrl: string;
+  /** Raw Google ID token (JWT credential) — required for secure verification. */
+  idToken?: string;
 }): Promise<LoginResponse> {
-  try {
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'googleLogin',
-        email: userProfile.email,
-        fullName: userProfile.fullName,
-        photoUrl: userProfile.photoUrl
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Google login failed");
-    }
-
-    const result = await response.json();
-    if (result.success && result.token) {
-      localStorage.setItem("yatris_token", result.token);
-      localStorage.setItem("yatris_user", JSON.stringify(result.user));
-    }
-    return result;
-  } catch (error: any) {
-    return { success: false, error: error.message || "Network error" };
+  if (!userProfile.idToken) {
+    return {
+      success: false,
+      error: 'Google sign-in needs a fresh credential — please try again.',
+    };
   }
+  const { user, error } = await signInWithGoogleIdToken(userProfile.idToken);
+  if (error) return { success: false, error };
+  // Enrich profile with Google data on first login (photo/name may be empty)
+  if (user && (!user.photoUrl || !user.fullName)) {
+    await updateMyProfile({
+      fullName: user.fullName || userProfile.fullName,
+      photoUrl: user.photoUrl || userProfile.photoUrl,
+    });
+  }
+  return { success: true, token: 'supabase-session', user: (await fetchMyProfile()) ?? undefined };
 }
 
 /**
  * Get current user from token
  */
 export async function getCurrentUser(): Promise<User | null> {
-  try {
-    const token = localStorage.getItem('yatris_token');
-    if (!token) return null;
-
-    const response = await fetch(`${API_URL_AUTH}?action=getUser&token=${token}`);
-
-    if (!response.ok) {
-      // Token might be invalid, clear it
-      localStorage.removeItem('yatris_token');
-      localStorage.removeItem('yatris_user');
-      return null;
-    }
-
-    const result = await response.json();
-    if (result.success && result.user) {
-      localStorage.setItem('yatris_user', JSON.stringify(result.user));
-      return result.user;
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Get user error:', error);
-    return null;
-  }
+  return await fetchMyProfile();
 }
 
 /**
@@ -255,128 +134,36 @@ export async function getCurrentUser(): Promise<User | null> {
  * Uses caching for immediate loading
  */
 export async function getUserCertifications(): Promise<any[]> {
-  try {
-    const user = getStoredUser();
-    if (!user || !user.email) {
-      return [];
-    }
-
-    // Load from cache immediately for instant display
-    const cacheKey = `yatris_user_certifications_${user.email}`;
-    const cacheTimestampKey = `yatris_user_certifications_timestamp_${user.email}`;
-    const cacheMaxAge = 10 * 60 * 1000; // 10 minutes (increased for better persistence)
-
-    try {
-      const cachedData = localStorage.getItem(cacheKey);
-      const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
-
-      if (cachedData) {
-        try {
-          const parsedData = JSON.parse(cachedData);
-          if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
-            const age = cachedTimestamp ? (Date.now() - parseInt(cachedTimestamp, 10)) : Infinity;
-            if (age < cacheMaxAge) {
-              // Return cached data immediately, but fetch fresh data in background
-              fetchFreshCertifications(user.email, cacheKey, cacheTimestampKey);
-              return parsedData;
-            }
-          }
-        } catch (parseError) {
-          console.warn("Error parsing cached data:", parseError);
-        }
-      }
-    } catch (cacheError) {
-      console.warn("Error loading from cache:", cacheError);
-    }
-
-    // Fetch fresh data if no valid cache
-    return await fetchFreshCertifications(user.email, cacheKey, cacheTimestampKey);
-  } catch (error) {
-    console.error('Get user certifications error:', error);
+  // One indexed query replaces 10+ webhook fetches + localStorage caching.
+  const user = getCachedUser();
+  if (!user?.email) return [];
+  const { data, error } = await supabase
+    .from('certifications')
+    .select('*')
+    .eq('email', user.email.toLowerCase())
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('Get user certifications error:', error.message);
     return [];
   }
-}
-
-/**
- * Fetch fresh certifications and cache them
- */
-async function fetchFreshCertifications(
-  userEmail: string,
-  cacheKey: string,
-  cacheTimestampKey: string
-): Promise<any[]> {
-  // Import fetchCertifications dynamically to avoid circular dependency
-  const { fetchCertifications } = await import('./google-sheets');
-
-  // Fetch all certifications from all provider sheets
-  const allCertifications = await fetchCertifications();
-
-  // Filter by user's email (case-insensitive, trim whitespace)
-  const userCerts = allCertifications.filter(cert => {
-    if (!cert.email) return false;
-    const certEmail = cert.email.toLowerCase().trim();
-    const userEmailLower = userEmail.toLowerCase().trim();
-    const matches = certEmail === userEmailLower;
-    if (!matches && allCertifications.length < 50) {
-      // Debug: log mismatches for first few certs
-      console.log(`🔍 Email mismatch: cert="${certEmail}" vs user="${userEmailLower}"`);
-    }
-    return matches;
-  });
-
-  console.log(`🔍 Filtering certifications for email: ${userEmail}`);
-  console.log(`📊 Total certifications fetched: ${allCertifications.length}`);
-  console.log(`📊 User certifications found: ${userCerts.length}`);
-  if (userCerts.length > 0) {
-    console.log(`✅ Sample certification:`, {
-      name: userCerts[0].certificationName,
-      provider: userCerts[0].certificationProvider,
-      email: userCerts[0].email,
-    });
-  } else if (allCertifications.length > 0) {
-    // Show sample of all certs to debug
-    console.log(`⚠️ No matches found. Sample certifications:`, allCertifications.slice(0, 3).map(c => ({
-      name: c.certificationName,
-      email: c.email,
-      provider: c.certificationProvider
-    })));
-  }
-
-  // Add a unique ID for each certification
-  const result = userCerts.map((cert, index) => ({
-    ...cert,
-    id: `${cert.certificationProvider}-${cert.examCode}-${cert.email}-${index}`,
-    _originalIndex: index,
+  return (data || []).map((c) => ({
+    id: c.id,
+    fullName: c.full_name,
+    email: c.email,
+    certificationProvider: ENUM_TO_PROVIDER[c.provider] ?? c.provider,
+    certificationName: c.certification_name,
+    examCode: c.exam_code || '',
+    certificationDate: c.certification_date || '',
+    linkedinUrl: c.linkedin_url || '',
+    verifiedCredential: c.verified_credential_url || '',
+    country: c.country || '',
+    stateProvince: c.state_province || '',
+    city: c.city || '',
+    countryCode: c.country_code || '',
+    phoneNumber: c.phone_number || '',
+    photoUrl: c.photo_url || '',
+    additionalNotes: c.additional_notes || '',
   }));
-
-  // Cache the result
-  try {
-    try {
-      localStorage.setItem(cacheKey, JSON.stringify(result));
-      localStorage.setItem(cacheTimestampKey, Date.now().toString());
-    } catch (e: any) {
-      if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
-        console.warn('LocalStorage quota exceeded while caching certs. Clearing old cache...');
-        // Clear ALL certification caches to make space
-        Object.keys(localStorage).forEach(k => {
-          if (k.startsWith('yatris_user_certifications_')) {
-            localStorage.removeItem(k);
-          }
-        });
-        // Try one more time, but only for this key
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(result));
-          localStorage.setItem(cacheTimestampKey, Date.now().toString());
-        } catch (retryError) {
-          console.warn('Could not cache certifications even after cleanup. Proceeding without cache.');
-        }
-      }
-    }
-  } catch (cacheError) {
-    console.warn("Error caching certifications:", cacheError);
-  }
-
-  return result;
 }
 
 /**
@@ -390,36 +177,33 @@ export async function submitCertification(data: {
   verifiedCredential?: string;
   additionalNotes?: string;
 }): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    const token = localStorage.getItem('yatris_token');
-    if (!token) {
-      return { success: false, error: 'Not authenticated' };
-    }
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  const profile = getCachedUser();
+  if (!authUser || !profile) return { success: false, error: 'Not authenticated' };
 
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'submitCertification',
-        token,
-        ...data,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Submission failed');
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    console.error('Submit certification error:', error);
-    return {
-      success: false,
-      error: error.message || 'Submission failed',
-    };
+  const { error } = await supabase.from('certifications').insert({
+    user_id: authUser.id,
+    email: profile.email.toLowerCase(),
+    full_name: profile.fullName,
+    provider: PROVIDER_TO_ENUM[data.certificationProvider] ?? 'OTHER',
+    certification_name: data.certificationName,
+    exam_code: data.examCode || null,
+    certification_date: data.certificationDate || null,
+    verified_credential_url: data.verifiedCredential || null,
+    additional_notes: data.additionalNotes || null,
+    linkedin_url: profile.linkedinUrl || null,
+    photo_url: profile.photoUrl || null,
+    country: profile.country || null,
+    state_province: profile.stateProvince || null,
+    city: profile.city || null,
+    country_code: profile.countryCode || null,
+    phone_number: profile.phoneNumber || null,
+  });
+  if (error) {
+    console.error('Submit certification error:', error.message);
+    return { success: false, error: 'Submission failed — please try again.' };
   }
+  return { success: true, message: 'Certification submitted!' };
 }
 
 /**
@@ -435,72 +219,33 @@ export async function updateProfile(data: {
   countryCode?: string;
   phoneNumber?: string;
 }): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    const token = localStorage.getItem('yatris_token');
-    if (!token) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'updateProfile',
-        token,
-        ...data,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Update failed');
-    }
-
-    const result = await response.json();
-
-    // Update stored user data
-    if (result.success) {
-      const currentUser = JSON.parse(localStorage.getItem('yatris_user') || '{}');
-      const updatedUser = { ...currentUser, ...data };
-      try {
-        localStorage.setItem('yatris_user', JSON.stringify(updatedUser));
-      } catch (e) {
-        console.warn('Could not update stored user profile due to storage limits', e);
-      }
-    }
-
-    return result;
-  } catch (error: any) {
-    console.error('Update profile error:', error);
-    return {
-      success: false,
-      error: error.message || 'Update failed',
-    };
-  }
+  const { error } = await updateMyProfile(data);
+  if (error) return { success: false, error };
+  return { success: true, message: 'Profile updated!' };
 }
 
 /**
  * Logout user
  */
 export function logout(): void {
+  // Clear legacy keys too so pre-migration sessions can't linger
   localStorage.removeItem('yatris_token');
   localStorage.removeItem('yatris_user');
+  void signOut();
 }
 
 /**
- * Check if user is authenticated
+ * Check if user is authenticated (live Supabase session mirror)
  */
 export function isAuthenticated(): boolean {
-  const token = localStorage.getItem('yatris_token');
-  return !!token;
+  return hasSession();
 }
 
 /**
  * Update certification
  */
 export async function updateCertification(
-  certificationId: number,
+  certificationId: number | string,
   data: {
     certificationProvider?: string;
     certificationName?: string;
@@ -510,75 +255,38 @@ export async function updateCertification(
     additionalNotes?: string;
   }
 ): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    const token = localStorage.getItem('yatris_token');
-    if (!token) {
-      return { success: false, error: 'Not authenticated' };
-    }
+  if (!hasSession()) return { success: false, error: 'Not authenticated' };
+  const patch: Record<string, unknown> = {};
+  if (data.certificationProvider !== undefined) patch.provider = PROVIDER_TO_ENUM[data.certificationProvider] ?? 'OTHER';
+  if (data.certificationName !== undefined) patch.certification_name = data.certificationName;
+  if (data.examCode !== undefined) patch.exam_code = data.examCode || null;
+  if (data.certificationDate !== undefined) patch.certification_date = data.certificationDate || null;
+  if (data.verifiedCredential !== undefined) patch.verified_credential_url = data.verifiedCredential || null;
+  if (data.additionalNotes !== undefined) patch.additional_notes = data.additionalNotes || null;
 
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'updateCertification',
-        token,
-        certificationId,
-        ...data,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Update failed');
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    console.error('Update certification error:', error);
-    return {
-      success: false,
-      error: error.message || 'Update failed',
-    };
+  // RLS guarantees users can only update their own rows.
+  const { error } = await supabase.from('certifications').update(patch).eq('id', String(certificationId));
+  if (error) {
+    console.error('Update certification error:', error.message);
+    return { success: false, error: 'Update failed — please try again.' };
   }
+  return { success: true, message: 'Certification updated!' };
 }
 
 /**
  * Delete certification
  */
 export async function deleteCertification(
-  certificationId: number
+  certificationId: number | string
 ): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    const token = localStorage.getItem('yatris_token');
-    if (!token) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'deleteCertification',
-        token,
-        certificationId,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Delete failed');
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    console.error('Delete certification error:', error);
-    return {
-      success: false,
-      error: error.message || 'Delete failed',
-    };
+  if (!hasSession()) return { success: false, error: 'Not authenticated' };
+  // RLS guarantees users can only delete their own rows.
+  const { error } = await supabase.from('certifications').delete().eq('id', String(certificationId));
+  if (error) {
+    console.error('Delete certification error:', error.message);
+    return { success: false, error: 'Delete failed — please try again.' };
   }
+  return { success: true, message: 'Certification deleted.' };
 }
 
 /**
@@ -588,37 +296,14 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string
 ): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    const token = localStorage.getItem('yatris_token');
-    if (!token) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'changePassword',
-        token,
-        currentPassword,
-        newPassword,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Password change failed');
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    console.error('Change password error:', error);
-    return {
-      success: false,
-      error: error.message || 'Password change failed',
-    };
-  }
+  const user = getCachedUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+  // Re-authenticate first so a stolen open session can't silently change the password.
+  const { error: reauthError } = await signInWithPassword(user.email, currentPassword);
+  if (reauthError) return { success: false, error: 'Current password is incorrect.' };
+  const { error } = await authChangePassword(newPassword);
+  if (error) return { success: false, error };
+  return { success: true, message: 'Password changed!' };
 }
 
 /**
@@ -628,49 +313,20 @@ export async function changeEmail(
   currentPassword: string,
   newEmail: string
 ): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    const token = localStorage.getItem('yatris_token');
-    if (!token) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    const response = await fetch(API_URL_AUTH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'changeEmail',
-        token,
-        currentPassword,
-        newEmail,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Email change failed');
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    console.error('Change email error:', error);
-    return {
-      success: false,
-      error: error.message || 'Email change failed',
-    };
-  }
+  const user = getCachedUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+  const { error: reauthError } = await signInWithPassword(user.email, currentPassword);
+  if (reauthError) return { success: false, error: 'Current password is incorrect.' };
+  const { error } = await authChangeEmail(newEmail);
+  if (error) return { success: false, error };
+  return { success: true, message: 'Confirmation links sent to both email addresses.' };
 }
 
 /**
  * Get stored user
  */
 export function getStoredUser(): User | null {
-  try {
-    const userStr = localStorage.getItem('yatris_user');
-    return userStr ? JSON.parse(userStr) : null;
-  } catch {
-    return null;
-  }
+  return getCachedUser();
 }
 
 /**
@@ -718,95 +374,106 @@ export async function registerForEvent(
   event: { id: string; name: string; date: string; location: any; imageUrl: string },
   attendees: Omit<Attendee, 'ticketId'>[]
 ): Promise<{ success: boolean; message?: string; registrationId?: string }> {
-  try {
-    const user = getStoredUser();
-    if (!user) {
-      return { success: false, message: 'You must be logged in to register.' };
-    }
-
-    // Get current token
-    const token = localStorage.getItem('yatris_token');
-
-    const response = await fetch(API_URL_EVENTS, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'registerEvent',
-        token: token, // Send token for auth validation if needed by script, or just user email
-        email: user.email,
-        userName: user.fullName,
-        phone: user.phoneNumber,
-        eventId: event.id,
-        eventName: event.name,
-        tickets: 1, // Default to 1 for now, or sum from attendees
-        totalAmount: 0,
-        attendees: attendees
-      })
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      // Optimistically update local cache if we want, but for now just return success
-      // We can invalidate cache here
-      localStorage.removeItem(`yatris_registrations_${user.email}`);
-    }
-
-    return result;
-
-  } catch (error: any) {
-    console.error('Registration error:', error);
-    return { success: false, message: error.message || 'Registration failed' };
+  const user = getCachedUser();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  if (!user || !authUser) {
+    return { success: false, message: 'You must be logged in to register.' };
   }
+
+  const code = () =>
+    'EVT-' + Math.random().toString(36).slice(2, 6).toUpperCase() +
+    Math.floor(1000 + Math.random() * 9000);
+
+  const people = attendees.length
+    ? attendees
+    : [{ name: user.fullName, email: user.email, phone: user.phoneNumber }];
+
+  const rows = people.map((a) => ({
+    event_id: event.id,
+    user_id: authUser.id,
+    registration_code: code(),
+    name: a.name || user.fullName,
+    email: (a.email || user.email).toLowerCase(),
+    phone: a.phone || user.phoneNumber || null,
+    city: user.city || null,
+    state: user.stateProvince || null,
+    country: user.country || null,
+    linkedin_url: user.linkedinUrl || null,
+  }));
+
+  const { data, error } = await supabase
+    .from('event_registrations')
+    .insert(rows)
+    .select('registration_code');
+
+  if (error) {
+    const msg = error.message.includes('duplicate')
+      ? "You're already registered for this event, Yatri!"
+      : 'Registration failed — please try again.';
+    console.error('Registration error:', error.message);
+    return { success: false, message: msg };
+  }
+  return { success: true, registrationId: data?.[0]?.registration_code, message: 'Registered!' };
 }
 
 /**
  * Get registered events for current user
  */
 export async function getRegisteredEvents(): Promise<EventRegistration[]> {
-  try {
-    const user = getStoredUser();
-    if (!user) return [];
-
-    // Try to fetch from API
-    try {
-      const response = await fetch(`${API_URL_EVENTS}?action=getRegisteredEvents&email=${encodeURIComponent(user.email)}`);
-      const result = await response.json();
-      if (result.success && result.data) {
-        return result.data;
-      }
-    } catch (e) {
-      console.warn("Failed to fetch events from API, falling back to empty", e);
-    }
-
-    return [];
-  } catch (error) {
-    console.error('Error fetching registrations:', error);
+  if (!hasSession()) return [];
+  const { data, error } = await supabase
+    .from('event_registrations')
+    .select('id,registration_code,name,email,phone,status,created_at,events(id,slug,name,event_date,location,city,country,image_url)')
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('Error fetching registrations:', error.message);
     return [];
   }
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    eventId: r.events?.id ?? '',
+    eventSlug: r.events?.slug,
+    eventName: r.events?.name ?? '',
+    eventDate: r.events?.event_date ?? '',
+    eventLocation: [r.events?.location, r.events?.city, r.events?.country].filter(Boolean).join(', '),
+    eventImage: r.events?.image_url ?? '',
+    registrationDate: r.created_at,
+    attendees: [{ name: r.name, email: r.email, phone: r.phone || undefined, ticketId: r.registration_code }],
+    totalAmount: 0,
+    status: r.status === 'cancelled' ? 'cancelled' : 'confirmed',
+  }));
 }
 
 /**
  * Fetch all published events from Google Sheets API
  */
 export async function fetchPublishedEvents(): Promise<any[]> {
-  try {
-    const response = await fetch(API_URL_EVENTS, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ action: 'getEvents' })
-    });
-    const result = await response.json();
-    if (result.success && result.data) {
-      return result.data;
-    }
-    return [];
-  } catch (error) {
-    console.error('Error fetching published events:', error);
+  // RLS exposes published + archived (past) events to everyone.
+  const { data, error } = await supabase
+    .from('events')
+    .select('id,slug,name,description,event_date,location,city,country,capacity,ticket_type,price_inr,image_url,meet_link,status')
+    .order('event_date', { ascending: false });
+  if (error) {
+    console.error('Error fetching published events:', error.message);
     return [];
   }
+  return (data || []).map((e) => ({
+    id: e.id,
+    slug: e.slug,
+    name: e.name,
+    description: e.description || '',
+    imageUrl: e.image_url || '',
+    date: e.event_date || '',
+    timezone: 'Asia/Kolkata',
+    location: {
+      type: e.meet_link && !e.location ? 'online' : 'offline',
+      venue: e.location || undefined,
+      city: e.city || undefined,
+      country: e.country || undefined,
+    },
+    category: 'Community',
+    price: Number(e.price_inr ?? 0),
+    seatsAvailable: e.capacity ?? undefined,
+    isPast: e.status === 'archived',
+  }));
 }

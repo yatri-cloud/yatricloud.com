@@ -109,7 +109,8 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       const result = await googleLogin({
         email: userObject.email,
         fullName: userObject.name,
-        photoUrl: userObject.picture
+        photoUrl: userObject.picture,
+        idToken: response.credential, // raw JWT — verified server-side by Supabase
       });
 
       if (result.success && result.user) {

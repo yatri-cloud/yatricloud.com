@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { supabase, USE_SUPABASE } from "@/lib/supabase";
 
 export type Review = {
-  id?: number;
+  id?: number | string;
   timestamp?: string;
   name: string;
   feedback: string;
@@ -11,6 +12,26 @@ export type Review = {
   country?: string;
   source?: string;
 };
+
+/** Supabase row → legacy Review shape (context JSON carries the extras). */
+function fromSupabaseRow(r: {
+  id: string; name: string; review: string; rating: number | null;
+  context: string | null; created_at: string;
+}): Review {
+  let extra: Record<string, string> = {};
+  try { extra = r.context ? JSON.parse(r.context) : {}; } catch { /* legacy plain text */ }
+  return {
+    id: r.id,
+    timestamp: r.created_at,
+    name: r.name,
+    feedback: r.review,
+    rating: r.rating ?? 5,
+    linkedinProfile: extra.linkedin,
+    provider: extra.provider,
+    country: extra.country,
+    source: extra.source,
+  };
+}
 
 export function useReviews(limit = 200) {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -33,6 +54,22 @@ export function useReviews(limit = 200) {
     const fetchReviews = async () => {
       setLoading(true);
       setError(null);
+
+      if (USE_SUPABASE) {
+        const { data, error: sbError } = await supabase
+          .from("reviews")
+          .select("id,name,review,rating,context,created_at")
+          .eq("is_public", true)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (!sbError && data) {
+          setReviews(data.map(fromSupabaseRow));
+          setLoading(false);
+          return;
+        }
+        console.error("❌ Supabase reviews fetch failed, falling back:", sbError?.message);
+      }
+
       try {
         let res: Response | null = null;
         const sources: Array<() => Promise<Response>> = [

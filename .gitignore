@@ -30,3 +30,7 @@ dist-ssr
 *.sw?
 VITE_CANVA_TEMPLATE_ID=your_template_id_here
 .vercel
+
+# Local reference material & migration source data (not part of the app)
+claude-master/
+data/

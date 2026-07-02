@@ -33,7 +33,22 @@ After **each** meaningful change, update:
 - **Persistent memory** — `~/.claude/projects/<this-project>/memory/yatri-cloud-redesign-progress.md` (+ index in that dir's `MEMORY.md`).
 This keeps future sessions from repeating layouts or breaking constraints.
 
+## 5b. BACKEND (Supabase) — rules for the new workstream
+The backend migrated from Google Apps Script/Sheets → **Supabase** (project `yatricloud.com`, id `lprejdcudtkuxjwghesv`, **ap-south-1 Mumbai**). Read `docs/SYSTEM-DESIGN.md` before backend work.
+1. **No hardcoded credentials — EVER.** All keys live in git-ignored `.env` (template: `.env.example`). Frontend uses ONLY `VITE_SUPABASE_URL` + publishable/anon key; `SUPABASE_SECRET_KEY`/`SERVICE_ROLE_KEY`/`DB_PASSWORD` are server-side only.
+2. **RLS is the security boundary** — every table has it. Public content (published events/products/dumps/courses, public reviews/certs) = anon-readable; form tables (contact/consultation/subscribers/course_requests/vouchers/submissions) = public INSERT + admin-only SELECT; payments = service-role writes only. Never weaken a policy to "fix" a bug.
+3. **Schema changes = new numbered migration** in `supabase/migrations/` applied via psql (`PGPASSWORD` from .env; host `db.<project>.supabase.co`). Never mutate schema ad-hoc.
+4. **Every frontend input must map to a DB column and vice versa** (user directive). Adding a form field → add column via migration. Unused columns → remove via migration. No orphan data either way.
+5. **Data import** is idempotent: `scripts/supabase-import.mjs` (re-runnable, natural-key dedupe). Legacy Sheets stay read-only fallback; flag `VITE_USE_SUPABASE` gates the swap.
+6. `src/lib/supabase.ts` is the single client. Don't create extra clients.
+7. **Never paste secrets in chat**; after major changes remind the user to rotate exposed keys (Supabase secret/service_role + DB password were shared in chat on 2026-07-02 → rotate post-stabilization).
+8. Do NOT import `credentials-admin.xlsx` plaintext passwords — admins come via Supabase Auth + `profiles.role='admin'`.
+
 ## 6. Key files
+- `docs/SYSTEM-DESIGN.md` — backend architecture, schema, RLS model, migration plan
+- `supabase/migrations/*.sql` — schema history (apply in order via psql)
+- `scripts/supabase-import.mjs` — idempotent data importer
+- `src/lib/supabase.ts` — the one Supabase client (+ `USE_SUPABASE` flag)
 - `DESIGN.md` — design system + §10 creative catalog (source of truth)
 - `MEMORY.md` — decision log (D1…)
 - `docs/{brief,product-requirements,design-decisions}.md`

@@ -1,8 +1,9 @@
 /**
- * Google Sheets Integration Service
- * 
+ * Certifications Integration Service
+ * Reads: Supabase (`certifications` table) when VITE_USE_SUPABASE, else legacy Sheets webhooks.
+ *
  * This service handles submitting and fetching certification data from Google Sheets.
- * 
+ *
  * For production, you'll need to set up one of the following:
  * 1. Google Apps Script Web App (recommended for security)
  * 2. Google Sheets API with service account
@@ -10,6 +11,9 @@
  * 
  * The Google Sheet structure:
  * - Main sheet: "certified-aws-yatris", "certified-azure-yatris", etc.
+ */
+import { supabase, USE_SUPABASE } from "@/lib/supabase";
+/**
  * - Sub-sheets within: "az900", "az104", "saa-c03", etc.
  */
 
@@ -449,7 +453,44 @@ async function fetchFromWebhook(url: string, provider: string): Promise<Certific
  * Fetch certifications from Google Sheets
  * Fetches from multiple webhooks (AWS, Azure, GCP, GitHub, Oracle, Salesforce, ServiceNow) and combines results
  */
+/** DB provider enum → display name used across the UI. */
+const DB_PROVIDER_DISPLAY: Record<string, string> = {
+  AWS: "AWS", AZURE: "Azure", GCP: "GCP", GITHUB: "GitHub", ORACLE: "Oracle",
+  SALESFORCE: "Salesforce", SERVICENOW: "ServiceNow", OPENAI: "OpenAI",
+  HASHICORP: "HashiCorp", KUBERNETES: "Kubernetes", OTHER: "Other",
+};
+
 export async function fetchCertifications(): Promise<CertificationEntry[]> {
+  // Supabase-first: single table replaces 10+ per-provider webhooks
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase
+      .from("certifications")
+      .select("id,full_name,email,provider,certification_name,exam_code,certification_date,verified_credential_url,linkedin_url,photo_url,country,state_province,city,country_code,phone_number,additional_notes")
+      .eq("is_public", true)
+      .order("created_at", { ascending: false });
+    if (!error && data) {
+      return data.map((c) => ({
+        id: c.id,
+        fullName: c.full_name || "",
+        email: c.email || "",
+        certificationProvider: DB_PROVIDER_DISPLAY[c.provider] ?? c.provider,
+        certificationName: c.certification_name || "",
+        examCode: c.exam_code || "",
+        certificationDate: c.certification_date || "",
+        linkedinUrl: c.linkedin_url || "",
+        verifiedCredential: c.verified_credential_url || undefined,
+        country: c.country || undefined,
+        stateProvince: c.state_province || undefined,
+        city: c.city || undefined,
+        countryCode: c.country_code || undefined,
+        phoneNumber: c.phone_number || undefined,
+        photoUrl: c.photo_url || "",
+        additionalNotes: c.additional_notes || undefined,
+      }));
+    }
+    console.error("❌ Supabase certifications fetch failed, falling back:", error?.message);
+  }
+
   const allCertifications: CertificationEntry[] = [];
 
   // Fetch from all configured webhooks in parallel

@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { ContactSection } from "@/components/sections/ContactSection";
 import { SEO } from "@/components/SEO";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,9 +69,30 @@ const Partners = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const handlePartnerSubmit = (kind: Exclude<FormKind, null>) => (e: FormEvent<HTMLFormElement>) => {
+  const handlePartnerSubmit = (kind: Exclude<FormKind, null>) => async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
+    const fd = new FormData(form);
+    const headcountRaw = fd.get("students") ?? fd.get("teamSize");
+    const { error } = await supabase.from("consultation_requests").insert({
+      kind,
+      name: String(fd.get("name") || "").trim(),
+      email: String(fd.get("email") || "").trim().toLowerCase(),
+      company_name: String(fd.get("institution") ?? fd.get("company") ?? "").trim() || null,
+      role: String(fd.get("role") || "").trim() || null,
+      phone: String(fd.get("phone") || "").trim() || null,
+      headcount: headcountRaw ? Number(headcountRaw) || null : null,
+      focus: String(fd.get("focus") || "").trim() || null,
+      message: String(fd.get("message") || "").trim() || null,
+    });
+    if (error) {
+      toast({
+        title: "That didn't go through",
+        description: "Please try again, or email us at info@yatricloud.com.",
+        variant: "destructive",
+      });
+      return;
+    }
     toast({
       title: "Thank you, we've got your details!",
       description: "Someone from the Yatri Cloud team will reach out within one working day.",

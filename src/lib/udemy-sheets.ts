@@ -1,8 +1,9 @@
 /**
- * Udemy Courses Google Sheets Integration Service
- * 
- * This service handles fetching course data from Google Sheets for both creators.
+ * Udemy Courses Integration Service
+ * Reads: Supabase (`udemy_courses`) when VITE_USE_SUPABASE, else legacy Sheets webhooks.
  */
+
+import { supabase, USE_SUPABASE } from "@/lib/supabase";
 
 const UDEMY_YATHARTH_WEBHOOK_URL = import.meta.env.VITE_UDEMY_YATHARTH_WEBHOOK_URL || "";
 const UDEMY_NENSI_WEBHOOK_URL = import.meta.env.VITE_UDEMY_NENSI_WEBHOOK_URL || "";
@@ -70,8 +71,30 @@ async function fetchCoursesFromWebhook(webhookUrl: string): Promise<UdemyCourse[
  * Fetch all Udemy courses from both creators' sheets
  */
 export async function fetchUdemyCourses(): Promise<UdemyCourse[]> {
+  // Supabase-first (udemy_courses table), legacy webhooks as fallback
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase
+      .from("udemy_courses")
+      .select("id,title,course_url,image_url,creator,tech,category,created_at")
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+    if (!error && data && data.length) {
+      return data.map((c) => ({
+        id: c.id,
+        title: c.title || "",
+        udemyUrl: c.course_url || "",
+        imageUrl: c.image_url || "",
+        creator: c.creator || "Unknown",
+        certification: c.tech || "",
+        category: c.category || "",
+        timestamp: c.created_at || "",
+      }));
+    }
+    console.error("❌ Supabase udemy_courses fetch failed, falling back:", error?.message);
+  }
+
   console.log('📚 Fetching Udemy courses from Google Sheets...');
-  
+
   // Fetch from both creators concurrently
   const [yatharthCourses, nensiCourses] = await Promise.all([
     fetchCoursesFromWebhook(UDEMY_YATHARTH_WEBHOOK_URL),

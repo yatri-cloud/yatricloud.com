@@ -4,8 +4,10 @@
 
 ---
 
-You are continuing the **Yatri Cloud** UI redesign. Before doing anything, read these in the repo:
-`docs/SESSION-GUIDE.md`, `DESIGN.md` (esp. §10 Section Creative Catalog), `MEMORY.md`, and `docs/product-requirements.md`. Also load the persistent memory for this project.
+You are continuing the **Yatri Cloud** platform build (UI redesign + Supabase backend). Before doing anything, read these in the repo:
+`docs/SESSION-GUIDE.md` (incl. §5b backend rules), `DESIGN.md` (esp. §10 Section Creative Catalog), `docs/SYSTEM-DESIGN.md` (backend), `MEMORY.md`, and `docs/product-requirements.md`. Also load the persistent memory for this project.
+
+**Backend state:** Supabase project `yatricloud.com` (lprejdcudtkuxjwghesv, ap-south-1 Mumbai) is LIVE with 22 RLS-secured tables, 5 storage buckets, and all legacy data imported (users/certs/reviews/courses/products/dumps/forms/events). Credentials in git-ignored `.env` only — never hardcode, never paste secrets in chat. Schema changes = new migration in `supabase/migrations/` via psql. Forms wired so far: contact, partners consultations, footer newsletter. Remaining: swap read paths (reviews/udemy/products/dumps/certs/events) from Sheets→Supabase behind `VITE_USE_SUPABASE`, auth swap, payments Edge Functions, frontend↔DB column audit.
 
 **STATUS (as of 2026-07-02):** Homepage/foundation + the **entire `/admin` console** are redesigned (collapsible sidebar, blue-tinted header bands, editorial `StatsCard`, numbered form section-headers, solid delete-button hovers). Greeting = **home page only**. Hero has **no offer pill**. ⚠️ **The work is UNCOMMITTED and the tree keeps getting reverted externally** (the Hero pill returned 6× last session). **DO THIS FIRST:** run `git status`, confirm the Hero `HeroSection.tsx` has no "Women's Day"/`Gift` pill, then **commit on a branch** before making changes. See MEMORY.md D18–D23 for details. Remaining surfaces: learning dashboards, trainer/*, account, misc/legal (list at end of persistent progress file).
 

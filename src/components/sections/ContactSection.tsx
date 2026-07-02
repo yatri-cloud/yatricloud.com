@@ -1,5 +1,6 @@
-import { type ReactNode, type FormEvent } from "react";
-import { ArrowRight } from "lucide-react";
+import { type ReactNode, type FormEvent, useState } from "react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,10 +24,28 @@ const CONTACT_INFO = [
 
 export const ContactSection = () => {
   const { toast } = useToast();
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
+    const fd = new FormData(form);
+    setSending(true);
+    const { error } = await supabase.from("contact_messages").insert({
+      name: String(fd.get("name") || "").trim(),
+      email: String(fd.get("email") || "").trim().toLowerCase(),
+      subject: String(fd.get("subject") || "").trim() || null,
+      message: String(fd.get("message") || "").trim(),
+    });
+    setSending(false);
+    if (error) {
+      toast({
+        title: "That didn't go through",
+        description: "Please try again in a moment, or email us directly at info@yatricloud.com.",
+        variant: "destructive",
+      });
+      return;
+    }
     toast({
       title: "Message sent!",
       description: "Thanks for reaching out, Yatri. We'll get back to you very soon.",
@@ -84,9 +103,8 @@ export const ContactSection = () => {
             <Field id="c-message" label="Message">
               <Textarea id="c-message" name="message" required placeholder="Tell us a little about what you need..." className="min-h-[130px] rounded-xl" />
             </Field>
-            <Button type="submit" className="w-full gap-2 rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-inset-btn hover:bg-brand-600 hover:text-primary-foreground min-h-[48px]">
-              Send message
-              <ArrowRight className="h-4 w-4" />
+            <Button type="submit" disabled={sending} className="w-full gap-2 rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-inset-btn hover:bg-brand-600 hover:text-primary-foreground min-h-[48px]">
+              {sending ? (<><Loader2 className="h-4 w-4 animate-spin" /> Sending…</>) : (<>Send message <ArrowRight className="h-4 w-4" /></>)}
             </Button>
           </form>
         </div>
