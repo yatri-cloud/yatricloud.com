@@ -62,6 +62,15 @@ import AdminEditExamDump from "./pages/admin/AdminEditExamDump";
 import AdminSiteContent from "./pages/admin/AdminSiteContent";
 import AdminCertCatalog from "./pages/admin/AdminCertCatalog";
 import RequestVoucher from "./pages/RequestVoucher";
+import MentorshipDirectory from "./pages/mentorship/MentorshipDirectory";
+import MentorProfile from "./pages/mentorship/MentorProfile";
+import MentorServiceDetail from "./pages/mentorship/MentorServiceDetail";
+import MyMentorshipBookings from "./pages/mentorship/MyMentorshipBookings";
+import MentorDashboard from "./pages/mentor/MentorDashboard";
+import AdminMentors from "./pages/admin/AdminMentors";
+import AdminMentorshipServices from "./pages/admin/AdminMentorshipServices";
+import AdminMentorshipBookings from "./pages/admin/AdminMentorshipBookings";
+import AdminMentorReviews from "./pages/admin/AdminMentorReviews";
 
 
 import TrainerCreateCourse from "@/pages/trainer/TrainerCreateCourse";
@@ -102,6 +111,15 @@ const App = () => (
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/creator" element={<BecomeTrainer />} />
               <Route path="/requestvoucher" element={<RequestVoucher />} />
+
+              {/* Mentorship Routes — /mentorship/bookings stays above /mentorship/:mentorSlug */}
+              <Route path="/mentorship" element={<MentorshipDirectory />} />
+              <Route path="/mentorship/bookings" element={<MyMentorshipBookings />} />
+              <Route path="/mentorship/:mentorSlug" element={<MentorProfile />} />
+              <Route path="/mentorship/:mentorSlug/:serviceSlug" element={<MentorServiceDetail />} />
+
+              {/* Mentor Self Service */}
+              <Route path="/mentor/dashboard" element={<MentorDashboard />} />
 
               {/* ... inside Routes ... */}
               <Route path="/createevent" element={<CreateEvent />} />
@@ -147,6 +165,10 @@ const App = () => (
                 <Route path="providers" element={<AdminProviders />} />
                 <Route path="enrollments" element={<AdminEnrollments />} />
                 <Route path="trainers" element={<AdminTrainers />} />
+                <Route path="mentorship/mentors" element={<AdminMentors />} />
+                <Route path="mentorship/services" element={<AdminMentorshipServices />} />
+                <Route path="mentorship/bookings" element={<AdminMentorshipBookings />} />
+                <Route path="mentorship/reviews" element={<AdminMentorReviews />} />
                 <Route path="exam-dumps" element={<AdminExamDumps />} />
                 <Route path="exam-dumps/add" element={<AdminAddExamDump />} />
                 <Route path="exam-dumps/edit/:id" element={<AdminEditExamDump />} />

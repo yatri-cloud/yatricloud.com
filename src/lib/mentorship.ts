@@ -1,0 +1,900 @@
+/**
+ * Mentorship data layer — canonical types + Supabase fetchers.
+ *
+ * Follows the site-content.ts discipline: read-only catalog fetchers are
+ * cached once per session (every consumer shares the in-flight promise),
+ * while anything booking related is always fetched fresh. RLS is the
+ * security boundary: these queries only ever see what the signed-in
+ * session is allowed to see.
+ */
+
+import { supabase } from "@/lib/supabase";
+
+/* ------------------------------------------------------------------ */
+/* Canonical types (other agents import these)                         */
+/* ------------------------------------------------------------------ */
+
+export type ContentStatus = "draft" | "published" | "archived" | "cancelled";
+
+export interface Mentor {
+  id: string;
+  user_id: string | null;
+  slug: string;
+  name: string;
+  headline: string;
+  bio: string;
+  photo_url: string | null;
+  linkedin_url: string | null;
+  expertise: string[];
+  languages: string[];
+  timezone: string;
+  notice_hours: number;
+  booking_window_days: number;
+  buffer_min: number;
+  avg_rating: number;
+  review_count: number;
+  is_featured: boolean;
+  sort_order: number;
+  status: ContentStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MentorshipServiceType = "call" | "package" | "digital" | "webinar";
+
+export interface ServiceQuestion {
+  label: string;
+  required: boolean;
+  type: "text";
+}
+
+export interface MentorshipService {
+  id: string;
+  mentor_id: string;
+  slug: string;
+  type: MentorshipServiceType;
+  title: string;
+  short_description: string;
+  description: string;
+  price: number;
+  compare_at_price: number | null;
+  currency: string;
+  duration_min: number | null;
+  sessions_count: number;
+  webinar_start_at: string | null;
+  capacity: number | null;
+  cta_label: string;
+  badge: "Popular" | "Best Seller" | null;
+  cover_url: string | null;
+  questions: ServiceQuestion[];
+  sort_order: number;
+  status: ContentStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AvailabilityRule {
+  id: string;
+  mentor_id: string;
+  weekday: number;
+  start_time: string;
+  end_time: string;
+  active: boolean;
+  updated_at: string;
+}
+
+export type BookingStatus =
+  | "pending"
+  | "confirmed"
+  | "completed"
+  | "cancelled"
+  | "refunded";
+
+export interface BookingAnswer {
+  label: string;
+  answer: string;
+}
+
+export interface MentorshipBooking {
+  id: string;
+  service_id: string;
+  mentor_id: string;
+  user_id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string | null;
+  answers: BookingAnswer[];
+  slot_start: string | null;
+  slot_end: string | null;
+  buyer_timezone: string;
+  amount: number;
+  currency: string;
+  status: BookingStatus;
+  order_id: string | null;
+  payment_id: string | null;
+  meeting_link: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MentorReview {
+  id: string;
+  mentor_id: string;
+  service_id: string | null;
+  booking_id: string | null;
+  user_id: string | null;
+  name: string;
+  rating: number;
+  review: string;
+  is_public: boolean;
+  created_at: string;
+}
+
+/** MyMentorshipBookings row: booking + embedded service and mentor. */
+export interface MentorshipBookingWithRefs extends MentorshipBooking {
+  service: Pick<
+    MentorshipService,
+    "title" | "slug" | "type" | "duration_min" | "sessions_count"
+  > | null;
+  mentor: Pick<Mentor, "name" | "slug" | "photo_url"> | null;
+}
+
+/** Row shape used by generateSlots to exclude taken slots. */
+export interface BookedSlotRow {
+  slot_start: string | null;
+  slot_end: string | null;
+  status: string;
+  created_at: string;
+}
+
+/* ------------------------------------------------------------------ */
+/* Row mappers (coerce numerics and json defensively)                  */
+/* ------------------------------------------------------------------ */
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.map((v) => String(v)) : [];
+}
+
+function mapMentor(row: any): Mentor {
+  return {
+    id: String(row.id),
+    user_id: row.user_id ?? null,
+    slug: String(row.slug ?? ""),
+    name: String(row.name ?? ""),
+    headline: String(row.headline ?? ""),
+    bio: String(row.bio ?? ""),
+    photo_url: row.photo_url ?? null,
+    linkedin_url: row.linkedin_url ?? null,
+    expertise: asStringArray(row.expertise),
+    languages: asStringArray(row.languages),
+    timezone: String(row.timezone ?? "Asia/Kolkata"),
+    notice_hours: Number(row.notice_hours ?? 12),
+    booking_window_days: Number(row.booking_window_days ?? 30),
+    buffer_min: Number(row.buffer_min ?? 15),
+    avg_rating: Number(row.avg_rating ?? 0),
+    review_count: Number(row.review_count ?? 0),
+    is_featured: Boolean(row.is_featured),
+    sort_order: Number(row.sort_order ?? 0),
+    status: (row.status ?? "published") as ContentStatus,
+    created_at: String(row.created_at ?? ""),
+    updated_at: String(row.updated_at ?? ""),
+  };
+}
+
+function mapQuestions(value: unknown): ServiceQuestion[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((q) => q && typeof q === "object" && (q as any).label)
+    .map((q: any) => ({
+      label: String(q.label),
+      required: Boolean(q.required),
+      type: "text" as const,
+    }));
+}
+
+function mapService(row: any): MentorshipService {
+  return {
+    id: String(row.id),
+    mentor_id: String(row.mentor_id),
+    slug: String(row.slug ?? ""),
+    type: (row.type ?? "call") as MentorshipServiceType,
+    title: String(row.title ?? ""),
+    short_description: String(row.short_description ?? ""),
+    description: String(row.description ?? ""),
+    price: Number(row.price ?? 0),
+    compare_at_price:
+      row.compare_at_price === null || row.compare_at_price === undefined
+        ? null
+        : Number(row.compare_at_price),
+    currency: String(row.currency ?? "INR"),
+    duration_min:
+      row.duration_min === null || row.duration_min === undefined
+        ? null
+        : Number(row.duration_min),
+    sessions_count: Number(row.sessions_count ?? 1),
+    webinar_start_at: row.webinar_start_at ?? null,
+    capacity:
+      row.capacity === null || row.capacity === undefined
+        ? null
+        : Number(row.capacity),
+    cta_label: String(row.cta_label ?? "Book Now"),
+    badge: (row.badge ?? null) as MentorshipService["badge"],
+    cover_url: row.cover_url ?? null,
+    questions: mapQuestions(row.questions),
+    sort_order: Number(row.sort_order ?? 0),
+    status: (row.status ?? "published") as ContentStatus,
+    created_at: String(row.created_at ?? ""),
+    updated_at: String(row.updated_at ?? ""),
+  };
+}
+
+function mapRule(row: any): AvailabilityRule {
+  return {
+    id: String(row.id),
+    mentor_id: String(row.mentor_id),
+    weekday: Number(row.weekday ?? 0),
+    start_time: String(row.start_time ?? "00:00"),
+    end_time: String(row.end_time ?? "00:00"),
+    active: Boolean(row.active),
+    updated_at: String(row.updated_at ?? ""),
+  };
+}
+
+function mapReview(row: any): MentorReview {
+  return {
+    id: String(row.id),
+    mentor_id: String(row.mentor_id),
+    service_id: row.service_id ?? null,
+    booking_id: row.booking_id ?? null,
+    user_id: row.user_id ?? null,
+    name: String(row.name ?? ""),
+    rating: Number(row.rating ?? 0),
+    review: String(row.review ?? ""),
+    is_public: Boolean(row.is_public),
+    created_at: String(row.created_at ?? ""),
+  };
+}
+
+function mapAnswers(value: unknown): BookingAnswer[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((a) => a && typeof a === "object")
+    .map((a: any) => ({
+      label: String(a.label ?? ""),
+      answer: String(a.answer ?? ""),
+    }));
+}
+
+function mapBooking(row: any): MentorshipBooking {
+  return {
+    id: String(row.id),
+    service_id: String(row.service_id),
+    mentor_id: String(row.mentor_id),
+    user_id: String(row.user_id),
+    customer_name: String(row.customer_name ?? ""),
+    customer_email: String(row.customer_email ?? ""),
+    customer_phone: row.customer_phone ?? null,
+    answers: mapAnswers(row.answers),
+    slot_start: row.slot_start ?? null,
+    slot_end: row.slot_end ?? null,
+    buyer_timezone: String(row.buyer_timezone ?? "Asia/Kolkata"),
+    amount: Number(row.amount ?? 0),
+    currency: String(row.currency ?? "INR"),
+    status: (row.status ?? "pending") as BookingStatus,
+    order_id: row.order_id ?? null,
+    payment_id: row.payment_id ?? null,
+    meeting_link: row.meeting_link ?? null,
+    admin_notes: row.admin_notes ?? null,
+    created_at: String(row.created_at ?? ""),
+    updated_at: String(row.updated_at ?? ""),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Catalog fetchers (session cached)                                   */
+/* ------------------------------------------------------------------ */
+
+let mentorsPromise: Promise<Mentor[]> | null = null;
+
+/** All published mentors, featured first then by sort order. */
+export function getMentors(): Promise<Mentor[]> {
+  if (!mentorsPromise) {
+    mentorsPromise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("mentors")
+          .select("*")
+          .eq("status", "published")
+          .order("is_featured", { ascending: false })
+          .order("sort_order", { ascending: true });
+        if (error || !data) return [];
+        return data.map(mapMentor);
+      } catch {
+        return [];
+      }
+    })();
+  }
+  return mentorsPromise;
+}
+
+const mentorBySlugPromises: Record<string, Promise<Mentor | null>> = {};
+
+/** One published mentor by slug (null when not found). */
+export function getMentorBySlug(slug: string): Promise<Mentor | null> {
+  if (!mentorBySlugPromises[slug]) {
+    mentorBySlugPromises[slug] = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("mentors")
+          .select("*")
+          .eq("slug", slug)
+          .eq("status", "published")
+          .limit(1);
+        if (error || !data || data.length === 0) return null;
+        return mapMentor(data[0]);
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return mentorBySlugPromises[slug];
+}
+
+let allServicesPromise: Promise<MentorshipService[]> | null = null;
+
+/** Every published service across mentors (directory pricing + filters). */
+export function getAllServices(): Promise<MentorshipService[]> {
+  if (!allServicesPromise) {
+    allServicesPromise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("mentorship_services")
+          .select("*")
+          .eq("status", "published")
+          .order("sort_order", { ascending: true });
+        if (error || !data) return [];
+        return data.map(mapService);
+      } catch {
+        return [];
+      }
+    })();
+  }
+  return allServicesPromise;
+}
+
+/** Published services for one mentor, in sort order. */
+export async function getMentorServices(
+  mentorId: string
+): Promise<MentorshipService[]> {
+  const all = await getAllServices();
+  return all.filter((s) => s.mentor_id === mentorId);
+}
+
+/** One published service by mentor id + service slug. */
+export async function getServiceBySlug(
+  mentorId: string,
+  serviceSlug: string
+): Promise<MentorshipService | null> {
+  const services = await getMentorServices(mentorId);
+  return services.find((s) => s.slug === serviceSlug) ?? null;
+}
+
+const availabilityPromises: Record<string, Promise<AvailabilityRule[]>> = {};
+
+/** Active weekly availability rules for a mentor. */
+export function getMentorAvailability(
+  mentorId: string
+): Promise<AvailabilityRule[]> {
+  if (!availabilityPromises[mentorId]) {
+    availabilityPromises[mentorId] = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("mentor_availability")
+          .select("*")
+          .eq("mentor_id", mentorId)
+          .eq("active", true);
+        if (error || !data) return [];
+        return data.map(mapRule);
+      } catch {
+        return [];
+      }
+    })();
+  }
+  return availabilityPromises[mentorId];
+}
+
+/* ------------------------------------------------------------------ */
+/* Reviews (always fresh: they change after a booking completes)       */
+/* ------------------------------------------------------------------ */
+
+/** Public reviews for a mentor, newest first. */
+export async function getMentorReviews(
+  mentorId: string
+): Promise<MentorReview[]> {
+  try {
+    const { data, error } = await supabase
+      .from("mentor_reviews")
+      .select("*")
+      .eq("mentor_id", mentorId)
+      .eq("is_public", true)
+      .order("created_at", { ascending: false });
+    if (error || !data) return [];
+    return data.map(mapReview);
+  } catch {
+    return [];
+  }
+}
+
+/** My own reviews (used to hide the review form once submitted). */
+export async function getMyReviews(): Promise<MentorReview[]> {
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return [];
+    const { data, error } = await supabase
+      .from("mentor_reviews")
+      .select("*")
+      .eq("user_id", auth.user.id);
+    if (error || !data) return [];
+    return data.map(mapReview);
+  } catch {
+    return [];
+  }
+}
+
+/** Leaves a verified review for a completed booking. */
+export async function submitReview(input: {
+  mentorId: string;
+  serviceId: string | null;
+  bookingId: string | null;
+  name: string;
+  rating: number;
+  review: string;
+}): Promise<{ error: string | null }> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { error: "Please sign in to leave a review." };
+  const { error } = await supabase.from("mentor_reviews").insert({
+    mentor_id: input.mentorId,
+    service_id: input.serviceId,
+    booking_id: input.bookingId,
+    user_id: auth.user.id,
+    name: input.name,
+    rating: input.rating,
+    review: input.review,
+  });
+  if (error) {
+    if (error.code === "23505") {
+      return { error: "You already reviewed this session. Thank you!" };
+    }
+    return { error: "Your review could not be saved. Please try again." };
+  }
+  return { error: null };
+}
+
+/* ------------------------------------------------------------------ */
+/* Bookings (always fresh)                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Slot blocking rows for a mentor. RLS limits what a visitor can read,
+ * so this is best effort: the unique DB index is the real double
+ * booking guard, surfaced to the UI as a 23505 on insert.
+ */
+export async function getMentorBookedSlots(
+  mentorId: string
+): Promise<BookedSlotRow[]> {
+  try {
+    const { data, error } = await supabase
+      .from("mentorship_bookings")
+      .select("slot_start, slot_end, status, created_at")
+      .eq("mentor_id", mentorId)
+      .not("slot_start", "is", null)
+      .in("status", ["pending", "confirmed", "completed"]);
+    if (error || !data) return [];
+    return data as BookedSlotRow[];
+  } catch {
+    return [];
+  }
+}
+
+/** The signed-in Yatri's bookings, newest first, with service + mentor. */
+export async function getMyBookings(): Promise<MentorshipBookingWithRefs[]> {
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return [];
+    const { data, error } = await supabase
+      .from("mentorship_bookings")
+      .select(
+        "*, mentorship_services(title, slug, type, duration_min, sessions_count), mentors(name, slug, photo_url)"
+      )
+      .eq("user_id", auth.user.id)
+      .order("created_at", { ascending: false });
+    if (error || !data) return [];
+    return data.map((row: any) => ({
+      ...mapBooking(row),
+      service: row.mentorship_services
+        ? {
+            title: String(row.mentorship_services.title ?? ""),
+            slug: String(row.mentorship_services.slug ?? ""),
+            type: (row.mentorship_services.type ?? "call") as MentorshipServiceType,
+            duration_min:
+              row.mentorship_services.duration_min === null ||
+              row.mentorship_services.duration_min === undefined
+                ? null
+                : Number(row.mentorship_services.duration_min),
+            sessions_count: Number(row.mentorship_services.sessions_count ?? 1),
+          }
+        : null,
+      mentor: row.mentors
+        ? {
+            name: String(row.mentors.name ?? ""),
+            slug: String(row.mentors.slug ?? ""),
+            photo_url: row.mentors.photo_url ?? null,
+          }
+        : null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export interface CreateBookingInput {
+  serviceId: string;
+  mentorId: string;
+  userId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string | null;
+  answers: BookingAnswer[];
+  slotStart: string | null;
+  slotEnd: string | null;
+  buyerTimezone: string;
+  amount: number;
+  currency: string;
+  /** "pending" for paid flows, "confirmed" for free services. */
+  status: "pending" | "confirmed";
+  orderId: string | null;
+}
+
+/**
+ * Inserts a booking. A 23505 unique violation means another Yatri took
+ * the slot first: the caller shows a friendly toast and refreshes slots.
+ */
+export async function createBooking(
+  input: CreateBookingInput
+): Promise<{
+  booking: MentorshipBooking | null;
+  slotTaken: boolean;
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from("mentorship_bookings")
+    .insert({
+      service_id: input.serviceId,
+      mentor_id: input.mentorId,
+      user_id: input.userId,
+      customer_name: input.customerName,
+      customer_email: input.customerEmail,
+      customer_phone: input.customerPhone,
+      answers: input.answers,
+      slot_start: input.slotStart,
+      slot_end: input.slotEnd,
+      buyer_timezone: input.buyerTimezone,
+      amount: input.amount,
+      currency: input.currency,
+      status: input.status,
+      order_id: input.orderId,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      return { booking: null, slotTaken: true, error: null };
+    }
+    return {
+      booking: null,
+      slotTaken: false,
+      error: "Your booking could not be created. Please try again.",
+    };
+  }
+  return { booking: mapBooking(data), slotTaken: false, error: null };
+}
+
+/** Cancels one of my pending bookings (RLS: pending to cancelled only). */
+export async function cancelPendingBooking(
+  bookingId: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("mentorship_bookings")
+    .update({ status: "cancelled" })
+    .eq("id", bookingId)
+    .eq("status", "pending");
+  if (error) {
+    return { error: "This booking could not be cancelled. Please try again." };
+  }
+  return { error: null };
+}
+
+/** Creates our orders row (kind mentorship) and returns its id. */
+export async function createMentorshipOrder(input: {
+  userId: string;
+  email: string;
+  amount: number;
+  currency: string;
+  items: unknown[];
+}): Promise<{ orderId: string | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("orders")
+    .insert({
+      user_id: input.userId,
+      email: input.email,
+      kind: "mentorship",
+      items: input.items,
+      amount: input.amount,
+      currency: input.currency,
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    return { orderId: null, error: "We could not start your order. Please try again." };
+  }
+  return { orderId: String(data.id), error: null };
+}
+
+/* ------------------------------------------------------------------ */
+/* Service secrets (RLS: buyers with confirmed or completed bookings)  */
+/* ------------------------------------------------------------------ */
+
+export interface ServiceSecret {
+  service_id: string;
+  delivery_url: string | null;
+  meeting_link: string | null;
+}
+
+/** Secrets for services I have access to (per RLS). */
+export async function getServiceSecrets(
+  serviceIds: string[]
+): Promise<ServiceSecret[]> {
+  if (serviceIds.length === 0) return [];
+  try {
+    const { data, error } = await supabase
+      .from("mentorship_service_secrets")
+      .select("service_id, delivery_url, meeting_link")
+      .in("service_id", serviceIds);
+    if (error || !data) return [];
+    return data.map((row: any) => ({
+      service_id: String(row.service_id),
+      delivery_url: row.delivery_url ?? null,
+      meeting_link: row.meeting_link ?? null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Razorpay checkout (mentorship flavour: verify carries booking_id)   */
+/* ------------------------------------------------------------------ */
+
+export interface MentorshipCheckoutInput {
+  /** Razorpay order id from createRazorpayOrder. */
+  razorpayOrderId: string;
+  /** Amount in paise. */
+  amountPaise: number;
+  serviceTitle: string;
+  bookingId: string;
+  /** Our orders.id row. */
+  orderId: string;
+  customer: { name: string; email: string; phone: string };
+  onSuccess: (paymentId: string) => void;
+  onFailure: (message: string) => void;
+}
+
+/**
+ * Opens Razorpay checkout for a mentorship booking. Mirrors the flow in
+ * src/lib/razorpay.ts but sends booking_id to /api/razorpay/verify so
+ * the server flips the pending booking to confirmed after the HMAC check.
+ */
+export function openMentorshipCheckout(input: MentorshipCheckoutInput): void {
+  const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
+  if (!key) {
+    input.onFailure("Payments are not configured yet. Please contact support.");
+    return;
+  }
+  const RazorpayCtor = (window as any).Razorpay;
+  if (!RazorpayCtor) {
+    input.onFailure("The payment system did not load. Please refresh and try again.");
+    return;
+  }
+
+  const options = {
+    key,
+    amount: input.amountPaise,
+    currency: "INR",
+    name: "Yatri Cloud",
+    description: input.serviceTitle,
+    order_id: input.razorpayOrderId,
+    image:
+      "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png",
+    handler: async (response: any) => {
+      // Server side signature verification is the only source of truth.
+      try {
+        const verifyRes = await fetch("/api/razorpay/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            amount: input.amountPaise,
+            currency: "INR",
+            order_id: input.orderId,
+            booking_id: input.bookingId,
+          }),
+        });
+        const verdict = await verifyRes.json().catch(() => ({}));
+        if (!verifyRes.ok || !verdict.verified) {
+          input.onFailure(
+            "Your payment could not be verified. If money was deducted it will be refunded automatically. Please contact support."
+          );
+          return;
+        }
+      } catch {
+        input.onFailure(
+          "Payment verification failed. Please contact support with your payment id."
+        );
+        return;
+      }
+      input.onSuccess(response.razorpay_payment_id);
+    },
+    prefill: {
+      name: input.customer.name,
+      email: input.customer.email,
+      contact: input.customer.phone,
+    },
+    notes: { booking_id: input.bookingId },
+    theme: { color: "#3B82F6" },
+    modal: {
+      ondismiss: () => {
+        input.onFailure(
+          "Payment was cancelled. Your slot is held for 30 minutes if you want to finish checkout from My Bookings."
+        );
+      },
+    },
+  };
+
+  try {
+    const instance = new RazorpayCtor(options);
+    instance.on("payment.failed", (response: any) => {
+      input.onFailure(response?.error?.description || "Payment failed. Please try again.");
+    });
+    instance.open();
+  } catch {
+    input.onFailure("The payment window could not be opened. Please try again.");
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Formatting helpers                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Visitor timezone (falls back to IST when unavailable). */
+export function visitorTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
+  } catch {
+    return "Asia/Kolkata";
+  }
+}
+
+/** "Free" or a rupee amount without decimals. */
+export function formatServicePrice(price: number): string {
+  if (!price || price <= 0) return "Free";
+  return `₹${Math.round(price).toLocaleString("en-IN")}`;
+}
+
+/** Human meta line for a service type. */
+export function serviceMeta(service: MentorshipService): string {
+  switch (service.type) {
+    case "call":
+      return service.duration_min
+        ? `${service.duration_min} minute video call`
+        : "Video call";
+    case "package":
+      return service.sessions_count > 1
+        ? `${service.sessions_count} sessions${
+            service.duration_min ? ` of ${service.duration_min} minutes each` : ""
+          }`
+        : "Session package";
+    case "digital":
+      return "Digital product, delivered instantly";
+    case "webinar":
+      return "Live webinar";
+    default:
+      return "";
+  }
+}
+
+/** Formats an instant in the given timezone, e.g. "Sat, 5 Jul, 6:00 PM". */
+export function formatInstant(iso: string | Date, timeZone: string): string {
+  const date = typeof iso === "string" ? new Date(iso) : iso;
+  try {
+    return new Intl.DateTimeFormat("en-IN", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone,
+    }).format(date);
+  } catch {
+    return date.toLocaleString();
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Buyer confirmation email (sent client side, existing pattern)       */
+/* ------------------------------------------------------------------ */
+
+/** Inline-styled buyer confirmation email for a mentorship booking. */
+export function buildBookingConfirmationEmail(input: {
+  name: string;
+  serviceTitle: string;
+  mentorName: string;
+  amountLabel: string;
+  slotLabel: string | null;
+  isDigital: boolean;
+}): string {
+  const detailRows = [
+    `<p style="margin: 5px 0;"><strong>Session:</strong> ${input.serviceTitle}</p>`,
+    `<p style="margin: 5px 0;"><strong>Mentor:</strong> ${input.mentorName}</p>`,
+    input.slotLabel
+      ? `<p style="margin: 5px 0;"><strong>When:</strong> ${input.slotLabel}</p>`
+      : "",
+    `<p style="margin: 5px 0;"><strong>Amount:</strong> ${input.amountLabel}</p>`,
+  ].join("");
+
+  const nextStep = input.isDigital
+    ? "Your product is ready. Open My Bookings on Yatri Cloud to access your download."
+    : "Your mentor will share the meeting link before your session. You can always find your booking under My Bookings on Yatri Cloud.";
+
+  const content = `
+    <h2 style="color: #1e3a8a; margin-top: 0;">Your booking is confirmed</h2>
+    <p>Hello ${input.name},</p>
+    <p>Great news. Your mentorship booking with <strong>${input.mentorName}</strong> is confirmed.</p>
+    <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 25px 0; border-radius: 4px;">
+      ${detailRows}
+    </div>
+    <p>${nextStep}</p>
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="https://www.yatricloud.com/mentorship/bookings" style="background-color: #3b82f6; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">View my bookings</a>
+    </div>
+    <p>Best regards,<br>Team Yatri Cloud</p>
+  `;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking confirmed</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; color: #1f2937; line-height: 1.6;">
+    <div style="background-color: #1e3a8a; padding: 30px; text-align: center; border-radius: 0 0 20px 20px;">
+      <h1 style="color: white; margin: 0; font-size: 24px; font-weight: bold;">Yatri Cloud</h1>
+    </div>
+    <div style="background-color: #ffffff; padding: 40px; margin: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+      ${content}
+    </div>
+    <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
+      <p style="margin: 5px 0;">&copy; ${new Date().getFullYear()} Yatri Cloud. All rights reserved.</p>
+      <p style="margin: 5px 0;">Empowering your cloud journey.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+}

@@ -436,6 +436,7 @@ export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
     { href: "/community", label: "Community" },
     { href: "/achievements", label: "Achievements" },
     { href: "/partners", label: "Partners" },
+    { href: "/mentorship", label: "Mentorship" },
   ],
   footer_explore: [
     { href: "/examdumps", label: "Exam Dumps" },
@@ -444,6 +445,7 @@ export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
     { href: "/yatristore", label: "Yatri Store" },
     { href: "/udemy", label: "Udemy Courses" },
     { href: "/certifiedyatris", label: "Certified Yatris" },
+    { href: "/mentorship", label: "Mentorship" },
   ],
   footer_quick: [
     { href: "#certification-process", label: "Get Certified" },

@@ -32,6 +32,74 @@
   </url>
 
   <url>
+    <loc>https://www.yatricloud.com/mentorship</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Mentorship mentors and services. New mentors or services need manual sitemap entries. -->
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/yatharth-chauhan</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/nensi-ravaliya</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/yatharth-chauhan/career-guidance-call</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/yatharth-chauhan/resume-linkedin-review</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/yatharth-chauhan/interview-prep-package</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/yatharth-chauhan/cloud-career-roadmap</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/nensi-ravaliya/career-guidance-call</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/nensi-ravaliya/resume-linkedin-review</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/nensi-ravaliya/interview-prep-package</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.yatricloud.com/mentorship/nensi-ravaliya/cloud-career-roadmap</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
     <loc>https://www.yatricloud.com/events</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

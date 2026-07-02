@@ -6,7 +6,13 @@ import { createHmac } from 'crypto';
  * in Supabase (`payments` table) with the service-role key.
  *
  * Body: { razorpay_order_id, razorpay_payment_id, razorpay_signature,
- *         amount?, currency?, order_id? (our orders.id, optional) }
+ *         amount?, currency?, order_id? (our orders.id, optional),
+ *         booking_id? (our mentorship_bookings.id, optional) }
+ *
+ * When booking_id is present the verified payment also flips the pending
+ * mentorship booking to confirmed (service role bypasses RLS: this is the
+ * ONLY code path allowed to confirm a paid booking) and fires a
+ * best-effort notification email to the mentor.
  *
  * Never trust the client: the HMAC check below is the ONLY thing that makes
  * a payment real. RLS blocks all client writes to `payments`; only this
@@ -34,6 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       amount,
       currency,
       order_id,
+      booking_id,
     } = req.body || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -53,6 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── Record the verified payment (best-effort: verification result is
     //    authoritative even if the audit insert hiccups)
     let recorded = false;
+    let paymentRowId: string | null = null;
     if (supabaseUrl && serviceKey) {
       const insert = await fetch(`${supabaseUrl}/rest/v1/payments`, {
         method: 'POST',
@@ -60,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           apikey: serviceKey,
           Authorization: `Bearer ${serviceKey}`,
           'Content-Type': 'application/json',
-          Prefer: 'return=minimal',
+          Prefer: 'return=representation',
         },
         body: JSON.stringify({
           order_id: order_id || null,
@@ -75,7 +83,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }),
       });
       recorded = insert.ok;
-      if (!insert.ok) console.error('⚠️ payment record insert failed:', await insert.text());
+      if (!insert.ok) {
+        console.error('⚠️ payment record insert failed:', await insert.text());
+      } else {
+        try {
+          const rows = await insert.json();
+          paymentRowId = Array.isArray(rows) ? rows[0]?.id ?? null : null;
+        } catch {
+          paymentRowId = null;
+        }
+      }
 
       // Mark our order completed if provided
       if (order_id && recorded) {

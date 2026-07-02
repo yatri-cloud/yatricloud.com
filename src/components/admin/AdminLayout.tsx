@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Award, Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink, Globe } from "lucide-react";
+import { Award, Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink, Globe, Handshake, CalendarClock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Accordion,
@@ -54,6 +54,17 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                 { name: "Enrollments", path: "/admin/enrollments", icon: Users },
                 { name: "Providers", path: "/admin/providers", icon: Server },
                 { name: "Trainers Hub", path: "/admin/trainers", icon: Users },
+            ],
+        },
+        {
+            id: "mentorship",
+            label: "Mentorship",
+            icon: Handshake,
+            items: [
+                { name: "Mentors", path: "/admin/mentorship/mentors", icon: Users },
+                { name: "Services", path: "/admin/mentorship/services", icon: ClipboardList },
+                { name: "Bookings", path: "/admin/mentorship/bookings", icon: CalendarClock },
+                { name: "Reviews", path: "/admin/mentorship/reviews", icon: Star },
             ],
         },
         {
