@@ -3,32 +3,16 @@ import { Link } from "react-router-dom";
 import { motion, animate, useInView, useReducedMotion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
+import {
+  useCertCatalog,
+  getHomeProviders,
+  FALLBACK_HOME_PROVIDERS,
+} from "@/lib/cert-catalog";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/* Certifications by provider — sourced from certification.yatricloud.com. */
-type Provider = { name: string; short: string; count: number; blurb: string; logo?: string };
-
-const PROVIDERS: Provider[] = [
-  { name: "Amazon AWS", short: "AWS", count: 30, blurb: "Cloud computing & DevOps", logo: "/logos/aws.svg" },
-  { name: "Microsoft Azure", short: "Azure", count: 25, blurb: "Cloud solutions & infra", logo: "/logos/azure.svg" },
-  { name: "Google Cloud", short: "GCP", count: 18, blurb: "Enterprise cloud & data", logo: "/logos/googlecloud.svg" },
-  { name: "GitHub", short: "GitHub", count: 20, blurb: "Version control & CI/CD", logo: "/logos/github.svg" },
-  { name: "Kubernetes", short: "K8s", count: 14, blurb: "Container orchestration", logo: "/logos/kubernetes.svg" },
-  { name: "Linux Foundation", short: "Linux", count: 15, blurb: "Open-source & Linux", logo: "/logos/linux.svg" },
-  { name: "CompTIA", short: "CompTIA", count: 20, blurb: "Vendor-neutral IT", logo: "/logos/comptia.svg" },
-  { name: "Cisco", short: "Cisco", count: 16, blurb: "Networking & security", logo: "/logos/cisco.svg" },
-  { name: "Salesforce", short: "SF", count: 15, blurb: "CRM & cloud solutions", logo: "/logos/salesforce.svg" },
-  { name: "ISC2", short: "ISC2", count: 13, blurb: "Security incl. CISSP" },
-  { name: "Oracle", short: "Oracle", count: 12, blurb: "Database & enterprise", logo: "/logos/oracle.svg" },
-  { name: "IBM", short: "IBM", count: 12, blurb: "Enterprise & cloud", logo: "/logos/ibm.svg" },
-  { name: "Alibaba", short: "Alibaba", count: 11, blurb: "Cloud & enterprise", logo: "/logos/alibabacloud.svg" },
-  { name: "ServiceNow", short: "SNOW", count: 10, blurb: "ITSM & automation", logo: "/logos/servicenow.svg" },
-  { name: "CNCF", short: "CNCF", count: 10, blurb: "Cloud-native tech", logo: "/logos/cncf.svg" },
-  { name: "NVIDIA", short: "NVIDIA", count: 8, blurb: "AI & deep learning", logo: "/logos/nvidia.svg" },
-];
-
-const TOTAL = PROVIDERS.reduce((s, p) => s + p.count, 0); // 249
+/* Certifications by provider — sourced from the certification catalog
+   (@/lib/cert-catalog), same data as certification.yatricloud.com. */
 
 /* Count-up numeral: 0 → target on scroll-into-view; instant when reduced. */
 const CountUp = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
@@ -49,6 +33,8 @@ const CountUp = ({ value, suffix = "" }: { value: number; suffix?: string }) => 
 
 export const IndustryLeadersSection = () => {
   const reduce = useReducedMotion();
+  const PROVIDERS = useCertCatalog(getHomeProviders, FALLBACK_HOME_PROVIDERS);
+  const TOTAL = PROVIDERS.reduce((s, p) => s + p.count, 0); // 249 today
 
   return (
     <section className="relative overflow-hidden py-20 md:py-28">

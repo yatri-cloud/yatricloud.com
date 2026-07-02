@@ -2,26 +2,19 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
-
-const teamMembers = [
-  {
-    name: "Yatharth Chauhan",
-    role: "Founder – Yatri Cloud",
-    image: "https://raw.githubusercontent.com/YatharthChauhan2362/prod-public-images/refs/heads/main/yatharth-chauhan-profile1.png",
-    portfolio: "https://yatharthchauhan.me/",
-  },
-  {
-    name: "Nensi Ravaliya",
-    role: "Creator - Yatri Cloud",
-    image: "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Team%20Yatri%20Cloud/Nensi%20Ravaliya/profile-nensi-ravaliya.png",
-    portfolio: "https://nensi.yatricloud.com/",
-  },
-];
+import {
+  useSiteContent,
+  getTeamMembers,
+  FALLBACK_TEAM_MEMBERS,
+} from "@/lib/site-content";
 
 const fallbackSrc = (name: string) =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3B82F6&color=fff&size=256`;
 
 export const InstructorSection = () => {
+  /* Team roster from Supabase (seeded to match the previous hardcoded
+   * array); the fallback renders immediately so nothing flashes. */
+  const teamMembers = useSiteContent(getTeamMembers, FALLBACK_TEAM_MEMBERS);
   const lead = teamMembers[0];
   const others = teamMembers.slice(1);
 

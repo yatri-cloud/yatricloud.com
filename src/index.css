@@ -369,4 +369,55 @@
   .preserve-3d {
     transform-style: preserve-3d;
   }
+
+  /* ============================================================
+     Toast motion + elevation (redesign additive — 2026-07)
+     Springy slide-in from top, quick fade+shrink exit.
+     Transform/opacity only; the global prefers-reduced-motion
+     rule above collapses these to instant.
+     ============================================================ */
+  @keyframes toast-in {
+    0% {
+      opacity: 0;
+      transform: translateY(-16px) scale(0.97);
+    }
+    60% {
+      opacity: 1;
+      transform: translateY(3px) scale(1.005);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes toast-out {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+    }
+  }
+  .animate-toast-in {
+    animation: toast-in 0.42s var(--ease-out) both;
+  }
+  .animate-toast-out {
+    animation: toast-out 0.18s var(--ease-in) both;
+  }
+
+  /* Soft layered shadow for floating surfaces (toasts) — additive */
+  .shadow-toast {
+    box-shadow:
+      0 1px 2px hsl(0 0% 0% / 0.06),
+      0 8px 24px hsl(0 0% 0% / 0.1),
+      0 20px 48px hsl(0 0% 0% / 0.08);
+  }
+  .dark .shadow-toast {
+    box-shadow:
+      0 1px 2px hsl(0 0% 0% / 0.4),
+      0 8px 24px hsl(0 0% 0% / 0.45),
+      0 20px 48px hsl(0 0% 0% / 0.4);
+  }
 }

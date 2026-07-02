@@ -1,27 +1,19 @@
 import { motion, useReducedMotion } from "framer-motion";
 import ScrollReveal from "@/components/ScrollReveal";
+import {
+  useSiteContent,
+  getRecognitions,
+  FALLBACK_RECOGNITIONS,
+} from "@/lib/site-content";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/* Instructor recognitions — sourced from certification.yatricloud.com.
-   Each badge carries its parent program's real brand logo. */
-const RECOGNITIONS = [
-  { label: "Microsoft MVP", logo: "/logos/microsoft.svg" },
-  { label: "Microsoft Certified Trainer", logo: "/logos/microsoft.svg" },
-  { label: "Google Developer Expert", logo: "/logos/google.svg" },
-  { label: "AWS Hero", logo: "/logos/aws.svg" },
-  { label: "AWS Subject Matter Expert", logo: "/logos/aws.svg" },
-  { label: "AWS Community Builder", logo: "/logos/aws.svg" },
-  { label: "CNCF Ambassador", logo: "/logos/cncf.svg" },
-  { label: "Docker Captain", logo: "/logos/docker.svg" },
-  { label: "HashiCorp Ambassador", logo: "/logos/hashicorp.svg" },
-  { label: "MS Learn Student Ambassador (Gold)", logo: "/logos/microsoft.svg" },
-  { label: "Google Student Ambassador", logo: "/logos/google.svg" },
-  { label: "GitHub Campus Expert", logo: "/logos/github.svg" },
-];
-
 export const RecognitionsSection = () => {
   const reduce = useReducedMotion();
+
+  /* Instructor recognitions from Supabase (seeded to match the previous
+   * hardcoded badge wall); each badge carries its program's brand logo. */
+  const recognitions = useSiteContent(getRecognitions, FALLBACK_RECOGNITIONS);
 
   return (
     <section className="relative overflow-hidden band-blue py-20 md:py-28">
@@ -54,7 +46,7 @@ export const RecognitionsSection = () => {
 
         {/* Recognition badge wall — white pills w/ real brand logos on the blue band */}
         <div className="mx-auto mt-12 flex max-w-4xl flex-wrap justify-center gap-3">
-          {RECOGNITIONS.map((r, i) => (
+          {recognitions.map((r, i) => (
             <motion.div
               key={r.label}
               initial={reduce ? { opacity: 1 } : { opacity: 0, y: 14 }}

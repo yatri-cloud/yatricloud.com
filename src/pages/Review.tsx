@@ -12,6 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
 import { COUNTRY_OPTIONS, getCountryFlag } from "@/lib/country-flag";
+import {
+  useCertCatalog,
+  getReviewProviders,
+  FALLBACK_REVIEW_PROVIDERS,
+} from "@/lib/cert-catalog";
 
 type ReviewFormData = {
   name: string;
@@ -24,22 +29,11 @@ type ReviewFormData = {
 
 const RATINGS = [1, 2, 3, 4, 5];
 
-const PROVIDERS = [
-  { id: 'aws', label: 'AWS', color: '#FF9900' },
-  { id: 'azure', label: 'Azure', color: '#0078D4' },
-  { id: 'gcp', label: 'Google Cloud', color: '#4285F4' },
-  { id: 'kubernetes', label: 'Kubernetes', color: '#326CE5' },
-  { id: 'terraform', label: 'Terraform', color: '#844FBA' },
-  { id: 'docker', label: 'Docker', color: '#2496ED' },
-  { id: 'github', label: 'GitHub', color: '#181717' },
-  { id: 'salesforce', label: 'Salesforce', color: '#00A1E0' },
-  { id: 'oracle', label: 'Oracle', color: '#F80000' },
-  { id: 'servicenow', label: 'ServiceNow', color: '#00A82E' },
-];
-
 const Review = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Provider list from the certification catalog (labels and hex colors)
+  const PROVIDERS = useCertCatalog(getReviewProviders, FALLBACK_REVIEW_PROVIDERS);
   const {
     register,
     handleSubmit,

@@ -19,11 +19,15 @@ import {
   FALLBACK_SETTINGS,
   FALLBACK_PROMOTION,
 } from "@/lib/site-content";
+import { FALLBACK_CERT_TRACKS } from "@/lib/cert-catalog";
 
 const EASE_EDITORIAL = [0.16, 1, 0.3, 1] as const;
 
-/* Decorative certification tracks drifting behind the headline. */
-const CERT_TRACKS = ["AWS", "Azure", "GCP", "Kubernetes", "Terraform", "DevOps"];
+/* Decorative certification tracks drifting behind the headline. The list
+   lives in the certification catalog as a fixed display set: catalog labels
+   would reorder and reword the visible six, so the marquee keeps this exact
+   sequence. */
+const CERT_TRACKS = FALLBACK_CERT_TRACKS;
 
 /* Kinetic outline marquee — purely decorative, reduced-motion safe. */
 const CertMarquee = () => {

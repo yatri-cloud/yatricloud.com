@@ -120,13 +120,22 @@ export async function signUpWithPassword(input: {
 
 export async function signInWithPassword(email: string, password: string):
   Promise<{ user: YatriUser | null; error: string | null }> {
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: email.trim().toLowerCase(),
     password,
   });
   if (error) return { user: null, error: friendly(error.message) };
-  const user = await fetchMyProfile();
-  return { user, error: null };
+  // Return right away with what the session already knows; the full profile
+  // (role, photo, city...) loads in the background. Keeps login snappy.
+  const provisional: YatriUser = {
+    id: data.user?.id,
+    email: data.user?.email || email.trim().toLowerCase(),
+    fullName: (data.user?.user_metadata?.full_name as string) || "",
+    role: "yatri",
+  };
+  setMirror(provisional);
+  void fetchMyProfile();
+  return { user: provisional, error: null };
 }
 
 /**
@@ -136,10 +145,19 @@ export async function signInWithPassword(email: string, password: string):
  */
 export async function signInWithGoogleIdToken(idToken: string):
   Promise<{ user: YatriUser | null; error: string | null }> {
-  const { error } = await supabase.auth.signInWithIdToken({ provider: "google", token: idToken });
+  const { data, error } = await supabase.auth.signInWithIdToken({ provider: "google", token: idToken });
   if (error) return { user: null, error: friendly(error.message) };
-  const user = await fetchMyProfile();
-  return { user, error: null };
+  // Snappy return with session data; full profile loads in the background.
+  const provisional: YatriUser = {
+    id: data.user?.id,
+    email: data.user?.email || "",
+    fullName: (data.user?.user_metadata?.full_name as string) || "",
+    photoUrl: (data.user?.user_metadata?.avatar_url as string) || undefined,
+    role: "yatri",
+  };
+  setMirror(provisional);
+  void fetchMyProfile();
+  return { user: provisional, error: null };
 }
 
 export async function signOut(): Promise<void> {

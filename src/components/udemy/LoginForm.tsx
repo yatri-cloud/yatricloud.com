@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
-import { signInWithPassword, signOut } from "@/lib/auth";
+import { signInWithPassword, signOut, fetchMyProfile } from "@/lib/auth";
 
 interface LoginFormData {
   email: string;
@@ -36,8 +36,8 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
     setIsLoading(true);
     try {
       // Authenticate against Supabase; only admins may access this form.
-      const { user, error } = await signInWithPassword(data.email, data.password);
-      if (error || !user) {
+      const { user: signedIn, error } = await signInWithPassword(data.email, data.password);
+      if (error || !signedIn) {
         toast({
           title: "Authentication Failed",
           description: error || "Invalid email or password",
@@ -45,6 +45,9 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
         });
         return;
       }
+
+      const user = (await fetchMyProfile()) || signedIn;
+
 
       if (user.role !== "admin") {
         await signOut();

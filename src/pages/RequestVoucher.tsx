@@ -31,22 +31,15 @@ import { submitVoucherRequest } from "@/lib/voucher-api";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
 import { HomeReviewsSection } from "@/components/sections/HomeReviewsSection";
-
-const PROVIDERS = [
-  "AWS (Amazon Web Services)",
-  "Microsoft Azure",
-  "Google Cloud (GCP)",
-  "GitHub",
-  "Oracle Cloud",
-  "Salesforce",
-  "ServiceNow",
-  "OpenAI",
-  "HashiCorp Certified",
-  "Kubernetes Certified",
-  "Other"
-];
+import {
+  useCertCatalog,
+  getVoucherProviders,
+  FALLBACK_VOUCHER_PROVIDERS,
+} from "@/lib/cert-catalog";
 
 const RequestVoucher = () => {
+  // Provider names from the certification catalog, always ending with "Other"
+  const PROVIDERS = useCertCatalog(getVoucherProviders, FALLBACK_VOUCHER_PROVIDERS);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [exams, setExams] = useState([""]);

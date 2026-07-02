@@ -2,16 +2,17 @@ import React, { useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ExternalLink, BadgeCheck } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
-
-const eligibleExams = [
-  "AWS Cloud Practitioner",
-  "AWS AI Practitioner",
-  "AWS Certified Solutions Architect – Associate (SAA-C03)",
-  "AWS Certified Developer – Associate (DVA-C02)",
-  "AWS Certified CloudOps Engineer – Associate (SOA-C03)",
-  "AWS Certified Data Engineer – Associate (DEA-C01)",
-  "AWS Certified Machine Learning Engineer – Associate (MLA-C01)",
-];
+import {
+  useSiteContent,
+  getEligibleExams,
+  getPackageBenefits,
+  getCertificationSteps,
+  FALLBACK_ELIGIBLE_EXAMS,
+  FALLBACK_PACKAGE_BENEFITS,
+  FALLBACK_CERTIFICATION_STEPS,
+  type PackageBenefit,
+  type StepAction,
+} from "@/lib/site-content";
 
 // Public AWS exam codes for entries whose title doesn't include the code inline.
 const EXAM_CODE_FALLBACK: Record<string, string> = {
@@ -19,65 +20,20 @@ const EXAM_CODE_FALLBACK: Record<string, string> = {
   "ai practitioner": "AIF-C01",
 };
 
-const bonusFeatures = [
-  {
-    text: "50% OFF Vouchers",
-    description: "Get AWS Associate exam vouchers at half price - limited time offer",
-    gradient: "from-blue-500/20 to-purple-500/20"
-  },
-  {
-    text: "Exam Dumps & Resources",
-    description: "Comprehensive exam dumps and study resources to help you prepare effectively",
-    gradient: "from-purple-500/20 to-pink-500/20"
-  },
-  {
-    text: "Udemy Course Free Access",
-    description: "Get free access to our premium Udemy certification courses",
-    gradient: "from-pink-500/20 to-orange-500/20"
-  },
-  {
-    text: "Topmate Free Connect",
-    description: "Free Topmate sessions with Yatharth Chauhan and Nensi Ravaliya for personalized guidance",
-    gradient: "from-orange-500/20 to-yellow-500/20"
-  },
-  {
-    text: "LinkedIn Recommendation",
-    description: "Get a professional LinkedIn recommendation from us after certification",
-    gradient: "from-yellow-500/20 to-green-500/20"
-  },
-  {
-    text: "Yatri Wall of Fame",
-    description: "Get featured on our Wall of Fame after successfully passing your AWS certification",
-    gradient: "from-green-500/20 to-teal-500/20"
-  },
+/* Presentation-only gradient washes, assigned per index (not stored in the DB). */
+const BONUS_GRADIENTS = [
+  "from-blue-500/20 to-purple-500/20",
+  "from-purple-500/20 to-pink-500/20",
+  "from-pink-500/20 to-orange-500/20",
+  "from-orange-500/20 to-yellow-500/20",
+  "from-yellow-500/20 to-green-500/20",
+  "from-green-500/20 to-teal-500/20",
 ];
 
-const steps = [
-  {
-    number: 1,
-    title: "Select Time",
-    description: "Select a suitable time slot to schedule your meeting",
-    gradient: "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
-    action: {
-      label: "Book Now",
-      isPopup: true,
-      url: "#",
-    },
-  },
-  {
-    number: 2,
-    title: "Book a Meet",
-    description: "Confirm your booking through the Calendly widget below",
-    gradient: "from-green-500/20 via-emerald-500/20 to-teal-500/20",
-    action: null,
-  },
-  {
-    number: 3,
-    title: "Exam Scheduling",
-    description: "We will start processing ahead to schedule the exam during our meeting",
-    gradient: "from-purple-500/20 via-pink-500/20 to-rose-500/20",
-    action: null,
-  },
+const STEP_GRADIENTS = [
+  "from-blue-500/20 via-cyan-500/20 to-teal-500/20",
+  "from-green-500/20 via-emerald-500/20 to-teal-500/20",
+  "from-purple-500/20 via-pink-500/20 to-rose-500/20",
 ];
 
 const reveal = {
@@ -87,14 +43,108 @@ const reveal = {
   transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
 };
 
+/* Flip card for one package benefit — extracted so each card owns its own
+ * flip state safely now that the benefit list can change length after the
+ * Supabase fetch resolves. Markup and motion are unchanged. */
+const BenefitCard = ({
+  feature,
+  index,
+}: {
+  feature: PackageBenefit;
+  index: number;
+}) => {
+  const [isFlipped, setIsFlipped] = React.useState(false);
+
+  return (
+    <div
+      className="group relative h-full min-h-[300px] cursor-pointer"
+      onClick={() => setIsFlipped(!isFlipped)}
+      role="button"
+      tabIndex={0}
+      aria-label={`${feature.text} - click to flip for details`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setIsFlipped(!isFlipped);
+        }
+      }}
+      style={{ perspective: 1000 }}
+    >
+      <motion.div
+        className="w-full h-full relative"
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        {/* Front of card */}
+        <div
+          className="absolute inset-0 bg-card border border-border group-hover:border-primary/40 group-hover:shadow-card rounded-2xl p-8 text-left flex flex-col transition-all duration-300"
+          style={{ backfaceVisibility: "hidden" }}
+        >
+          <div className="flex-1 flex flex-col h-full">
+            <span className="font-display text-4xl md:text-5xl font-black gradient-text mb-6">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+
+            <h4 className="font-display text-xl md:text-2xl font-bold tracking-tight text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
+              {feature.text}
+            </h4>
+
+            <div className="h-1 w-12 bg-primary rounded-full mt-auto group-hover:w-20 transition-all duration-500" />
+          </div>
+        </div>
+
+        {/* Back of card */}
+        <div
+          className="absolute inset-0 bg-card border border-primary/40 rounded-2xl p-8 shadow-card flex flex-col justify-center text-center overflow-auto"
+          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+        >
+          <p className="text-xs font-bold text-primary mb-4 uppercase tracking-wider">
+            {index === 0
+              ? "DURING MEET YOU WILL GET NOT AFTER:"
+              : index >= 4
+                ? "IF YOU PASS EXAM AND POST ON LINKEDIN WITH TAGGING YATRI CLOUD AND TEAMMATES YOU WILL GET THESE BENEFITS:"
+                : "AFTER SCHEDULING EXAM YOU WILL GET:"}
+          </p>
+          <p className="text-base md:text-lg text-foreground leading-relaxed font-medium">
+            {feature.description}
+          </p>
+          <div className="mt-6 text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+            Click to flip back
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 export const CertificationFlowSection = () => {
   const prefersReducedMotion = useReducedMotion();
+
+  /* Live content from Supabase (seeded to match the previous hardcoded
+   * arrays); fallbacks render immediately so nothing flashes or shifts. */
+  const eligibleExams = useSiteContent(getEligibleExams, FALLBACK_ELIGIBLE_EXAMS);
+  const benefitRows = useSiteContent(getPackageBenefits, FALLBACK_PACKAGE_BENEFITS);
+  const stepRows = useSiteContent(getCertificationSteps, FALLBACK_CERTIFICATION_STEPS);
+
+  /* Gradient washes are pure presentation — keep the per-index assignment. */
+  const bonusFeatures = benefitRows.map((feature, index) => ({
+    ...feature,
+    gradient: BONUS_GRADIENTS[index % BONUS_GRADIENTS.length],
+  }));
+  const steps = stepRows.map((step, index) => ({
+    ...step,
+    gradient: STEP_GRADIENTS[index % STEP_GRADIENTS.length],
+  }));
 
   // Preserved step-action logic (extracted so both the desktop + mobile
   // timeline layouts can share the exact same handler — behaviour unchanged).
   const handleStepAction = (
     e: React.MouseEvent,
-    action: (typeof steps)[number]["action"]
+    action: StepAction | null
   ) => {
     e.preventDefault();
     if (action?.isPopup) {
@@ -167,13 +217,14 @@ export const CertificationFlowSection = () => {
               {/* Credential grid */}
               <div className="grid sm:grid-cols-2 gap-3">
                 {eligibleExams.map((exam, index) => {
-                  const codeMatch = exam.match(/\(([^)]+)\)/);
+                  const codeMatch = exam.title.match(/\(([^)]+)\)/);
                   const code =
                     codeMatch?.[1] ??
-                    Object.entries(EXAM_CODE_FALLBACK).find(([k]) => exam.toLowerCase().includes(k))?.[1] ??
+                    exam.examCode ??
+                    Object.entries(EXAM_CODE_FALLBACK).find(([k]) => exam.title.toLowerCase().includes(k))?.[1] ??
                     null;
-                  const title = exam.replace(/\s*\([^)]*\)\s*/, " ").replace(/\s+–\s+Associate\s*$/i, "").trim();
-                  const level = /associate/i.test(exam) ? "Associate" : /practitioner/i.test(exam) ? "Foundational" : null;
+                  const title = exam.title.replace(/\s*\([^)]*\)\s*/, " ").replace(/\s+–\s+Associate\s*$/i, "").trim();
+                  const level = /associate/i.test(exam.title) ? "Associate" : /practitioner/i.test(exam.title) ? "Foundational" : null;
                   return (
                     <motion.div
                       key={index}
@@ -192,7 +243,7 @@ export const CertificationFlowSection = () => {
                       </div>
                       {/* Title + level */}
                       <div className="min-w-0 flex-1">
-                        <p className="text-[15px] font-semibold leading-snug text-foreground" title={exam}>{title}</p>
+                        <p className="text-[15px] font-semibold leading-snug text-foreground" title={exam.title}>{title}</p>
                         {level && (
                           <span className="mt-1 inline-block rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                             {level}
@@ -230,76 +281,11 @@ export const CertificationFlowSection = () => {
 
               {/* Individual Benefit Boxes */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {bonusFeatures.map((feature, index) => {
-                  const [isFlipped, setIsFlipped] = React.useState(false);
-
-                  return (
-                    <ScrollReveal key={index} delay={0.1 + index * 0.06}>
-                      <div
-                        className="group relative h-full min-h-[300px] cursor-pointer"
-                        onClick={() => setIsFlipped(!isFlipped)}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`${feature.text} - click to flip for details`}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setIsFlipped(!isFlipped);
-                          }
-                        }}
-                        style={{ perspective: 1000 }}
-                      >
-                        <motion.div
-                          className="w-full h-full relative"
-                          animate={{ rotateY: isFlipped ? 180 : 0 }}
-                          transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
-                          style={{ transformStyle: "preserve-3d" }}
-                        >
-                          {/* Front of card */}
-                          <div
-                            className="absolute inset-0 bg-card border border-border group-hover:border-primary/40 group-hover:shadow-card rounded-2xl p-8 text-left flex flex-col transition-all duration-300"
-                            style={{ backfaceVisibility: "hidden" }}
-                          >
-                            <div className="flex-1 flex flex-col h-full">
-                              <span className="font-display text-4xl md:text-5xl font-black gradient-text mb-6">
-                                {String(index + 1).padStart(2, "0")}
-                              </span>
-
-                              <h4 className="font-display text-xl md:text-2xl font-bold tracking-tight text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
-                                {feature.text}
-                              </h4>
-
-                              <div className="h-1 w-12 bg-primary rounded-full mt-auto group-hover:w-20 transition-all duration-500" />
-                            </div>
-                          </div>
-
-                          {/* Back of card */}
-                          <div
-                            className="absolute inset-0 bg-card border border-primary/40 rounded-2xl p-8 shadow-card flex flex-col justify-center text-center overflow-auto"
-                            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-                          >
-                            <p className="text-xs font-bold text-primary mb-4 uppercase tracking-wider">
-                              {index === 0
-                                ? "DURING MEET YOU WILL GET NOT AFTER:"
-                                : index >= 4
-                                  ? "IF YOU PASS EXAM AND POST ON LINKEDIN WITH TAGGING YATRI CLOUD AND TEAMMATES YOU WILL GET THESE BENEFITS:"
-                                  : "AFTER SCHEDULING EXAM YOU WILL GET:"}
-                            </p>
-                            <p className="text-base md:text-lg text-foreground leading-relaxed font-medium">
-                              {feature.description}
-                            </p>
-                            <div className="mt-6 text-xs text-muted-foreground flex items-center justify-center gap-1.5">
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                              </svg>
-                              Click to flip back
-                            </div>
-                          </div>
-                        </motion.div>
-                      </div>
-                    </ScrollReveal>
-                  );
-                })}
+                {bonusFeatures.map((feature, index) => (
+                  <ScrollReveal key={index} delay={0.1 + index * 0.06}>
+                    <BenefitCard feature={feature} index={index} />
+                  </ScrollReveal>
+                ))}
               </div>
             </div>
           </ScrollReveal>

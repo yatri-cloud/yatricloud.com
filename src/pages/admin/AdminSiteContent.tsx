@@ -15,6 +15,12 @@ import {
     ArrowDown,
     Loader2,
     Save,
+    Users,
+    Gift,
+    ListOrdered,
+    BadgeCheck,
+    Award,
+    ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +96,436 @@ const FieldLabel = ({ htmlFor, children }: { htmlFor: string; children: React.Re
         {children}
     </Label>
 );
+
+const saveButtonClass =
+    "min-h-[44px] rounded-xl bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn";
+
+/* ------------------------------------------------------------------ */
+/* Generic sortable list editor                                        */
+/*                                                                     */
+/* One reusable card for the homepage tables that share the same shape */
+/* (rows with sort_order + active): team members, package benefits,    */
+/* certification steps, eligible exams, recognitions, trust features.  */
+/* Mirrors the FAQ card exactly: edit inline, save per row, add,       */
+/* delete, show or hide, and reorder with up and down arrows.          */
+/* ------------------------------------------------------------------ */
+
+type ContentFieldType = "text" | "textarea" | "number" | "switch";
+
+interface ContentField {
+    key: string;
+    label: string;
+    type?: ContentFieldType;
+    half?: boolean;
+    required?: boolean;
+}
+
+interface ContentRow {
+    id: string | null;
+    sort_order: number;
+    active: boolean;
+    values: Record<string, any>;
+}
+
+interface ContentListSectionProps {
+    icon: typeof Globe;
+    title: string;
+    hint: string;
+    table: string;
+    fields: ContentField[];
+    itemLabel: string;
+    addLabel: string;
+    filterColumn?: string;
+    filterValue?: string;
+    headerExtra?: React.ReactNode;
+}
+
+const ContentListSection = ({
+    icon,
+    title,
+    hint,
+    table,
+    fields,
+    itemLabel,
+    addLabel,
+    filterColumn,
+    filterValue,
+    headerExtra,
+}: ContentListSectionProps) => {
+    const { toast } = useToast();
+    const [rows, setRows] = useState<ContentRow[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [savingKey, setSavingKey] = useState<string | null>(null);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                let query = supabase
+                    .from(table)
+                    .select(["id", "sort_order", "active", ...fields.map((f) => f.key)].join(", "))
+                    .order("sort_order", { ascending: true });
+                if (filterColumn && filterValue) query = query.eq(filterColumn, filterValue);
+                const { data, error } = await query;
+                if (!error && data) {
+                    setRows(
+                        (data as any[]).map((row) => ({
+                            id: row.id,
+                            sort_order: row.sort_order ?? 0,
+                            active: row.active !== false,
+                            values: Object.fromEntries(
+                                fields.map((f) => [f.key, row[f.key] ?? (f.type === "switch" ? false : "")])
+                            ),
+                        }))
+                    );
+                }
+            } catch (e) {
+                console.error(`Failed to load ${table}`, e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const failed = () =>
+        toast({
+            title: "That did not save",
+            description: "Please try again in a moment.",
+            variant: "destructive",
+        });
+
+    const done = () =>
+        toast({
+            title: "Saved",
+            description: "Your changes are live on the site.",
+        });
+
+    const rowKey = (row: ContentRow, index: number) => row.id ?? `new-${index}`;
+
+    const updateValue = (index: number, key: string, value: any) => {
+        setRows((prev) =>
+            prev.map((r, i) => (i === index ? { ...r, values: { ...r.values, [key]: value } } : r))
+        );
+    };
+
+    const setActive = (index: number, active: boolean) => {
+        setRows((prev) => prev.map((r, i) => (i === index ? { ...r, active } : r)));
+    };
+
+    const addRow = () => {
+        const nextOrder = rows.length > 0 ? Math.max(...rows.map((r) => r.sort_order)) + 1 : 1;
+        setRows((prev) => [
+            ...prev,
+            {
+                id: null,
+                sort_order: nextOrder,
+                active: true,
+                values: Object.fromEntries(
+                    fields.map((f) => [
+                        f.key,
+                        f.type === "switch" ? false : f.type === "number" ? nextOrder : "",
+                    ])
+                ),
+            },
+        ]);
+    };
+
+    const payloadFor = (row: ContentRow) => {
+        const payload: Record<string, any> = {
+            sort_order: row.sort_order,
+            active: row.active,
+        };
+        if (filterColumn && filterValue) payload[filterColumn] = filterValue;
+        for (const f of fields) {
+            const raw = row.values[f.key];
+            if (f.type === "switch") payload[f.key] = raw === true;
+            else if (f.type === "number") payload[f.key] = Number(raw) || 0;
+            else payload[f.key] = typeof raw === "string" ? raw.trim() : raw;
+        }
+        return payload;
+    };
+
+    const saveRow = async (index: number) => {
+        const row = rows[index];
+        const missing = fields.find((f) => f.required && !String(row.values[f.key] ?? "").trim());
+        if (missing) {
+            toast({
+                title: "Almost there",
+                description: `Please fill in the ${missing.label.toLowerCase()} before saving.`,
+                variant: "destructive",
+            });
+            return;
+        }
+        const key = rowKey(row, index);
+        setSavingKey(key);
+        if (row.id) {
+            const { error } = await supabase.from(table).update(payloadFor(row)).eq("id", row.id);
+            setSavingKey(null);
+            if (error) return failed();
+        } else {
+            const { data, error } = await supabase
+                .from(table)
+                .insert(payloadFor(row))
+                .select("id")
+                .single();
+            setSavingKey(null);
+            if (error) return failed();
+            if (data?.id) {
+                setRows((prev) => prev.map((r, i) => (i === index ? { ...r, id: data.id } : r)));
+            }
+        }
+        done();
+    };
+
+    const deleteRow = async (index: number) => {
+        const row = rows[index];
+        if (row.id) {
+            const { error } = await supabase.from(table).delete().eq("id", row.id);
+            if (error) return failed();
+        }
+        setRows((prev) => prev.filter((_, i) => i !== index));
+        toast({
+            title: "Removed",
+            description: `That ${itemLabel} is no longer shown on the site.`,
+        });
+    };
+
+    const moveRow = async (index: number, direction: -1 | 1) => {
+        const target = index + direction;
+        if (target < 0 || target >= rows.length) return;
+        const a = rows[index];
+        const b = rows[target];
+        // Swap sort orders locally first, then persist saved rows.
+        const next = [...rows];
+        next[index] = { ...b, sort_order: a.sort_order };
+        next[target] = { ...a, sort_order: b.sort_order };
+        setRows(next);
+        try {
+            const updates: Promise<any>[] = [];
+            if (a.id) {
+                updates.push(
+                    Promise.resolve(
+                        supabase.from(table).update({ sort_order: b.sort_order }).eq("id", a.id)
+                    )
+                );
+            }
+            if (b.id) {
+                updates.push(
+                    Promise.resolve(
+                        supabase.from(table).update({ sort_order: a.sort_order }).eq("id", b.id)
+                    )
+                );
+            }
+            const results = await Promise.all(updates);
+            if (results.some((r) => r?.error)) failed();
+        } catch {
+            failed();
+        }
+    };
+
+    return (
+        <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+            <SectionHeader icon={icon} title={title} hint={hint} />
+            {headerExtra}
+
+            {loading ? (
+                <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span>Loading…</span>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {rows.map((row, index) => {
+                        const key = rowKey(row, index);
+                        return (
+                            <div key={key} className="rounded-xl border border-border bg-background p-4 md:p-5 space-y-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
+                                        {index + 1}
+                                    </span>
+                                    <div className="flex items-center gap-1.5">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => moveRow(index, -1)}
+                                            disabled={index === 0}
+                                            aria-label={`Move this ${itemLabel} up`}
+                                            className="h-10 w-10 rounded-xl"
+                                        >
+                                            <ArrowUp className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => moveRow(index, 1)}
+                                            disabled={index === rows.length - 1}
+                                            aria-label={`Move this ${itemLabel} down`}
+                                            className="h-10 w-10 rounded-xl"
+                                        >
+                                            <ArrowDown className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => deleteRow(index)}
+                                            aria-label={`Delete this ${itemLabel}`}
+                                            className="h-10 w-10 rounded-xl text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    {fields.map((field) => {
+                                        const inputId = `${table}-${field.key}-${index}`;
+                                        const span = field.half ? "" : "md:col-span-2";
+                                        if (field.type === "switch") {
+                                            return (
+                                                <div key={field.key} className={`flex items-center gap-3 ${span}`}>
+                                                    <Switch
+                                                        id={inputId}
+                                                        checked={row.values[field.key] === true}
+                                                        onCheckedChange={(checked) => updateValue(index, field.key, checked)}
+                                                        aria-label={field.label}
+                                                    />
+                                                    <Label htmlFor={inputId} className="text-sm font-medium">
+                                                        {field.label}
+                                                    </Label>
+                                                </div>
+                                            );
+                                        }
+                                        if (field.type === "textarea") {
+                                            return (
+                                                <div key={field.key} className={`space-y-2 ${span}`}>
+                                                    <FieldLabel htmlFor={inputId}>{field.label}</FieldLabel>
+                                                    <Textarea
+                                                        id={inputId}
+                                                        className="min-h-[80px] rounded-xl"
+                                                        value={String(row.values[field.key] ?? "")}
+                                                        onChange={(e) => updateValue(index, field.key, e.target.value)}
+                                                    />
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div key={field.key} className={`space-y-2 ${span}`}>
+                                                <FieldLabel htmlFor={inputId}>{field.label}</FieldLabel>
+                                                <Input
+                                                    id={inputId}
+                                                    type={field.type === "number" ? "number" : "text"}
+                                                    className="min-h-[44px] rounded-xl"
+                                                    value={String(row.values[field.key] ?? "")}
+                                                    onChange={(e) => updateValue(index, field.key, e.target.value)}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <Switch
+                                            id={`${table}-active-${index}`}
+                                            checked={row.active}
+                                            onCheckedChange={(checked) => setActive(index, checked)}
+                                            aria-label={`Show this ${itemLabel} on the site`}
+                                        />
+                                        <Label htmlFor={`${table}-active-${index}`} className="text-sm font-medium">
+                                            Show on the site
+                                        </Label>
+                                    </div>
+                                    <Button
+                                        onClick={() => saveRow(index)}
+                                        disabled={savingKey === key}
+                                        className={saveButtonClass}
+                                    >
+                                        {savingKey === key ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Save className="mr-2 h-4 w-4" />
+                                        )}
+                                        Save {itemLabel}
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {rows.length === 0 && (
+                        <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                            Nothing here yet. Add your first {itemLabel} below.
+                        </p>
+                    )}
+
+                    <Button variant="outline" onClick={addRow} className="min-h-[44px] rounded-xl">
+                        <Plus className="mr-2 h-4 w-4" />
+                        {addLabel}
+                    </Button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+/* ------------------------------------------------------------------ */
+/* Trust features — same editor with a kind toggle                     */
+/* ------------------------------------------------------------------ */
+
+const TrustFeaturesEditor = () => {
+    const [kind, setKind] = useState<"feature" | "not_for_you">("feature");
+
+    const kindToggle = (
+        <div className="mb-5 inline-flex rounded-xl border border-border bg-background p-1" role="group" aria-label="Choose which trust list to edit">
+            {([
+                ["feature", "Features"],
+                ["not_for_you", "Not for you"],
+            ] as const).map(([value, label]) => (
+                <button
+                    key={value}
+                    type="button"
+                    onClick={() => setKind(value)}
+                    aria-pressed={kind === value}
+                    className={`min-h-[40px] rounded-lg px-4 text-sm font-semibold transition-colors duration-300 ${
+                        kind === value
+                            ? "bg-primary text-primary-foreground shadow-inset-btn"
+                            : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                    {label}
+                </button>
+            ))}
+        </div>
+    );
+
+    return (
+        <ContentListSection
+            key={kind}
+            icon={ShieldCheck}
+            title="Trust Features"
+            hint={
+                kind === "feature"
+                    ? "The benefit pills that scroll across the trust section."
+                    : "The honest points that tell Yatris who this offer is not for."
+            }
+            table="trust_features"
+            fields={
+                kind === "feature"
+                    ? [
+                          { key: "title", label: "Title", required: true },
+                          { key: "description", label: "Description", type: "textarea" },
+                      ]
+                    : [{ key: "title", label: "Point", type: "textarea", required: true }]
+            }
+            itemLabel={kind === "feature" ? "feature" : "point"}
+            addLabel={kind === "feature" ? "Add a feature" : "Add a point"}
+            filterColumn="kind"
+            filterValue={kind}
+            headerExtra={kindToggle}
+        />
+    );
+};
 
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
@@ -390,9 +826,6 @@ const AdminSiteContent = () => {
     };
 
     /* ----------------------------- view --------------------------- */
-
-    const saveButtonClass =
-        "min-h-[44px] rounded-xl bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn";
 
     if (loading) {
         return (
@@ -751,6 +1184,96 @@ const AdminSiteContent = () => {
                             </Button>
                         </div>
                     </div>
+                </ScrollReveal>
+
+                {/* ── Team ── */}
+                <ScrollReveal delay={0.05}>
+                    <ContentListSection
+                        icon={Users}
+                        title="Team"
+                        hint="The people shown in the Meet the Team section on the homepage."
+                        table="team_members"
+                        fields={[
+                            { key: "name", label: "Name", half: true, required: true },
+                            { key: "role", label: "Role", half: true, required: true },
+                            { key: "image_url", label: "Photo URL" },
+                            { key: "portfolio_url", label: "Portfolio URL" },
+                        ]}
+                        itemLabel="team member"
+                        addLabel="Add a team member"
+                    />
+                </ScrollReveal>
+
+                {/* ── Package benefits ── */}
+                <ScrollReveal delay={0.05}>
+                    <ContentListSection
+                        icon={Gift}
+                        title="Package Benefits"
+                        hint="The flip cards under What's Included in the certification flow."
+                        table="package_benefits"
+                        fields={[
+                            { key: "title", label: "Title", required: true },
+                            { key: "description", label: "Description", type: "textarea" },
+                        ]}
+                        itemLabel="benefit"
+                        addLabel="Add a benefit"
+                    />
+                </ScrollReveal>
+
+                {/* ── Certification steps ── */}
+                <ScrollReveal delay={0.05}>
+                    <ContentListSection
+                        icon={ListOrdered}
+                        title="Certification Steps"
+                        hint="The numbered journey from picking a time to exam scheduling."
+                        table="certification_steps"
+                        fields={[
+                            { key: "step_number", label: "Step number", type: "number", half: true },
+                            { key: "title", label: "Title", half: true, required: true },
+                            { key: "description", label: "Description", type: "textarea" },
+                            { key: "action_label", label: "Button label (leave empty for no button)", half: true },
+                            { key: "action_is_popup", label: "Button opens the Calendly popup", type: "switch", half: true },
+                        ]}
+                        itemLabel="step"
+                        addLabel="Add a step"
+                    />
+                </ScrollReveal>
+
+                {/* ── Eligible exams ── */}
+                <ScrollReveal delay={0.05}>
+                    <ContentListSection
+                        icon={BadgeCheck}
+                        title="Eligible Exams"
+                        hint="The AWS exams covered by the 50% OFF offer."
+                        table="eligible_exams"
+                        fields={[
+                            { key: "title", label: "Exam title", required: true },
+                            { key: "exam_code", label: "Exam code (optional)", half: true },
+                        ]}
+                        itemLabel="exam"
+                        addLabel="Add an exam"
+                    />
+                </ScrollReveal>
+
+                {/* ── Recognitions ── */}
+                <ScrollReveal delay={0.05}>
+                    <ContentListSection
+                        icon={Award}
+                        title="Recognitions"
+                        hint="The instructor recognition badges on the blue band."
+                        table="recognitions"
+                        fields={[
+                            { key: "label", label: "Label", half: true, required: true },
+                            { key: "logo_url", label: "Logo URL", half: true },
+                        ]}
+                        itemLabel="recognition"
+                        addLabel="Add a recognition"
+                    />
+                </ScrollReveal>
+
+                {/* ── Trust features ── */}
+                <ScrollReveal delay={0.05}>
+                    <TrustFeaturesEditor />
                 </ScrollReveal>
             </div>
         </div>

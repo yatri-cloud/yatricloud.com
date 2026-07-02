@@ -16,16 +16,39 @@
 
 import { supabase } from "@/lib/supabase";
 import { getCachedUser } from "@/lib/auth";
+import { getFormProviders } from "@/lib/cert-catalog";
 
 // ---------------------------------------------------------------------------
 // Provider enum helpers
 // ---------------------------------------------------------------------------
 
-/** Display-cased provider labels shown in the UI. */
+/** Display-cased provider labels shown in the UI (fallback list). */
 export const PROVIDERS_DISPLAY = [
   "AWS", "Azure", "GCP", "GitHub", "Oracle", "Salesforce",
   "ServiceNow", "OpenAI", "HashiCorp", "Kubernetes", "Other",
 ];
+
+/**
+ * Display labels sourced from the certification catalog. Known providers
+ * keep the exact casing above (matched by enum value) so nothing on screen
+ * changes; providers added to the catalog later appear with their label.
+ * Always ends with "Other" and never throws.
+ */
+async function providerDisplayLabels(): Promise<string[]> {
+  try {
+    const forms = await getFormProviders();
+    const labels = forms.map((fp) => {
+      const enumValue = String(fp.enumValue || fp.slug).toUpperCase();
+      return (
+        PROVIDERS_DISPLAY.find((l) => l !== "Other" && l.toUpperCase() === enumValue) ||
+        fp.label
+      );
+    });
+    return [...labels, "Other"];
+  } catch {
+    return [...PROVIDERS_DISPLAY];
+  }
+}
 
 /** Map a free-text provider/track label to the provider_t enum value. */
 function toProviderEnum(s: string | null | undefined): string {
@@ -451,25 +474,26 @@ export interface ProviderData {
   exists?: boolean;
 }
 
-/** Provider list = enum labels, each with the exams (course titles) seen in trainings. */
+/** Provider list = catalog labels, each with the exams (course titles) seen in trainings. */
 export async function listProviders(): Promise<ProviderData[]> {
+  const labels = await providerDisplayLabels();
   const { data } = await supabase
     .from("trainings")
     .select("name, course_title, provider");
 
   const examsByProvider: Record<string, Set<string>> = {};
-  for (const label of PROVIDERS_DISPLAY) examsByProvider[label] = new Set();
+  for (const label of labels) examsByProvider[label] = new Set();
 
   for (const row of data || []) {
     // Prefer the human track label stored in `name`; fall back to enum display.
-    const label = PROVIDERS_DISPLAY.find(
+    const label = labels.find(
       (p) => toProviderEnum(p) === toProviderEnum(row.name || row.provider),
     ) || "Other";
     const exam = row.course_title || row.name;
-    if (exam) examsByProvider[label].add(exam);
+    if (exam) examsByProvider[label]?.add(exam);
   }
 
-  return PROVIDERS_DISPLAY.map((label) => ({
+  return labels.map((label) => ({
     type: "Certification",
     name: label,
     exams: Array.from(examsByProvider[label] || []),
@@ -479,7 +503,7 @@ export async function listProviders(): Promise<ProviderData[]> {
 
 /** Folder-picker helper: providers when no provider given, else that provider's exams. */
 export async function getFoldersInPath(_type: string, provider?: string): Promise<string[]> {
-  if (!provider) return [...PROVIDERS_DISPLAY];
+  if (!provider) return providerDisplayLabels();
   const providers = await listProviders();
   return providers.find((p) => p.name === provider)?.exams || [];
 }

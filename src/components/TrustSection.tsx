@@ -5,8 +5,12 @@ import ScrollReveal from "@/components/ScrollReveal";
 import {
   useSiteContent,
   getSiteStats,
+  getTrustFeatures,
   statValue,
   FALLBACK_STATS,
+  FALLBACK_TRUST_FEATURES,
+  FALLBACK_NOT_FOR_YOU,
+  type TrustFeature,
 } from "@/lib/site-content";
 
 const forYouPoints = [
@@ -15,37 +19,6 @@ const forYouPoints = [
   "You need exam dumps, study resources, and personal support",
   "You value guided exam scheduling through our team's meeting calls",
   "You want a complete certification package with full support",
-];
-
-const notForYouPoints = [
-  "You're looking for completely free vouchers (we offer 50% OFF with full support package)",
-  "You prefer handling exam scheduling yourself (we provide guided support to ensure success)",
-  "You're hesitant about joining our support group (it's essential for coordination and direct help)",
-  "You don't need additional resources (we include exam dumps, Udemy access, and study materials)",
-  "You want to go solo (we're here to support you every step of the way)",
-];
-
-const trustFeatures = [
-  {
-    title: "50% OFF Vouchers",
-    description: "Get AWS Associate exam vouchers at half price - limited time offer.",
-  },
-  {
-    title: "Complete Support Package",
-    description: "Exam dumps, study resources, guides, and personal support included.",
-  },
-  {
-    title: "Guided Exam Scheduling",
-    description: "Our team schedules your exam via personal meeting call for correct setup.",
-  },
-  {
-    title: "Personal Support",
-    description: "Direct support from our team via WhatsApp group for guidance and assistance.",
-  },
-  {
-    title: "Yatri Wall of Fame",
-    description: "Get featured on our Wall of Fame after successfully passing your AWS certification.",
-  },
 ];
 
 /* --------------------------------------------------------------------------
@@ -120,10 +93,12 @@ const MarqueeRow = ({
   reverse = false,
   slow = false,
   label,
+  features,
 }: {
   reverse?: boolean;
   slow?: boolean;
   label: string;
+  features: TrustFeature[];
 }) => (
   <div
     className="group relative flex overflow-hidden"
@@ -143,7 +118,7 @@ const MarqueeRow = ({
         } group-hover:[animation-play-state:paused] motion-reduce:animate-none`}
         style={reverse ? { animationDirection: "reverse" } : undefined}
       >
-        {trustFeatures.map((feature, i) => (
+        {features.map((feature, i) => (
           <div
             key={`${feature.title}-${i}`}
             role={copy === 0 ? "listitem" : undefined}
@@ -166,6 +141,19 @@ export const TrustSection = () => {
   /* Stat values come from Supabase (seeded identical to these fallbacks).
    * "6+ Practice Tests" stays hardcoded — no site_stats key matches "6+". */
   const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
+
+  /* Trust features + "not for you" points come from `trust_features`
+   * (seeded to match the previous hardcoded arrays). */
+  const trustFeatures = useSiteContent(
+    () => getTrustFeatures("feature"),
+    FALLBACK_TRUST_FEATURES
+  );
+  const notForYouRows = useSiteContent(
+    () => getTrustFeatures("not_for_you"),
+    FALLBACK_NOT_FOR_YOU
+  );
+  const notForYouPoints = notForYouRows.map((row) => row.title);
+
   const stats = [
     { value: statValue(siteStats, "learners", "50K+"), label: "Learners" },
     { value: "6+", label: "Practice Tests" },
@@ -286,8 +274,8 @@ export const TrustSection = () => {
             className="max-w-7xl mx-auto space-y-4"
             aria-label="What's included with the certification program"
           >
-            <MarqueeRow reverse label="Program benefits, scrolling" />
-            <MarqueeRow slow label="Program benefits, scrolling in reverse" />
+            <MarqueeRow reverse label="Program benefits, scrolling" features={trustFeatures} />
+            <MarqueeRow slow label="Program benefits, scrolling in reverse" features={trustFeatures} />
           </div>
         </ScrollReveal>
       </div>

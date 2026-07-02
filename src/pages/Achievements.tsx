@@ -29,6 +29,7 @@ import {
   Marker,
   ZoomableGroup,
 } from "react-simple-maps";
+import { FALLBACK_FORM_PROVIDERS } from "@/lib/cert-catalog";
 
 // Base URL for certification logos
 const LOGO_BASE_URL = "https://raw.githubusercontent.com/yatricloud/yatri-images/main/certification.yatricloud.com/logo/certifications";
@@ -159,7 +160,14 @@ const COUNTRY_COORDINATES: Record<string, [number, number]> = {
 };
 
 // Provider badge/card colors — unified ON-PALETTE (blue/white), single source of truth
-const _PROVIDER_KEYS = ["AWS", "AZURE", "GCP", "GOOGLE", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "KUBERNETES", "TERRAFORM", "OPENAI", "HASHICORP", "MULTIPLE"];
+// Keys come from the certification catalog slugs plus the extra aliases the
+// data uses (GOOGLE, TERRAFORM, MULTIPLE); every key maps to the same styles.
+const _PROVIDER_KEYS = [
+  ...FALLBACK_FORM_PROVIDERS.map((p) => p.slug.toUpperCase()),
+  "GOOGLE",
+  "TERRAFORM",
+  "MULTIPLE",
+];
 const PROVIDER_COLORS: Record<string, { bg: string; text: string; border: string }> = Object.fromEntries(
   _PROVIDER_KEYS.map((p) => [p, { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' }])
 );
