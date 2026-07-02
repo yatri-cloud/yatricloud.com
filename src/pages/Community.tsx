@@ -127,7 +127,7 @@ const Community = () => {
                 You're not doing this alone, Yatri
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-lg text-white/85 md:text-xl">
-                Studying alone is hard. 50,000+ Yatris are here to answer your questions and cheer you on. Find your room below, free for life.
+                Studying alone is hard. 50,000+ Yatris are here to answer your questions and cheer you on. Find your community below, free for life.
               </p>
 
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -165,7 +165,7 @@ const Community = () => {
 Find <span className="gradient-text">your people</span>
               </h2>
               <p className="mt-3 text-lg text-muted-foreground">
-                One room per track, so the chat stays real and relevant. Join as many as speak to you.
+                One community per track, so the chat stays real and relevant. Join as many as speak to you.
               </p>
             </div>
           </ScrollReveal>
@@ -183,9 +183,9 @@ Find <span className="gradient-text">your people</span>
         <div className="container mx-auto px-4 md:px-6">
           <ScrollReveal>
             <div className="mx-auto mb-10 max-w-2xl text-center">
-              <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Deeper into the Microsoft stack</h2>
+              <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">The Microsoft family</h2>
               <p className="mt-3 text-lg text-muted-foreground">
-                Inside the Microsoft Yatri world sit dedicated rooms for Azure, Student Ambassadors and MVPs.
+                Dedicated Yatri communities for Azure, Student Ambassadors and MVPs.
               </p>
             </div>
           </ScrollReveal>
