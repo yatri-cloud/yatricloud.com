@@ -52,9 +52,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { getMyMentorApplication } from "@/lib/mentorship";
 import type {
   AvailabilityRule,
   Mentor,
+  MentorApplication,
   MentorshipBooking,
   MentorshipService,
 } from "@/lib/mentorship";
@@ -100,6 +102,7 @@ const MentorDashboard = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [checking, setChecking] = useState(true);
   const [mentor, setMentor] = useState<MentorRow | null>(null);
+  const [application, setApplication] = useState<MentorApplication | null>(null);
 
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [availability, setAvailability] = useState<AvailabilityRow[]>([]);
@@ -122,6 +125,10 @@ const MentorDashboard = () => {
         .maybeSingle();
       if (error) throw error;
       setMentor((data as MentorRow) ?? null);
+      // Not a mentor yet: surface their application status on the gate.
+      if (!data) {
+        setApplication(await getMyMentorApplication());
+      }
     } catch (e) {
       console.error(e);
       setMentor(null);
@@ -208,6 +215,45 @@ const MentorDashboard = () => {
   }
 
   if (!mentor) {
+    if (application?.status === "pending") {
+      return (
+        <Shell>
+          <GateCard
+            heading="Application under review"
+            body="We have your mentor application and the team is reviewing it. We read every application personally and we will email you within a few days. Thanks for your patience, Yatri."
+          >
+            <Button asChild variant="outline">
+              <Link to="/mentorship">Browse mentorship</Link>
+            </Button>
+          </GateCard>
+        </Shell>
+      );
+    }
+
+    if (application?.status === "rejected") {
+      return (
+        <Shell>
+          <GateCard
+            heading="Your last application was not approved"
+            body={
+              application.admin_notes
+                ? `A note from our team: ${application.admin_notes}`
+                : "Your earlier mentor application did not make it through this time. You are welcome to apply again whenever you are ready."
+            }
+          >
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button asChild className="bg-brand-500 hover:bg-brand-600 text-white">
+                <Link to="/mentorship/apply">Apply again</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/mentorship">Browse mentorship</Link>
+              </Button>
+            </div>
+          </GateCard>
+        </Shell>
+      );
+    }
+
     return (
       <Shell>
         <GateCard
@@ -216,7 +262,7 @@ const MentorDashboard = () => {
         >
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button asChild className="bg-brand-500 hover:bg-brand-600 text-white">
-              <a href="mailto:info@yatricloud.com?subject=Mentor%20access%20request">Contact the team</a>
+              <Link to="/mentorship/apply">Apply to become a mentor</Link>
             </Button>
             <Button asChild variant="outline">
               <Link to="/mentorship">Browse mentorship</Link>

@@ -63,11 +63,13 @@ import AdminSiteContent from "./pages/admin/AdminSiteContent";
 import AdminCertCatalog from "./pages/admin/AdminCertCatalog";
 import RequestVoucher from "./pages/RequestVoucher";
 import MentorshipDirectory from "./pages/mentorship/MentorshipDirectory";
+import BecomeMentor from "./pages/mentorship/BecomeMentor";
 import MentorProfile from "./pages/mentorship/MentorProfile";
 import MentorServiceDetail from "./pages/mentorship/MentorServiceDetail";
 import MyMentorshipBookings from "./pages/mentorship/MyMentorshipBookings";
 import MentorDashboard from "./pages/mentor/MentorDashboard";
 import AdminMentors from "./pages/admin/AdminMentors";
+import AdminMentorApplications from "./pages/admin/AdminMentorApplications";
 import AdminMentorshipServices from "./pages/admin/AdminMentorshipServices";
 import AdminMentorshipBookings from "./pages/admin/AdminMentorshipBookings";
 import AdminMentorReviews from "./pages/admin/AdminMentorReviews";
@@ -112,8 +114,9 @@ const App = () => (
               <Route path="/creator" element={<BecomeTrainer />} />
               <Route path="/requestvoucher" element={<RequestVoucher />} />
 
-              {/* Mentorship Routes — /mentorship/bookings stays above /mentorship/:mentorSlug */}
+              {/* Mentorship Routes — /mentorship/apply and /mentorship/bookings stay above /mentorship/:mentorSlug */}
               <Route path="/mentorship" element={<MentorshipDirectory />} />
+              <Route path="/mentorship/apply" element={<BecomeMentor />} />
               <Route path="/mentorship/bookings" element={<MyMentorshipBookings />} />
               <Route path="/mentorship/:mentorSlug" element={<MentorProfile />} />
               <Route path="/mentorship/:mentorSlug/:serviceSlug" element={<MentorServiceDetail />} />
@@ -165,6 +168,7 @@ const App = () => (
                 <Route path="providers" element={<AdminProviders />} />
                 <Route path="enrollments" element={<AdminEnrollments />} />
                 <Route path="trainers" element={<AdminTrainers />} />
+                <Route path="mentorship/applications" element={<AdminMentorApplications />} />
                 <Route path="mentorship/mentors" element={<AdminMentors />} />
                 <Route path="mentorship/services" element={<AdminMentorshipServices />} />
                 <Route path="mentorship/bookings" element={<AdminMentorshipBookings />} />

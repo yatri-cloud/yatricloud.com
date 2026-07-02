@@ -643,6 +643,125 @@ export async function createMentorshipOrder(input: {
 }
 
 /* ------------------------------------------------------------------ */
+/* Mentor applications (always fresh; RLS: own rows only)              */
+/* ------------------------------------------------------------------ */
+
+export type MentorApplicationStatus = "pending" | "approved" | "rejected";
+
+export interface MentorApplication {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  headline: string;
+  bio: string;
+  expertise: string[];
+  linkedin_url: string | null;
+  photo_url: string | null;
+  experience_years: string;
+  motivation: string;
+  links: Record<string, unknown>;
+  status: MentorApplicationStatus;
+  admin_notes: string | null;
+  mentor_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapMentorApplication(row: any): MentorApplication {
+  return {
+    id: String(row.id),
+    user_id: String(row.user_id),
+    name: String(row.name ?? ""),
+    email: String(row.email ?? ""),
+    phone: row.phone ?? null,
+    headline: String(row.headline ?? ""),
+    bio: String(row.bio ?? ""),
+    expertise: asStringArray(row.expertise),
+    linkedin_url: row.linkedin_url ?? null,
+    photo_url: row.photo_url ?? null,
+    experience_years: String(row.experience_years ?? ""),
+    motivation: String(row.motivation ?? ""),
+    links:
+      row.links && typeof row.links === "object" && !Array.isArray(row.links)
+        ? (row.links as Record<string, unknown>)
+        : {},
+    status: (row.status ?? "pending") as MentorApplicationStatus,
+    admin_notes: row.admin_notes ?? null,
+    mentor_id: row.mentor_id ?? null,
+    created_at: String(row.created_at ?? ""),
+    updated_at: String(row.updated_at ?? ""),
+  };
+}
+
+/** The signed-in Yatri's latest mentor application (null when none). */
+export async function getMyMentorApplication(): Promise<MentorApplication | null> {
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return null;
+    const { data, error } = await supabase
+      .from("mentor_applications")
+      .select("*")
+      .eq("user_id", auth.user.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    return mapMentorApplication(data[0]);
+  } catch {
+    return null;
+  }
+}
+
+export interface SubmitMentorApplicationInput {
+  name: string;
+  email: string;
+  phone: string | null;
+  headline: string;
+  bio: string;
+  expertise: string[];
+  linkedin_url: string | null;
+  photo_url: string | null;
+  experience_years: string;
+  motivation: string;
+}
+
+/** Inserts a fresh mentor application for the signed-in Yatri. */
+export async function submitMentorApplication(
+  input: SubmitMentorApplicationInput
+): Promise<{ application: MentorApplication | null; error: string | null }> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    return { application: null, error: "Please sign in to apply." };
+  }
+  const { data, error } = await supabase
+    .from("mentor_applications")
+    .insert({
+      user_id: auth.user.id,
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      headline: input.headline,
+      bio: input.bio,
+      expertise: input.expertise,
+      linkedin_url: input.linkedin_url,
+      photo_url: input.photo_url,
+      experience_years: input.experience_years,
+      motivation: input.motivation,
+      links: {},
+    })
+    .select("*")
+    .single();
+  if (error || !data) {
+    return {
+      application: null,
+      error: "Your application could not be submitted. Please try again.",
+    };
+  }
+  return { application: mapMentorApplication(data), error: null };
+}
+
+/* ------------------------------------------------------------------ */
 /* Service secrets (RLS: buyers with confirmed or completed bookings)  */
 /* ------------------------------------------------------------------ */
 

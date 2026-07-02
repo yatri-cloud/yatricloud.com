@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -179,6 +180,20 @@ const MentorshipDirectory = () => {
                 right next step.
               </p>
             </div>
+          </ScrollReveal>
+        </section>
+
+        <section className="container mx-auto px-4 md:px-6 mt-10">
+          <ScrollReveal>
+            <p className="text-center text-sm text-muted-foreground">
+              Want to mentor Yatris?{" "}
+              <Link
+                to="/mentorship/apply"
+                className="font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+              >
+                Apply here
+              </Link>
+            </p>
           </ScrollReveal>
         </section>
       </main>
