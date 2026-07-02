@@ -74,6 +74,7 @@ import AdminMentorApplications from "./pages/admin/AdminMentorApplications";
 import AdminMentorshipServices from "./pages/admin/AdminMentorshipServices";
 import AdminMentorshipBookings from "./pages/admin/AdminMentorshipBookings";
 import AdminMentorReviews from "./pages/admin/AdminMentorReviews";
+import AdminMentorshipOverview from "./pages/admin/AdminMentorshipOverview";
 
 
 import TrainerCreateCourse from "@/pages/trainer/TrainerCreateCourse";
@@ -170,6 +171,7 @@ const App = () => (
                 <Route path="providers" element={<AdminProviders />} />
                 <Route path="enrollments" element={<AdminEnrollments />} />
                 <Route path="trainers" element={<AdminTrainers />} />
+                <Route path="mentorship/overview" element={<AdminMentorshipOverview />} />
                 <Route path="mentorship/applications" element={<AdminMentorApplications />} />
                 <Route path="mentorship/mentors" element={<AdminMentors />} />
                 <Route path="mentorship/services" element={<AdminMentorshipServices />} />

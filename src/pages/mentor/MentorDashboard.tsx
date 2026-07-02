@@ -62,11 +62,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { getMyMentorApplication } from "@/lib/mentorship";
+import { getMyMentorApplication, getMentorEarnings } from "@/lib/mentorship";
 import type {
   AvailabilityRule,
   Mentor,
   MentorApplication,
+  MentorEarnings,
   MentorshipBooking,
   MentorshipService,
 } from "@/lib/mentorship";
@@ -117,6 +118,7 @@ const MentorDashboard = () => {
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [availability, setAvailability] = useState<AvailabilityRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [earnings, setEarnings] = useState<MentorEarnings | null>(null);
   const [loadingData, setLoadingData] = useState(false);
 
   const loadMentor = useCallback(async () => {
@@ -173,6 +175,7 @@ const MentorDashboard = () => {
       setServices((svc.data as ServiceRow[]) ?? []);
       setAvailability((avail.data as AvailabilityRow[]) ?? []);
       setBookings((book.data as BookingRow[]) ?? []);
+      setEarnings(await getMentorEarnings(mentorId));
     } catch (e) {
       console.error(e);
       toast.error("Could not load your mentor data. Please refresh.");
@@ -300,11 +303,12 @@ const MentorDashboard = () => {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full max-w-xl grid-cols-4">
+          <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="availability">Availability</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="earnings">Earnings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="mt-6">
@@ -337,6 +341,10 @@ const MentorDashboard = () => {
               loading={loadingData}
               onChanged={() => loadData(mentor.id)}
             />
+          </TabsContent>
+
+          <TabsContent value="earnings" className="mt-6">
+            <EarningsTab earnings={earnings} loading={loadingData} />
           </TabsContent>
         </Tabs>
       </div>
@@ -1687,6 +1695,167 @@ const BookingsCard = ({
         )}
       </CardContent>
     </Card>
+  );
+};
+
+/* ---------- Earnings tab ---------- */
+
+const EarningStat = ({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+}) => (
+  <div className="rounded-xl border border-border bg-background px-5 py-4">
+    <p className="text-sm text-muted-foreground">{label}</p>
+    <p className="mt-1 text-2xl font-bold tracking-tight">{value}</p>
+    {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+  </div>
+);
+
+const EarningsTab = ({
+  earnings,
+  loading,
+}: {
+  earnings: MentorEarnings | null;
+  loading: boolean;
+}) => {
+  if (loading && !earnings) {
+    return (
+      <Card className="border border-border shadow-sm">
+        <LoadingRows />
+      </Card>
+    );
+  }
+
+  const e = earnings;
+  const maxMonth = e ? Math.max(1, ...e.revenueByMonth.map((m) => m.revenue)) : 1;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <Card className="border border-border shadow-sm">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg">Your earnings</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            A live look at the money your sessions have brought in on Yatri Cloud.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <EarningStat
+              label="Gross revenue"
+              value={formatINR(e?.grossRevenue ?? 0)}
+              hint="Confirmed and completed bookings"
+            />
+            <EarningStat
+              label="Your payout"
+              value={formatINR(e?.payout ?? 0)}
+              hint="Payouts settle to your linked account once the platform enables Route."
+            />
+            <EarningStat
+              label="Sessions completed"
+              value={String(e?.completed ?? 0)}
+            />
+            <EarningStat label="Upcoming" value={String(e?.upcoming ?? 0)} />
+            <EarningStat
+              label="Average rating"
+              value={
+                e && e.reviewCount > 0 ? `${e.avgRating.toFixed(1)} / 5` : "No ratings yet"
+              }
+              hint={
+                e && e.reviewCount > 0
+                  ? `${e.reviewCount} review${e.reviewCount === 1 ? "" : "s"}`
+                  : undefined
+              }
+            />
+            <EarningStat
+              label="Total bookings"
+              value={String(e?.totalBookings ?? 0)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border border-border shadow-sm">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg">Revenue by month</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Gross revenue from your paid bookings over the last six months.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-3">
+            {(e?.revenueByMonth ?? []).map((m) => (
+              <div key={m.key} className="flex items-center gap-4">
+                <span className="w-20 shrink-0 text-sm text-muted-foreground">{m.label}</span>
+                <div className="h-2.5 flex-1 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-brand-500"
+                    style={{ width: `${Math.round((m.revenue / maxMonth) * 100)}%` }}
+                  />
+                </div>
+                <span className="w-24 shrink-0 text-right text-sm font-medium">
+                  {formatINR(m.revenue)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border border-border shadow-sm">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg">Recent paid bookings</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Your latest confirmed and completed sessions, with your share of each.
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">
+          {!e || e.recentPaid.length === 0 ? (
+            <EmptyState text="No paid bookings yet. Share your public profile to get booked." />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead>Booked</TableHead>
+                  <TableHead>Slot</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Your payout</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {e.recentPaid.map((b) => (
+                  <TableRow key={b.id}>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {formatSlot(b.created_at)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {formatSlot(b.slot_start)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${bookingBadgeClass[b.status]} capitalize whitespace-nowrap`}>
+                        {b.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">{formatINR(b.amount)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatINR(b.payout)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <p className="text-sm text-muted-foreground">
+        Payouts settle to your linked account once the platform enables Route. Until then these
+        figures show the full booking value as your payout.
+      </p>
+    </div>
   );
 };
 

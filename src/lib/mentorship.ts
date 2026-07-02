@@ -1021,3 +1021,289 @@ export function buildBookingConfirmationEmail(input: {
 </html>
 `;
 }
+
+/* ------------------------------------------------------------------ */
+/* Analytics (read only; session cached; never throw)                  */
+/*                                                                     */
+/* Earnings and platform numbers are derived on the client from the    */
+/* booking rows RLS already lets the caller read: a mentor sees only    */
+/* their own rows, an admin sees everything. Gross revenue counts       */
+/* confirmed and completed bookings (money that actually cleared).      */
+/* Payout falls back to the full amount when mentor_payout is null,     */
+/* since Razorpay Route may not be enabled yet.                         */
+/* ------------------------------------------------------------------ */
+
+/** Statuses that represent money that cleared. */
+const PAID_STATUSES: BookingStatus[] = ["confirmed", "completed"];
+
+const zeroByStatus = (): Record<BookingStatus, number> => ({
+  pending: 0,
+  confirmed: 0,
+  completed: 0,
+  cancelled: 0,
+  refunded: 0,
+});
+
+/** mentor_payout when present, otherwise the full amount (Route off). */
+function payoutOf(row: { amount?: unknown; mentor_payout?: unknown }): number {
+  const payout = row.mentor_payout;
+  if (payout !== null && payout !== undefined) return Number(payout) || 0;
+  return Number(row.amount ?? 0) || 0;
+}
+
+interface MonthBucket {
+  key: string;
+  label: string;
+}
+
+/** The last six calendar months, oldest first, as YYYY-MM keys + labels. */
+function lastSixMonths(): MonthBucket[] {
+  const out: MonthBucket[] = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleString("en-IN", { month: "short", year: "numeric" });
+    out.push({ key, label });
+  }
+  return out;
+}
+
+/** YYYY-MM bucket key for an ISO timestamp (empty string when unparseable). */
+function monthKey(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export interface MonthlyRevenue {
+  key: string;
+  label: string;
+  revenue: number;
+}
+
+export interface RecentPaidBooking {
+  id: string;
+  amount: number;
+  payout: number;
+  status: BookingStatus;
+  slot_start: string | null;
+  created_at: string;
+}
+
+export interface MentorEarnings {
+  bookingsByStatus: Record<BookingStatus, number>;
+  totalBookings: number;
+  grossRevenue: number;
+  payout: number;
+  platformFees: number;
+  completed: number;
+  upcoming: number;
+  avgRating: number;
+  reviewCount: number;
+  revenueByMonth: MonthlyRevenue[];
+  recentPaid: RecentPaidBooking[];
+}
+
+const emptyMentorEarnings = (): MentorEarnings => ({
+  bookingsByStatus: zeroByStatus(),
+  totalBookings: 0,
+  grossRevenue: 0,
+  payout: 0,
+  platformFees: 0,
+  completed: 0,
+  upcoming: 0,
+  avgRating: 0,
+  reviewCount: 0,
+  revenueByMonth: lastSixMonths().map((m) => ({ ...m, revenue: 0 })),
+  recentPaid: [],
+});
+
+const mentorEarningsPromises: Record<string, Promise<MentorEarnings>> = {};
+
+/** Earnings summary for one mentor. RLS scopes rows to the mentor's own. */
+export function getMentorEarnings(mentorId: string): Promise<MentorEarnings> {
+  if (!mentorEarningsPromises[mentorId]) {
+    mentorEarningsPromises[mentorId] = (async () => {
+      try {
+        const [bookingsRes, mentorRes] = await Promise.all([
+          supabase
+            .from("mentorship_bookings")
+            .select("id, amount, status, platform_fee, mentor_payout, slot_start, created_at")
+            .eq("mentor_id", mentorId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("mentors")
+            .select("avg_rating, review_count")
+            .eq("id", mentorId)
+            .maybeSingle(),
+        ]);
+
+        const rows = bookingsRes.error || !bookingsRes.data ? [] : bookingsRes.data;
+
+        const result = emptyMentorEarnings();
+        const bookingsByStatus = zeroByStatus();
+        const months = lastSixMonths();
+        const revenueByMonth = new Map<string, number>(months.map((m) => [m.key, 0]));
+        const now = Date.now();
+        const recent: RecentPaidBooking[] = [];
+
+        for (const row of rows as any[]) {
+          const status = (row.status ?? "pending") as BookingStatus;
+          bookingsByStatus[status] = (bookingsByStatus[status] ?? 0) + 1;
+          const amount = Number(row.amount ?? 0) || 0;
+          const paid = PAID_STATUSES.includes(status);
+
+          if (paid) {
+            result.grossRevenue += amount;
+            result.payout += payoutOf(row);
+            result.platformFees += Number(row.platform_fee ?? 0) || 0;
+            const key = monthKey(row.created_at);
+            if (revenueByMonth.has(key)) {
+              revenueByMonth.set(key, (revenueByMonth.get(key) ?? 0) + amount);
+            }
+            if (recent.length < 8) {
+              recent.push({
+                id: String(row.id),
+                amount,
+                payout: payoutOf(row),
+                status,
+                slot_start: row.slot_start ?? null,
+                created_at: String(row.created_at ?? ""),
+              });
+            }
+          }
+
+          if (status === "completed") result.completed += 1;
+          if (
+            (status === "pending" || status === "confirmed") &&
+            (row.slot_start == null || new Date(row.slot_start).getTime() >= now)
+          ) {
+            result.upcoming += 1;
+          }
+        }
+
+        result.bookingsByStatus = bookingsByStatus;
+        result.totalBookings = rows.length;
+        result.revenueByMonth = months.map((m) => ({
+          ...m,
+          revenue: revenueByMonth.get(m.key) ?? 0,
+        }));
+        result.recentPaid = recent;
+        if (mentorRes.data) {
+          result.avgRating = Number((mentorRes.data as any).avg_rating ?? 0) || 0;
+          result.reviewCount = Number((mentorRes.data as any).review_count ?? 0) || 0;
+        }
+        return result;
+      } catch {
+        return emptyMentorEarnings();
+      }
+    })();
+  }
+  return mentorEarningsPromises[mentorId];
+}
+
+export interface TopMentor {
+  mentorId: string;
+  name: string;
+  bookings: number;
+  revenue: number;
+  rating: number;
+}
+
+export interface MentorshipPlatformStats {
+  totalBookings: number;
+  grossRevenue: number;
+  platformFees: number;
+  activeMentors: number;
+  topMentors: TopMentor[];
+  revenueByMonth: MonthlyRevenue[];
+}
+
+const emptyPlatformStats = (): MentorshipPlatformStats => ({
+  totalBookings: 0,
+  grossRevenue: 0,
+  platformFees: 0,
+  activeMentors: 0,
+  topMentors: [],
+  revenueByMonth: lastSixMonths().map((m) => ({ ...m, revenue: 0 })),
+});
+
+let platformStatsPromise: Promise<MentorshipPlatformStats> | null = null;
+
+/** Platform wide mentorship analytics for admins (RLS: admin reads all). */
+export function getMentorshipPlatformStats(): Promise<MentorshipPlatformStats> {
+  if (!platformStatsPromise) {
+    platformStatsPromise = (async () => {
+      try {
+        const [bookingsRes, mentorsRes] = await Promise.all([
+          supabase
+            .from("mentorship_bookings")
+            .select("mentor_id, amount, status, platform_fee, created_at"),
+          supabase.from("mentors").select("id, name, avg_rating, status"),
+        ]);
+
+        const rows = bookingsRes.error || !bookingsRes.data ? [] : bookingsRes.data;
+        const mentors = mentorsRes.error || !mentorsRes.data ? [] : mentorsRes.data;
+
+        const nameOf = new Map<string, string>();
+        const ratingOf = new Map<string, number>();
+        let activeMentors = 0;
+        for (const m of mentors as any[]) {
+          nameOf.set(String(m.id), String(m.name ?? "Mentor"));
+          ratingOf.set(String(m.id), Number(m.avg_rating ?? 0) || 0);
+          if ((m.status ?? "") === "published") activeMentors += 1;
+        }
+
+        const result = emptyPlatformStats();
+        result.activeMentors = activeMentors;
+        result.totalBookings = rows.length;
+
+        const months = lastSixMonths();
+        const revenueByMonth = new Map<string, number>(months.map((m) => [m.key, 0]));
+        const perMentor = new Map<string, { bookings: number; revenue: number }>();
+
+        for (const row of rows as any[]) {
+          const status = (row.status ?? "pending") as BookingStatus;
+          const amount = Number(row.amount ?? 0) || 0;
+          const mentorId = String(row.mentor_id ?? "");
+          const bucket = perMentor.get(mentorId) ?? { bookings: 0, revenue: 0 };
+          bucket.bookings += 1;
+
+          if (PAID_STATUSES.includes(status)) {
+            result.grossRevenue += amount;
+            result.platformFees += Number(row.platform_fee ?? 0) || 0;
+            bucket.revenue += amount;
+            const key = monthKey(row.created_at);
+            if (revenueByMonth.has(key)) {
+              revenueByMonth.set(key, (revenueByMonth.get(key) ?? 0) + amount);
+            }
+          }
+          perMentor.set(mentorId, bucket);
+        }
+
+        result.revenueByMonth = months.map((m) => ({
+          ...m,
+          revenue: revenueByMonth.get(m.key) ?? 0,
+        }));
+
+        result.topMentors = Array.from(perMentor.entries())
+          .map(([mentorId, agg]) => ({
+            mentorId,
+            name: nameOf.get(mentorId) ?? "Mentor",
+            bookings: agg.bookings,
+            revenue: agg.revenue,
+            rating: ratingOf.get(mentorId) ?? 0,
+          }))
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 8);
+
+        return result;
+      } catch {
+        return emptyPlatformStats();
+      }
+    })();
+  }
+  return platformStatsPromise;
+}

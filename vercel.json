@@ -4,6 +4,9 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
+  "crons": [
+    { "path": "/api/cron/mentorship-reminders", "schedule": "0 * * * *" }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

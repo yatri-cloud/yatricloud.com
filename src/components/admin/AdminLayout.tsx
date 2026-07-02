@@ -61,6 +61,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
             label: "Mentorship",
             icon: Handshake,
             items: [
+                { name: "Overview", path: "/admin/mentorship/overview", icon: LayoutDashboard },
                 { name: "Applications", path: "/admin/mentorship/applications", icon: Inbox },
                 { name: "Mentors", path: "/admin/mentorship/mentors", icon: Users },
                 { name: "Services", path: "/admin/mentorship/services", icon: ClipboardList },
