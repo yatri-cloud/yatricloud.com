@@ -47,7 +47,6 @@ export const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { href: "#certification-process", label: "Get Certified" },
     { href: "#courses", label: "Practice Tests" },
     { href: "/training", label: "Training" },
     { href: "/examdumps", label: "Exam Dumps" },
