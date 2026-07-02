@@ -127,7 +127,7 @@ const Community = () => {
                 You're not doing this alone, Yatri
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-lg text-white/85 md:text-xl">
-                Behind every certification is a person who had the same questions, doubts, and late nights you do. 50,000+ Yatris are already in the rooms below, ready to answer, cheer you on, and share what actually worked. Find the one that feels like yours. It's free, for life.
+                Studying alone is hard. 50,000+ Yatris are here to answer your questions and cheer you on. Find your room below, free for life.
               </p>
 
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
