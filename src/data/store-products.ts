@@ -13,9 +13,4 @@ export interface Product {
   level: "Associate" | "Practitioner" | "Professional" | "Specialty";
 }
 
-export const products: Product[] = [];
-
-
 export const categories: ProductCategory[] = ["AWS", "Azure", "GCP", "Oracle", "Salesforce", "ServiceNow", "GitHub"];
-
-

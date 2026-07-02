@@ -22,6 +22,7 @@ export const Footer = () => {
   const settings = useSiteContent(getSiteSettings, FALLBACK_SETTINGS);
   const social = settings.social || FALLBACK_SETTINGS.social;
   const brandTagline = settings.brand?.tagline || FALLBACK_SETTINGS.brand.tagline;
+  const designedBy = settings.brand?.designed_by || FALLBACK_SETTINGS.brand.designed_by;
 
   const handleSubscribe = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -229,7 +230,7 @@ export const Footer = () => {
           <p className="text-muted-foreground">
             Designed by{" "}
             <a href="https://uimitra.com" target="_blank" rel="noopener noreferrer" className="text-foreground/80 transition-colors hover:text-primary">
-              Uimitra
+              {designedBy}
             </a>
           </p>
         </div>

@@ -217,7 +217,8 @@ export const HeroSection = () => {
             {renderWords(HEADLINE_LINE_TWO, true)}
           </motion.h1>
 
-          {/* Subheadline */}
+          {/* Subheadline — stays hardcoded: no `site_content` table exists in
+           * site-content.ts and no site_settings key matches this copy. */}
           <ScrollReveal delay={0.35}>
             <p className="mb-9 max-w-2xl text-lg text-muted-foreground md:text-xl">
               Get AWS certified at 50% OFF. Book your time slot and we'll schedule
