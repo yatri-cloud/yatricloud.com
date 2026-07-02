@@ -149,7 +149,7 @@ export async function signOut(): Promise<void> {
 
 export async function sendPasswordReset(email: string): Promise<{ error: string | null }> {
   const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-    redirectTo: `${window.location.origin}/edit-profile`,
+    redirectTo: `${window.location.origin}/reset-password`,
   });
   return { error: error ? friendly(error.message) : null };
 }

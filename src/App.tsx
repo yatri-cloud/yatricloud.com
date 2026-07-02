@@ -24,6 +24,7 @@ import AddProduct from "./pages/AddProduct";
 import ManageCertifications from "./pages/ManageCertifications";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminEvents from "./pages/admin/AdminEvents";
 import UdemyAdmin from "./pages/admin/UdemyAdmin";
@@ -153,6 +154,7 @@ const App = () => (
                 <Route path="sitemap" element={<GuideView type="admin-access" />} />
               </Route>
 
+              <Route path="/reset-password" element={<ResetPassword />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

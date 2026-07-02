@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { LogIn, UserPlus, X, Upload } from "lucide-react";
 import { loginUser, registerUser, googleLogin } from "@/lib/yatris-api";
+import { sendPasswordReset } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   // Register form state
   const [registerData, setRegisterData] = useState({
@@ -127,6 +129,26 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleForgotPassword = async () => {
+    const email = loginEmail.trim();
+    if (!email || !email.includes("@")) {
+      setError("Enter your email above first, then tap “Forgot password”.");
+      return;
+    }
+    setResetting(true);
+    setError(null);
+    const { error: resetError } = await sendPasswordReset(email);
+    setResetting(false);
+    if (resetError) {
+      setError(resetError);
+      return;
+    }
+    toast({
+      title: "Reset link sent 📧",
+      description: `Check ${email} for a link to set a new password. (Also check spam.)`,
+    });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -381,7 +403,17 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
               </div>
 
               <div>
-                <Label htmlFor="login-password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="login-password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={resetting}
+                    className="text-xs font-medium text-primary hover:underline disabled:opacity-60"
+                  >
+                    {resetting ? "Sending…" : "Forgot password?"}
+                  </button>
+                </div>
                 <Input
                   id="login-password"
                   type="password"
@@ -399,6 +431,10 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
               >
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
+
+              <p className="text-center text-xs text-muted-foreground">
+                Had an account before our upgrade? Use <span className="font-medium text-foreground">Forgot password</span> to set a new one, or sign in with Google.
+              </p>
             </form>
           ) : (
             /* Register Form */
