@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, User, Settings, LogOut, Calendar, BookOpen, Info, List } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAuthenticated, getStoredUser, logout } from "@/lib/yatris-api";
+import { useSiteContent, getNavLinks, FALLBACK_NAV_LINKS } from "@/lib/site-content";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,15 +47,9 @@ export const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { href: "/training", label: "Training" },
-    { href: "#courses", label: "Practice Tests" },
-    { href: "/examdumps", label: "Exam Dumps" },
-    { href: "/events", label: "Events" },
-    { href: "/community", label: "Community" },
-    { href: "/achievements", label: "Achievements" },
-    { href: "/partners", label: "Partners" },
-  ];
+  /* Nav links come from Supabase `nav_links` (seeded identical to the
+   * fallback, so nothing visibly changes). */
+  const navLinks = useSiteContent(() => getNavLinks("navbar"), FALLBACK_NAV_LINKS.navbar);
 
   return (
     <>

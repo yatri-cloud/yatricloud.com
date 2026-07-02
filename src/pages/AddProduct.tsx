@@ -18,6 +18,7 @@ import { submitProduct } from "@/lib/store-products";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import AddProductLoginForm from "@/components/store/AddProductLoginForm";
+import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
 
 const productSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -38,6 +39,17 @@ const AddProduct = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
+
+  /* Select options come from Supabase `option_lists` (seeded identical
+   * to the fallbacks, so nothing visibly changes). */
+  const storeCategories = useSiteContent(
+    () => getOptionList("store_category"),
+    FALLBACK_OPTION_LISTS.store_category
+  );
+  const productLevels = useSiteContent(
+    () => getOptionList("product_level"),
+    FALLBACK_OPTION_LISTS.product_level
+  );
 
   const {
     register,
@@ -176,13 +188,11 @@ const AddProduct = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="AWS">AWS</SelectItem>
-                        <SelectItem value="Azure">Azure</SelectItem>
-                        <SelectItem value="GCP">GCP</SelectItem>
-                        <SelectItem value="Oracle">Oracle</SelectItem>
-                        <SelectItem value="Salesforce">Salesforce</SelectItem>
-                        <SelectItem value="ServiceNow">ServiceNow</SelectItem>
-                        <SelectItem value="GitHub">GitHub</SelectItem>
+                        {storeCategories.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     {errors.category && (
@@ -200,10 +210,11 @@ const AddProduct = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Associate">Associate</SelectItem>
-                        <SelectItem value="Practitioner">Practitioner</SelectItem>
-                        <SelectItem value="Professional">Professional</SelectItem>
-                        <SelectItem value="Specialty">Specialty</SelectItem>
+                        {productLevels.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     {errors.level && (

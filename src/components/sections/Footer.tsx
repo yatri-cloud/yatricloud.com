@@ -3,7 +3,13 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Youtube, Linkedin, MessageCircle, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { useSiteContent, getSiteSettings, FALLBACK_SETTINGS } from "@/lib/site-content";
+import {
+  useSiteContent,
+  getSiteSettings,
+  getNavLinks,
+  FALLBACK_SETTINGS,
+  FALLBACK_NAV_LINKS,
+} from "@/lib/site-content";
 
 export const Footer = () => {
   const currentYear = 2026;
@@ -33,29 +39,20 @@ export const Footer = () => {
     form.reset();
   };
 
-  const exploreLinks = [
-    { href: "/examdumps", label: "Exam Dumps" },
-    { href: "/training", label: "Training" },
-    { href: "/events", label: "Events" },
-    { href: "/yatristore", label: "Yatri Store" },
-    { href: "/udemy", label: "Udemy Courses" },
-    { href: "/certifiedyatris", label: "Certified Yatris" },
-  ];
-
-  const quickLinks = [
-    { href: "#certification-process", label: "Get Certified" },
-    { href: "#benefits", label: "Benefits" },
-    { href: "#courses", label: "Practice Tests" },
-    { href: "#team", label: "Team" },
-    { href: "#faq", label: "FAQ" },
-    { href: "/achievements", label: "Achievements" },
-  ];
-
-  const legalLinks = [
-    { href: "/privacy-policy", label: "Privacy Policy" },
-    { href: "/terms-of-service", label: "Terms of Service" },
-    { href: "/reviews", label: "Reviews" },
-  ];
+  /* Footer link columns come from Supabase `nav_links` (seeded identical
+   * to the fallbacks, so nothing visibly changes). */
+  const exploreLinks = useSiteContent(
+    () => getNavLinks("footer_explore"),
+    FALLBACK_NAV_LINKS.footer_explore
+  );
+  const quickLinks = useSiteContent(
+    () => getNavLinks("footer_quick"),
+    FALLBACK_NAV_LINKS.footer_quick
+  );
+  const legalLinks = useSiteContent(
+    () => getNavLinks("footer_legal"),
+    FALLBACK_NAV_LINKS.footer_legal
+  );
 
   const socialLinks = [
     { name: "YouTube", href: social.youtube || FALLBACK_SETTINGS.social.youtube, icon: <Youtube className="w-5 h-5" /> },

@@ -8,6 +8,7 @@ import { Footer } from "@/components/sections/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
 import { getAllEvents, Event } from "@/lib/events-store";
+import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
 
 const Events = () => {
     const reduceMotion = useReducedMotion();
@@ -107,7 +108,13 @@ const Events = () => {
         .filter(event => event.status === 'past' || new Date(event.date) <= new Date())
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
 
-    const categories = ["All", "Concert", "Conference", "Hackathon", "Marathon", "Workshop"];
+    /* Categories come from Supabase `option_lists` (seeded identical to the
+     * fallback, so nothing visibly changes). "All" is prepended locally. */
+    const eventCategories = useSiteContent(
+        () => getOptionList("event_category"),
+        FALLBACK_OPTION_LISTS.event_category
+    );
+    const categories = ["All", ...eventCategories.map((option) => option.value)];
 
     const formatEventDate = (dateString: string, timezone: string) => {
         const date = new Date(dateString);

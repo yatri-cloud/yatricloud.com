@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { getEventBySlug, Event } from "@/lib/events-store";
 import { submitSponsor } from "@/lib/event-submissions-api";
+import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
 
 export default function SponsorSubmissionForm() {
     const { slug } = useParams<{ slug: string }>();
@@ -28,7 +29,13 @@ export default function SponsorSubmissionForm() {
         additionalNotes: ""
     });
 
-    const sponsorshipOptions = ["Venue", "Food & Beverages", "Swag/Merchandise", "Travel Support", "Prize Money", "General Support"];
+    /* Sponsorship areas come from Supabase `option_lists` (seeded identical
+     * to the fallback, so nothing visibly changes). */
+    const sponsorshipAreaOptions = useSiteContent(
+        () => getOptionList("sponsorship_area"),
+        FALLBACK_OPTION_LISTS.sponsorship_area
+    );
+    const sponsorshipOptions = sponsorshipAreaOptions.map((option) => option.value);
 
     useEffect(() => {
         if (slug) {

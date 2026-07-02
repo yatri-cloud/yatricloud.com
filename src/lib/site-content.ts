@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
  * Site content loader — reads homepage/site copy from Supabase
  * (`site_settings`, `site_stats`, `promotions`, `faqs`, `team_members`,
  * `package_benefits`, `certification_steps`, `eligible_exams`,
- * `recognitions`, `trust_features`) with hardcoded fallbacks that match
+ * `recognitions`, `trust_features`, `communities`, `nav_links`,
+ * `option_lists`) with hardcoded fallbacks that match
  * the live values exactly. If Supabase is slow,
  * errors, or returns nothing, the site keeps rendering the fallback so
  * visitors never see a blank section. Fetches once per session; every
@@ -72,6 +73,26 @@ export type TrustFeature = {
 };
 
 export type TrustFeatureKind = "feature" | "not_for_you";
+
+export type CommunityGroup = "channel" | "main" | "ms_subs";
+
+export type CommunityEntry = {
+  name: string;
+  url: string;
+  tagline: string;
+  logo: string | null;
+  grp: CommunityGroup;
+};
+
+export type NavLinkLocation =
+  | "navbar"
+  | "footer_explore"
+  | "footer_quick"
+  | "footer_legal";
+
+export type NavLink = { href: string; label: string };
+
+export type OptionItem = { value: string; label: string };
 
 /* ------------------------------------------------------------------ */
 /* Fallbacks — must always equal today's live values                   */
@@ -301,6 +322,127 @@ export const FALLBACK_NOT_FOR_YOU: TrustFeature[] = [
   },
 ];
 
+/* Communities — copied verbatim from src/pages/Community.tsx.
+ * Icon-only entries keep their Lucide icons in the consumer, which
+ * merges them back by name, so `logo` is null for those rows here. */
+export const FALLBACK_COMMUNITIES: CommunityEntry[] = [
+  { name: "Yatri Community", url: "https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s", tagline: "", logo: null, grp: "channel" },
+  { name: "AWS Yatri", url: "https://chat.whatsapp.com/Luh1daKLk4tCfgohAdkayp", tagline: "The world's #1 cloud", logo: "/logos/aws.svg", grp: "main" },
+  { name: "Microsoft Yatri", url: "https://chat.whatsapp.com/CzcpDRiV2vR87vGwY7dPAp", tagline: "Azure, MVP & the Microsoft stack", logo: "/logos/microsoft.svg", grp: "main" },
+  { name: "GCP Yatri", url: "https://chat.whatsapp.com/JgUS13YbcYCL82PfpLQnBv", tagline: "Google Cloud & data", logo: "/logos/googlecloud.svg", grp: "main" },
+  { name: "GitHub Yatri", url: "https://chat.whatsapp.com/DbuYINmHGKF3qkQLYU5Ugx", tagline: "Open source, PRs & version control", logo: "/logos/github.svg", grp: "main" },
+  { name: "Kubernetes Yatri", url: "https://chat.whatsapp.com/LC5LN2YTqjV24X0eiSMNwe", tagline: "Containers & cloud-native", logo: "/logos/kubernetes.svg", grp: "main" },
+  { name: "DevOps Yatri", url: "https://chat.whatsapp.com/JYjH73L6Tof7JDmYQSUYqW", tagline: "CI/CD, automation & SRE", logo: null, grp: "main" },
+  { name: "AI Yatri", url: "https://chat.whatsapp.com/FPgpa7E8WQyA75ITKzXxI0", tagline: "LLMs, ML & the future of AI", logo: null, grp: "main" },
+  { name: "Salesforce Yatri", url: "https://chat.whatsapp.com/KGjtJpcqgPRJFB6ImU2Awc", tagline: "CRM & the Salesforce ecosystem", logo: "/logos/salesforce.svg", grp: "main" },
+  { name: "Oracle Yatri", url: "https://chat.whatsapp.com/JETPhF7ZE3LDQQeeigLLge", tagline: "Databases & enterprise cloud", logo: "/logos/oracle.svg", grp: "main" },
+  { name: "TiDB Yatri", url: "https://chat.whatsapp.com/GNFWRA2yxSVCafGXgpXQO6", tagline: "Distributed SQL & databases", logo: null, grp: "main" },
+  { name: "Google Cloud Arcade Yatri", url: "https://chat.whatsapp.com/Lkm5LMvsTrACLn6FIijist", tagline: "Earn badges & swag with GCP Arcade", logo: null, grp: "main" },
+  { name: "Women Yatri", url: "https://chat.whatsapp.com/If2yiVZNzivHdf7nv5lHiU", tagline: "Women in cloud & tech", logo: null, grp: "main" },
+  { name: "Blog Yatri", url: "https://chat.whatsapp.com/LJWGl6juKNgK7kO7jjgwp1", tagline: "Write, learn & get published", logo: null, grp: "main" },
+  { name: "Yatri LinkedIn", url: "https://chat.whatsapp.com/ImroH8OP1GKBzB2dACmqmf", tagline: "Network, grow & get noticed", logo: null, grp: "main" },
+  { name: "Azure Yatri", url: "https://chat.whatsapp.com/JUl0ysEOLZGKVSHnsuIoJb", tagline: "Microsoft's cloud platform", logo: "/logos/azure.svg", grp: "ms_subs" },
+  { name: "MLSA Yatri", url: "https://chat.whatsapp.com/CRPn0N5V2lbDsexLrXY0l4", tagline: "Microsoft Learn Student Ambassadors", logo: "/logos/microsoft.svg", grp: "ms_subs" },
+  { name: "MVP Yatri", url: "https://chat.whatsapp.com/GIqTRS29D8iIQodRNNXblr", tagline: "Most Valuable Professionals", logo: "/logos/microsoft.svg", grp: "ms_subs" },
+];
+
+/* Nav links — copied verbatim from Navbar.tsx and Footer.tsx. */
+export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
+  navbar: [
+    { href: "/training", label: "Training" },
+    { href: "#courses", label: "Practice Tests" },
+    { href: "/examdumps", label: "Exam Dumps" },
+    { href: "/events", label: "Events" },
+    { href: "/community", label: "Community" },
+    { href: "/achievements", label: "Achievements" },
+    { href: "/partners", label: "Partners" },
+  ],
+  footer_explore: [
+    { href: "/examdumps", label: "Exam Dumps" },
+    { href: "/training", label: "Training" },
+    { href: "/events", label: "Events" },
+    { href: "/yatristore", label: "Yatri Store" },
+    { href: "/udemy", label: "Udemy Courses" },
+    { href: "/certifiedyatris", label: "Certified Yatris" },
+  ],
+  footer_quick: [
+    { href: "#certification-process", label: "Get Certified" },
+    { href: "#benefits", label: "Benefits" },
+    { href: "#courses", label: "Practice Tests" },
+    { href: "#team", label: "Team" },
+    { href: "#faq", label: "FAQ" },
+    { href: "/achievements", label: "Achievements" },
+  ],
+  footer_legal: [
+    { href: "/privacy-policy", label: "Privacy Policy" },
+    { href: "/terms-of-service", label: "Terms of Service" },
+    { href: "/reviews", label: "Reviews" },
+  ],
+};
+
+/* Option lists — copied verbatim from their consumer pages. */
+export const FALLBACK_OPTION_LISTS: Record<string, OptionItem[]> = {
+  udemy_creator: [
+    { value: "yatharth-chauhan", label: "Yatharth Chauhan" },
+    { value: "nensi-ravaliya", label: "Nensi Ravaliya" },
+  ],
+  course_tech: [
+    { value: "AWS", label: "AWS" },
+    { value: "Azure", label: "Azure" },
+    { value: "Google Cloud", label: "Google Cloud" },
+    { value: "GitHub", label: "GitHub" },
+    { value: "Oracle", label: "Oracle" },
+    { value: "Salesforce", label: "Salesforce" },
+    { value: "ServiceNow", label: "ServiceNow" },
+  ],
+  course_category: [
+    { value: "cloud", label: "Cloud" },
+    { value: "devops", label: "DevOps" },
+    { value: "ai", label: "AI" },
+    { value: "data", label: "Data" },
+    { value: "security", label: "Security" },
+    { value: "networking", label: "Networking" },
+    { value: "other", label: "Other" },
+  ],
+  store_category: [
+    { value: "AWS", label: "AWS" },
+    { value: "Azure", label: "Azure" },
+    { value: "GCP", label: "GCP" },
+    { value: "Oracle", label: "Oracle" },
+    { value: "Salesforce", label: "Salesforce" },
+    { value: "ServiceNow", label: "ServiceNow" },
+    { value: "GitHub", label: "GitHub" },
+  ],
+  product_level: [
+    { value: "Associate", label: "Associate" },
+    { value: "Practitioner", label: "Practitioner" },
+    { value: "Professional", label: "Professional" },
+    { value: "Specialty", label: "Specialty" },
+  ],
+  event_category: [
+    { value: "Concert", label: "Concert" },
+    { value: "Conference", label: "Conference" },
+    { value: "Hackathon", label: "Hackathon" },
+    { value: "Marathon", label: "Marathon" },
+    { value: "Workshop", label: "Workshop" },
+  ],
+  sponsor_tier: [
+    { value: "Platinum", label: "Platinum" },
+    { value: "Gold", label: "Gold" },
+    { value: "Silver", label: "Silver" },
+    { value: "Bronze", label: "Bronze" },
+    { value: "Partner", label: "Partner" },
+  ],
+  sponsorship_area: [
+    { value: "Venue", label: "Venue" },
+    { value: "Food & Beverages", label: "Food & Beverages" },
+    { value: "Swag/Merchandise", label: "Swag/Merchandise" },
+    { value: "Travel Support", label: "Travel Support" },
+    { value: "Prize Money", label: "Prize Money" },
+    { value: "General Support", label: "General Support" },
+  ],
+};
+
 /* ------------------------------------------------------------------ */
 /* Session cache — one shared promise per resource                     */
 /* ------------------------------------------------------------------ */
@@ -315,6 +457,9 @@ let certificationStepsPromise: Promise<CertificationStep[]> | null = null;
 let eligibleExamsPromise: Promise<EligibleExam[]> | null = null;
 let recognitionsPromise: Promise<Recognition[]> | null = null;
 const trustFeaturesPromises: Partial<Record<TrustFeatureKind, Promise<TrustFeature[]>>> = {};
+let communitiesPromise: Promise<CommunityEntry[]> | null = null;
+const navLinksPromises: Partial<Record<NavLinkLocation, Promise<NavLink[]>>> = {};
+const optionListPromises: Record<string, Promise<OptionItem[]>> = {};
 
 /** key → value map from `site_settings`. Never throws; falls back per key. */
 export function getSiteSettings(): Promise<Record<string, any>> {
@@ -574,6 +719,84 @@ export function getTrustFeatures(kind: TrustFeatureKind): Promise<TrustFeature[]
     })();
   }
   return trustFeaturesPromises[kind]!;
+}
+
+/** Active communities in display order, optionally filtered by group. Never throws. */
+export function getCommunities(grp?: CommunityGroup): Promise<CommunityEntry[]> {
+  if (!communitiesPromise) {
+    communitiesPromise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("communities")
+          .select("name, url, tagline, logo_url, grp")
+          .eq("active", true)
+          .order("sort_order", { ascending: true });
+        if (error || !data || data.length === 0) return FALLBACK_COMMUNITIES;
+        return data.map((row: any) => ({
+          name: String(row.name ?? ""),
+          url: String(row.url ?? ""),
+          tagline: String(row.tagline ?? ""),
+          logo: row.logo_url ? String(row.logo_url) : null,
+          grp: (row.grp === "channel" || row.grp === "ms_subs"
+            ? row.grp
+            : "main") as CommunityGroup,
+        }));
+      } catch {
+        return FALLBACK_COMMUNITIES;
+      }
+    })();
+  }
+  if (!grp) return communitiesPromise;
+  return communitiesPromise.then((rows) => rows.filter((c) => c.grp === grp));
+}
+
+/** Active nav links for a location in display order. Never throws. */
+export function getNavLinks(location: NavLinkLocation): Promise<NavLink[]> {
+  if (!navLinksPromises[location]) {
+    navLinksPromises[location] = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("nav_links")
+          .select("label, href")
+          .eq("location", location)
+          .eq("active", true)
+          .order("sort_order", { ascending: true });
+        if (error || !data || data.length === 0) return FALLBACK_NAV_LINKS[location];
+        return data.map((row: any) => ({
+          href: String(row.href ?? ""),
+          label: String(row.label ?? ""),
+        }));
+      } catch {
+        return FALLBACK_NAV_LINKS[location];
+      }
+    })();
+  }
+  return navLinksPromises[location]!;
+}
+
+/** Active option list rows for a list name in display order. Never throws. */
+export function getOptionList(list: string): Promise<OptionItem[]> {
+  if (!optionListPromises[list]) {
+    const fallback = FALLBACK_OPTION_LISTS[list] ?? [];
+    optionListPromises[list] = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("option_lists")
+          .select("value, label")
+          .eq("list", list)
+          .eq("active", true)
+          .order("sort_order", { ascending: true });
+        if (error || !data || data.length === 0) return fallback;
+        return data.map((row: any) => ({
+          value: String(row.value ?? ""),
+          label: String(row.label ?? row.value ?? ""),
+        }));
+      } catch {
+        return fallback;
+      }
+    })();
+  }
+  return optionListPromises[list];
 }
 
 /* ------------------------------------------------------------------ */

@@ -14,6 +14,7 @@ import {
 import { Loader2, CheckCircle2, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
 
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -26,33 +27,23 @@ interface UdemyCourseFormData {
     category: string;
 }
 
-const CREATORS = [
-    { value: "yatharth-chauhan", label: "Yatharth Chauhan" },
-    { value: "nensi-ravaliya", label: "Nensi Ravaliya" },
-];
-
-const TECH_OPTIONS = [
-    { value: "AWS", label: "AWS" },
-    { value: "Azure", label: "Azure" },
-    { value: "Google Cloud", label: "Google Cloud" },
-    { value: "GitHub", label: "GitHub" },
-    { value: "Oracle", label: "Oracle" },
-    { value: "Salesforce", label: "Salesforce" },
-    { value: "ServiceNow", label: "ServiceNow" },
-];
-
-const CATEGORY_OPTIONS = [
-    { value: "cloud", label: "Cloud" },
-    { value: "devops", label: "DevOps" },
-    { value: "ai", label: "AI" },
-    { value: "data", label: "Data" },
-    { value: "security", label: "Security" },
-    { value: "networking", label: "Networking" },
-    { value: "other", label: "Other" },
-];
-
 const UdemyAdmin = () => {
     const { toast } = useToast();
+
+    /* Select options come from Supabase `option_lists` (seeded identical
+     * to the fallbacks, so nothing visibly changes). */
+    const CREATORS = useSiteContent(
+        () => getOptionList("udemy_creator"),
+        FALLBACK_OPTION_LISTS.udemy_creator
+    );
+    const TECH_OPTIONS = useSiteContent(
+        () => getOptionList("course_tech"),
+        FALLBACK_OPTION_LISTS.course_tech
+    );
+    const CATEGORY_OPTIONS = useSiteContent(
+        () => getOptionList("course_category"),
+        FALLBACK_OPTION_LISTS.course_category
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);

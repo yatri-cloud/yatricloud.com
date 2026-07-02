@@ -21,12 +21,22 @@ import {
     BadgeCheck,
     Award,
     ShieldCheck,
+    MessagesSquare,
+    Link2,
+    ListChecks,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -110,7 +120,12 @@ const saveButtonClass =
 /* delete, show or hide, and reorder with up and down arrows.          */
 /* ------------------------------------------------------------------ */
 
-type ContentFieldType = "text" | "textarea" | "number" | "switch";
+type ContentFieldType = "text" | "textarea" | "number" | "switch" | "select";
+
+interface ContentFieldOption {
+    value: string;
+    label: string;
+}
 
 interface ContentField {
     key: string;
@@ -118,7 +133,18 @@ interface ContentField {
     type?: ContentFieldType;
     half?: boolean;
     required?: boolean;
+    /** Choices for a select field. */
+    options?: ContentFieldOption[];
+    /** On new rows, keep this field filled with a kebab version of another field until it is edited by hand. */
+    kebabFrom?: string;
 }
+
+const kebabCase = (text: string) =>
+    text
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 
 interface ContentRow {
     id: string | null;
@@ -205,7 +231,21 @@ const ContentListSection = ({
 
     const updateValue = (index: number, key: string, value: any) => {
         setRows((prev) =>
-            prev.map((r, i) => (i === index ? { ...r, values: { ...r.values, [key]: value } } : r))
+            prev.map((r, i) => {
+                if (i !== index) return r;
+                const values = { ...r.values, [key]: value };
+                // On new rows, keep kebab fields in step with their source until edited by hand.
+                if (r.id === null) {
+                    for (const f of fields) {
+                        if (f.kebabFrom !== key || f.key === key) continue;
+                        const current = String(r.values[f.key] ?? "");
+                        const stillAuto =
+                            current === "" || current === kebabCase(String(r.values[key] ?? ""));
+                        if (stillAuto) values[f.key] = kebabCase(String(value ?? ""));
+                    }
+                }
+                return { ...r, values };
+            })
         );
     };
 
@@ -224,7 +264,13 @@ const ContentListSection = ({
                 values: Object.fromEntries(
                     fields.map((f) => [
                         f.key,
-                        f.type === "switch" ? false : f.type === "number" ? nextOrder : "",
+                        f.type === "switch"
+                            ? false
+                            : f.type === "number"
+                              ? nextOrder
+                              : f.type === "select"
+                                ? (f.options?.[0]?.value ?? "")
+                                : "",
                     ])
                 ),
             },
@@ -242,6 +288,12 @@ const ContentListSection = ({
             if (f.type === "switch") payload[f.key] = raw === true;
             else if (f.type === "number") payload[f.key] = Number(raw) || 0;
             else payload[f.key] = typeof raw === "string" ? raw.trim() : raw;
+        }
+        // Fill any empty kebab field from its source so a blank value never reaches the database.
+        for (const f of fields) {
+            if (f.kebabFrom && !payload[f.key]) {
+                payload[f.key] = kebabCase(String(payload[f.kebabFrom] ?? ""));
+            }
         }
         return payload;
     };
@@ -396,6 +448,28 @@ const ContentListSection = ({
                                                 </div>
                                             );
                                         }
+                                        if (field.type === "select") {
+                                            return (
+                                                <div key={field.key} className={`space-y-2 ${span}`}>
+                                                    <FieldLabel htmlFor={inputId}>{field.label}</FieldLabel>
+                                                    <Select
+                                                        value={String(row.values[field.key] ?? "")}
+                                                        onValueChange={(value) => updateValue(index, field.key, value)}
+                                                    >
+                                                        <SelectTrigger id={inputId} className="min-h-[44px] rounded-xl" aria-label={field.label}>
+                                                            <SelectValue placeholder={field.label} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {(field.options ?? []).map((option) => (
+                                                                <SelectItem key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            );
+                                        }
                                         if (field.type === "textarea") {
                                             return (
                                                 <div key={field.key} className={`space-y-2 ${span}`}>
@@ -523,6 +597,152 @@ const TrustFeaturesEditor = () => {
             filterColumn="kind"
             filterValue={kind}
             headerExtra={kindToggle}
+        />
+    );
+};
+
+/* ------------------------------------------------------------------ */
+/* Communities — same editor with a group select on every row          */
+/* ------------------------------------------------------------------ */
+
+const COMMUNITY_GROUPS: ContentFieldOption[] = [
+    { value: "channel", label: "Channel" },
+    { value: "main", label: "Main" },
+    { value: "ms_subs", label: "Microsoft groups" },
+];
+
+const CommunitiesEditor = () => (
+    <ContentListSection
+        icon={MessagesSquare}
+        title="Communities"
+        hint="The community channels and groups Yatris can join across the site."
+        table="communities"
+        fields={[
+            { key: "name", label: "Name", half: true, required: true },
+            { key: "url", label: "Link URL", half: true, required: true },
+            { key: "tagline", label: "Tagline" },
+            { key: "logo_url", label: "Logo URL", half: true },
+            { key: "grp", label: "Group", type: "select", half: true, options: COMMUNITY_GROUPS },
+        ]}
+        itemLabel="community"
+        addLabel="Add a community"
+    />
+);
+
+/* ------------------------------------------------------------------ */
+/* Navigation links — same editor with a location toggle               */
+/* ------------------------------------------------------------------ */
+
+type NavLocation = "navbar" | "footer_explore" | "footer_quick" | "footer_legal";
+
+const NAV_LOCATIONS: [NavLocation, string][] = [
+    ["navbar", "Navbar"],
+    ["footer_explore", "Footer Explore"],
+    ["footer_quick", "Footer Quick"],
+    ["footer_legal", "Footer Legal"],
+];
+
+const NavLinksEditor = () => {
+    const [location, setLocation] = useState<NavLocation>("navbar");
+    const locationLabel = NAV_LOCATIONS.find(([value]) => value === location)?.[1] ?? "Navbar";
+
+    const locationToggle = (
+        <div
+            className="mb-5 inline-flex flex-wrap gap-1 rounded-xl border border-border bg-background p-1"
+            role="group"
+            aria-label="Choose where these links live"
+        >
+            {NAV_LOCATIONS.map(([value, label]) => (
+                <button
+                    key={value}
+                    type="button"
+                    onClick={() => setLocation(value)}
+                    aria-pressed={location === value}
+                    className={`min-h-[40px] rounded-lg px-4 text-sm font-semibold transition-colors duration-300 ${
+                        location === value
+                            ? "bg-primary text-primary-foreground shadow-inset-btn"
+                            : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                    {label}
+                </button>
+            ))}
+        </div>
+    );
+
+    return (
+        <ContentListSection
+            key={location}
+            icon={Link2}
+            title="Navigation Links"
+            hint={`The links Yatris see in the ${locationLabel} area. Reorder them within this spot.`}
+            table="nav_links"
+            fields={[
+                { key: "label", label: "Label", half: true, required: true },
+                { key: "href", label: "Link (href)", half: true, required: true },
+            ]}
+            itemLabel="link"
+            addLabel="Add a link"
+            filterColumn="location"
+            filterValue={location}
+            headerExtra={locationToggle}
+        />
+    );
+};
+
+/* ------------------------------------------------------------------ */
+/* Dropdown options — same editor with a list picker                   */
+/* ------------------------------------------------------------------ */
+
+const OPTION_LISTS: ContentFieldOption[] = [
+    { value: "udemy_creator", label: "Udemy creators" },
+    { value: "course_tech", label: "Course technologies" },
+    { value: "course_category", label: "Course categories" },
+    { value: "store_category", label: "Store categories" },
+    { value: "product_level", label: "Product levels" },
+    { value: "event_category", label: "Event categories" },
+    { value: "sponsor_tier", label: "Sponsor tiers" },
+    { value: "sponsorship_area", label: "Sponsorship areas" },
+];
+
+const OptionListsEditor = () => {
+    const [list, setList] = useState("udemy_creator");
+    const listLabel = OPTION_LISTS.find((o) => o.value === list)?.label ?? "Udemy creators";
+
+    const listPicker = (
+        <div className="mb-5 max-w-sm space-y-2">
+            <FieldLabel htmlFor="option-list-picker">Which list to edit</FieldLabel>
+            <Select value={list} onValueChange={setList}>
+                <SelectTrigger id="option-list-picker" className="min-h-[44px] rounded-xl" aria-label="Which list to edit">
+                    <SelectValue placeholder="Pick a list" />
+                </SelectTrigger>
+                <SelectContent>
+                    {OPTION_LISTS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+
+    return (
+        <ContentListSection
+            key={list}
+            icon={ListChecks}
+            title="Dropdown Options"
+            hint={`The choices shown in the ${listLabel} dropdown. Reorder them within this list.`}
+            table="option_lists"
+            fields={[
+                { key: "label", label: "Label (what Yatris see)", half: true, required: true },
+                { key: "value", label: "Value (used behind the scenes)", half: true, kebabFrom: "label" },
+            ]}
+            itemLabel="option"
+            addLabel="Add an option"
+            filterColumn="list"
+            filterValue={list}
+            headerExtra={listPicker}
         />
     );
 };
@@ -1274,6 +1494,21 @@ const AdminSiteContent = () => {
                 {/* ── Trust features ── */}
                 <ScrollReveal delay={0.05}>
                     <TrustFeaturesEditor />
+                </ScrollReveal>
+
+                {/* ── Communities ── */}
+                <ScrollReveal delay={0.05}>
+                    <CommunitiesEditor />
+                </ScrollReveal>
+
+                {/* ── Navigation links ── */}
+                <ScrollReveal delay={0.05}>
+                    <NavLinksEditor />
+                </ScrollReveal>
+
+                {/* ── Dropdown options ── */}
+                <ScrollReveal delay={0.05}>
+                    <OptionListsEditor />
                 </ScrollReveal>
             </div>
         </div>

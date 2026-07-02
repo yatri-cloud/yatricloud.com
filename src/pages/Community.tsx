@@ -9,6 +9,7 @@ import {
   Linkedin,
   Database,
   Gamepad2,
+  MessageCircle,
   type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -18,38 +19,39 @@ import { SEO } from "@/components/SEO";
 import {
   useSiteContent,
   getSiteStats,
+  getCommunities,
   statValue,
   FALLBACK_STATS,
+  FALLBACK_COMMUNITIES,
+  type CommunityEntry,
 } from "@/lib/site-content";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 type Community = { name: string; url: string; tagline: string; logo?: string; icon?: LucideIcon };
 
-const CHANNEL_URL = "https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s";
+const FALLBACK_CHANNEL_URL = "https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s";
 
-const MAIN: Community[] = [
-  { name: "AWS Yatri", url: "https://chat.whatsapp.com/Luh1daKLk4tCfgohAdkayp", tagline: "The world's #1 cloud", logo: "/logos/aws.svg" },
-  { name: "Microsoft Yatri", url: "https://chat.whatsapp.com/CzcpDRiV2vR87vGwY7dPAp", tagline: "Azure, MVP & the Microsoft stack", logo: "/logos/microsoft.svg" },
-  { name: "GCP Yatri", url: "https://chat.whatsapp.com/JgUS13YbcYCL82PfpLQnBv", tagline: "Google Cloud & data", logo: "/logos/googlecloud.svg" },
-  { name: "GitHub Yatri", url: "https://chat.whatsapp.com/DbuYINmHGKF3qkQLYU5Ugx", tagline: "Open source, PRs & version control", logo: "/logos/github.svg" },
-  { name: "Kubernetes Yatri", url: "https://chat.whatsapp.com/LC5LN2YTqjV24X0eiSMNwe", tagline: "Containers & cloud-native", logo: "/logos/kubernetes.svg" },
-  { name: "DevOps Yatri", url: "https://chat.whatsapp.com/JYjH73L6Tof7JDmYQSUYqW", tagline: "CI/CD, automation & SRE", icon: InfinityIcon },
-  { name: "AI Yatri", url: "https://chat.whatsapp.com/FPgpa7E8WQyA75ITKzXxI0", tagline: "LLMs, ML & the future of AI", icon: Cpu },
-  { name: "Salesforce Yatri", url: "https://chat.whatsapp.com/KGjtJpcqgPRJFB6ImU2Awc", tagline: "CRM & the Salesforce ecosystem", logo: "/logos/salesforce.svg" },
-  { name: "Oracle Yatri", url: "https://chat.whatsapp.com/JETPhF7ZE3LDQQeeigLLge", tagline: "Databases & enterprise cloud", logo: "/logos/oracle.svg" },
-  { name: "TiDB Yatri", url: "https://chat.whatsapp.com/GNFWRA2yxSVCafGXgpXQO6", tagline: "Distributed SQL & databases", icon: Database },
-  { name: "Google Cloud Arcade Yatri", url: "https://chat.whatsapp.com/Lkm5LMvsTrACLn6FIijist", tagline: "Earn badges & swag with GCP Arcade", icon: Gamepad2 },
-  { name: "Women Yatri", url: "https://chat.whatsapp.com/If2yiVZNzivHdf7nv5lHiU", tagline: "Women in cloud & tech", icon: Heart },
-  { name: "Blog Yatri", url: "https://chat.whatsapp.com/LJWGl6juKNgK7kO7jjgwp1", tagline: "Write, learn & get published", icon: Rss },
-  { name: "Yatri LinkedIn", url: "https://chat.whatsapp.com/ImroH8OP1GKBzB2dACmqmf", tagline: "Network, grow & get noticed", icon: Linkedin },
-];
+/* Lucide icons for logo-less communities, mapped by name so DB rows
+ * (which carry no icon) merge back with the same visuals. New rows
+ * without a logo fall back to MessageCircle. */
+const COMMUNITY_ICONS: Record<string, LucideIcon> = {
+  "DevOps Yatri": InfinityIcon,
+  "AI Yatri": Cpu,
+  "TiDB Yatri": Database,
+  "Google Cloud Arcade Yatri": Gamepad2,
+  "Women Yatri": Heart,
+  "Blog Yatri": Rss,
+  "Yatri LinkedIn": Linkedin,
+};
 
-const MS_SUBS: Community[] = [
-  { name: "Azure Yatri", url: "https://chat.whatsapp.com/JUl0ysEOLZGKVSHnsuIoJb", tagline: "Microsoft's cloud platform", logo: "/logos/azure.svg" },
-  { name: "MLSA Yatri", url: "https://chat.whatsapp.com/CRPn0N5V2lbDsexLrXY0l4", tagline: "Microsoft Learn Student Ambassadors", logo: "/logos/microsoft.svg" },
-  { name: "MVP Yatri", url: "https://chat.whatsapp.com/GIqTRS29D8iIQodRNNXblr", tagline: "Most Valuable Professionals", logo: "/logos/microsoft.svg" },
-];
+const toCommunity = (c: CommunityEntry): Community => ({
+  name: c.name,
+  url: c.url,
+  tagline: c.tagline,
+  logo: c.logo ?? undefined,
+  icon: COMMUNITY_ICONS[c.name] ?? (c.logo ? undefined : MessageCircle),
+});
 
 const CommunityCard = ({ c, index }: { c: Community; index: number }) => {
   const reduce = useReducedMotion();
@@ -89,6 +91,14 @@ const CommunityCard = ({ c, index }: { c: Community; index: number }) => {
 
 const Community = () => {
   const reduce = useReducedMotion();
+
+  /* Community lists come from Supabase `communities` (seeded identical
+   * to the fallbacks, so nothing visibly changes). */
+  const communityEntries = useSiteContent(() => getCommunities(), FALLBACK_COMMUNITIES);
+  const MAIN = communityEntries.filter((c) => c.grp === "main").map(toCommunity);
+  const MS_SUBS = communityEntries.filter((c) => c.grp === "ms_subs").map(toCommunity);
+  const CHANNEL_URL =
+    communityEntries.find((c) => c.grp === "channel")?.url || FALLBACK_CHANNEL_URL;
 
   /* Stat card values come from Supabase site_stats (seeded identical).
    * "24/7 Always active" stays hardcoded — no site_stats key fits it. */

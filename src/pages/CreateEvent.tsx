@@ -21,6 +21,7 @@ import { INDIAN_STATES } from "@/lib/indian-locations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { saveEvent, Event, Sponsor, EventSpeaker, GalleryAlbum, GalleryMedia, Ticket as EventTicket } from "@/lib/events-store";
+import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -56,6 +57,13 @@ const TIMEZONES = [
 export default function CreateEvent() {
     const navigate = useNavigate();
     const { toast } = useToast();
+
+    /* Sponsor tiers come from Supabase `option_lists` (seeded identical
+     * to the fallback, so nothing visibly changes). */
+    const sponsorTiers = useSiteContent(
+        () => getOptionList("sponsor_tier"),
+        FALLBACK_OPTION_LISTS.sponsor_tier
+    );
     const [showCollaborationSelector, setShowCollaborationSelector] = useState(true);
     const [step, setStep] = useState<Step>(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1280,11 +1288,11 @@ export default function CreateEvent() {
                                                                 <Select value={sponsor.tier} onValueChange={(v) => handleSponsorChange(index, 'tier', v)}>
                                                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                                                     <SelectContent>
-                                                                        <SelectItem value="Platinum">Platinum</SelectItem>
-                                                                        <SelectItem value="Gold">Gold</SelectItem>
-                                                                        <SelectItem value="Silver">Silver</SelectItem>
-                                                                        <SelectItem value="Bronze">Bronze</SelectItem>
-                                                                        <SelectItem value="Partner">Partner</SelectItem>
+                                                                        {sponsorTiers.map((tier) => (
+                                                                            <SelectItem key={tier.value} value={tier.value}>
+                                                                                {tier.label}
+                                                                            </SelectItem>
+                                                                        ))}
                                                                     </SelectContent>
                                                                 </Select>
                                                             </div>
