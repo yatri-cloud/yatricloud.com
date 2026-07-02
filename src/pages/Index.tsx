@@ -11,6 +11,7 @@ import { HomeReviewsSection } from "@/components/sections/HomeReviewsSection";
 import { VoucherPromoSection } from "@/components/sections/VoucherPromoSection";
 import FAQSection from "@/components/sections/FAQSection";
 import CommunitySection from "@/components/sections/CommunitySection";
+import { ContactSection } from "@/components/sections/ContactSection";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 
@@ -33,6 +34,7 @@ const Index = () => {
         <RecognitionsSection />
         <FAQSection />
         <CommunitySection />
+        <ContactSection />
       </main>
       <Footer />
     </div>
