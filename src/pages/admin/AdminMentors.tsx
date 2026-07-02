@@ -72,6 +72,8 @@ interface MentorFormState {
     buffer_min: string;
     contact_email: string;
     login_email: string;
+    razorpay_account_id: string;
+    commission_percent: string;
     is_featured: boolean;
     status: string;
 }
@@ -92,6 +94,8 @@ const EMPTY_FORM: MentorFormState = {
     buffer_min: "15",
     contact_email: "",
     login_email: "",
+    razorpay_account_id: "",
+    commission_percent: "",
     is_featured: false,
     status: "published",
 };
@@ -194,7 +198,7 @@ const AdminMentors = () => {
         const { data, error } = await supabase
             .from("mentors")
             .select(
-                "id, user_id, slug, name, headline, bio, photo_url, linkedin_url, expertise, languages, timezone, notice_hours, booking_window_days, buffer_min, avg_rating, review_count, is_featured, sort_order, status"
+                "id, user_id, slug, name, headline, bio, photo_url, linkedin_url, expertise, languages, timezone, notice_hours, booking_window_days, buffer_min, avg_rating, review_count, is_featured, sort_order, status, razorpay_account_id, commission_percent"
             )
             .order("sort_order", { ascending: true });
         if (error) {
@@ -226,6 +230,8 @@ const AdminMentors = () => {
             is_featured: row.is_featured === true,
             sort_order: row.sort_order ?? 0,
             status: row.status ?? "published",
+            razorpay_account_id: row.razorpay_account_id ?? null,
+            commission_percent: row.commission_percent ?? null,
         }));
         setMentors(rows);
 
@@ -291,6 +297,8 @@ const AdminMentors = () => {
             buffer_min: String(mentor.buffer_min),
             contact_email: contactEmails[mentor.id] ?? "",
             login_email: mentor.user_id ? loginEmails[mentor.user_id] ?? "" : "",
+            razorpay_account_id: mentor.razorpay_account_id ?? "",
+            commission_percent: mentor.commission_percent != null ? String(mentor.commission_percent) : "",
             is_featured: mentor.is_featured,
             status: mentor.status,
         });
@@ -356,6 +364,8 @@ const AdminMentors = () => {
             notice_hours: Number.parseInt(form.notice_hours, 10) || 0,
             booking_window_days: Number.parseInt(form.booking_window_days, 10) || 30,
             buffer_min: Number.parseInt(form.buffer_min, 10) || 0,
+            razorpay_account_id: form.razorpay_account_id.trim() || null,
+            commission_percent: form.commission_percent.trim() === "" ? null : Number(form.commission_percent),
             is_featured: form.is_featured,
             status: form.status,
             user_id: userId,
@@ -964,6 +974,38 @@ const AdminMentors = () => {
                                     />
                                     <p className="text-xs text-muted-foreground">
                                         The account must already exist. Once linked, the mentor can manage their own page at /mentor/dashboard.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="space-y-2">
+                                    <FieldLabel htmlFor="mentor-route">Razorpay linked account id</FieldLabel>
+                                    <Input
+                                        id="mentor-route"
+                                        className="min-h-[44px] rounded-xl font-mono text-sm"
+                                        placeholder="acc_XXXXXXXXXXXXXX"
+                                        value={form.razorpay_account_id}
+                                        onChange={(e) => setForm({ ...form, razorpay_account_id: e.target.value })}
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        Create the account in the Razorpay dashboard under Route, then paste its id here. Leave empty to pay this mentor manually.
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <FieldLabel htmlFor="mentor-commission">Commission percent (override)</FieldLabel>
+                                    <Input
+                                        id="mentor-commission"
+                                        type="number"
+                                        min={0}
+                                        max={100}
+                                        step="0.5"
+                                        className="min-h-[44px] rounded-xl"
+                                        placeholder="Leave empty for the platform default"
+                                        value={form.commission_percent}
+                                        onChange={(e) => setForm({ ...form, commission_percent: e.target.value })}
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        The platform keeps this percent of each booking. Empty uses the site default.
                                     </p>
                                 </div>
                             </div>

@@ -1,5 +1,68 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+/**
+ * Creates a Razorpay order.
+ *
+ * For mentorship bookings, when Route is enabled and the mentor has a linked
+ * account, the order carries a transfer that pays the mentor their share and
+ * keeps the platform commission automatically. The split is computed here on
+ * the server from the database, never from the client, so the amounts cannot
+ * be tampered with. Everything else (store, events, training) is unchanged.
+ */
+
+const ROUTE_ENABLED = process.env.RAZORPAY_ROUTE_ENABLED === 'true';
+
+// Reads the mentor share for a mentorship booking. Returns null when the split
+// should not apply (Route off, no linked account, missing config, any error).
+async function computeMentorTransfer(bookingId: string, orderAmountPaise: number): Promise<
+  { account: string; amountPaise: number; feePaise: number } | null
+> {
+  if (!ROUTE_ENABLED) return null;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+  try {
+    // The booking tells us which mentor is being paid.
+    const bRes = await fetch(
+      `${supabaseUrl}/rest/v1/mentorship_bookings?id=eq.${encodeURIComponent(bookingId)}&select=mentor_id,amount`,
+      { headers },
+    );
+    const [booking] = (await bRes.json()) as Array<{ mentor_id: string; amount: number }>;
+    if (!booking?.mentor_id) return null;
+
+    // The mentor's linked account and their commission override (if any).
+    const mRes = await fetch(
+      `${supabaseUrl}/rest/v1/mentors?id=eq.${encodeURIComponent(booking.mentor_id)}&select=razorpay_account_id,commission_percent`,
+      { headers },
+    );
+    const [mentor] = (await mRes.json()) as Array<{ razorpay_account_id: string | null; commission_percent: number | null }>;
+    if (!mentor?.razorpay_account_id) return null;
+
+    // Effective commission: mentor override, else the platform default.
+    let percent = mentor.commission_percent;
+    if (percent == null) {
+      const sRes = await fetch(
+        `${supabaseUrl}/rest/v1/site_settings?key=eq.commission&select=value`,
+        { headers },
+      );
+      const [row] = (await sRes.json()) as Array<{ value: { mentorship_percent?: number } }>;
+      percent = row?.value?.mentorship_percent ?? 10;
+    }
+    const pct = Math.min(Math.max(Number(percent) || 0, 0), 100);
+
+    // Mentor share is the whole amount minus commission, floored to paise.
+    const payoutPaise = Math.floor((orderAmountPaise * (100 - pct)) / 100);
+    const feePaise = orderAmountPaise - payoutPaise;
+    if (payoutPaise <= 0 || payoutPaise > orderAmountPaise) return null;
+    return { account: mentor.razorpay_account_id, amountPaise: payoutPaise, feePaise };
+  } catch (err) {
+    console.error('Route split lookup failed, falling back to a normal order:', err);
+    return null;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -20,6 +83,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ message: 'amount and currency are required' });
     }
 
+    const orderBody: Record<string, unknown> = {
+      amount,
+      currency,
+      receipt: receipt || `rcpt_${Date.now()}`,
+      payment_capture: 1,
+      partial_payment: false,
+      notes: notes || {},
+    };
+
+    // Mentorship commission split (only when eligible; safe no op otherwise).
+    if (notes?.kind === 'mentorship' && notes?.booking_id && currency === 'INR') {
+      const split = await computeMentorTransfer(String(notes.booking_id), Number(amount));
+      if (split) {
+        orderBody.transfers = [
+          {
+            account: split.account,
+            amount: split.amountPaise,
+            currency: 'INR',
+            notes: { booking_id: String(notes.booking_id) },
+            on_hold: 1,
+          },
+        ];
+      }
+    }
+
     const auth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
 
     const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
@@ -28,13 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'Content-Type': 'application/json',
         Authorization: `Basic ${auth}`,
       },
-      body: JSON.stringify({
-        amount,
-        currency,
-        receipt: receipt || `rcpt_${Date.now()}`,
-        payment_capture: 1,
-        notes: notes || {},
-      }),
+      body: JSON.stringify(orderBody),
     });
 
     if (!razorpayResponse.ok) {
@@ -63,5 +145,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 }
-
-

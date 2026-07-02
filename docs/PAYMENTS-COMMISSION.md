@@ -1,6 +1,7 @@
 # Payments and Platform Commission — Decision Doc
 
-> Status: idea and planning only. Nothing here is built yet.
+> Status: Phase 1 plumbing BUILT and shipped, guarded and inactive until Route is turned on.
+> See the "Build status" section at the bottom.
 > Goal: take a platform commission (for example 5 percent or 10 percent, configurable) on each
 > mentorship booking, settle the rest to the mentor automatically, and support both domestic
 > India payments and foreign inbound payments.
@@ -132,3 +133,49 @@ side can move at its own pace, and the technical change later stays contained.
 - [ ] Domestic first, then international, or both together.
 - [ ] Razorpay Route vs Cashfree Easy Split vs Stripe Connect (get quotes and confirm international
       support for each).
+
+---
+
+## Build status (Phase 1 shipped, inactive until Route is enabled)
+
+**Probed the test account** (rzp_test): auth works and plain orders work, but Route is not
+activated. Creating a linked account returns Access Denied and an order with a transfer returns
+"This transfer is not supported". So the split cannot run until Route is switched on.
+
+**What is built now (guarded, safe, does nothing until eligible):**
+- Migration 017: `mentors.razorpay_account_id`, `mentors.commission_percent`,
+  `mentorship_bookings.platform_fee` and `mentor_payout` and `transfer_id`, and a
+  `site_settings.commission` default of `{"mentorship_percent": 10}`.
+- `api/razorpay/create-order.ts`: for a mentorship booking, when `RAZORPAY_ROUTE_ENABLED=true`
+  AND the mentor has a `razorpay_account_id`, the order carries an on hold transfer of the mentor
+  share. The commission stays with the platform automatically. The split is computed on the server
+  from the database, never from the client. Every other payment path is unchanged.
+- `api/razorpay/verify.ts`: after a paid booking is confirmed, it records `transfer_id`,
+  `mentor_payout` and `platform_fee` on the booking. Best effort, never affects the payment verdict.
+- Admin -> Mentorship -> Mentors edit dialog: fields for the linked account id and a per mentor
+  commission override.
+- `RAZORPAY_ROUTE_ENABLED` env flag (default false) is a master switch.
+
+**The transfer is created with `on_hold: 1`** so the mentor share is held, which is our escrow for
+refunds and no shows. Releasing the hold (on session completion) is the next step, via the modify
+settlement hold API from the admin bookings page. Not built yet.
+
+## What YOU need to do to turn it on
+
+1. In the Razorpay dashboard, activate **Route** (Settings or Products). For test mode this may need
+   a support request or a dashboard toggle.
+2. Create a **linked account** for each mentor (their KYC and bank details) from the dashboard under
+   Route -> Linked Accounts. Programmatic creation via the API returned Access Denied on this
+   account, so dashboard creation is the reliable path.
+3. Copy each mentor's account id (acc_...) into Admin -> Mentorship -> Mentors -> edit -> Razorpay
+   linked account id.
+4. Set `RAZORPAY_ROUTE_ENABLED=true` in the environment (local .env for testing, Vercel env for
+   production).
+5. Test a booking end to end in test mode: the mentor share should appear as a transfer on the
+   payment, and the booking should show the fee and payout.
+
+## Next steps after Route is live
+- Release the on hold transfer when a session is marked completed (modify settlement hold API).
+- Editable commission default in Admin site settings UI (the value already lives in
+  `site_settings.commission`).
+- International: separate activation and a CA for export compliance, per the sections above.

@@ -36,6 +36,10 @@ export interface Mentor {
   is_featured: boolean;
   sort_order: number;
   status: ContentStatus;
+  /** Razorpay Route linked account (acc_...) for commission payouts; null until connected. */
+  razorpay_account_id?: string | null;
+  /** Per mentor commission override percent; null uses the platform default. */
+  commission_percent?: number | null;
   created_at: string;
   updated_at: string;
 }

@@ -24,6 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
+  const keyId = process.env.RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -138,6 +139,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
               const patched = await bookingPatch.json().catch(() => []);
               const booking = Array.isArray(patched) ? patched[0] : null;
+
+              // Record the commission split on the booking (Route order transfer).
+              // Best effort: never affects the payment verdict.
+              if (booking?.id && keyId && keySecret) {
+                try {
+                  const auth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+                  const trRes = await fetch(
+                    `https://api.razorpay.com/v1/orders/${encodeURIComponent(razorpay_order_id)}/transfers`,
+                    { headers: { Authorization: `Basic ${auth}` } }
+                  );
+                  const trData = await trRes.json().catch(() => ({}));
+                  const transfer = Array.isArray(trData?.items) ? trData.items[0] : null;
+                  if (transfer?.id) {
+                    const payoutRupees = Number(transfer.amount ?? 0) / 100;
+                    const amountRupees = Number(booking.amount ?? 0);
+                    await fetch(
+                      `${supabaseUrl}/rest/v1/mentorship_bookings?id=eq.${encodeURIComponent(booking.id)}`,
+                      {
+                        method: 'PATCH',
+                        headers: {
+                          apikey: serviceKey,
+                          Authorization: `Bearer ${serviceKey}`,
+                          'Content-Type': 'application/json',
+                          Prefer: 'return=minimal',
+                        },
+                        body: JSON.stringify({
+                          transfer_id: transfer.id,
+                          mentor_payout: payoutRupees,
+                          platform_fee: Math.max(amountRupees - payoutRupees, 0),
+                        }),
+                      }
+                    );
+                  }
+                } catch (err) {
+                  console.error('Recording the commission split failed (ignored):', err);
+                }
+              }
+
               if (booking?.mentor_id) {
                 const [privateRes, mentorRes, serviceRes] = await Promise.all([
                   fetch(
