@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { BadgeCheck, Briefcase, Zap, LogOut, User } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { BadgeCheck, Briefcase, Zap, LogOut, User, Trophy } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { CertificationForm } from "@/components/certified-yatris/CertificationForm";
@@ -22,6 +22,7 @@ interface CertificationEntry {
 
 const CertifiedYatris = () => {
   const navigate = useNavigate();
+  const prefersReducedMotion = useReducedMotion();
   const [certifications, setCertifications] = useState<CertificationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -133,7 +134,7 @@ const CertifiedYatris = () => {
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Getting your spot on the wall ready…</p>
         </div>
       </div>
     );
@@ -173,23 +174,24 @@ const CertifiedYatris = () => {
             <ScrollReveal>
               <div className="text-center mb-12">
                 <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
+                  initial={prefersReducedMotion ? false : { scale: 0, rotate: -12 }}
                   animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", duration: 0.8 }}
+                  transition={{ type: "spring", duration: 0.8, bounce: 0.4 }}
                   className="inline-flex items-center justify-center mb-6"
                 >
                   <img
                     src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/All/yatri-certified.png"
-                    alt="Yatri Cloud"
+                    alt="Yatri Certified"
                     className="w-auto h-20 md:h-28 object-contain"
                   />
                 </motion.div>
 
-                <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                  Share Your <span className="gradient-text">Achievement</span>
+                <h1 className="text-4xl md:text-6xl font-bold font-display mb-4">
+                  You passed. Now <span className="gradient-text">take a bow</span>.
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                  Celebrate your certification success with the Yatri Cloud community
+                  Add your certification to the Yatri Cloud Wall of Fame — real name,
+                  real face, real proof. Inspire the Yatris studying right behind you. 🎉
                 </p>
 
                 {/* User Info & Logout */}

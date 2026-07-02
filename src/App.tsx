@@ -67,7 +67,7 @@ import TrainerCreateCourse from "@/pages/trainer/TrainerCreateCourse";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider defaultTheme="dark">
+  <ThemeProvider defaultTheme="light">
     <SpeedInsights />
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

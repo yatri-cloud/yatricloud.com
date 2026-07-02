@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap');
+/* Display face for headings (body stays Inter Tight) — redesign 2026-07 */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -48,6 +50,45 @@
     --gradient-dark: linear-gradient(180deg, hsl(0 0% 98%), hsl(0 0% 95%));
     --glow-blue: 0 0 60px hsl(210 100% 50% / 0.2);
     --glow-soft: 0 0 40px hsl(210 100% 50% / 0.1);
+
+    /* ============================================================
+       REDESIGN ADDITIVE TOKENS (2026-07) — existing colors above are UNCHANGED.
+       These only power NEW usages (bands, shadows, motion, display type).
+       ============================================================ */
+    --font-display: 'Bricolage Grotesque', 'Inter Tight', system-ui, sans-serif;
+
+    /* Blue accent scale — same hue (210) as --primary, additive only */
+    --blue-50: 210 100% 97%;
+    --blue-100: 210 100% 93%;
+    --blue-200: 210 100% 85%;
+    --blue-300: 210 100% 74%;
+    --blue-400: 210 100% 62%;
+    --blue-500: 210 100% 50%;
+    --blue-600: 210 100% 44%;
+    --blue-700: 212 100% 38%;
+    --blue-800: 214 95% 30%;
+    --blue-900: 216 90% 22%;
+
+    /* Section background bands (blue is the only allowed bg hue) */
+    --band-tint: 210 100% 97%;   /* light-blue wash */
+    --band-blue: 210 100% 50%;   /* logo blue feature band (white text) */
+
+    /* Elevation scale */
+    --shadow-inset: inset 0 0.5px 0 hsl(0 0% 100% / 0.25), inset 0 0 0 0.5px hsl(0 0% 0% / 0.2), 0 1px 2px hsl(0 0% 0% / 0.08);
+    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.06);
+    --shadow-elevated: 0 12px 32px hsl(0 0% 0% / 0.10);
+    --shadow-focus: 0 0 0 3px hsl(var(--ring) / 0.35);
+
+    /* Motion tokens */
+    --dur-fast: 150ms;
+    --dur-base: 220ms;
+    --dur-slow: 360ms;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+    /* Semantic status (additive) */
+    --success: 152 60% 42%;
+    --warning: 38 92% 50%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 9%;
@@ -102,6 +143,13 @@
     --gradient-dark: linear-gradient(180deg, hsl(0 0% 4%), hsl(0 0% 8%));
     --glow-blue: 0 0 60px hsl(210 100% 50% / 0.3);
     --glow-soft: 0 0 40px hsl(210 100% 50% / 0.15);
+
+    /* Redesign additive tokens — dark overrides (blue scale/font/motion inherit) */
+    --band-tint: 214 50% 8%;   /* deep blue-black wash */
+    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.4);
+    --shadow-elevated: 0 12px 32px hsl(0 0% 0% / 0.5);
+    --success: 152 55% 48%;
+    --warning: 38 92% 55%;
   }
 }
 
@@ -112,6 +160,18 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Accessibility: honor reduced-motion globally (redesign) */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   body {
@@ -168,6 +228,53 @@
     @apply bg-card/80 backdrop-blur-xl border border-border/50;
   }
 
+  /* Navbar glass (stronger blur, canvas-tinted) — redesign */
+  .glass-nav {
+    background-color: hsl(var(--background) / 0.72);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  /* Section background bands (redesign §5b) */
+  .band-tint {
+    background-color: hsl(var(--band-tint));
+  }
+  .band-blue {
+    background-color: hsl(var(--band-blue));
+    color: hsl(0 0% 100%);
+  }
+  /* Inverts to near-black in light theme, near-white in dark theme */
+  .band-invert {
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--background));
+  }
+
+  /* Display type for headings */
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Tactile inset shadow signature (primary buttons) */
+  .shadow-inset-btn {
+    box-shadow: var(--shadow-inset);
+  }
+
+  /* Waving hand for the "Hello Yatris 👋" greeting */
+  @keyframes wave {
+    0%, 60%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(14deg); }
+    20% { transform: rotate(-8deg); }
+    40% { transform: rotate(-4deg); }
+    50% { transform: rotate(10deg); }
+  }
+  .animate-wave {
+    animation: wave 2.5s ease-in-out infinite;
+    transform-origin: 70% 70%;
+  }
+
   /* Marquee animation */
   @keyframes marquee {
     0% {
@@ -184,6 +291,35 @@
 
   .animate-marquee-slow {
     animation: marquee 40s linear infinite;
+  }
+
+  /* Vertical testimonial wall (presentational, redesign) */
+  @keyframes wall-up {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-50%);
+    }
+  }
+  @keyframes wall-down {
+    from {
+      transform: translateY(-50%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  .wall-col {
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+  }
+  .wall-up {
+    animation-name: wall-up;
+  }
+  .wall-down {
+    animation-name: wall-down;
   }
 
   /* Float animation */

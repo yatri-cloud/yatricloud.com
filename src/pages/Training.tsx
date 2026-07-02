@@ -1,14 +1,15 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, Filter, BookOpen, Clock, User, Star, MapPin, Tag, ArrowRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Search, Filter, BookOpen, User, Star, Tag, ArrowRight, Users, MapPin, Wallet, GraduationCap, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LogoMarquee } from "@/components/TechLogos";
 
 interface Course {
     id: string;
@@ -84,65 +85,105 @@ export default function Training() {
             .trim();
     };
 
+    const reduceMotion = useReducedMotion();
+    const fadeUp = {
+        hidden: { opacity: 0, y: reduceMotion ? 0 : 16 },
+        show: { opacity: 1, y: 0 },
+    };
+
+    const trustCues = [
+        { icon: Users, label: "50,000+ Yatris learning" },
+        { icon: GraduationCap, label: "6 cloud tracks" },
+        { icon: Star, label: "4.8★ average rating" },
+        { icon: Wallet, label: "Free tracks included" },
+    ];
+
     return (
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
             <Navbar />
 
-            {/* Hero Section */}
-            <div className="relative bg-[#0f1115] text-white py-32 overflow-hidden border-b border-white/5">
-                {/* Modern Gradient Background */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-[#0f1115] to-[#0f1115]"></div>
+            {/* Hero Section — warm light-blue tint band, no black */}
+            <div className="band-tint relative overflow-hidden border-b border-border/60">
+                {/* Soft dotted texture + breathing glow */}
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(hsl(var(--primary)/0.12)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_60%,transparent_100%)]" />
+                <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
 
-                {/* Grid Pattern Overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+                <div className="container relative z-10 mx-auto px-4 pt-28 pb-16 md:pt-32 md:pb-20">
+                    <motion.div
+                        variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+                        initial="hidden"
+                        animate="show"
+                        className="mx-auto max-w-3xl text-center"
+                    >
+                        <motion.p variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-1.5 text-sm font-medium text-primary shadow-card">
+                            <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                            Yatri Cloud Training
+                        </motion.p>
 
-                <div className="container relative z-10 px-4 mx-auto text-center space-y-8">
-                    <div className="space-y-4">
-                        <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/50 tracking-tight leading-[1.1]">
-                            Master Cloud Skills.
+                        <motion.h1 variants={fadeUp} className="font-display mt-6 text-4xl font-bold leading-[1.08] tracking-tight text-foreground md:text-6xl">
+                            Real cloud skills.
                             <br />
-                            <span className="text-indigo-400">Build Your Future.</span>
-                        </h1>
-                        <p className="text-lg md:text-xl text-gray-400/80 max-w-2xl mx-auto leading-relaxed">
-                            Comprehensive library of cloud certifications, role-based training, and hands-on workshops designed for modern engineering teams.
-                        </p>
-                    </div>
+                            <span className="gradient-text">A career you're proud of.</span>
+                        </motion.h1>
 
-                    {/* Search Bar */}
-                    <div className="max-w-2xl mx-auto flex gap-2 relative">
-                        <div className="relative flex-1 group">
-                            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg opacity-30 group-hover:opacity-100 transition duration-500 blur"></div>
-                            <div className="relative flex items-center bg-[#0f1115] rounded-lg border border-white/10 overflow-hidden">
-                                <Search className="absolute left-4 text-gray-500 w-5 h-5 pointer-events-none" />
+                        <motion.p variants={fadeUp} className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+                            Hands-on certification tracks, role-based paths, and live workshops — many of them free.
+                            Learn the way real teams work, and get certified with confidence.
+                        </motion.p>
+
+                        {/* Search Bar */}
+                        <motion.div variants={fadeUp} className="mx-auto mt-8 max-w-2xl">
+                            <div className="relative flex items-center rounded-2xl border border-border bg-white shadow-card transition-shadow focus-within:shadow-elevated focus-within:ring-2 focus-within:ring-ring">
+                                <Search className="pointer-events-none absolute left-4 h-5 w-5 text-muted-foreground" aria-hidden="true" />
                                 <Input
-                                    placeholder="Search for certifications, skills, or instructors..."
-                                    className="pl-12 h-14 bg-transparent border-none text-white placeholder:text-gray-500 focus-visible:ring-0 text-lg"
+                                    placeholder="Search a certification, skill, or instructor…"
+                                    aria-label="Search training courses"
+                                    className="h-14 border-none bg-transparent pl-12 text-base focus-visible:ring-0"
                                     value={searchQuery}
                                     onChange={e => setSearchQuery(e.target.value)}
                                 />
                             </div>
-                        </div>
-                    </div>
+                        </motion.div>
+
+                        {/* Trust cues */}
+                        <motion.ul variants={fadeUp} className="mx-auto mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+                            {trustCues.map(({ icon: Icon, label }) => (
+                                <li key={label} className="inline-flex items-center gap-2">
+                                    <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+                                    <span className="font-medium">{label}</span>
+                                </li>
+                            ))}
+                        </motion.ul>
+                    </motion.div>
+
+                    {/* Provider strip — real tech logos */}
+                    <motion.div variants={fadeUp} initial="hidden" animate="show" className="mx-auto mt-12 max-w-4xl">
+                        <p className="mb-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Skills that map to real cloud & DevOps tools
+                        </p>
+                        <LogoMarquee speed="slow" />
+                    </motion.div>
                 </div>
             </div>
 
             {/* Content Section */}
             <div className="container mx-auto px-4 py-12 flex-1">
                 {/* Filters */}
-                <div className="flex flex-wrap gap-4 items-center mb-8 pb-4 border-b">
-                    <div className="flex items-center gap-2 text-muted-foreground mr-auto">
-                        <Filter className="w-4 h-4" />
-                        <span className="text-sm font-medium">Certifications:</span>
+                <div className="mb-8 flex flex-wrap items-center gap-4 border-b border-border pb-4">
+                    <div className="mr-auto flex items-center gap-2 text-foreground">
+                        <Filter className="h-4 w-4 text-primary" aria-hidden="true" />
+                        <span className="text-sm font-semibold">Browse by track</span>
                     </div>
 
-                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+                    <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-2 md:pb-0" role="group" aria-label="Filter courses by certification track">
                         {certifications.map(cert => (
                             <Button
                                 key={cert}
                                 variant={filterCertification === cert ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setFilterCertification(cert)}
-                                className="rounded-full"
+                                aria-pressed={filterCertification === cert}
+                                className="min-h-[44px] rounded-full"
                             >
                                 {cert}
                             </Button>
@@ -151,80 +192,108 @@ export default function Training() {
                 </div>
 
                 {isLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="h-96 rounded-xl bg-muted animate-pulse"></div>
-                        ))}
+                    <div>
+                        <p className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                            <BookOpen className="h-4 w-4 animate-pulse text-primary" aria-hidden="true" />
+                            Loading your courses…
+                        </p>
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="h-96 animate-pulse rounded-2xl border border-border bg-muted/60" />
+                            ))}
+                        </div>
                     </div>
                 ) : filteredCourses.length === 0 ? (
-                    <div className="text-center py-20 text-muted-foreground">
-                        <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                        <p className="text-lg">No courses found matching your criteria.</p>
-                        <Button variant="link" onClick={() => { setSearchQuery(""); setFilterCertification("All"); }}>Clear Filters</Button>
+                    <div className="mx-auto max-w-md py-20 text-center">
+                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-primary">
+                            <SearchX className="h-8 w-8" aria-hidden="true" />
+                        </div>
+                        <h2 className="font-display text-xl font-bold text-foreground">No matches yet, Yatris</h2>
+                        <p className="mt-2 text-muted-foreground">
+                            Fresh tracks and workshops drop often. Try another search, or clear your filters to see everything.
+                        </p>
+                        <Button
+                            variant="outline"
+                            onClick={() => { setSearchQuery(""); setFilterCertification("All"); }}
+                            className="mt-5 min-h-[44px] rounded-full"
+                        >
+                            Show all courses <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+                        </Button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredCourses.map(course => (
-                            <Link to={`/training/${createSlug(course.subType)}/${createSlug(course.courseName)}`} key={course.id} className="group">
-                                <Card className="h-full hover:shadow-xl transition-all duration-300 border-border/50 overflow-hidden flex flex-col group-hover:-translate-y-1">
-                                    <div className="relative aspect-video bg-muted overflow-hidden">
-                                        {course.thumbnailUrl ? (
-                                            <img src={course.thumbnailUrl} alt={course.courseName} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500/10 to-purple-500/10">
-                                                <BookOpen className="w-12 h-12 text-indigo-500/30" />
-                                            </div>
-                                        )}
-                                        <div className="absolute top-2 left-2 flex gap-2">
-                                            {course.mode === "On-site" && (
-                                                <Badge className="bg-amber-500/90 hover:bg-amber-600 text-white border-none shadow-sm">
-                                                    On-site
-                                                </Badge>
-                                            )}
-                                            {course.paymentType === "Free" && (
-                                                <Badge className="bg-emerald-500/90 hover:bg-emerald-600 text-white border-none shadow-sm">
-                                                    Free
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <CardContent className="p-4 flex-1 flex flex-col gap-2">
-                                        <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                                            <Tag className="w-3 h-3" /> {course.subType}
-                                        </div>
-                                        <h3 className="font-bold text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                                            {course.courseName}
-                                        </h3>
-                                        {/* Description removed for better catalog UI - details still visible in individual training pages */}
-
-
-                                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-4 pt-4 border-t">
-                                            <span className="flex items-center gap-1">
-                                                <User className="w-3 h-3" /> {course.instructor || "Yatri Team"}
-                                            </span>
-                                            {/* Duration removed as it contains long topic list - kept for detail page */}
-
-                                            <span className="flex items-center gap-1 ml-auto text-amber-500 font-medium">
-                                                <Star className="w-3 h-3 fill-current" /> 4.8
-                                            </span>
-                                        </div>
-                                    </CardContent>
-
-                                    <CardFooter className="p-4 bg-muted/20 flex items-center justify-between border-t">
-                                        <div className="font-bold text-lg">
-                                            {course.paymentType === "Paid" ? (
-                                                <span className="text-primary">{course.price}</span>
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {filteredCourses.map((course, index) => (
+                            <motion.div
+                                key={course.id}
+                                initial={{ opacity: 0, y: reduceMotion ? 0 : 18 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: "-40px" }}
+                                transition={{ duration: 0.4, delay: reduceMotion ? 0 : Math.min(index, 7) * 0.05 }}
+                            >
+                                <Link
+                                    to={`/training/${createSlug(course.subType)}/${createSlug(course.courseName)}`}
+                                    className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                >
+                                    <Card className="flex h-full flex-col overflow-hidden border-border transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-elevated">
+                                        <div className="relative aspect-video overflow-hidden bg-muted">
+                                            {course.thumbnailUrl ? (
+                                                <img src={course.thumbnailUrl} alt={course.courseName} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                             ) : (
-                                                <span className="text-emerald-600">Free</span>
+                                                <div className="flex h-full w-full items-center justify-center bg-brand-50">
+                                                    <BookOpen className="h-12 w-12 text-primary/30" aria-hidden="true" />
+                                                </div>
                                             )}
+                                            <div className="absolute left-2 top-2 flex gap-2">
+                                                {course.mode === "On-site" && (
+                                                    <Badge className="border-none bg-warning text-white shadow-sm hover:bg-warning/90">
+                                                        <MapPin className="mr-1 h-3 w-3" aria-hidden="true" /> On-site
+                                                    </Badge>
+                                                )}
+                                                {course.paymentType === "Free" && (
+                                                    <Badge className="border-none bg-success text-white shadow-sm hover:bg-success/90">
+                                                        Free access
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
-                                        <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground group-hover:shadow-lg transition-all">
-                                            Details <ArrowRight className="w-4 h-4 ml-1" />
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-                            </Link>
+
+                                        <CardContent className="flex flex-1 flex-col gap-2 p-4">
+                                            <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                                                <Tag className="h-3 w-3" aria-hidden="true" /> {course.subType}
+                                            </div>
+                                            <h3 className="line-clamp-2 text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
+                                                {course.courseName}
+                                            </h3>
+                                            {/* Description removed for better catalog UI - details still visible in individual training pages */}
+
+
+                                            <div className="mt-4 flex items-center gap-4 border-t border-border pt-4 text-xs text-muted-foreground">
+                                                <span className="flex items-center gap-1">
+                                                    <User className="h-3 w-3" aria-hidden="true" /> {course.instructor || "Yatri Team"}
+                                                </span>
+                                                {/* Duration removed as it contains long topic list - kept for detail page */}
+
+                                                <span className="ml-auto flex items-center gap-1 font-medium text-warning">
+                                                    <Star className="h-3 w-3 fill-current" aria-hidden="true" /> 4.8
+                                                </span>
+                                            </div>
+                                        </CardContent>
+
+                                        <CardFooter className="flex items-center justify-between border-t border-border bg-brand-50/40 p-4">
+                                            <div className="text-lg font-bold">
+                                                {course.paymentType === "Paid" ? (
+                                                    <span className="text-primary">{course.price}</span>
+                                                ) : (
+                                                    <span className="text-success">Free</span>
+                                                )}
+                                            </div>
+                                            <span className="inline-flex min-h-[44px] items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-inset-btn transition-all group-hover:shadow-glow-soft">
+                                                View course <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+                                            </span>
+                                        </CardFooter>
+                                    </Card>
+                                </Link>
+                            </motion.div>
                         ))}
                     </div>
                 )}

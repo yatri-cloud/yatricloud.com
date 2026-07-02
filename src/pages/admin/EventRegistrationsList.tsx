@@ -190,70 +190,90 @@ export default function EventRegistrationsList() {
     if (!event) {
         return (
             <div className="p-6 flex items-center justify-center min-h-screen">
-                <Loader2 className="w-8 h-8 animate-spin" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
 
     return (
-        <div className="p-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-6">
+        <div className="px-4 md:px-8 py-8 md:py-10">
+            <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+                {/* Header band — distinct blue-tinted workspace panel */}
+                <div className="space-y-3">
                     <Button
                         variant="ghost"
-                        className="mb-4"
+                        className="-ml-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
                         onClick={() => navigate('/admin/events')}
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Events
                     </Button>
-                    <h1 className="text-3xl font-bold mb-2">{event.name}</h1>
-                    <p className="text-muted-foreground">Event Registrations</p>
-                </div>
+                    <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                        <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                        <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <Card className="p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground">Total Registrations</p>
-                                <p className="text-2xl font-bold">{stats.total}</p>
+                        <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                            <div className="space-y-1.5">
+                                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Registrations
+                                </p>
+                                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">{event.name}</h1>
+                                <p className="text-muted-foreground">Manage attendees, check-ins, and ticket details.</p>
                             </div>
-                            <User className="w-8 h-8 text-primary" />
                         </div>
-                    </Card>
-                    <Card className="p-4">
-                        <div className="flex items-center justify-between">
+
+                        {/* Stats Cards inside the band so white cards pop against the tint */}
+                        <div className="relative mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5">
+                    <div className="border border-border rounded-2xl bg-card p-5 md:p-6">
+                        <div className="flex items-center justify-between gap-3">
                             <div>
-                                <p className="text-sm text-muted-foreground">Pending Check-in</p>
-                                <p className="text-2xl font-bold">{stats.registered}</p>
+                                <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Registrations</p>
+                                <p className="text-2xl font-bold tabular-nums mt-1">{stats.total}</p>
                             </div>
-                            <Calendar className="w-8 h-8 text-blue-600" />
+                            <div className="rounded-2xl bg-primary/10 text-primary p-2.5">
+                                <User className="w-5 h-5" />
+                            </div>
                         </div>
-                    </Card>
-                    <Card className="p-4">
-                        <div className="flex items-center justify-between">
+                    </div>
+                    <div className="border border-border rounded-2xl bg-card p-5 md:p-6">
+                        <div className="flex items-center justify-between gap-3">
                             <div>
-                                <p className="text-sm text-muted-foreground">Attended</p>
-                                <p className="text-2xl font-bold">{stats.attended}</p>
+                                <p className="text-xs uppercase tracking-wide text-muted-foreground">Pending Check-in</p>
+                                <p className="text-2xl font-bold tabular-nums mt-1">{stats.registered}</p>
                             </div>
-                            <CheckCircle2 className="w-8 h-8 text-green-600" />
+                            <div className="rounded-2xl bg-primary/10 text-primary p-2.5">
+                                <Calendar className="w-5 h-5" />
+                            </div>
                         </div>
-                    </Card>
-                    <Card className="p-4">
-                        <div className="flex items-center justify-between">
+                    </div>
+                    <div className="border border-border rounded-2xl bg-card p-5 md:p-6">
+                        <div className="flex items-center justify-between gap-3">
                             <div>
-                                <p className="text-sm text-muted-foreground">Cancelled</p>
-                                <p className="text-2xl font-bold">{stats.cancelled}</p>
+                                <p className="text-xs uppercase tracking-wide text-muted-foreground">Attended</p>
+                                <p className="text-2xl font-bold tabular-nums mt-1">{stats.attended}</p>
                             </div>
-                            <Banknote className="w-8 h-8 text-red-600" />
+                            <div className="rounded-2xl bg-success/10 text-success p-2.5">
+                                <CheckCircle2 className="w-5 h-5" />
+                            </div>
                         </div>
-                    </Card>
+                    </div>
+                    <div className="border border-border rounded-2xl bg-card p-5 md:p-6">
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <p className="text-xs uppercase tracking-wide text-muted-foreground">Cancelled</p>
+                                <p className="text-2xl font-bold tabular-nums mt-1">{stats.cancelled}</p>
+                            </div>
+                            <div className="rounded-2xl bg-destructive/10 text-destructive p-2.5">
+                                <Banknote className="w-5 h-5" />
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    </div>
                 </div>
 
                 {/* Filters and Search */}
-                <Card className="p-4 mb-6">
+                <div className="border border-border rounded-2xl bg-card p-5 md:p-6">
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -261,14 +281,14 @@ export default function EventRegistrationsList() {
                                 placeholder="Search by name, email, or code..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10"
+                                className="pl-10 min-h-[44px]"
                             />
                         </div>
                         <Select
                             value={statusFilter}
                             onValueChange={(value: any) => setStatusFilter(value)}
                         >
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-full md:w-[180px] min-h-[44px]">
                                 <SelectValue placeholder="Filter by status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -282,7 +302,7 @@ export default function EventRegistrationsList() {
                             value={ticketFilter}
                             onValueChange={(value: any) => setTicketFilter(value)}
                         >
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-full md:w-[180px] min-h-[44px]">
                                 <SelectValue placeholder="Filter by ticket" />
                             </SelectTrigger>
                             <SelectContent>
@@ -291,79 +311,94 @@ export default function EventRegistrationsList() {
                                 <SelectItem value="paid">Paid</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Button onClick={handleExportCSV} variant="outline">
+                        <Button onClick={handleExportCSV} variant="outline" className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring">
                             <Download className="w-4 h-4 mr-2" />
                             Export CSV
                         </Button>
                     </div>
-                </Card>
+                </div>
 
                 {/* Registrations Table */}
-                <Card>
+                <div className="border border-border rounded-2xl bg-card overflow-hidden">
                     <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Code</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Phone</TableHead>
-                                <TableHead>Ticket</TableHead>
-                                <TableHead>Payment</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                            <TableRow className="hover:bg-transparent">
+                                <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Code</TableHead>
+                                <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Name</TableHead>
+                                <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Email</TableHead>
+                                <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Phone</TableHead>
+                                <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Ticket</TableHead>
+                                <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Payment</TableHead>
+                                <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Status</TableHead>
+                                <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3 text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className="divide-y divide-border">
                             {filteredRegistrations.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                        {searchQuery || statusFilter !== "all"
-                                            ? "No registrations match your filters"
-                                            : "No registrations yet"}
+                                <TableRow className="hover:bg-transparent">
+                                    <TableCell colSpan={8} className="text-center py-16">
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="rounded-2xl bg-primary/10 text-primary p-4">
+                                                <User className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-display text-lg font-semibold">
+                                                    {searchQuery || statusFilter !== "all"
+                                                        ? "No matches found"
+                                                        : "No registrations yet"}
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    {searchQuery || statusFilter !== "all"
+                                                        ? "Try adjusting your search or filters."
+                                                        : "Attendees will appear here once they register."}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 filteredRegistrations.map((reg) => (
-                                    <TableRow key={reg.id}>
-                                        <TableCell className="font-mono text-sm">{reg.registrationCode}</TableCell>
-                                        <TableCell className="font-medium">{reg.userDetails.name}</TableCell>
-                                        <TableCell>{reg.userDetails.email}</TableCell>
-                                        <TableCell>{reg.userDetails.phone}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline" className={reg.ticketType === 'paid' ? 'border-primary text-primary' : ''}>
+                                    <TableRow key={reg.id} className="text-sm hover:bg-brand-50">
+                                        <TableCell className="font-mono text-sm px-4 py-3">{reg.registrationCode}</TableCell>
+                                        <TableCell className="font-medium px-4 py-3">{reg.userDetails.name}</TableCell>
+                                        <TableCell className="px-4 py-3">{reg.userDetails.email}</TableCell>
+                                        <TableCell className="px-4 py-3 tabular-nums">{reg.userDetails.phone}</TableCell>
+                                        <TableCell className="px-4 py-3">
+                                            <Badge variant="outline" className={`rounded-full text-xs font-medium ${reg.ticketType === 'paid' ? 'border-primary text-primary' : ''}`}>
                                                 {reg.ticketType === 'paid' && reg.ticketPrice
                                                     ? `Paid (₹${reg.ticketPrice})`
                                                     : 'Free'}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="px-4 py-3">
                                             {reg.ticketType === 'paid' ? (
-                                                <Badge variant={reg.paymentStatus === 'completed' ? 'default' : 'destructive'}
-                                                    className={reg.paymentStatus === 'completed' ? 'bg-green-600' : ''}>
+                                                <Badge className={`rounded-full text-xs font-medium ${reg.paymentStatus === 'completed' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
                                                     {reg.paymentStatus === 'completed' ? 'Paid' : 'Pending'}
                                                 </Badge>
                                             ) : (
                                                 <span className="text-muted-foreground text-sm">-</span>
                                             )}
                                         </TableCell>
-                                        <TableCell>
-                                            <Badge className={
+                                        <TableCell className="px-4 py-3">
+                                            <Badge className={`rounded-full text-xs font-medium ${
                                                 reg.status === 'attended'
-                                                    ? 'bg-green-600'
+                                                    ? 'bg-success/10 text-success'
                                                     : reg.status === 'cancelled'
-                                                        ? 'bg-red-600'
-                                                        : 'bg-blue-600'
-                                            }>
+                                                        ? 'bg-destructive/10 text-destructive'
+                                                        : 'bg-primary/10 text-primary'
+                                            }`}>
                                                 {reg.status === 'attended' ? 'Attended' : reg.status === 'cancelled' ? 'Cancelled' : 'Registered'}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-2">
+                                        <TableCell className="px-4 py-3 text-right">
+                                            <div className="flex items-center justify-end gap-1">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
                                                     onClick={() => handleEditClick(reg)}
                                                     title="Edit Details"
+                                                    aria-label="Edit registration details"
+                                                    className="focus-visible:ring-2 focus-visible:ring-ring"
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </Button>
@@ -372,8 +407,9 @@ export default function EventRegistrationsList() {
                                                         variant="ghost"
                                                         size="icon"
                                                         onClick={() => handleDeleteClick(reg)}
-                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground focus-visible:ring-2 focus-visible:ring-ring"
                                                         title="Cancel Registration"
+                                                        aria-label="Cancel registration"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </Button>
@@ -382,6 +418,7 @@ export default function EventRegistrationsList() {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => setSelectedRegistration(reg)}
+                                                    className="focus-visible:ring-2 focus-visible:ring-ring"
                                                 >
                                                     View
                                                 </Button>
@@ -392,20 +429,20 @@ export default function EventRegistrationsList() {
                             )}
                         </TableBody>
                     </Table>
-                </Card>
+                </div>
             </div>
 
             {/* View Modal */}
             <Dialog open={selectedRegistration !== null} onOpenChange={() => setSelectedRegistration(null)}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Registration Details</DialogTitle>
+                        <DialogTitle className="font-display">Registration Details</DialogTitle>
                     </DialogHeader>
                     {selectedRegistration && (
                         <div className="space-y-6">
                             {/* Registration Code */}
-                            <div className="bg-muted rounded-lg p-4 text-center">
-                                <p className="text-sm text-muted-foreground mb-1">Registration Code</p>
+                            <div className="bg-muted rounded-2xl p-5 text-center">
+                                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Registration Code</p>
                                 <p className="text-2xl font-mono font-bold tracking-wider">
                                     {selectedRegistration.registrationCode}
                                 </p>
@@ -413,14 +450,14 @@ export default function EventRegistrationsList() {
 
                             {/* Status Badge */}
                             <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold">User Information</h3>
-                                <Badge className={
+                                <h3 className="font-display text-lg font-semibold">User Information</h3>
+                                <Badge className={`rounded-full text-xs font-medium ${
                                     selectedRegistration.status === 'attended'
-                                        ? 'bg-green-600'
+                                        ? 'bg-success/10 text-success'
                                         : selectedRegistration.status === 'cancelled'
-                                            ? 'bg-red-600'
-                                            : 'bg-blue-600'
-                                }>
+                                            ? 'bg-destructive/10 text-destructive'
+                                            : 'bg-primary/10 text-primary'
+                                }`}>
                                     {selectedRegistration.status.toUpperCase()}
                                 </Badge>
                             </div>
@@ -480,8 +517,8 @@ export default function EventRegistrationsList() {
                             </div>
 
                             {/* Registration Timeline */}
-                            <div className="border-t pt-4">
-                                <h3 className="text-sm font-semibold mb-3">Registration Timeline</h3>
+                            <div className="border-t border-border pt-4">
+                                <h3 className="text-xs uppercase tracking-wide text-muted-foreground mb-3">Registration Timeline</h3>
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Registered:</span>
@@ -492,7 +529,7 @@ export default function EventRegistrationsList() {
                                     {selectedRegistration.attendedAt && (
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Checked In:</span>
-                                            <span className="font-medium text-green-600">
+                                            <span className="font-medium text-success">
                                                 {new Date(selectedRegistration.attendedAt).toLocaleString()}
                                             </span>
                                         </div>
@@ -501,8 +538,8 @@ export default function EventRegistrationsList() {
                             </div>
 
                             <DialogFooter>
-                                <Button variant="outline" onClick={() => setSelectedRegistration(null)}>Close</Button>
-                                <Button variant="outline" onClick={() => {
+                                <Button variant="outline" className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setSelectedRegistration(null)}>Close</Button>
+                                <Button variant="outline" className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring" onClick={() => {
                                     setSelectedRegistration(null);
                                     handleEditClick(selectedRegistration);
                                 }}>Edit</Button>
@@ -516,7 +553,7 @@ export default function EventRegistrationsList() {
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Edit Registration Details</DialogTitle>
+                        <DialogTitle className="font-display">Edit Registration Details</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
@@ -572,8 +609,8 @@ export default function EventRegistrationsList() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSaveEdit}>Save Changes</Button>
+                        <Button variant="outline" className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                        <Button className="rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring" onClick={handleSaveEdit}>Save Changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

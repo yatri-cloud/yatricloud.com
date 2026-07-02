@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Linkedin, Calendar, Award, Sparkles } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Award, Trophy, Building2 } from "lucide-react";
 import { fetchCertifications } from "@/lib/google-sheets";
 
 interface CertificationEntry {
@@ -19,6 +19,7 @@ interface CertificationEntry {
 export const AchievementsHeader = () => {
   const [certifications, setCertifications] = useState<CertificationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     loadCertifications();
@@ -84,59 +85,62 @@ export const AchievementsHeader = () => {
   }
 
   return (
-    <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-16 z-40">
+    <div className="border-b border-brand-100 bg-white/70 backdrop-blur-md sticky top-16 z-40">
       <div className="container mx-auto px-4 md:px-6 py-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          {/* Stats */}
-          <div className="flex items-center gap-6 flex-wrap">
+          {/* Live Wall of Fame stats — real, honest counts */}
+          <div className="flex items-center gap-5 sm:gap-6 flex-wrap">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm font-semibold text-foreground">
-                {totalCertifications} {totalCertifications === 1 ? "Achievement" : "Achievements"}
+              <Trophy className="w-4 h-4 text-primary" strokeWidth={2.5} />
+              <span className="text-sm font-semibold font-display text-foreground tabular-nums">
+                {totalCertifications} {totalCertifications === 1 ? "Yatri win" : "Yatri wins"}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm text-muted-foreground">
-                {uniqueProviders} {uniqueProviders === 1 ? "Provider" : "Providers"}
+              <Building2 className="w-4 h-4 text-primary" />
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {uniqueProviders} {uniqueProviders === 1 ? "cloud provider" : "cloud providers"}
               </span>
             </div>
             {thisMonth > 0 && (
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span className="text-sm text-muted-foreground">
-                  {thisMonth} This Month
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                <span className="text-sm text-muted-foreground tabular-nums">
+                  {thisMonth} celebrated this month
                 </span>
               </div>
             )}
           </div>
 
-          {/* Recent Achievements */}
+          {/* Freshly certified Yatris — real faces */}
           {certifications.length > 0 && (
             <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+              <span className="hidden sm:inline text-xs font-medium uppercase tracking-wide text-primary/70 min-w-fit">
+                Just certified
+              </span>
               {certifications.slice(0, 5).map((cert, index) => (
                 <motion.div
                   key={cert.id}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: prefersReducedMotion ? 0 : index * 0.08 }}
                   className="flex items-center gap-2 min-w-fit"
                 >
                   <div className="relative">
                     <img
                       src={cert.photoUrl || "https://via.placeholder.com/32"}
-                      alt={cert.fullName}
-                      className="w-8 h-8 rounded-full object-cover border-2 border-primary/20"
+                      alt={`${cert.fullName}, certified Yatri`}
+                      className="w-8 h-8 rounded-full object-cover border-2 border-brand-200"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://via.placeholder.com/32";
                       }}
                     />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full border-2 border-background flex items-center justify-center">
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full border-2 border-white flex items-center justify-center">
                       <Award className="w-1.5 h-1.5 text-primary-foreground" />
                     </div>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium text-foreground leading-tight">
+                    <span className="text-xs font-semibold text-foreground leading-tight">
                       {cert.fullName.split(" ")[0]}
                     </span>
                     <span className="text-xs text-muted-foreground leading-tight">
@@ -146,8 +150,8 @@ export const AchievementsHeader = () => {
                 </motion.div>
               ))}
               {certifications.length > 5 && (
-                <div className="text-xs text-muted-foreground px-2">
-                  +{certifications.length - 5} more
+                <div className="text-xs font-medium text-primary px-2 min-w-fit">
+                  +{certifications.length - 5} more Yatris
                 </div>
               )}
             </div>

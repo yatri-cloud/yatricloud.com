@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, ReactNode } from "react";
 
 type Theme = "light" | "dark";
 
@@ -23,65 +23,29 @@ interface ThemeProviderProps {
   defaultTheme?: Theme;
 }
 
-export const ThemeProvider = ({ children, defaultTheme = "light" }: ThemeProviderProps) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    // Check localStorage first - if user has set a preference, use it
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("theme") as Theme | null;
-      if (stored && (stored === "light" || stored === "dark")) {
-        return stored;
-      }
-    }
-    // Always default to dark mode (ignore system preference)
-    return defaultTheme;
-  });
-
-  // Set initial theme immediately to prevent flash
+/**
+ * Single fixed theme for everyone (light).
+ * The dark theme and the light/dark toggle were intentionally removed — the
+ * site now ships ONE professional white / black / blue design, with contrast
+ * created by per-section background bands (white, black, blue, light-blue)
+ * rather than a theme switch. `useTheme` is kept as a stable, no-op-compatible
+ * API so existing consumers (e.g. CommunitySection) keep working unchanged.
+ */
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   useEffect(() => {
     const root = document.documentElement;
-    const initialTheme = (() => {
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("theme") as Theme | null;
-        if (stored && (stored === "light" || stored === "dark")) {
-          return stored;
-        }
-      }
-      // Always default to dark mode (ignore system preference)
-      return defaultTheme;
-    })();
-
-    if (initialTheme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [defaultTheme]);
-
-  // Update theme when it changes
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    root.classList.remove("dark");
     if (typeof window !== "undefined") {
-      localStorage.setItem("theme", theme);
+      // Clear any previously persisted preference so returning users get light.
+      localStorage.removeItem("theme");
     }
-  }, [theme, defaultTheme]);
+  }, []);
 
-  const toggleTheme = () => {
-    setThemeState((prev) => (prev === "light" ? "dark" : "light"));
+  const value: ThemeContextType = {
+    theme: "light",
+    toggleTheme: () => {},
+    setTheme: () => {},
   };
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
-

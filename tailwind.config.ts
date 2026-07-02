@@ -15,8 +15,41 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter Tight', 'Inter Tight Placeholder', 'system-ui', 'sans-serif'],
+        display: ['Bricolage Grotesque', 'Inter Tight', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        'inset-btn': 'var(--shadow-inset)',
+        card: 'var(--shadow-card)',
+        elevated: 'var(--shadow-elevated)',
+        'focus-ring': 'var(--shadow-focus)',
+        'glow-blue': 'var(--glow-blue)',
+        'glow-soft': 'var(--glow-soft)',
+      },
+      transitionTimingFunction: {
+        'out-expo': 'var(--ease-out)',
+        'in-quart': 'var(--ease-in)',
+      },
+      transitionDuration: {
+        fast: '150ms',
+        base: '220ms',
+        slow: '360ms',
       },
       colors: {
+        /* Brand blue scale (additive; NOT named `blue` to avoid clobbering Tailwind's default blue used elsewhere) */
+        brand: {
+          50: "hsl(var(--blue-50))",
+          100: "hsl(var(--blue-100))",
+          200: "hsl(var(--blue-200))",
+          300: "hsl(var(--blue-300))",
+          400: "hsl(var(--blue-400))",
+          500: "hsl(var(--blue-500))",
+          600: "hsl(var(--blue-600))",
+          700: "hsl(var(--blue-700))",
+          800: "hsl(var(--blue-800))",
+          900: "hsl(var(--blue-900))",
+        },
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

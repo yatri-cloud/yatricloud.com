@@ -595,8 +595,8 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                         </Button>
 
                         <div className="text-center mb-12">
-                            <h1 className="text-4xl font-bold mb-3">Create New Event</h1>
-                            <p className="text-lg text-muted-foreground">First, let us know what kind of help you need</p>
+                            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight mb-3">Create New Event</h1>
+                            <p className="text-muted-foreground">First, tell us where you'd like the community to pitch in.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -605,7 +605,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                 onClick={() => {
                                     setFormData({ ...formData, lookingForVenue: !formData.lookingForVenue });
                                 }}
-                                className={`p-8 rounded-xl border-2 transition-all hover:scale-105 ${formData.lookingForVenue
+                                className={`p-8 rounded-2xl border-2 transition-all hover:scale-[1.02] ${formData.lookingForVenue
                                     ? 'border-primary bg-primary/10'
                                     : 'border-border bg-card hover:border-primary/50'
                                     }`}
@@ -615,7 +615,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                         }`}>
                                         <MapPin className="w-8 h-8" />
                                     </div>
-                                    <h3 className="font-bold text-lg">Looking for Venue</h3>
+                                    <h3 className="font-display font-bold text-lg">Looking for Venue</h3>
                                     <p className="text-sm text-muted-foreground text-center">
                                         Get venue proposals from the community
                                     </p>
@@ -633,7 +633,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                 onClick={() => {
                                     setFormData({ ...formData, lookingForSpeakers: !formData.lookingForSpeakers });
                                 }}
-                                className={`p-8 rounded-xl border-2 transition-all hover:scale-105 ${formData.lookingForSpeakers
+                                className={`p-8 rounded-2xl border-2 transition-all hover:scale-[1.02] ${formData.lookingForSpeakers
                                     ? 'border-primary bg-primary/10'
                                     : 'border-border bg-card hover:border-primary/50'
                                     }`}
@@ -643,7 +643,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                         }`}>
                                         <Users className="w-8 h-8" />
                                     </div>
-                                    <h3 className="font-bold text-lg">Looking for Speakers</h3>
+                                    <h3 className="font-display font-bold text-lg">Looking for Speakers</h3>
                                     <p className="text-sm text-muted-foreground text-center">
                                         Collect speaker applications from experts
                                     </p>
@@ -661,7 +661,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                 onClick={() => {
                                     setFormData({ ...formData, lookingForSponsors: !formData.lookingForSponsors });
                                 }}
-                                className={`p-8 rounded-xl border-2 transition-all hover:scale-105 ${formData.lookingForSponsors
+                                className={`p-8 rounded-2xl border-2 transition-all hover:scale-[1.02] ${formData.lookingForSponsors
                                     ? 'border-primary bg-primary/10'
                                     : 'border-border bg-card hover:border-primary/50'
                                     }`}
@@ -671,7 +671,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                         }`}>
                                         <Handshake className="w-8 h-8" />
                                     </div>
-                                    <h3 className="font-bold text-lg">Looking for Sponsors</h3>
+                                    <h3 className="font-display font-bold text-lg">Looking for Sponsors</h3>
                                     <p className="text-sm text-muted-foreground text-center">
                                         Receive sponsorship proposals from companies
                                     </p>
@@ -703,34 +703,54 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
             ) : (
                 // Main Event Creation Form
                 <div className="min-h-screen bg-background">
-                    <div className="border-b bg-card">
-                        <div className="container mx-auto px-4 py-4">
-                            <div className="flex items-center justify-between mb-6">
-                                <Button variant="ghost" className="gap-2" onClick={() => navigate('/admin/events')}>
-                                    <ArrowLeft className="w-4 h-4" /> To Admin Dashboard
-                                </Button>
-                                <h1 className="text-xl font-bold">{isEditMode ? 'Edit Event' : 'Create New Event'}</h1>
+                    {/* Sticky action toolbar — a distinct nav bar, separate from the page */}
+                    <div className="sticky top-0 z-30 border-b border-border bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                        <div className="container mx-auto px-4 md:px-8">
+                            <div className="flex h-16 items-center justify-between gap-3">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <Button
+                                        variant="ghost"
+                                        className="-ml-2 gap-2 rounded-xl text-muted-foreground hover:bg-brand-50 hover:text-primary min-h-[44px]"
+                                        onClick={() => navigate('/admin/events')}
+                                    >
+                                        <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">To Admin Dashboard</span>
+                                    </Button>
+                                    <div className="mx-1 hidden h-6 w-px bg-border md:block" />
+                                    <span className="hidden truncate font-display text-base font-bold tracking-tight md:block">{isEditMode ? 'Edit Event' : 'Create New Event'}</span>
+                                </div>
                                 <div className="flex gap-2">
                                     {!isEditMode && (
                                         <Button
                                             onClick={handlePublishAsUpcoming}
                                             disabled={isSubmitting || (!formData.lookingForVenue && !formData.lookingForSpeakers && !formData.lookingForSponsors)}
                                             variant="outline"
-                                            className="gap-2 border-primary text-primary hover:bg-primary/10"
+                                            className="gap-2 border border-primary bg-transparent text-primary rounded-xl hover:bg-brand-50 hover:text-primary min-h-[44px]"
                                         >
                                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
-                                            Publish as Upcoming
+                                            <span className="hidden sm:inline">Publish as Upcoming</span><span className="sm:hidden">Upcoming</span>
                                         </Button>
                                     )}
                                     <Button
                                         onClick={handleFinalSubmit}
                                         disabled={isSubmitting}
-                                        className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                                        className="bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 hover:text-primary-foreground min-h-[44px] font-semibold focus-visible:ring-2 focus-visible:ring-ring gap-2"
                                     >
                                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                                         {isEditMode ? 'Save Changes' : 'Publish Event'}
                                     </Button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Page header band — eyebrow, title & step progress */}
+                    <div className="border-b border-border bg-gradient-to-br from-primary/[0.07] via-brand-50/40 to-card">
+                        <div className="container mx-auto px-4 md:px-8 py-6 md:py-8">
+                            <div className="mb-7">
+                                <p className="mb-1.5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> {isEditMode ? 'Editing event' : 'New event'}
+                                </p>
+                                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">{isEditMode ? 'Edit Event' : 'Create New Event'}</h1>
                             </div>
 
                             <div className="flex items-center justify-center gap-4 max-w-2xl mx-auto flex-wrap">
@@ -760,18 +780,21 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                         </div>
                     </div>
 
-                    <div className="container mx-auto px-4 py-8 max-w-5xl grid grid-cols-1 lg:grid-cols-[1fr,350px] gap-8">
-                        <div className="space-y-8">
+                    <div className="container mx-auto px-4 md:px-8 py-8 md:py-10 max-w-5xl grid grid-cols-1 lg:grid-cols-[1fr,350px] gap-8">
+                        <div className="space-y-6 md:space-y-8">
                             {step === 1 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                                    <div className="bg-card border rounded-xl p-6 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-6 pb-4 border-b">
-                                            <CalendarIcon className="w-5 h-5 text-primary" />
-                                            <h2 className="text-lg font-semibold">Event Basic Information</h2>
+                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+                                        <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                            <div className="min-w-0">
+                                                <h2 className="font-display text-lg font-semibold tracking-tight">Event Basic Information</h2>
+                                                <p className="text-sm text-muted-foreground">Name, poster, date &amp; time, location, and what the event is about.</p>
+                                            </div>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2 md:col-span-2">
-                                                <Label htmlFor="eventName">Event Name <span className="text-red-500">*</span></Label>
+                                                <Label htmlFor="eventName">Event Name <span className="text-destructive">*</span></Label>
                                                 <Input
                                                     id="eventName"
                                                     placeholder="e.g. AWS Cloud Summit 2026"
@@ -786,7 +809,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                                 <div className="flex items-center justify-between">
                                                     <Label className="flex items-center gap-2">
                                                         <ImageIcon className="w-4 h-4 text-primary" />
-                                                        Event Poster <span className="text-red-500">*</span>
+                                                        Event Poster <span className="text-destructive">*</span>
                                                         <span className="text-xs text-muted-foreground font-normal ml-2">(16:9 Aspect Ratio Recommended, e.g. 1920x1080)</span>
                                                     </Label>
                                                     {formData.posterUrl && (
@@ -828,7 +851,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border rounded-lg bg-muted/20">
 
                                                 <div className="space-y-2 flex flex-col">
-                                                    <Label className="mb-1">Start Date <span className="text-red-500">*</span></Label>
+                                                    <Label className="mb-1">Start Date <span className="text-destructive">*</span></Label>
                                                     <Popover>
                                                         <PopoverTrigger asChild>
                                                             <Button variant="outline" className={cn("pl-3 text-left font-normal h-11", !formData.startDate && "text-muted-foreground")}>
@@ -848,7 +871,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label>Start Time (IST) <span className="text-red-500">*</span></Label>
+                                                    <Label>Start Time (IST) <span className="text-destructive">*</span></Label>
                                                     <Select value={formData.startTime} onValueChange={(v) => setFormData({ ...formData, startTime: v })}>
                                                         <SelectTrigger className="h-11">
                                                             <SelectValue placeholder="Select time" />
@@ -874,7 +897,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
 
                                                 {!formData.isSameDay && (
                                                     <div className="space-y-2 flex flex-col animate-in fade-in slide-in-from-top-2">
-                                                        <Label className="mb-1 text-primary">End Date <span className="text-red-500">*</span></Label>
+                                                        <Label className="mb-1 text-primary">End Date <span className="text-destructive">*</span></Label>
                                                         <Popover>
                                                             <PopoverTrigger asChild>
                                                                 <Button variant="outline" className={cn("pl-3 text-left font-normal h-11 border-primary/50 bg-primary/5", !formData.endDate && "text-muted-foreground")}>
@@ -943,7 +966,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <Label>Google Maps Link {formData.lookingForVenue ? <span className="text-muted-foreground font-normal">(Optional)</span> : <span className="text-red-500">*</span>}</Label>
+                                                    <Label>Google Maps Link {formData.lookingForVenue ? <span className="text-muted-foreground font-normal">(Optional)</span> : <span className="text-destructive">*</span>}</Label>
                                                     <div className="flex gap-2">
                                                         <div className="relative flex-1">
                                                             <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -976,11 +999,11 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                                         </Select>
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label htmlFor="city">City {formData.lookingForVenue ? <span className="text-muted-foreground font-normal">(Optional)</span> : <span className="text-red-500">*</span>}</Label>
+                                                        <Label htmlFor="city">City {formData.lookingForVenue ? <span className="text-muted-foreground font-normal">(Optional)</span> : <span className="text-destructive">*</span>}</Label>
                                                         <Input id="city" placeholder="e.g. Bangalore" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="h-10" />
                                                     </div>
                                                     <div className="space-y-2 md:col-span-2">
-                                                        <Label htmlFor="location">Address / Venue Text {formData.lookingForVenue ? <span className="text-muted-foreground font-normal">(Optional)</span> : <span className="text-red-500">*</span>}</Label>
+                                                        <Label htmlFor="location">Address / Venue Text {formData.lookingForVenue ? <span className="text-muted-foreground font-normal">(Optional)</span> : <span className="text-destructive">*</span>}</Label>
                                                         <Input id="location" placeholder={formData.lookingForVenue ? "TBD (looking for venue)" : "Full address (will be auto-filled from Map Link)"} value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="h-10" />
                                                     </div>
                                                 </div>
@@ -989,7 +1012,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                             {/* Tech Stack & Category */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border rounded-lg bg-muted/20 md:col-span-2">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="category">Category <span className="text-destructive">*</span></Label>
                                                     <Input
                                                         id="category"
                                                         placeholder="e.g. Workshop, Hackathon, Webinar"
@@ -1014,21 +1037,27 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                             </div>
 
                                             <div className="space-y-2 md:col-span-2">
-                                                <Label htmlFor="description">Short Description <span className="text-red-500">*</span></Label>
+                                                <Label htmlFor="description">Short Description <span className="text-destructive">*</span></Label>
                                                 <Input id="description" placeholder="Brief summary" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="h-11" />
                                             </div>
                                             <div className="space-y-2 md:col-span-2">
-                                                <Label htmlFor="aboutEvent">About Event (Detailed) <span className="text-red-500">*</span></Label>
+                                                <Label htmlFor="aboutEvent">About Event (Detailed) <span className="text-destructive">*</span></Label>
                                                 <Textarea id="aboutEvent" placeholder="Detailed description..." value={formData.aboutEvent} onChange={(e) => setFormData({ ...formData, aboutEvent: e.target.value })} className="min-h-[120px]" />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="bg-card border rounded-xl p-6 shadow-sm">
-                                        <h2 className="text-lg font-semibold mb-4 pb-4 border-b">Organizer Details</h2>
+                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+                                        <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">2</span>
+                                            <div className="min-w-0">
+                                                <h2 className="font-display text-lg font-semibold tracking-tight">Organizer Details</h2>
+                                                <p className="text-sm text-muted-foreground">Who's hosting, how to reach them, and the community invite link.</p>
+                                            </div>
+                                        </div>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <div className="space-y-2"><Label>Name <span className="text-red-500">*</span></Label><Input value={formData.organizerName} onChange={(e) => setFormData({ ...formData, organizerName: e.target.value })} /></div>
-                                            <div className="space-y-2"><Label>Email <span className="text-red-500">*</span></Label><Input type="email" value={formData.organizerEmail} onChange={(e) => setFormData({ ...formData, organizerEmail: e.target.value })} /></div>
+                                            <div className="space-y-2"><Label>Name <span className="text-destructive">*</span></Label><Input value={formData.organizerName} onChange={(e) => setFormData({ ...formData, organizerName: e.target.value })} /></div>
+                                            <div className="space-y-2"><Label>Email <span className="text-destructive">*</span></Label><Input type="email" value={formData.organizerEmail} onChange={(e) => setFormData({ ...formData, organizerEmail: e.target.value })} /></div>
                                             <div className="space-y-2"><Label>Phone</Label><Input value={formData.organizerPhone} onChange={(e) => setFormData({ ...formData, organizerPhone: e.target.value })} /></div>
                                             <div className="space-y-2 md:col-span-3 pt-2">
                                                 <Label>Join Community Link</Label>
@@ -1050,8 +1079,14 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
 
                             {step === 2 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                                    <div className="bg-card border rounded-xl p-6 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-6 pb-4 border-b"><Ticket className="w-5 h-5 text-primary" /><h2 className="text-lg font-semibold">Pricing & Tickets</h2></div>
+                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+                                        <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                            <div className="min-w-0">
+                                                <h2 className="font-display text-lg font-semibold tracking-tight">Pricing &amp; Tickets</h2>
+                                                <p className="text-sm text-muted-foreground">Add ticket tiers with prices and benefits, plus the registration deadline.</p>
+                                            </div>
+                                        </div>
                                         <div className="space-y-6">
                                             {formData.tickets.map((ticket, index) => (
                                                 <div key={index} className="flex flex-col gap-4 p-6 border rounded-xl bg-card relative shadow-sm">
@@ -1172,11 +1207,14 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
 
                             {step === 3 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                                    <div className="bg-card border rounded-xl p-6 shadow-sm">
-                                        <div className="flex items-center justify-between mb-6 pb-4 border-b">
-                                            <div className="flex items-center gap-2">
-                                                <Users className="w-5 h-5 text-primary" />
-                                                <h2 className="text-lg font-semibold">Speakers</h2>
+                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+                                        <div className="mb-6 flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-start sm:justify-between">
+                                            <div className="flex items-start gap-3">
+                                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                                <div className="min-w-0">
+                                                    <h2 className="font-display text-lg font-semibold tracking-tight">Speakers</h2>
+                                                    <p className="text-sm text-muted-foreground">Add speakers and their sessions, or open the event to speaker applications.</p>
+                                                </div>
                                             </div>
                                             <div className="flex items-center space-x-2">
                                                 <Checkbox
@@ -1380,8 +1418,14 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
 
                             {step === 4 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                                    <div className="bg-card border rounded-xl p-6 shadow-sm">
-                                        <div className="flex items-center gap-2 mb-6 pb-4 border-b"><Handshake className="w-5 h-5 text-primary" /><h2 className="text-lg font-semibold">Sponsors</h2></div>
+                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+                                        <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                            <div className="min-w-0">
+                                                <h2 className="font-display text-lg font-semibold tracking-tight">Sponsors</h2>
+                                                <p className="text-sm text-muted-foreground">Add sponsors with their tier, website, and logo — or mark none needed.</p>
+                                            </div>
+                                        </div>
 
                                         <div className="flex items-center space-x-2 mb-6 p-4 bg-muted/30 rounded-lg">
                                             <Checkbox
@@ -1478,10 +1522,13 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                     </div>
 
                                     {/* Collaboration Needs */}
-                                    <div className="bg-card border rounded-xl p-6 shadow-sm mt-6">
-                                        <div className="flex items-center gap-2 mb-4 pb-4 border-b">
-                                            <Users className="w-5 h-5 text-primary" />
-                                            <h2 className="text-lg font-semibold">Need Community Help?</h2>
+                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8 mt-6">
+                                        <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">2</span>
+                                            <div className="min-w-0">
+                                                <h2 className="font-display text-lg font-semibold tracking-tight">Need Community Help?</h2>
+                                                <p className="text-sm text-muted-foreground">Publish as an upcoming event to collect venue, speaker, or sponsor proposals.</p>
+                                            </div>
                                         </div>
 
                                         <p className="text-sm text-muted-foreground mb-4">
@@ -1533,11 +1580,14 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
 
                             {step === 5 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                                    <div className="bg-card border rounded-xl p-6 shadow-sm">
-                                        <div className="flex items-center justify-between mb-6 pb-4 border-b">
-                                            <div className="flex items-center gap-2">
-                                                <ImageIcon className="w-5 h-5 text-primary" />
-                                                <h2 className="text-lg font-semibold">Event Gallery</h2>
+                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+                                        <div className="mb-6 flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-start sm:justify-between">
+                                            <div className="flex items-start gap-3">
+                                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                                <div className="min-w-0">
+                                                    <h2 className="font-display text-lg font-semibold tracking-tight">Event Gallery</h2>
+                                                    <p className="text-sm text-muted-foreground">Group event photos and videos into albums to showcase highlights.</p>
+                                                </div>
                                             </div>
                                             <Dialog>
                                                 <DialogTrigger asChild>
@@ -1619,7 +1669,7 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                                         {formData.gallery.length === 0 ? (
                                             <div className="text-center py-16 border-2 border-dashed rounded-xl bg-muted/20">
                                                 <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                                                <h3 className="text-lg font-medium mb-2">No Albums Yet</h3>
+                                                <h3 className="font-display text-lg font-semibold mb-2">No Albums Yet</h3>
                                                 <p className="text-sm text-muted-foreground mb-4">Create your first album to showcase event photos and videos</p>
                                             </div>
                                         ) : (
@@ -1682,8 +1732,8 @@ Keep it professional yet enthusiastic. Use markdown formatting.`;
                         </div>
 
                         <div className="hidden lg:block space-y-6">
-                            <div className="bg-card border rounded-xl p-6 shadow-sm sticky top-8">
-                                <div className="flex items-center justify-between mb-4"><h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Preview</h3><span className="text-[10px] font-bold uppercase tracking-widest bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded border border-yellow-200">Draft</span></div>
+                            <div className="rounded-2xl border border-border bg-card p-6 sticky top-8">
+                                <div className="flex items-center justify-between mb-4"><h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Preview</h3><span className="text-[10px] font-bold uppercase tracking-widest bg-warning/10 text-warning px-2 py-0.5 rounded border border-warning/20">Draft</span></div>
                                 <div className="bg-background rounded-lg border overflow-hidden">
                                     <div className="aspect-video bg-muted relative flex items-center justify-center">
                                         {/* IMAGE PREVIEW */}

@@ -30,109 +30,137 @@ export const LatestExamDumpsSection = () => {
   if (isLoading || dumps.length === 0) return null;
 
   return (
-    <section className="py-24 relative overflow-hidden bg-background">
-      {/* Background Orbs */}
-      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <ScrollReveal>
-          <div className="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">
-            <div className="max-w-2xl">
-              <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
-                Premium Resources
-              </span>
-              <h2 className="text-3xl md:text-5xl font-bold mb-4">
-                Latest <span className="gradient-text">Exam Dumps</span>
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Get the most recent and updated certification exam resources. 
-                Instant delivery to your email after purchase.
-              </p>
-            </div>
-            <Link 
-              to="/examdumps" 
-              className="group flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all"
-            >
-              View All Dumps
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        </ScrollReveal>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {dumps.map((dump, index) => (
-            <ScrollReveal key={dump.id} delay={index * 0.1}>
-              <motion.div
-                className="group relative bg-card border border-border/50 rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 shadow-xl"
-                whileHover={{ y: -10 }}
+    <section className="py-20 md:py-28 bg-background">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="max-w-7xl mx-auto">
+          <ScrollReveal>
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-12 gap-6">
+              <div className="max-w-2xl">
+                <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
+                  Premium Resources
+                </span>
+                <h2 className="font-display text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-4">
+                  Latest <span className="gradient-text">Exam Dumps</span>
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                  Get the most recent and updated certification exam resources.
+                  Instant delivery to your email after purchase.
+                </p>
+              </div>
+              <Link
+                to="/examdumps"
+                className="group inline-flex items-center gap-2 text-primary font-semibold min-h-[44px] transition-colors hover:text-primary/80"
               >
-                {/* Image Container */}
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <img 
-                    src={dump.image || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60"} 
-                    alt={dump.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-primary/90 backdrop-blur-md text-white text-xs font-bold rounded-full">
-                      {dump.provider}
+                View All Dumps
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+              </Link>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {dumps.map((dump, index) => {
+              // Stacked-deck feel: each paper sits at a slight angle and
+              // straightens on hover. Purely presentational.
+              const deckRotate = [-2.5, 1.5, -1][index % 3];
+              const discount = Math.round(
+                ((dump.originalPrice - dump.price) / dump.originalPrice) * 100
+              );
+              return (
+              <ScrollReveal key={dump.id} delay={index * 0.06}>
+                <motion.div
+                  className="group relative h-full flex flex-col bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/40 hover:shadow-card transition-colors duration-300"
+                  style={{ rotate: deckRotate }}
+                  whileHover={{ y: -6, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  {/* Image Container */}
+                  <div className="relative aspect-[16/10] overflow-hidden">
+                    <img
+                      src={dump.image || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60"}
+                      alt={dump.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    {/* Provider document tag */}
+                    <div className="absolute top-4 left-4">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground/80" />
+                        {dump.provider}
+                      </span>
+                    </div>
+                    {/* Discount rubber-stamp */}
+                    <div className="absolute top-3 right-3 rotate-[-8deg] group-hover:rotate-[-4deg] transition-transform duration-300">
+                      <span className="flex flex-col items-center justify-center rounded-full border-2 border-primary/60 bg-background/80 backdrop-blur-sm px-3 py-2 text-primary leading-none tabular-nums">
+                        <span className="text-base font-extrabold">-{discount}%</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-widest">Off</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Ruled exam-paper body */}
+                  <div
+                    className="relative flex flex-col flex-1 p-6 pl-8"
+                    style={{
+                      backgroundImage:
+                        "repeating-linear-gradient(to bottom, transparent, transparent 31px, hsl(var(--border) / 0.6) 31px, hsl(var(--border) / 0.6) 32px)",
+                    }}
+                  >
+                    {/* Margin rule */}
+                    <span className="pointer-events-none absolute inset-y-0 left-5 w-px bg-primary/30" aria-hidden="true" />
+
+                    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+                      Exam Paper
                     </span>
-                  </div>
-                </div>
+                    <h3 className="text-xl font-bold text-foreground mb-4 line-clamp-1 group-hover:text-primary transition-colors">
+                      {dump.title}
+                    </h3>
 
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-3 line-clamp-1 group-hover:text-primary transition-colors">
-                    {dump.title}
-                  </h3>
-                  
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground line-through">
-                        ₹{dump.originalPrice}
-                      </span>
-                      <span className="text-2xl font-black text-primary">
-                        ₹{dump.price}
+                    <div className="flex items-end justify-between mb-6 mt-auto">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground line-through tabular-nums">
+                          ₹{dump.originalPrice}
+                        </span>
+                        <span className="text-2xl font-bold text-primary tabular-nums">
+                          ₹{dump.price}
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Instant delivery
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-green-500 text-xs font-bold bg-green-500/10 px-2 py-1 rounded-md">
-                      <span>-{Math.round(((dump.originalPrice - dump.price) / dump.originalPrice) * 100)}%</span>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          addToCart({
+                            id: dump.id,
+                            title: dump.title,
+                            discountedPrice: dump.price,
+                            originalPrice: dump.originalPrice,
+                            image: dump.image,
+                            type: 'exam-dump',
+                            downloadUrl: dump.downloadUrl
+                          });
+                          toast.success("Added to cart");
+                        }}
+                        className="flex items-center justify-center gap-2 min-h-[44px] bg-primary text-primary-foreground font-semibold py-3 rounded-xl shadow-inset-btn hover:bg-primary/90 transition-colors"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                        Add
+                      </button>
+                      <Link
+                        to="/examdumps"
+                        className="flex items-center justify-center gap-2 min-h-[44px] border border-border text-foreground font-semibold py-3 rounded-xl hover:border-primary/40 hover:bg-secondary transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Details
+                      </Link>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => {
-                        addToCart({
-                          id: dump.id,
-                          title: dump.title,
-                          discountedPrice: dump.price,
-                          originalPrice: dump.originalPrice,
-                          image: dump.image,
-                          type: 'exam-dump',
-                          downloadUrl: dump.downloadUrl
-                        });
-                        toast.success("Added to cart");
-                      }}
-                      className="flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold py-3 rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add
-                    </button>
-                    <Link
-                      to="/examdumps"
-                      className="flex items-center justify-center gap-2 bg-secondary text-foreground font-bold py-3 rounded-xl hover:bg-secondary/80 transition-all"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Details
-                    </Link>
-                  </div>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-          ))}
+                </motion.div>
+              </ScrollReveal>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

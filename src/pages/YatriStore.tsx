@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Loader2, ShoppingCart, IndianRupee, Star } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Loader2, Star, PackageOpen, BadgeCheck, Zap, LifeBuoy, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -16,6 +16,8 @@ import { CartProvider, useCart } from "@/contexts/CartContext";
 
 const YatriStore = () => {
   const navigate = useNavigate();
+  const prefersReducedMotion = useReducedMotion();
+  const rise = prefersReducedMotion ? 0 : 18;
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | "All">("All");
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,50 +67,52 @@ const YatriStore = () => {
 
         {/* Store Header */}
         <section className="relative pt-28 pb-16 overflow-hidden">
-          {/* Background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,124,255,0.05),transparent_50%)]" />
+          {/* Soft blue wash — white canvas, no black */}
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-50 via-background to-background" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(0,124,255,0.06),transparent_55%)]" />
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: rise }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="text-center mb-8"
             >
+
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1 }}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-medium text-primary mb-6 shadow-sm"
+                transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-semibold text-primary mb-6 shadow-sm"
               >
-                Yatri Store
+                <Tag className="w-4 h-4" aria-hidden="true" />
+                Up to 50% OFF · verified vouchers
               </motion.div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
-                <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Certification Vouchers
-                </span>
+
+              <h1 className="font-display font-bold tracking-tight text-4xl md:text-5xl lg:text-6xl mb-4">
+                Exam vouchers that put{" "}
+                <span className="gradient-text">certification in reach</span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Get certified with our exclusive exam vouchers. Limited time offers with amazing discounts!
+                Focus on learning, not the price tag. Grab a verified, discounted voucher and book your exam with confidence — you're not doing this alone.
               </p>
-              <div className="mt-6 flex justify-center gap-3">
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleViewProcedure}
-                  className="rounded-full px-5 text-sm font-medium"
+                  className="rounded-full px-5 h-11 text-sm font-medium"
                 >
-                  See process to get scheduled exam
+                  How exam scheduling works
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate("/reviews")}
-                  className="rounded-full px-5 text-sm font-medium"
+                  className="rounded-full px-5 h-11 text-sm font-medium"
                 >
-                  <Star className="w-4 h-4 mr-1.5 fill-yellow-400 text-yellow-400" />
-                  See Reviews
+                  <Star className="w-4 h-4 mr-1.5 fill-primary text-primary" aria-hidden="true" />
+                  Read Yatri reviews
                 </Button>
               </div>
             </motion.div>
@@ -127,7 +131,7 @@ const YatriStore = () => {
               {/* Filters */}
               <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground whitespace-nowrap">
-                  <span>Filter by:</span>
+                  <span>Browse by track:</span>
                 </div>
                 <Button
                   variant={selectedCategory === "All" ? "default" : "outline"}
@@ -173,10 +177,10 @@ const YatriStore = () => {
                 >
                   <div className="flex flex-col items-end mr-1">
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-primary/80">
-                      Smart Cart
+                      Your cart
                     </span>
                     <span className="text-[11px] text-muted-foreground">
-                      Review & checkout securely
+                      Secure checkout, instant delivery
                     </span>
                   </div>
                   <CartSheet />
@@ -195,39 +199,56 @@ const YatriStore = () => {
                 animate={{ opacity: 1 }}
                 className="text-center py-20"
               >
-                <Loader2 className="h-16 w-16 text-muted-foreground mx-auto mb-4 animate-spin" />
-                <h3 className="text-2xl font-semibold mb-2">Loading certificates...</h3>
+                <Loader2 className="h-14 w-14 text-primary mx-auto mb-5 animate-spin" aria-hidden="true" />
+                <h3 className="font-display font-bold tracking-tight text-2xl mb-2">Loading your vouchers…</h3>
                 <p className="text-muted-foreground">
-                  Pleasewait for few seconds...
+                  Fetching today's verified deals — just a moment, Yatris.
                 </p>
               </motion.div>
             ) : filteredProducts.length === 0 ? (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20"
+                initial={{ opacity: 0, y: rise }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="text-center py-20 max-w-md mx-auto"
               >
-                <Sparkles className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-2xl font-semibold mb-2">No products found</h3>
-                <p className="text-muted-foreground">
-                  Try selecting a different category
+                <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-primary/5 border border-primary/15 mb-5">
+                  <PackageOpen className="h-8 w-8 text-primary" aria-hidden="true" />
+                </div>
+                <h3 className="font-display font-bold tracking-tight text-2xl mb-2">
+                  No vouchers in this track yet
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Fresh verified deals drop often, Yatris. Explore another track or browse every voucher we have.
                 </p>
+                <Button onClick={() => setSelectedCategory("All")} className="h-11 rounded-full px-6 font-semibold shadow-inset-btn">
+                  View all vouchers
+                </Button>
               </motion.div>
             ) : (
               <>
                 {/* Results count */}
                 <div className="mb-8 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    Showing <span className="font-semibold text-foreground">{filteredProducts.length}</span>{" "}
-                    {filteredProducts.length === 1 ? "product" : "products"}
-                    {selectedCategory !== "All" && ` in ${selectedCategory}`}
+                    <span className="font-semibold text-foreground">{filteredProducts.length}</span>{" "}
+                    verified {filteredProducts.length === 1 ? "voucher" : "vouchers"}
+                    {selectedCategory !== "All" && <> in <span className="font-semibold text-foreground">{selectedCategory}</span></>}
+                    {" "}— every one 50% OFF, ready to book.
                   </p>
                 </div>
 
-                {/* Products Grid - 3 Columns */}
+                {/* Products Grid - 3 Columns, staggered reveal */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                   {filteredProducts.map((product, index) => (
-                    <ProductCard key={product.id} product={product} />
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: rise }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-40px" }}
+                      transition={{ duration: 0.45, delay: Math.min(index, 5) * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
                   ))}
                 </div>
               </>
@@ -235,43 +256,63 @@ const YatriStore = () => {
           </div>
         </section>
 
-        {/* Trust Section */}
-        <section className="py-16 bg-muted/30">
+        {/* Trust Section — grouped light-blue tint band */}
+        <section className="py-20 band-tint">
           <div className="container mx-auto px-4 md:px-6">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: rise }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="max-w-4xl mx-auto text-center"
             >
-              <h2 className="text-3xl font-bold mb-6">Why Choose Yatri Cloud Vouchers?</h2>
-              <div className="grid md:grid-cols-3 gap-6 mt-8">
+              <p className="text-sm font-semibold uppercase tracking-wide text-primary mb-3">
+                Trusted by 50,000+ Yatris
+              </p>
+              <h2 className="font-display font-bold tracking-tight text-3xl md:text-4xl mb-4">
+                Why Yatris buy their vouchers here
+              </h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                Real savings, real support — so nothing stands between you and your first-attempt pass.
+              </p>
+              <div className="grid md:grid-cols-3 gap-6 mt-10 text-left">
                 {[
                   {
-                    title: "Best Prices",
-                    description: "Exclusive discounts up to 50% OFF on all certification vouchers",
+                    icon: Tag,
+                    title: "Half the price, none of the doubt",
+                    description: "Up to 50% OFF every certification voucher — so you can focus on learning, not the price tag.",
                   },
                   {
-                    title: "Instant Delivery",
-                    description: "Receive your voucher immediately after payment confirmation",
+                    icon: Zap,
+                    title: "Delivered the moment you pay",
+                    description: "Your verified voucher lands right after payment — book your exam without the wait.",
                   },
                   {
-                    title: "24/7 Support",
-                    description: "Our team is always ready to help you with your certification journey",
+                    icon: LifeBuoy,
+                    title: "Real support, always on",
+                    description: "Stuck on scheduling? Our team walks the certification journey with you, 24/7.",
                   },
                 ].map((feature, index) => (
                   <motion.div
                     key={feature.title}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: rise }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="p-6 rounded-lg bg-card border border-border/60"
+                    transition={{ delay: index * 0.08, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    className="p-6 rounded-2xl bg-card border border-border/60 hover:border-primary/40 transition-colors"
                   >
-                    <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    <div className="inline-flex items-center justify-center h-11 w-11 rounded-xl bg-primary/10 text-primary mb-4">
+                      <feature.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <h3 className="font-display font-semibold text-lg mb-2">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                   </motion.div>
                 ))}
+              </div>
+
+              <div className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                <BadgeCheck className="h-4 w-4" aria-hidden="true" />
+                Verified vouchers · 4.8★ from 50K+ Yatris
               </div>
             </motion.div>
           </div>

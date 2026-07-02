@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2, Video, FileText, ExternalLink, Pencil } from "lucide-react";
+import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2, Video, FileText, ExternalLink, Pencil, Star, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -643,31 +643,39 @@ export const AdminTrainersNew = () => {
     };
 
     return (
-        <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-                    <UserCheck className="w-8 h-8 text-primary" />
-                    Trainer Management
-                </h1>
-                <p className="text-muted-foreground">
-                    Manage trainer applications, credentials, and course assignments
-                </p>
+        <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-6 md:space-y-8">
+            {/* Header band — distinct blue-tinted workspace panel */}
+            <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
+
+                <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div className="space-y-1.5">
+                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Trainers hub
+                        </p>
+                        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Trainer Management</h1>
+                        <p className="text-muted-foreground">
+                            Manage trainer applications, credentials, and course assignments.
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <Tabs defaultValue="applications" className="space-y-6">
-                <TabsList>
-                    <TabsTrigger value="applications">Applications</TabsTrigger>
-                    <TabsTrigger value="trainers">Approved Trainers</TabsTrigger>
-                    <TabsTrigger value="profiles">Instructor Profiles</TabsTrigger>
-                    <TabsTrigger value="assignments">Course Assignments</TabsTrigger>
+                <TabsList className="flex-wrap h-auto gap-1">
+                    <TabsTrigger value="applications" className="min-h-[40px]">Applications</TabsTrigger>
+                    <TabsTrigger value="trainers" className="min-h-[40px]">Approved Trainers</TabsTrigger>
+                    <TabsTrigger value="profiles" className="min-h-[40px]">Instructor Profiles</TabsTrigger>
+                    <TabsTrigger value="assignments" className="min-h-[40px]">Course Assignments</TabsTrigger>
                 </TabsList>
 
                 {/* Applications Tab */}
                 <TabsContent value="applications" className="space-y-4">
-                    <div className="flex gap-4 items-center">
-                        <label className="font-medium">Filter by Status:</label>
+                    <div className="flex flex-wrap gap-3 items-center">
+                        <label className="font-medium text-sm">Filter by Status:</label>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-[200px]">
+                            <SelectTrigger className="w-[200px] rounded-xl">
                                 <SelectValue placeholder="All Applications" />
                             </SelectTrigger>
                             <SelectContent>
@@ -681,27 +689,41 @@ export const AdminTrainersNew = () => {
 
                     {isLoadingApplications ? (
                         <div className="text-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b- border-primary mx-auto"></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                             <p className="mt-4 text-muted-foreground">Loading applications...</p>
                         </div>
                     ) : (
-                        <Card>
+                        <Card className="border border-border rounded-2xl shadow-none">
                             <CardContent className="p-0">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Expertise</TableHead>
-                                            <TableHead>Experience</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Actions</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Date</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Name</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Email</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Expertise</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Experience</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Status</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {filteredApplications.map((application, index) => (
-                                            <TableRow key={index}>
+                                        {filteredApplications.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={7} className="text-center py-16">
+                                                    <div className="flex flex-col items-center gap-4">
+                                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                            <UserCheck className="w-7 h-7" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <h3 className="font-display text-lg font-semibold">No applications here</h3>
+                                                            <p className="text-muted-foreground text-sm">New trainer applications will show up in this list.</p>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : filteredApplications.map((application, index) => (
+                                            <TableRow key={index} className="hover:bg-brand-50">
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -728,7 +750,7 @@ export const AdminTrainersNew = () => {
                                                             <Button
                                                                 variant="default"
                                                                 size="sm"
-                                                                className="bg-green-600 hover:bg-green-700"
+                                                                className="bg-success hover:bg-success/90"
                                                                 onClick={() => handleApproveTrainer(application)}
                                                                 disabled={isProcessing}
                                                             >
@@ -741,7 +763,7 @@ export const AdminTrainersNew = () => {
                                                             <Button
                                                                 variant="default"
                                                                 size="sm"
-                                                                className="bg-orange-600 hover:bg-orange-700"
+                                                                className="bg-warning hover:bg-warning/90"
                                                                 onClick={() => handleRejectApplication(application)}
                                                                 disabled={isProcessing}
                                                             >
@@ -752,7 +774,7 @@ export const AdminTrainersNew = () => {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
                                                             onClick={() => handleDeleteApplication(application)}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -770,9 +792,9 @@ export const AdminTrainersNew = () => {
 
                 {/* Approved Trainers Tab */}
                 <TabsContent value="trainers" className="space-y-4">
-                    <Card>
+                    <Card className="border border-border rounded-2xl shadow-none">
                         <CardHeader>
-                            <CardTitle>Active Trainers</CardTitle>
+                            <CardTitle className="text-lg">Active Trainers</CardTitle>
                             <CardDescription>Trainers with created credentials</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -784,17 +806,31 @@ export const AdminTrainersNew = () => {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Trainer ID</TableHead>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Expertise</TableHead>
-                                            <TableHead>Created</TableHead>
-                                            <TableHead>Actions</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Trainer ID</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Name</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Email</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Expertise</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Created</TableHead>
+                                            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {trainers.map((trainer) => (
-                                            <TableRow key={trainer.trainerId}>
+                                        {trainers.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="text-center py-16">
+                                                    <div className="flex flex-col items-center gap-4">
+                                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                            <UserCheck className="w-7 h-7" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <h3 className="font-display text-lg font-semibold">No approved trainers yet</h3>
+                                                            <p className="text-muted-foreground text-sm">Approve an application to add your first trainer.</p>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : trainers.map((trainer) => (
+                                            <TableRow key={trainer.trainerId} className="hover:bg-brand-50">
                                                 <TableCell className="font-mono text-sm">{trainer.trainerId}</TableCell>
                                                 <TableCell className="font-medium">{trainer.fullName}</TableCell>
                                                 <TableCell>{trainer.email}</TableCell>
@@ -815,7 +851,7 @@ export const AdminTrainersNew = () => {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
                                                             onClick={() => handleDeleteTrainer(trainer)}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -833,9 +869,9 @@ export const AdminTrainersNew = () => {
 
                 {/* Instructor Profiles Tab */}
                 <TabsContent value="profiles" className="space-y-4">
-                    <Card>
+                    <Card className="border border-border rounded-2xl shadow-none">
                         <CardHeader>
-                            <CardTitle>Instructor Profiles</CardTitle>
+                            <CardTitle className="text-lg">Instructor Profiles</CardTitle>
                             <CardDescription>Manage public profiles for approved trainers</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -844,7 +880,7 @@ export const AdminTrainersNew = () => {
                                     {trainers.map((trainer) => {
                                         const profile = instructorProfiles.find(p => p.trainerId === trainer.trainerId);
                                         return (
-                                            <Card key={trainer.trainerId} className="overflow-hidden border-muted">
+                                            <Card key={trainer.trainerId} className="overflow-hidden border border-border rounded-2xl shadow-none hover:border-brand-200 hover:shadow-card transition">
                                                 <CardHeader className="pb-4">
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary shrink-0">
@@ -862,14 +898,14 @@ export const AdminTrainersNew = () => {
                                                     <p className="text-sm text-muted-foreground line-clamp-3 mb-4 h-[60px]">
                                                         {profile?.bio || "No biography provided yet."}
                                                     </p>
-                                                    <div className="flex justify-between text-xs font-medium bg-muted/30 p-2 rounded-lg">
-                                                        <span title="Rating">⭐ {profile?.rating || "4.8"}</span>
-                                                        <span title="Students">👥 {profile?.studentsCount || "0"}</span>
-                                                        <span title="Courses">📚 {profile?.coursesCount || "0"}</span>
+                                                    <div className="flex justify-between text-xs font-medium bg-muted/40 p-2.5 rounded-xl tabular-nums">
+                                                        <span title="Rating" className="flex items-center gap-1"><Star className="w-3.5 h-3.5 text-primary" /> {profile?.rating || "4.8"}</span>
+                                                        <span title="Students" className="flex items-center gap-1"><Users className="w-3.5 h-3.5 text-muted-foreground" /> {profile?.studentsCount || "0"}</span>
+                                                        <span title="Courses" className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5 text-muted-foreground" /> {profile?.coursesCount || "0"}</span>
                                                     </div>
                                                 </CardContent>
-                                                <div className="p-4 bg-muted/50 border-t flex justify-end">
-                                                    <Button size="sm" variant="outline" onClick={() => startEditingProfile(trainer)}>
+                                                <div className="p-4 bg-muted/40 border-t border-border flex justify-end">
+                                                    <Button size="sm" variant="outline" className="rounded-xl" onClick={() => startEditingProfile(trainer)}>
                                                         <Pencil className="w-4 h-4 mr-2" />
                                                         Edit Profile
                                                     </Button>
@@ -880,8 +916,14 @@ export const AdminTrainersNew = () => {
                                 </div>
 
                                 {trainers.length === 0 && !isLoadingTrainers && (
-                                    <div className="text-center py-12 bg-muted/20 rounded-xl border-2 border-dashed">
-                                        <p className="text-muted-foreground">No approved trainers available to manage profiles.</p>
+                                    <div className="text-center py-16 border border-dashed border-border rounded-2xl flex flex-col items-center gap-4">
+                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                            <UserCheck className="w-7 h-7" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="font-display text-lg font-semibold">No profiles to manage yet</h3>
+                                            <p className="text-muted-foreground text-sm">Approve trainers first to build their public profiles.</p>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -974,9 +1016,9 @@ export const AdminTrainersNew = () => {
 
                 {/* Course Assignments Tab */}
                 <TabsContent value="assignments" className="space-y-4">
-                    <Card>
+                    <Card className="border border-border rounded-2xl shadow-none max-w-3xl">
                         <CardHeader>
-                            <CardTitle>Assign Trainer to Certification Provider</CardTitle>
+                            <CardTitle className="text-lg">Assign Trainer to Certification Provider</CardTitle>
                             <CardDescription>Link trainers with specific certification providers and exams</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -1033,7 +1075,7 @@ export const AdminTrainersNew = () => {
                             <Button
                                 onClick={assignTrainerToCourse}
                                 disabled={isAssigning || !selectedTrainer || !selectedProvider || !selectedExam}
-                                className="w-full"
+                                className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
                             >
                                 <UserCog className="w-4 h-4 mr-2" />
                                 {isAssigning ? "Assigning..." : "Assign Trainer"}
@@ -1247,7 +1289,7 @@ export const AdminTrainersNew = () => {
                         <Button
                             onClick={handleGrantMeetAccess}
                             disabled={isGrantingMeet || !meetTrainingId}
-                            className="w-full"
+                            className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
                         >
                             <Video className="w-4 h-4 mr-2" />
                             {isGrantingMeet ? "Granting Access..." : "Grant Meet Host Access"}

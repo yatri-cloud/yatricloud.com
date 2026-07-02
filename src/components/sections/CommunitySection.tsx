@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
 import Marquee from "@/components/Marquee";
@@ -226,35 +226,76 @@ const GlobeVisualization = () => {
 
 export const CommunitySection = () => {
   const { theme } = useTheme();
-  
+  const reduce = useReducedMotion();
+
   return (
-    <section className="relative">
-      {/* Top Section - Join Our Community (Dark Background) */}
-      <div className="py-24 bg-background relative overflow-hidden">
+    <section className="relative band-tint text-foreground overflow-hidden">
+      {/* Top Section - Join Our Community (Permanent Dark Closing Band) */}
+      <div className="relative py-20 md:py-28 overflow-hidden">
+        {/* Dotted-grid backdrop — kinetic community field */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage: "radial-gradient(hsl(var(--primary) / 0.7) 1px, transparent 1px)",
+            backgroundSize: "30px 30px",
+            maskImage: "radial-gradient(ellipse 62% 58% at 50% 38%, black, transparent 80%)",
+            WebkitMaskImage: "radial-gradient(ellipse 62% 58% at 50% 38%, black, transparent 80%)",
+          }}
+        />
+
+        {/* Decorative blue glow blobs — top blob breathes */}
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[42rem] h-[42rem] bg-primary/10 blur-3xl rounded-full"
+          animate={reduce ? undefined : { opacity: [0.55, 1, 0.55], scale: [1, 1.08, 1] }}
+          transition={reduce ? undefined : { duration: 6.5, ease: "easeInOut", repeat: Infinity }}
+        />
+        <div className="pointer-events-none absolute -bottom-16 right-0 w-96 h-96 bg-primary/10 blur-3xl rounded-full" />
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <ScrollReveal>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-4">
+              <p className="inline-flex items-center gap-2 rounded-full border border-border bg-background/70 px-4 py-1.5 text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-6 backdrop-blur-sm">
+                <span className="relative flex h-2 w-2">
+                  <motion.span
+                    aria-hidden
+                    className="absolute inline-flex h-full w-full rounded-full bg-primary"
+                    animate={reduce ? undefined : { scale: [1, 2.4], opacity: [0.7, 0] }}
+                    transition={reduce ? undefined : { duration: 2, ease: "easeOut", repeat: Infinity }}
+                  />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </span>
                 Join Our Community
               </p>
             </ScrollReveal>
-            
+
             <ScrollReveal delay={0.1}>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">
-                Join an <span className="text-primary">Exclusive</span> Network of Cloud Innovators
+              <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95] text-foreground mb-6">
+                Join an <span className="gradient-text">Exclusive</span> Network of Cloud Innovators
               </h2>
             </ScrollReveal>
-            
+
             <ScrollReveal delay={0.2}>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
                 Join our private community to access discussions, job opportunities, and insights you won't find on Twitter or any public forum.
               </p>
             </ScrollReveal>
-            
+
+            <ScrollReveal delay={0.25}>
+              <div className="mb-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+                {["50% OFF vouchers", "Exam dumps & resources", "Personal 1:1 support"].map((b) => (
+                  <span key={b} className="inline-flex items-center gap-2 text-sm text-foreground/80">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                    {b}
+                  </span>
+                ))}
+              </div>
+            </ScrollReveal>
+
             <ScrollReveal delay={0.3}>
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg group"
+                className="group bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg rounded-xl shadow-inset-btn"
                 asChild
               >
                 <a
@@ -272,17 +313,22 @@ export const CommunitySection = () => {
           {/* Globe Visualization */}
           <ScrollReveal delay={0.4}>
             <div className="mt-16 relative">
-              {/* White background in light theme behind photos */}
-              <div className="absolute inset-0 bg-white dark:bg-transparent rounded-3xl -z-10" />
+              {/* Soft blue glow behind photos */}
+              <div className="absolute inset-0 bg-primary/5 rounded-3xl blur-2xl -z-10" />
               <GlobeVisualization />
             </div>
           </ScrollReveal>
         </div>
       </div>
 
-      {/* Bottom Section - Company Logos with Dark Background */}
-      <div className="py-12 md:py-20 bg-secondary/90 border-t border-border relative overflow-hidden">
-        <div className="container mx-auto px-2 sm:px-4 md:px-6">
+      {/* Bottom Section - Company Logos (light, flows into the footer) */}
+      <div className="py-12 md:py-20 bg-background border-t border-border relative overflow-hidden">
+        {/* Decorative glow */}
+        <div aria-hidden className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[36rem] h-40 bg-primary/10 blur-[100px]" />
+        <div className="container mx-auto px-2 sm:px-4 md:px-6 relative z-10">
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground mb-8 md:mb-10">
+            Certifications we help you master
+          </p>
           {/* Scrolling Company Logos - Two Rows */}
           <div className="space-y-6 md:space-y-8">
             {/* First Row - Left to Right */}

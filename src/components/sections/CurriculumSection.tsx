@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useUdemySheets } from "@/hooks/use-udemy-sheets";
+import { cn } from "@/lib/utils";
 import type { Course } from "@/data/courses";
+import { LogoMarquee } from "@/components/TechLogos";
 
 /**
  * Check if a course is in draft mode
@@ -141,35 +143,34 @@ export const CurriculumSection = () => {
   };
 
   return (
-    <section id="courses" className="py-24 relative">
-      {/* Background Elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-
+    <section id="courses" className="py-20 md:py-28 bg-background relative">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <ScrollReveal>
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 max-w-2xl mx-auto">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
               Practice Tests
             </span>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
               Certification <span className="gradient-text">Courses</span>
             </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
+            <p className="text-muted-foreground text-lg">
               {isLoading ? "Loading..." : `${filteredCourses.length} course${filteredCourses.length !== 1 ? 's' : ''} available`}
             </p>
           </div>
         </ScrollReveal>
 
+        {/* Provider / certification LOGO marquee (real brand SVGs, reduced-motion safe) */}
+        <LogoMarquee className="mb-12 -mx-4 md:-mx-6" />
+
         {/* Error state */}
         {error && (
-          <div className="mb-8 rounded-lg border border-red-500/20 bg-red-500/10 p-6 text-center">
-            <AlertCircle className="h-6 w-6 text-red-500 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Courses</h3>
-            <p className="text-text-secondary text-sm mb-4">{error.message}</p>
+          <div className="mb-8 max-w-xl mx-auto rounded-2xl border border-destructive/30 bg-destructive/10 p-8 text-center">
+            <AlertCircle className="h-6 w-6 text-destructive mx-auto mb-3" />
+            <h3 className="font-display text-lg font-bold tracking-tight text-foreground mb-2">Error Loading Courses</h3>
+            <p className="text-muted-foreground text-sm mb-4">{error.message}</p>
             <Button
               onClick={() => refetch()}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="bg-primary hover:bg-brand-600 text-primary-foreground shadow-inset-btn rounded-xl"
             >
               Try Again
             </Button>
@@ -204,7 +205,7 @@ export const CurriculumSection = () => {
                       <select
                         value={selectedInstructor}
                         onChange={(e) => setSelectedInstructor(e.target.value)}
-                        className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+                        className="w-full min-h-[44px] bg-card border border-border rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring transition-all appearance-none cursor-pointer hover:border-primary/40"
                       >
                         <option value="All">All Instructors</option>
                         {creators.map((instructor) => (
@@ -232,7 +233,7 @@ export const CurriculumSection = () => {
                       <select
                         value={selectedCertification}
                         onChange={(e) => setSelectedCertification(e.target.value)}
-                        className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+                        className="w-full min-h-[44px] bg-card border border-border rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring transition-all appearance-none cursor-pointer hover:border-primary/40"
                       >
                         <option value="All">All Providers</option>
                         {availableFilters.certifications.map((cert) => (
@@ -260,7 +261,7 @@ export const CurriculumSection = () => {
                       <select
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/60 rounded-2xl px-5 py-3.5 text-foreground font-semibold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+                        className="w-full min-h-[44px] bg-card border border-border rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring transition-all appearance-none cursor-pointer hover:border-primary/40"
                       >
                         <option value="All">All Categories</option>
                         {availableFilters.categories.map((category) => (
@@ -294,11 +295,15 @@ export const CurriculumSection = () => {
         {!isLoading && !error && (
           <>
             <motion.div
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-6 max-w-6xl mx-auto"
               layout
             >
               <AnimatePresence mode="popLayout">
-                {displayedCourses.map((course, index) => (
+                {displayedCourses.map((course, index) => {
+                  // Bento: first tile is featured — spans 2 columns on lg with a
+                  // horizontal split layout. Purely presentational.
+                  const isFeatured = index === 0;
+                  return (
                   <motion.div
                     key={course.id}
                     data-course-index={index}
@@ -312,17 +317,23 @@ export const CurriculumSection = () => {
                       ease: "easeOut"
                     }}
                   >
-                    <ScrollReveal delay={index < 6 ? index * 0.1 : 0}>
+                    <ScrollReveal delay={index < 6 ? index * 0.06 : 0}>
                       <motion.div
-                        className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/50 transition-all duration-300 flex flex-col"
-                        whileHover={{ y: -5 }}
+                        className={cn(
+                          "group relative bg-card border border-border rounded-2xl h-full overflow-hidden hover:border-primary/40 hover:shadow-card transition-all duration-300 flex flex-col",
+                          isFeatured && "ring-2 ring-primary/30"
+                        )}
+                        whileHover={{ y: -4 }}
+                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                       >
                         {/* Course Image */}
-                        <div className="relative aspect-video overflow-hidden rounded-lg mb-4 bg-muted">
+                        <div
+                          className="relative overflow-hidden bg-muted shrink-0 aspect-video"
+                        >
                           <img
                             src={course.thumbnail || getFallbackImageUrl(course.udemyUrl, course.thumbnail)}
                             alt={course.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             loading="lazy"
                             width={640}
                             height={360}
@@ -331,55 +342,66 @@ export const CurriculumSection = () => {
                               target.src = getFallbackImageUrl(course.udemyUrl, course.thumbnail);
                             }}
                           />
+                          {isFeatured && (
+                            <span className="absolute top-3 left-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-inset-btn">
+                              Featured
+                            </span>
+                          )}
                         </div>
 
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {course.certification && course.certification !== 'General' && (
-                              <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">
-                                {course.certification}
-                              </span>
-                            )}
-                            {course.category && course.category !== 'General' && (
-                              <span className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded">
-                                {capitalizeCategory(course.category)}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-xs text-muted-foreground">Udemy</span>
-                        </div>
-
-                        <h3 className="text-lg font-semibold text-foreground mb-3 flex-1">
-                          {course.title}
-                        </h3>
-
-                        {course.creator && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                            <span>by {course.creator}</span>
-                          </div>
-                        )}
-
-                        <motion.a
-                          href={course.udemyUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="group relative w-full bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
+                        {/* Body */}
+                        <div
+                          className="flex flex-col flex-1 p-6"
                         >
-                          {/* Shine effect */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {course.certification && course.certification !== 'General' && (
+                                <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                                  {course.certification}
+                                </span>
+                              )}
+                              {course.category && course.category !== 'General' && (
+                                <span className="px-2.5 py-1 bg-secondary text-muted-foreground text-xs font-medium rounded-full">
+                                  {capitalizeCategory(course.category)}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground">Udemy</span>
+                          </div>
 
-                          <span className="relative z-10">Enroll Now</span>
-                          <ExternalLink className="relative z-10 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                          <h3
+                            className={cn(
+                              "font-display font-bold tracking-tight text-foreground mb-3 leading-snug group-hover:text-primary transition-colors text-lg flex-1"
+                            )}
+                          >
+                            {course.title}
+                          </h3>
 
-                          {/* Glow effect */}
-                          <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
-                        </motion.a>
+                          {course.creator && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                              <span>by {course.creator}</span>
+                            </div>
+                          )}
+
+                          <motion.a
+                            href={course.udemyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={cn(
+                              "min-h-[44px] bg-primary hover:bg-brand-600 text-primary-foreground font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors duration-300 shadow-inset-btn w-full"
+                            )}
+                          >
+                            <span>Enroll Now</span>
+                            <ExternalLink className="w-4 h-4" />
+                          </motion.a>
+                        </div>
                       </motion.div>
                     </ScrollReveal>
                   </motion.div>
-                ))}
+                  );
+                })}
               </AnimatePresence>
             </motion.div>
 
@@ -395,19 +417,13 @@ export const CurriculumSection = () => {
                   <motion.button
                     ref={viewMoreButtonRef}
                     onClick={handleViewMore}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="group relative bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary text-primary-foreground font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 overflow-hidden"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="min-h-[44px] bg-primary hover:bg-brand-600 text-primary-foreground font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2 transition-colors duration-300 shadow-inset-btn"
                   >
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
-                    <span className="relative z-10">
+                    <span>
                       View More ({filteredCourses.length - visibleCourses} more)
                     </span>
-
-                    {/* Glow effect */}
-                    <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/20 blur-xl transition-all duration-300" />
                   </motion.button>
                 </motion.div>
               )}
@@ -418,10 +434,10 @@ export const CurriculumSection = () => {
         {/* Empty state */}
         {!isLoading && !error && filteredCourses.length === 0 && (
           <div className="text-center py-24">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-muted">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-card border border-border">
               <Search className="h-9 w-9 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-3">No results found</h3>
+            <h3 className="font-display text-xl font-bold tracking-tight text-foreground mb-3">No results found</h3>
             <p className="text-muted-foreground text-base">Try adjusting your search or filter criteria.</p>
           </div>
         )}

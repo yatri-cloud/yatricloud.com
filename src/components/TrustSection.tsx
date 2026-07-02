@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView, useMotionValue, animate, useReducedMotion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -18,98 +19,238 @@ const notForYouPoints = [
   "You want to go solo (we're here to support you every step of the way)",
 ];
 
+const trustFeatures = [
+  {
+    title: "50% OFF Vouchers",
+    description: "Get AWS Associate exam vouchers at half price - limited time offer.",
+  },
+  {
+    title: "Complete Support Package",
+    description: "Exam dumps, study resources, guides, and personal support included.",
+  },
+  {
+    title: "Guided Exam Scheduling",
+    description: "Our team schedules your exam via personal meeting call for correct setup.",
+  },
+  {
+    title: "Personal Support",
+    description: "Direct support from our team via WhatsApp group for guidance and assistance.",
+  },
+  {
+    title: "Yatri Wall of Fame",
+    description: "Get featured on our Wall of Fame after successfully passing your AWS certification.",
+  },
+];
+
+const stats = [
+  { value: "50K+", label: "Learners" },
+  { value: "6+", label: "Practice Tests" },
+  { value: "4.8", label: "Avg. Rating" },
+  { value: "95%", label: "Success Rate" },
+];
+
+/* --------------------------------------------------------------------------
+ * Count-up stat — animates 0 → final on scroll into view.
+ * Preserves the exact final value string (prefix + number + suffix) and label.
+ * Honors prefers-reduced-motion by snapping straight to the final value.
+ * ------------------------------------------------------------------------ */
+const CountUpStat = ({ value, label }: { value: string; label: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const reduce = useReducedMotion();
+
+  // Split "50K+" → prefix "", number "50", suffix "K+"
+  const parts = value.match(/^(\D*)([\d.]+)(.*)$/);
+  const prefix = parts?.[1] ?? "";
+  const numStr = parts?.[2] ?? value;
+  const suffix = parts?.[3] ?? "";
+  const target = parseFloat(numStr);
+  const hasNumber = !Number.isNaN(target);
+  const decimals = numStr.includes(".") ? numStr.split(".")[1].length : 0;
+
+  const mv = useMotionValue(0);
+  const [display, setDisplay] = useState(
+    hasNumber && !reduce ? (0).toFixed(decimals) : numStr,
+  );
+
+  useEffect(() => {
+    if (!hasNumber) return;
+    const unsub = mv.on("change", (v) => setDisplay(v.toFixed(decimals)));
+    return () => unsub();
+  }, [mv, decimals, hasNumber]);
+
+  useEffect(() => {
+    if (!hasNumber) return;
+    if (!inView) return;
+    if (reduce) {
+      mv.set(target);
+      setDisplay(target.toFixed(decimals));
+      return;
+    }
+    const controls = animate(mv, target, {
+      duration: 1.6,
+      ease: [0.16, 1, 0.3, 1],
+    });
+    return () => controls.stop();
+  }, [inView, reduce, target, hasNumber, decimals, mv]);
+
+  return (
+    <div ref={ref} className="text-center">
+      <div
+        className="font-display font-bold tracking-[-0.02em] tabular-nums gradient-text leading-none text-6xl md:text-7xl lg:text-8xl"
+        aria-label={`${value} ${label}`}
+      >
+        <span aria-hidden="true">
+          {prefix}
+          {hasNumber ? display : value}
+          {suffix}
+        </span>
+      </div>
+      <div className="mt-4 text-sm md:text-base font-medium text-muted-foreground uppercase tracking-wider">
+        {label}
+      </div>
+    </div>
+  );
+};
+
+/* --------------------------------------------------------------------------
+ * Marquee row — one direction, seamless (content duplicated), pauses on hover,
+ * and stops entirely under prefers-reduced-motion.
+ * ------------------------------------------------------------------------ */
+const MarqueeRow = ({
+  reverse = false,
+  slow = false,
+  label,
+}: {
+  reverse?: boolean;
+  slow?: boolean;
+  label: string;
+}) => (
+  <div
+    className="group relative flex overflow-hidden"
+    role="list"
+    aria-label={label}
+  >
+    {/* edge fades */}
+    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 md:w-28 bg-gradient-to-r from-[hsl(var(--band-tint))] to-transparent" />
+    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 md:w-28 bg-gradient-to-l from-[hsl(var(--band-tint))] to-transparent" />
+
+    {[0, 1].map((copy) => (
+      <div
+        key={copy}
+        aria-hidden={copy === 1 ? true : undefined}
+        className={`flex shrink-0 items-center gap-4 pr-4 ${
+          slow ? "animate-marquee-slow" : "animate-marquee"
+        } group-hover:[animation-play-state:paused] motion-reduce:animate-none`}
+        style={reverse ? { animationDirection: "reverse" } : undefined}
+      >
+        {trustFeatures.map((feature, i) => (
+          <div
+            key={`${feature.title}-${i}`}
+            role={copy === 0 ? "listitem" : undefined}
+            className="inline-flex items-center gap-3 rounded-full border border-border bg-card px-5 py-3 min-h-[44px]"
+          >
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
+              {i + 1}
+            </span>
+            <span className="whitespace-nowrap font-display text-sm md:text-base font-semibold tracking-tight text-foreground">
+              {feature.title}
+            </span>
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+);
+
 export const TrustSection = () => {
   return (
-    <section className="py-24 bg-background relative overflow-hidden">
-      {/* Is this for you Section */}
+    <section className="band-tint py-20 md:py-28 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
+        {/* ---------------------------------------------------------------
+         * Is this for you — one distinctive split contrast panel
+         * ------------------------------------------------------------- */}
         <ScrollReveal>
-          <div className="text-center mb-12">
-            <p className="text-muted-foreground text-lg mb-2">Is this for you?</p>
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground">
-              This Certification Program Is a <span className="text-primary">Perfect</span> Fit If You're Ready to...
+          <div className="text-center mb-12 max-w-3xl mx-auto">
+            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-3">Is this for you?</p>
+            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-foreground">
+              This Certification Program Is a <span className="gradient-text">Perfect</span> Fit If You're Ready to...
             </h2>
           </div>
         </ScrollReveal>
 
-        {/* Two Column Comparison */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-20">
-          {/* For You Box */}
-          <ScrollReveal delay={0.1}>
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="border-2 border-primary rounded-2xl overflow-hidden bg-card"
-            >
-              <div className="bg-primary px-6 py-4">
-                <h3 className="text-white font-bold text-lg uppercase tracking-wide">
+        <ScrollReveal delay={0.1}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-5xl mx-auto mb-24 grid md:grid-cols-[1.05fr_0.95fr] rounded-3xl border border-primary/40 overflow-hidden shadow-card"
+          >
+            {/* Highlighted side — "for you" */}
+            <div className="relative bg-primary/[0.06] p-7 md:p-9">
+              <div className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden="true" />
+              <div className="mb-6 flex items-center gap-3">
+                <span className="inline-flex h-9 items-center rounded-full bg-primary px-4 font-display text-sm font-bold tracking-tight text-primary-foreground">
                   This is for you if:
-                </h3>
+                </span>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="space-y-4">
                 {forYouPoints.map((point, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.06 }}
                     className="flex items-start gap-3"
                   >
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                      <Check className="w-4 h-4 text-primary" />
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center mt-0.5">
+                      <Check className="w-4 h-4 text-primary-foreground" />
                     </div>
                     <p className="text-foreground text-sm md:text-base leading-relaxed">{point}</p>
                   </motion.div>
                 ))}
               </div>
-            </motion.div>
-          </ScrollReveal>
+            </div>
 
-          {/* Not For You Box */}
-          <ScrollReveal delay={0.2}>
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="border-2 border-foreground rounded-2xl overflow-hidden bg-card"
-            >
-              <div className="bg-foreground px-6 py-4">
-                <h3 className="text-background font-bold text-lg uppercase tracking-wide">
+            {/* Quiet side — "consider our offer" */}
+            <div className="relative bg-card p-7 md:p-9 border-t md:border-t-0 md:border-l border-border">
+              <div className="mb-6 flex items-center gap-3">
+                <span className="inline-flex h-9 items-center rounded-full border border-border bg-secondary px-4 font-display text-sm font-bold tracking-tight text-foreground">
                   Consider Our Offer If:
-                </h3>
+                </span>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="space-y-4">
                 {notForYouPoints.map((point, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.06 }}
                     className="flex items-start gap-3"
                   >
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
                       <X className="w-4 h-4 text-primary" />
                     </div>
-                    <p className="text-foreground text-sm md:text-base leading-relaxed">{point}</p>
+                    <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{point}</p>
                   </motion.div>
                 ))}
               </div>
-            </motion.div>
-          </ScrollReveal>
-        </div>
+            </div>
+          </motion.div>
+        </ScrollReveal>
 
-        {/* Why Learners Trust Us Section */}
-        <ScrollReveal delay={0.3}>
-          <div className="text-center mb-16">
+        {/* ---------------------------------------------------------------
+         * Living proof wall — count-up stat band
+         * ------------------------------------------------------------- */}
+        <ScrollReveal delay={0.1}>
+          <div className="text-center mb-14 max-w-3xl mx-auto">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
               Trusted by Professionals
             </span>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
               Why Learners <span className="gradient-text">Trust Us</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -118,146 +259,28 @@ export const TrustSection = () => {
           </div>
         </ScrollReveal>
 
-        {/* Features */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-16 max-w-7xl mx-auto">
-          <ScrollReveal delay={0.4}>
-            <motion.div
-              className="group relative bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/5 border-2 border-amber-500/20 rounded-2xl p-6 hover:border-amber-500/40 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -8, scale: 1.03 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl font-black text-amber-500">1</span>
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
-                  50% OFF Vouchers
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Get AWS Associate exam vouchers at half price - limited time offer.
-                </p>
+        <ScrollReveal delay={0.16}>
+          <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-y-12 gap-x-6 divide-x-0 lg:divide-x lg:divide-border py-4 mb-20">
+            {stats.map((stat) => (
+              <div key={stat.label} className="lg:px-6">
+                <CountUpStat value={stat.value} label={stat.label} />
               </div>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-amber-500/10 transition-colors duration-500" />
-            </motion.div>
-          </ScrollReveal>
+            ))}
+          </div>
+        </ScrollReveal>
 
-          <ScrollReveal delay={0.5}>
-            <motion.div
-              className="group relative bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-indigo-500/5 border-2 border-blue-500/20 rounded-2xl p-6 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -8, scale: 1.03 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl font-black text-blue-500">2</span>
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
-                  Complete Support Package
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Exam dumps, study resources, guides, and personal support included.
-                </p>
-              </div>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-blue-500/10 transition-colors duration-500" />
-            </motion.div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.6}>
-            <motion.div
-              className="group relative bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-rose-500/5 border-2 border-purple-500/20 rounded-2xl p-6 hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -8, scale: 1.03 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl font-black text-purple-500">3</span>
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
-                  Guided Exam Scheduling
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Our team schedules your exam via personal meeting call for correct setup.
-                </p>
-              </div>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-purple-500/10 transition-colors duration-500" />
-            </motion.div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.7}>
-            <motion.div
-              className="group relative bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/5 border-2 border-green-500/20 rounded-2xl p-6 hover:border-green-500/40 hover:shadow-xl hover:shadow-green-500/20 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -8, scale: 1.03 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl font-black text-green-500">4</span>
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
-                  Personal Support
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Direct support from our team via WhatsApp group for guidance and assistance.
-                </p>
-              </div>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-green-500/10 transition-colors duration-500" />
-            </motion.div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.8}>
-            <motion.div
-              className="group relative bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-orange-500/5 border-2 border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-500/40 hover:shadow-xl hover:shadow-yellow-500/20 transition-all duration-500 overflow-hidden"
-              whileHover={{ y: -8, scale: 1.03 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-500/20 to-amber-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl font-black text-yellow-500">5</span>
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
-                  Yatri Wall of Fame
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Get featured on our Wall of Fame after successfully passing your AWS certification.
-                </p>
-              </div>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-500/5 rounded-full -mr-12 -mt-12 group-hover:bg-yellow-500/10 transition-colors duration-500" />
-            </motion.div>
-          </ScrollReveal>
-        </div>
-
-        {/* Stats */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
-          {[
-            { value: "50K+", label: "Learners" },
-            { value: "6+", label: "Practice Tests" },
-            { value: "4.8", label: "Avg. Rating" },
-            { value: "95%", label: "Success Rate" },
-          ].map((stat, index) => (
-            <ScrollReveal key={index} delay={0.8 + index * 0.1}>
-              <motion.div
-                className="group relative bg-gradient-to-br from-card via-card to-card/80 border border-border/60 rounded-2xl p-8 text-center overflow-hidden hover:border-primary/40 transition-all duration-500"
-                whileHover={{ y: -8, scale: 1.03 }}
-              >
-                {/* Gradient overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent mb-3 leading-none">
-                    {stat.value}
-                  </div>
-                  <div className="text-base font-medium text-muted-foreground uppercase tracking-wider">
-                    {stat.label}
-                  </div>
-                </div>
-
-                {/* Decorative accent line */}
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent group-hover:w-3/4 transition-all duration-500" />
-              </motion.div>
-            </ScrollReveal>
-          ))}
-        </div>
+        {/* ---------------------------------------------------------------
+         * Dual badge marquees — opposite directions, pause on hover
+         * ------------------------------------------------------------- */}
+        <ScrollReveal delay={0.2}>
+          <div
+            className="max-w-7xl mx-auto space-y-4"
+            aria-label="What's included with the certification program"
+          >
+            <MarqueeRow reverse label="Program benefits, scrolling" />
+            <MarqueeRow slow label="Program benefits, scrolling in reverse" />
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   );

@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, CheckCircle2, Upload, X, LogOut } from "lucide-react";
+import { Loader2, CheckCircle2, Upload, X, LogOut, GraduationCap, ShieldCheck, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -245,27 +245,43 @@ const Udemy = () => {
       <SEO />
       <Navbar />
       <main className="pt-24 pb-16">
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4 md:px-6 max-w-4xl">
+        <section className="py-12 md:py-20">
+          <div className="container mx-auto px-4 md:px-6 max-w-3xl">
             <ScrollReveal>
-              <div className="text-center mb-12">
-                <div className="flex items-start justify-end mb-4">
+              <div className="mb-10">
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-brand-50 px-4 py-1.5 text-sm font-medium text-primary">
+                    <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                    Udemy Courses
+                  </span>
                   <Button
                     onClick={handleLogout}
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2"
+                    aria-label="Log out"
+                    className="flex min-h-[44px] items-center gap-2"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
                     Logout
                   </Button>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                  Add <span className="gradient-text">Udemy Course</span>
+                <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+                  Share a course with the <span className="gradient-text">Yatris</span>
                 </h1>
-                <p className="text-lg text-muted-foreground">
-                  Submit a new course to be displayed in the course section
+                <p className="mt-4 max-w-xl text-lg text-muted-foreground">
+                  Add a Udemy course to the catalog. Once it's in, 50,000+ Yatris can find it,
+                  learn from it, and level up their cloud careers.
                 </p>
+                <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                  <li className="inline-flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" aria-hidden="true" />
+                    Seen by 50,000+ learners
+                  </li>
+                  <li className="inline-flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
+                    Reviewed before it goes live
+                  </li>
+                </ul>
               </div>
             </ScrollReveal>
 
@@ -273,7 +289,7 @@ const Udemy = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-xl"
+                className="rounded-2xl border border-border bg-card p-6 shadow-card md:p-10"
               >
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* Course Title */}
@@ -458,20 +474,23 @@ const Udemy = () => {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 text-lg"
+                      className="w-full min-h-[44px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 text-lg shadow-inset-btn"
                     >
                       {isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Submitting...
+                          Publishing your course…
                         </>
                       ) : (
                         <>
                           <CheckCircle2 className="mr-2 h-5 w-5" />
-                          Submit Course
+                          Publish course
                         </>
                       )}
                     </Button>
+                    <p className="mt-3 text-center text-sm text-muted-foreground">
+                      No stress — you can edit or resubmit anytime.
+                    </p>
                   </div>
                 </form>
               </motion.div>

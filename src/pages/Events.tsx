@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Calendar, MapPin, Globe, Clock, Sparkles, Search, X, Filter, Ticket } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Calendar, MapPin, Globe, Clock, Layers, Search, X, Filter, Ticket, CalendarX, ArrowRight, Users } from "lucide-react";
 import { getStoredUser, getRegisteredEvents, EventRegistration, fetchPublishedEvents } from "@/lib/yatris-api";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -10,6 +10,7 @@ import { SEO } from "@/components/SEO";
 import { getAllEvents, Event } from "@/lib/events-store";
 
 const Events = () => {
+    const reduceMotion = useReducedMotion();
     const [events, setEvents] = useState<Event[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
@@ -125,55 +126,37 @@ const Events = () => {
         <ScrollReveal delay={index * 0.1}>
             <Link to={`/events/${event.slug || event.id}`} className="block h-full">
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={reduceMotion ? undefined : { opacity: 0, y: 20 }}
+                    animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={{
-                        scale: 1.03,
-                        y: -8,
-                        transition: { duration: 0.4, ease: "easeOut" }
-                    }}
-                    className="group relative bg-card rounded-3xl overflow-hidden h-full flex flex-col border-2 border-primary/20 hover:border-primary/40 transition-colors duration-300 cursor-pointer"
+                    whileHover={reduceMotion ? undefined : { y: -6 }}
+                    className="group relative bg-card rounded-2xl overflow-hidden h-full flex flex-col border border-border hover:border-brand-200 hover:shadow-card transition-all duration-300 cursor-pointer"
                 >
-                    {/* Enhanced border with gradient glow on hover */}
-                    <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none z-10"
-                        style={{
-                            background: 'linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.4))',
-                            padding: '2px',
-                            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                            WebkitMaskComposite: 'xor',
-                            maskComposite: 'exclude',
-                        }}
-                    />
-
-                    {/* Floating shadow effect */}
-                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-70 transition-all duration-500 -z-10" />
-
                     {/* Event Image - 16:9 aspect ratio */}
-                    <div className="relative w-full aspect-video overflow-hidden bg-muted rounded-t-3xl">
+                    <div className="relative w-full aspect-video overflow-hidden bg-muted">
                         <img
                             src={event.imageUrl}
                             alt={event.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                             loading="lazy"
                         />
+                        {/* Category chip */}
+                        <span className="absolute top-4 left-4 inline-flex items-center rounded-full bg-background/90 backdrop-blur px-3 py-1 text-xs font-semibold text-foreground border border-border/60 shadow-sm">
+                            {event.category}
+                        </span>
                     </div>
 
                     {/* Event Details */}
-                    <div className="p-6 flex-1 flex flex-col relative z-20">
+                    <div className="p-6 flex-1 flex flex-col">
                         {/* Event Name */}
-                        <motion.h3
-                            className="text-xl font-bold text-foreground mb-3 line-clamp-2"
-                            whileHover={{ color: 'hsl(var(--primary))' }}
-                            transition={{ duration: 0.3 }}
-                        >
+                        <h3 className="font-display text-xl font-bold text-foreground mb-3 line-clamp-2 group-hover:text-primary transition-colors">
                             {event.name}
-                        </motion.h3>
+                        </h3>
 
                         {/* Date & Time */}
                         <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                            <Calendar className="w-4 h-4 flex-shrink-0 text-primary group-hover:scale-110 transition-transform duration-300" />
-                            <span className="text-sm font-medium">
+                            <Calendar className="w-4 h-4 flex-shrink-0 text-primary" />
+                            <span className="text-sm font-medium tabular-nums">
                                 {formatEventDate(event.date, event.timezone)}
                             </span>
                         </div>
@@ -182,20 +165,16 @@ const Events = () => {
                         <div className="flex items-start gap-2 text-muted-foreground mb-4">
                             {event.location.type === 'online' ? (
                                 <>
-                                    <Globe className="w-4 h-4 flex-shrink-0 text-primary mt-0.5 group-hover:scale-110 transition-transform duration-300" />
+                                    <Globe className="w-4 h-4 flex-shrink-0 text-primary mt-0.5" />
                                     <div className="flex-1">
-                                        <motion.span
-                                            className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold"
-                                            whileHover={{ scale: 1.05, backgroundColor: 'hsl(var(--primary) / 0.2)' }}
-                                            transition={{ duration: 0.2 }}
-                                        >
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                                             Online Event
-                                        </motion.span>
+                                        </span>
                                     </div>
                                 </>
                             ) : (
                                 <>
-                                    <MapPin className="w-4 h-4 flex-shrink-0 text-primary mt-0.5 group-hover:scale-110 transition-transform duration-300" />
+                                    <MapPin className="w-4 h-4 flex-shrink-0 text-primary mt-0.5" />
                                     <div className="flex-1 text-sm">
                                         <div className="font-medium text-foreground">{event.location.venue}</div>
                                         <div className="text-xs text-muted-foreground mt-0.5">
@@ -206,7 +185,10 @@ const Events = () => {
                             )}
                         </div>
 
-
+                        <div className="mt-auto pt-4 border-t border-border flex items-center text-sm font-semibold text-primary">
+                            <span>Save your spot</span>
+                            <ArrowRight className="w-4 h-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" />
+                        </div>
                     </div>
                 </motion.div>
             </Link>
@@ -219,75 +201,110 @@ const Events = () => {
             <div className="noise-overlay" />
             <Navbar />
 
-            <main className="container mx-auto px-4 md:px-6 pt-32 pb-12">
+            {/* Hero — warm welcome for Yatris */}
+            <section className="relative overflow-hidden pt-32 pb-14 md:pb-16">
+                <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.06] via-background to-background" aria-hidden="true" />
+                <div className="container mx-auto px-4 md:px-6">
+                    <motion.div
+                        initial={reduceMotion ? undefined : { opacity: 0, y: 16 }}
+                        animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                        className="max-w-3xl"
+                    >
+                        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] mb-5">
+                            Where Yatris <span className="gradient-text">meet in real life</span>
+                        </h1>
+                        <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                            Hackathons, workshops, meetups and conferences — the moments where 50,000+ Yatris stop studying alone and start building together. Find one near you, grab a seat, and bring a friend.
+                        </p>
 
-                {/* My Registered Events Section */}
+                        {/* Trust cues */}
+                        <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
+                            <span className="inline-flex items-center gap-2">
+                                <Users className="w-4 h-4 text-primary" /> 50,000+ Yatris in the community
+                            </span>
+                            <span className="inline-flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-primary" /> Online &amp; in-person, worldwide
+                            </span>
+                            <span className="inline-flex items-center gap-2">
+                                <Ticket className="w-4 h-4 text-primary" /> Free &amp; paid — always Yatri-friendly
+                            </span>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
+            <main className="container mx-auto px-4 md:px-6 pb-12">
+
+                {/* My Registered Events Section — grouped in a warm tint band */}
                 {user && myRegistrations.length > 0 && (
                     <section className="mb-16">
-                        <ScrollReveal>
-                            <div className="mb-8">
-                                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
-                                    My Registrations
-                                    <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 shadow-sm">
-                                        {myRegistrations.length}
-                                    </span>
-                                </h2>
-                                <p className="text-muted-foreground">Events you are attending</p>
+                        <div className="band-tint rounded-3xl border border-brand-100 p-6 md:p-8">
+                            <ScrollReveal>
+                                <div className="mb-8">
+                                    <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
+                                        You're going, Yatri
+                                        <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 shadow-sm">
+                                            {myRegistrations.length}
+                                        </span>
+                                    </h2>
+                                    <p className="text-muted-foreground">Your seat is saved. We can't wait to see you there.</p>
+                                </div>
+                            </ScrollReveal>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {myRegistrations.map((reg, index) => (
+                                    <ScrollReveal key={reg.id} delay={index * 0.1}>
+                                        <Link to={`/events/${reg.eventSlug || reg.eventId}`} className="block h-full">
+                                            <motion.div
+                                                initial={reduceMotion ? undefined : { opacity: 0, y: 20 }}
+                                                animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                                whileHover={reduceMotion ? undefined : { y: -5 }}
+                                                className="group relative bg-card rounded-2xl overflow-hidden h-full flex flex-col border border-border hover:border-brand-200 hover:shadow-card transition-all duration-300"
+                                            >
+                                                <div className="relative w-full aspect-video overflow-hidden bg-muted">
+                                                    <img
+                                                        src={reg.eventImage}
+                                                        alt={reg.eventName}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <div className="absolute top-4 right-4 bg-success text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
+                                                        <Ticket className="w-3 h-3" />
+                                                        Confirmed
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-6 flex-1 flex flex-col">
+                                                    <h3 className="font-display text-lg font-bold text-foreground mb-2 line-clamp-1">
+                                                        {reg.eventName}
+                                                    </h3>
+
+                                                    <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="w-4 h-4 text-primary" />
+                                                            <span>{new Date(reg.eventDate).toLocaleDateString(undefined, {
+                                                                weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+                                                            })}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <MapPin className="w-4 h-4 text-primary" />
+                                                            <span className="truncate">{reg.eventLocation}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-xs font-medium">
+                                                        <span className="text-muted-foreground">
+                                                            {reg.attendees.length} {reg.attendees.length === 1 ? 'Ticket' : 'Tickets'}
+                                                        </span>
+                                                        <span className="text-primary group-hover:underline">View Ticket</span>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        </Link>
+                                    </ScrollReveal>
+                                ))}
                             </div>
-                        </ScrollReveal>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {myRegistrations.map((reg, index) => (
-                                <ScrollReveal key={reg.id} delay={index * 0.1}>
-                                    <Link to={`/events/${reg.eventSlug || reg.eventId}`} className="block h-full">
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                                            whileHover={{ y: -5 }}
-                                            className="group relative bg-card rounded-3xl overflow-hidden h-full flex flex-col border border-border hover:border-primary/50 transition-all duration-300 shadow-lg hover:shadow-primary/10"
-                                        >
-                                            <div className="relative w-full aspect-video overflow-hidden bg-muted">
-                                                <img
-                                                    src={reg.eventImage}
-                                                    alt={reg.eventName}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                                <div className="absolute top-4 right-4 bg-green-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
-                                                    <Ticket className="w-3 h-3" />
-                                                    Confirmed
-                                                </div>
-                                            </div>
-
-                                            <div className="p-6 flex-1 flex flex-col">
-                                                <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-1">
-                                                    {reg.eventName}
-                                                </h3>
-
-                                                <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar className="w-4 h-4 text-primary" />
-                                                        <span>{new Date(reg.eventDate).toLocaleDateString(undefined, {
-                                                            weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
-                                                        })}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <MapPin className="w-4 h-4 text-primary" />
-                                                        <span className="truncate">{reg.eventLocation}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-xs font-medium">
-                                                    <span className="text-muted-foreground">
-                                                        {reg.attendees.length} {reg.attendees.length === 1 ? 'Ticket' : 'Tickets'}
-                                                    </span>
-                                                    <span className="text-primary group-hover:underline">View Ticket</span>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    </Link>
-                                </ScrollReveal>
-                            ))}
                         </div>
                     </section>
                 )}
@@ -301,8 +318,9 @@ const Events = () => {
                                 <button
                                     key={category}
                                     onClick={() => setSelectedCategory(category)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap ${selectedCategory === category
-                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-105'
+                                    aria-pressed={selectedCategory === category}
+                                    className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${selectedCategory === category
+                                        ? 'bg-primary text-primary-foreground shadow-inset-btn'
                                         : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
                                         }`}
                                 >
@@ -316,17 +334,20 @@ const Events = () => {
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:flex-shrink-0">
                         {/* Search Bar */}
                         <div className="relative w-full sm:w-64">
+                            <label htmlFor="event-search" className="sr-only">Search events</label>
                             <input
+                                id="event-search"
                                 type="text"
-                                placeholder="Search events..."
+                                placeholder="Search events, Yatri…"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm shadow-sm hover:shadow-md"
+                                className="w-full min-h-[44px] pl-10 pr-4 py-2.5 bg-background border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all text-sm"
                             />
                             <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery("")}
+                                    aria-label="Clear search"
                                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                 >
                                     <X className="w-3.5 h-3.5" />
@@ -344,9 +365,11 @@ const Events = () => {
                                             setTimeout(() => document.getElementById('country-search-input')?.focus(), 50);
                                         }
                                     }}
-                                    className={`w-full sm:w-auto flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium shadow-sm hover:shadow-md min-w-[160px] justify-between ${selectedCountry !== "All"
+                                    aria-label="Filter by country"
+                                    aria-expanded={isCountryDropdownOpen}
+                                    className={`w-full sm:w-auto min-h-[44px] flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium min-w-[160px] justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedCountry !== "All"
                                         ? 'bg-primary/10 border-primary/20 text-primary'
-                                        : 'bg-background border-border text-muted-foreground hover:text-foreground'
+                                        : 'bg-background border-border text-muted-foreground hover:text-foreground hover:border-brand-200'
                                         }`}
                                 >
                                     <div className="flex items-center gap-2 truncate">
@@ -360,7 +383,7 @@ const Events = () => {
 
                                 {/* Dropdown Menu */}
                                 {isCountryDropdownOpen && (
-                                    <div id="country-dropdown" className="absolute right-0 mt-2 w-72 bg-card border border-border rounded-2xl shadow-xl p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                    <div id="country-dropdown" className="absolute right-0 mt-2 w-72 bg-popover border border-border rounded-2xl shadow-elevated p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                                         <h4 className="font-medium mb-3 text-sm px-1">Filter by Country</h4>
 
                                         {/* Country Search */}
@@ -368,10 +391,10 @@ const Events = () => {
                                             <input
                                                 id="country-search-input"
                                                 type="text"
-                                                placeholder="Find a country..."
+                                                placeholder="Find a country…"
                                                 value={countrySearchQuery}
                                                 onChange={(e) => setCountrySearchQuery(e.target.value)}
-                                                className="w-full pl-9 pr-3 py-2 bg-muted/50 border border-transparent rounded-lg focus:bg-background focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm"
+                                                className="w-full pl-9 pr-3 py-2 bg-muted/50 border border-transparent rounded-lg focus:bg-background focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring transition-all text-sm"
                                             />
                                             <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                                         </div>
@@ -436,9 +459,11 @@ const Events = () => {
                                 <div className="relative">
                                     <button
                                         onClick={() => setIsStateDropdownOpen(!isStateDropdownOpen)}
-                                        className={`w-full sm:w-auto flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium shadow-sm hover:shadow-md min-w-[160px] justify-between ${selectedState !== "All"
+                                        aria-label="Filter by state"
+                                        aria-expanded={isStateDropdownOpen}
+                                        className={`w-full sm:w-auto min-h-[44px] flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium min-w-[160px] justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedState !== "All"
                                             ? 'bg-primary/10 border-primary/20 text-primary'
-                                            : 'bg-background border-border text-muted-foreground hover:text-foreground'
+                                            : 'bg-background border-border text-muted-foreground hover:text-foreground hover:border-brand-200'
                                             }`}
                                     >
                                         <div className="flex items-center gap-2 truncate">
@@ -451,7 +476,7 @@ const Events = () => {
                                     </button>
 
                                     {isStateDropdownOpen && (
-                                        <div className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-xl p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                        <div className="absolute right-0 mt-2 w-64 bg-popover border border-border rounded-2xl shadow-elevated p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                                             <h4 className="font-medium mb-3 text-sm px-1">Filter by State</h4>
                                             <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
                                                 <button
@@ -503,13 +528,15 @@ const Events = () => {
                             <div className="relative">
                                 <button
                                     onClick={() => setIsTechStackDropdownOpen(!isTechStackDropdownOpen)}
-                                    className={`w-full sm:w-auto flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium shadow-sm hover:shadow-md min-w-[160px] justify-between ${selectedTechStack !== "All"
+                                    aria-label="Filter by tech stack"
+                                    aria-expanded={isTechStackDropdownOpen}
+                                    className={`w-full sm:w-auto min-h-[44px] flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium min-w-[160px] justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedTechStack !== "All"
                                         ? 'bg-primary/10 border-primary/20 text-primary'
-                                        : 'bg-background border-border text-muted-foreground hover:text-foreground'
+                                        : 'bg-background border-border text-muted-foreground hover:text-foreground hover:border-brand-200'
                                         }`}
                                 >
                                     <div className="flex items-center gap-2 truncate">
-                                        <Sparkles className="w-4 h-4 flex-shrink-0" />
+                                        <Layers className="w-4 h-4 flex-shrink-0" />
                                         <span className="truncate max-w-[100px]">
                                             {selectedTechStack === "All" ? "Tech Stack" : selectedTechStack}
                                         </span>
@@ -518,7 +545,7 @@ const Events = () => {
                                 </button>
 
                                 {isTechStackDropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-xl p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                    <div className="absolute right-0 mt-2 w-64 bg-popover border border-border rounded-2xl shadow-elevated p-4 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                                         <h4 className="font-medium mb-3 text-sm px-1">Filter by Tech Stack</h4>
                                         <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
                                             <button
@@ -571,12 +598,13 @@ const Events = () => {
                     <section className="mb-12">
                         <ScrollReveal>
                             <div className="mb-8">
-                                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
-                                    Upcoming Events
-                                    <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20 shadow-sm">
+                                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
+                                    Coming up next
+                                    <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 shadow-sm">
                                         {filteredUpcomingCount} {filteredUpcomingCount === 1 ? 'Event' : 'Events'}
                                     </span>
                                 </h2>
+                                <p className="text-muted-foreground">Save your spot before seats run out — your next big connection could be here.</p>
                             </div>
                         </ScrollReveal>
 
@@ -595,12 +623,13 @@ const Events = () => {
                         <section>
                             <ScrollReveal>
                                 <div className="mb-8">
-                                    <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
-                                        Past Events
-                                        <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-muted-foreground/10 to-muted-foreground/5 text-muted-foreground border border-muted-foreground/20 shadow-sm">
+                                    <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
+                                        Moments we've shared
+                                        <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-muted text-muted-foreground border border-border shadow-sm">
                                             {filteredPastCount} {filteredPastCount === 1 ? 'Event' : 'Events'}
                                         </span>
                                     </h2>
+                                    <p className="text-muted-foreground">Look back at where Yatris gathered, learned, and celebrated together.</p>
                                 </div>
                             </ScrollReveal>
 
@@ -615,11 +644,13 @@ const Events = () => {
 
                 {
                     filteredUpcomingCount === 0 && filteredPastCount === 0 && (
-                        <div className="text-center py-20 bg-muted/10 rounded-2xl border border-border mt-8">
-                            <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                            <h3 className="text-xl font-semibold mb-2">No events found</h3>
-                            <p className="text-muted-foreground">
-                                Try adjusting your search or filters to find what you're looking for.
+                        <div className="text-center py-20 band-tint rounded-3xl border border-brand-100 mt-8">
+                            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                <CalendarX className="w-8 h-8" />
+                            </div>
+                            <h3 className="font-display text-2xl font-bold mb-2">No events match that just yet, Yatri</h3>
+                            <p className="text-muted-foreground max-w-md mx-auto">
+                                Fresh meetups and workshops drop often. Loosen the filters, or check back soon — we're always planning the next gathering.
                             </p>
                             <button
                                 onClick={() => {
@@ -627,9 +658,9 @@ const Events = () => {
                                     setSelectedCategory("All");
                                     setSelectedCountry("All");
                                 }}
-                                className="mt-6 text-primary hover:underline font-medium"
+                                className="mt-6 inline-flex items-center gap-2 min-h-[44px] px-6 rounded-xl bg-primary text-primary-foreground font-semibold shadow-inset-btn hover:bg-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                             >
-                                Clear all filters
+                                Show me everything <ArrowRight className="w-4 h-4" />
                             </button>
                         </div>
                     )

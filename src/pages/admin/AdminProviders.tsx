@@ -186,18 +186,29 @@ export default function AdminProviders() {
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">Providers Management</h1>
-                <p className="text-muted-foreground mt-2">Manage Certification Providers and Role-based Tracks.</p>
+        <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-6 md:space-y-8">
+            {/* Header band — distinct blue-tinted workspace panel */}
+            <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
+
+                <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div className="space-y-1.5">
+                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Course providers
+                        </p>
+                        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Providers Management</h1>
+                        <p className="text-muted-foreground">Manage certification providers and role-based tracks.</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 {/* Form Section */}
-                <Card className="md:col-span-1 h-fit">
+                <Card className="md:col-span-1 h-fit border border-border rounded-2xl shadow-none">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Plus className="w-5 h-5" /> Add New
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                            <Plus className="w-5 h-5 text-primary" /> Add New
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -294,7 +305,7 @@ export default function AdminProviders() {
                                     </Select>
                                 )}
                             </div>
-                            <Button type="submit" className="w-full" disabled={isSubmitting || !newProvider || !newExam || !type}>
+                            <Button type="submit" className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]" disabled={isSubmitting || !newProvider || !newExam || !type}>
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add to Database"}
                             </Button>
                         </form>
@@ -302,36 +313,44 @@ export default function AdminProviders() {
                 </Card>
 
                 {/* List Section */}
-                <Card className="md:col-span-2">
+                <Card className="md:col-span-2 border border-border rounded-2xl shadow-none">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Database className="w-5 h-5" /> Existing Providers
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                            <Database className="w-5 h-5 text-primary" /> Existing Providers
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         {isLoading ? (
-                            <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
+                            <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
                         ) : (
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead>Provider/Role</TableHead>
-                                        <TableHead>Exams / Courses</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Type</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Provider/Role</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Exams / Courses</TableHead>
+                                        <TableHead className="text-right text-xs uppercase tracking-wide text-muted-foreground">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {!providers || providers.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                                                No providers found (or connection failed). Add one to get started.
+                                            <TableCell colSpan={4} className="text-center py-16">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                        <Database className="w-7 h-7" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <h3 className="font-display text-lg font-semibold">No providers yet</h3>
+                                                        <p className="text-muted-foreground text-sm">Add your first provider using the form to get started.</p>
+                                                    </div>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ) : (
                                         providers.map((p: any, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell className="text-xs">{p.type || "N/A"}</TableCell>
+                                            <TableRow key={i} className="hover:bg-brand-50">
+                                                <TableCell className="text-xs text-muted-foreground">{p.type || "N/A"}</TableCell>
                                                 <TableCell className="font-semibold flex items-center gap-2">
                                                     <Server className={`w-4 h-4 ${p.exists === false ? 'text-destructive' : 'text-primary'}`} />
                                                     {editingRow === i ? (
@@ -347,7 +366,7 @@ export default function AdminProviders() {
                                                         </span>
                                                     )}
                                                     {p.exists === false && !editingRow && (
-                                                        <span className="text-[10px] bg-destructive/10 text-destructive px-1.5 py-0.5 rounded border border-destructive/20 ml-2">
+                                                        <span className="text-xs font-medium bg-destructive/10 text-destructive px-2 py-0.5 rounded-full ml-2">
                                                             Missing from Drive
                                                         </span>
                                                     )}
@@ -355,7 +374,7 @@ export default function AdminProviders() {
                                                 <TableCell>
                                                     <div className="flex flex-wrap gap-2">
                                                         {p.exams.map((exam: string, j: number) => (
-                                                            <span key={j} className="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-medium border border-primary/20">
+                                                            <span key={j} className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-medium">
                                                                 {exam}
                                                             </span>
                                                         ))}
@@ -365,10 +384,10 @@ export default function AdminProviders() {
                                                     <div className="flex justify-end gap-2">
                                                         {editingRow === i ? (
                                                             <>
-                                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600" onClick={() => handleUpdate(p)} disabled={isSubmitting}>
+                                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => handleUpdate(p)} disabled={isSubmitting}>
                                                                     {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-4 w-4" />}
                                                                 </Button>
-                                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => setEditingRow(null)}>
+                                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => setEditingRow(null)}>
                                                                     <X className="h-4 w-4" />
                                                                 </Button>
                                                             </>
@@ -380,7 +399,7 @@ export default function AdminProviders() {
                                                                 }}>
                                                                     <Pencil className="h-4 w-4" />
                                                                 </Button>
-                                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(p)}>
+                                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" onClick={() => handleDelete(p)}>
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </Button>
                                                             </>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { Linkedin, Calendar, Award, Sparkles, Trophy, CheckCircle2, Star, ExternalLink, ShieldCheck, TrendingUp, Users, Building2, Calendar as CalendarIcon, BadgeCheck, GraduationCap, Briefcase, Zap, Sparkles as SparklesIcon, Star as StarIcon, CheckCircle, Clock, FileText, Download } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Linkedin, Calendar, Award, Trophy, Medal, CheckCircle2, Star, ExternalLink, ShieldCheck, TrendingUp, Users, Building2, Calendar as CalendarIcon, BadgeCheck, GraduationCap, Briefcase, Zap, Star as StarIcon, CheckCircle, Clock, FileText, Download } from "lucide-react";
 import html2canvas from "html2canvas";
 import { downloadCanvaImage } from "@/lib/canva-api";
 import { fetchCertifications } from "@/lib/google-sheets";
@@ -158,152 +158,16 @@ const COUNTRY_COORDINATES: Record<string, [number, number]> = {
   "NP": [84.1240, 28.3949],
 };
 
-// Provider color mapping for exam code badges
-const PROVIDER_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  AWS: {
-    bg: 'bg-orange-100 dark:bg-orange-950/30',
-    text: 'text-orange-700 dark:text-orange-400',
-    border: 'border-orange-300 dark:border-orange-800'
-  },
-  AZURE: {
-    bg: 'bg-blue-100 dark:bg-blue-950/30',
-    text: 'text-blue-700 dark:text-blue-400',
-    border: 'border-blue-300 dark:border-blue-800'
-  },
-  GCP: {
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    text: 'text-blue-600 dark:text-blue-400',
-    border: 'border-blue-200 dark:border-blue-800'
-  },
-  GOOGLE: {
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    text: 'text-blue-600 dark:text-blue-400',
-    border: 'border-blue-200 dark:border-blue-800'
-  },
-  GITHUB: {
-    bg: 'bg-gray-100 dark:bg-gray-800/30',
-    text: 'text-gray-700 dark:text-gray-300',
-    border: 'border-gray-300 dark:border-gray-700'
-  },
-  ORACLE: {
-    bg: 'bg-red-100 dark:bg-red-950/30',
-    text: 'text-red-700 dark:text-red-400',
-    border: 'border-red-300 dark:border-red-800'
-  },
-  SALESFORCE: {
-    bg: 'bg-blue-100 dark:bg-blue-950/30',
-    text: 'text-blue-700 dark:text-blue-400',
-    border: 'border-blue-300 dark:border-blue-800'
-  },
-  SERVICENOW: {
-    bg: 'bg-blue-100 dark:bg-blue-950/30',
-    text: 'text-blue-700 dark:text-blue-400',
-    border: 'border-blue-300 dark:border-blue-800'
-  },
-  KUBERNETES: {
-    bg: 'bg-blue-100 dark:bg-blue-950/30',
-    text: 'text-blue-700 dark:text-blue-400',
-    border: 'border-blue-300 dark:border-blue-800'
-  },
-  TERRAFORM: {
-    bg: 'bg-purple-100 dark:bg-purple-950/30',
-    text: 'text-purple-700 dark:text-purple-400',
-    border: 'border-purple-300 dark:border-purple-800'
-  },
-  OPENAI: {
-    bg: 'bg-emerald-100 dark:bg-emerald-950/30',
-    text: 'text-emerald-700 dark:text-emerald-400',
-    border: 'border-emerald-300 dark:border-emerald-800'
-  },
-  HASHICORP: {
-    bg: 'bg-stone-100 dark:bg-stone-800/30',
-    text: 'text-stone-700 dark:text-stone-300',
-    border: 'border-stone-300 dark:border-stone-700'
-  },
-};
+// Provider badge/card colors — unified ON-PALETTE (blue/white), single source of truth
+const _PROVIDER_KEYS = ["AWS", "AZURE", "GCP", "GOOGLE", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "KUBERNETES", "TERRAFORM", "OPENAI", "HASHICORP", "MULTIPLE"];
+const PROVIDER_COLORS: Record<string, { bg: string; text: string; border: string }> = Object.fromEntries(
+  _PROVIDER_KEYS.map((p) => [p, { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' }])
+);
 
-// Provider brand colors for card backgrounds
-// Single provider = brand color, Multiple providers = primary blue
-const PROVIDER_BRAND_COLORS: Record<string, { from: string; via: string; to: string; border: string }> = {
-  AWS: {
-    from: 'from-yellow-500/20 dark:from-yellow-600/30',
-    via: 'via-orange-500/15 dark:via-orange-600/25',
-    to: 'to-yellow-400/10 dark:to-yellow-500/20',
-    border: 'border-yellow-400/30 dark:border-yellow-500/40'
-  },
-  AZURE: {
-    from: 'from-blue-500/20 dark:from-blue-600/30',
-    via: 'via-blue-400/15 dark:via-blue-500/25',
-    to: 'to-blue-300/10 dark:to-blue-400/20',
-    border: 'border-blue-400/30 dark:border-blue-500/40'
-  },
-  GCP: {
-    from: 'from-blue-500/20 dark:from-blue-600/30',
-    via: 'via-yellow-500/15 dark:via-yellow-600/25',
-    to: 'to-green-500/10 dark:to-green-600/20',
-    border: 'border-blue-400/30 dark:border-blue-500/40'
-  },
-  GOOGLE: {
-    from: 'from-blue-500/20 dark:from-blue-600/30',
-    via: 'via-yellow-500/15 dark:via-yellow-600/25',
-    to: 'to-green-500/10 dark:to-green-600/20',
-    border: 'border-blue-400/30 dark:border-blue-500/40'
-  },
-  GITHUB: {
-    from: 'from-gray-800/30 dark:from-gray-900/40',
-    via: 'via-gray-700/20 dark:via-gray-800/30',
-    to: 'to-gray-600/15 dark:to-gray-700/25',
-    border: 'border-gray-600/30 dark:border-gray-700/40'
-  },
-  ORACLE: {
-    from: 'from-red-600/20 dark:from-red-700/30',
-    via: 'via-red-500/15 dark:via-red-600/25',
-    to: 'to-red-400/10 dark:to-red-500/20',
-    border: 'border-red-500/30 dark:border-red-600/40'
-  },
-  SALESFORCE: {
-    from: 'from-blue-500/20 dark:from-blue-600/30',
-    via: 'via-cyan-500/15 dark:via-cyan-600/25',
-    to: 'to-blue-400/10 dark:to-blue-500/20',
-    border: 'border-blue-400/30 dark:border-blue-500/40'
-  },
-  SERVICENOW: {
-    from: 'from-teal-500/20 dark:from-teal-600/30',
-    via: 'via-blue-500/15 dark:via-blue-600/25',
-    to: 'to-teal-400/10 dark:to-teal-500/20',
-    border: 'border-teal-400/30 dark:border-teal-500/40'
-  },
-  KUBERNETES: {
-    from: 'from-blue-500/20 dark:from-blue-600/30',
-    via: 'via-blue-400/15 dark:via-blue-500/25',
-    to: 'to-blue-300/10 dark:to-blue-400/20',
-    border: 'border-blue-400/30 dark:border-blue-500/40'
-  },
-  TERRAFORM: {
-    from: 'from-purple-500/20 dark:from-purple-600/30',
-    via: 'via-purple-400/15 dark:via-purple-500/25',
-    to: 'to-purple-300/10 dark:to-purple-400/20',
-    border: 'border-purple-400/30 dark:border-purple-500/40'
-  },
-  OPENAI: {
-    from: 'from-emerald-500/20 dark:from-emerald-600/30',
-    via: 'via-teal-500/15 dark:via-teal-600/25',
-    to: 'to-emerald-400/10 dark:to-emerald-500/20',
-    border: 'border-emerald-400/30 dark:border-emerald-500/40'
-  },
-  HASHICORP: {
-    from: 'from-gray-700/30 dark:from-gray-800/40',
-    via: 'via-stone-600/20 dark:via-stone-700/30',
-    to: 'to-gray-500/15 dark:to-gray-600/25',
-    border: 'border-stone-500/30 dark:border-stone-600/40'
-  },
-  MULTIPLE: {
-    from: 'from-primary/30 dark:from-primary/40',
-    via: 'via-primary/25 dark:via-primary/35',
-    to: 'to-primary/20 dark:to-primary/30',
-    border: 'border-primary/40 dark:border-primary/50'
-  }
-};
+// Provider card gradients — unified ON-PALETTE (soft blue), all providers
+const PROVIDER_BRAND_COLORS: Record<string, { from: string; via: string; to: string; border: string }> = Object.fromEntries(
+  _PROVIDER_KEYS.map((p) => [p, { from: 'from-primary/20', via: 'via-primary/12', to: 'to-primary/5', border: 'border-primary/30' }])
+);
 
 interface CertificationEntry {
   id: string;
@@ -424,6 +288,7 @@ const Achievements = () => {
   const [selectedPerson, setSelectedPerson] = useState<GroupedPerson | null>(null);
   const [useCanva, setUseCanva] = useState(false);
   const { theme } = useTheme();
+  const prefersReducedMotion = useReducedMotion();
 
   // Canva template ID - Set this to your Canva template ID
   // Get it from your Canva template URL or Canva API
@@ -1089,11 +954,12 @@ const Achievements = () => {
                   />
                 </motion.div>
 
-                <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                  Our <span className="gradient-text">Achievements</span>
+                <h1 className="text-4xl md:text-6xl font-bold font-display mb-4">
+                  The <span className="gradient-text">Wall of Fame</span>
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                  Celebrating the success of our certified Yatris (In Testing Mode)
+                  Every face here is a Yatri who studied, sat the exam, and passed.
+                  Real people, real certifications — and proof you can do it too.
                 </p>
 
                 {/* Stats */}
@@ -1102,26 +968,26 @@ const Achievements = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
-                    className="bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-red-500/5 border border-amber-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-amber-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                    className="bg-white border border-brand-100 rounded-2xl p-6 text-center hover:shadow-elevated hover:border-primary/40 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <BadgeCheck className="w-8 h-8 text-amber-500" strokeWidth={2.5} />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <BadgeCheck className="w-8 h-8 text-primary" strokeWidth={2.5} />
                     </div>
-                    <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+                    <div className="text-4xl md:text-5xl font-extrabold font-display gradient-text mb-2 tabular-nums">
                       {isLoading ? (
                         <div className="flex items-center justify-center gap-1.5">
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-amber-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-300"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
                           />
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-orange-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-500"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
                           />
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-red-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-700"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
                           />
@@ -1130,33 +996,33 @@ const Achievements = () => {
                         totalCertifications
                       )}
                     </div>
-                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Total Achievements</div>
+                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certifications earned</div>
                   </motion.div>
 
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-indigo-500/5 border border-blue-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-blue-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                    className="bg-white border border-brand-100 rounded-2xl p-6 text-center hover:shadow-elevated hover:border-primary/40 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <GraduationCap className="w-8 h-8 text-blue-500" strokeWidth={2.5} />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <GraduationCap className="w-8 h-8 text-primary" strokeWidth={2.5} />
                     </div>
-                    <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-500 bg-clip-text text-transparent">
+                    <div className="text-4xl md:text-5xl font-extrabold font-display gradient-text mb-2 tabular-nums">
                       {isLoading ? (
                         <div className="flex items-center justify-center gap-1.5">
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-blue-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-300"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
                           />
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-cyan-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-500"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
                           />
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-indigo-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-700"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
                           />
@@ -1172,26 +1038,26 @@ const Achievements = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-violet-500/5 border border-purple-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                    className="bg-white border border-brand-100 rounded-2xl p-6 text-center hover:shadow-elevated hover:border-primary/40 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Briefcase className="w-8 h-8 text-purple-500" strokeWidth={2.5} />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Building2 className="w-8 h-8 text-primary" strokeWidth={2.5} />
                     </div>
-                    <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-purple-500 via-pink-500 to-violet-500 bg-clip-text text-transparent">
+                    <div className="text-4xl md:text-5xl font-extrabold font-display gradient-text mb-2 tabular-nums">
                       {isLoading ? (
                         <div className="flex items-center justify-center gap-1.5">
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-purple-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-300"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0 }}
                           />
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-pink-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-500"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }}
                           />
                           <motion.span
-                            className="w-2.5 h-2.5 rounded-full bg-violet-500"
+                            className="w-2.5 h-2.5 rounded-full bg-brand-700"
                             animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                             transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 }}
                           />
@@ -1200,7 +1066,7 @@ const Achievements = () => {
                         uniqueProviders
                       )}
                     </div>
-                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certification Providers</div>
+                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Cloud providers</div>
                   </motion.div>
 
                   {thisMonth > 0 && (
@@ -1208,15 +1074,15 @@ const Achievements = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.4 }}
-                      className="bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-green-500/5 border border-emerald-500/20 rounded-2xl p-6 text-center backdrop-blur-sm hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                      className="bg-white border border-brand-100 rounded-2xl p-6 text-center hover:shadow-elevated hover:border-primary/40 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
                     >
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                        <Zap className="w-8 h-8 text-emerald-500" strokeWidth={2.5} />
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <Zap className="w-8 h-8 text-primary" strokeWidth={2.5} />
                       </div>
-                      <div className="text-4xl md:text-5xl font-extrabold text-foreground mb-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 bg-clip-text text-transparent">
+                      <div className="text-4xl md:text-5xl font-extrabold font-display gradient-text mb-2 tabular-nums">
                         {thisMonth}
                       </div>
-                      <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">This Month</div>
+                      <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certified this month</div>
                     </motion.div>
                   )}
                 </div>
@@ -1238,7 +1104,7 @@ const Achievements = () => {
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
 
                   <Trophy className="relative z-10 w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                  <span className="relative z-10">Share Your Achievement</span>
+                  <span className="relative z-10">Add your name to the wall</span>
                   <ExternalLink className="relative z-10 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
 
                   {/* Glow effect */}
@@ -1319,7 +1185,7 @@ const Achievements = () => {
               <div className="flex items-center justify-center py-24">
                 <div className="text-center">
                   <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                  <p className="text-muted-foreground">Loading achievements...</p>
+                  <p className="text-muted-foreground">Loading the Wall of Fame…</p>
                 </div>
               </div>
             ) : error ? (
@@ -1345,11 +1211,14 @@ const Achievements = () => {
               </ScrollReveal>
             ) : certifications.length === 0 ? (
               <ScrollReveal delay={0.2}>
-                <div className="text-center py-24">
-                  <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No achievements yet</h3>
+                <div className="text-center py-24 max-w-md mx-auto">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-50 border border-brand-100 mb-5">
+                    <Users className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-semibold font-display mb-2">The wall is waiting, Yatris</h3>
                   <p className="text-muted-foreground">
-                    Be the first to share your certification success!
+                    No certifications up here yet — be the first to plant your flag.
+                    Pass your exam, then <a href="/certifiedyatris" className="text-primary font-semibold hover:underline">share it here</a> and kick off the Wall of Fame. 🎉
                   </p>
                 </div>
               </ScrollReveal>
@@ -1365,11 +1234,11 @@ const Achievements = () => {
                         <div className="mb-12">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
                             <div>
-                              <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
-                                {isAllView ? "All Providers" : `${provider} Certifications`}
+                              <h3 className="text-4xl md:text-5xl font-bold font-display text-foreground mb-2">
+                                {isAllView ? "Every certified Yatri" : `${provider} Certifications`}
                               </h3>
                               <p className="text-lg text-muted-foreground">
-                                {certs.length} {certs.length === 1 ? "yatri" : "yatris"} certified
+                                {certs.length} {certs.length === 1 ? "Yatri" : "Yatris"} on the wall
                               </p>
                             </div>
                             {/* Country Filter - Only show for "All" view */}
@@ -1447,20 +1316,20 @@ const Achievements = () => {
                             };
                             const cardColor = getCardColor();
 
-                            // Special styling for Yatharth Chauhan and Nensi Ravaliya
+                            // Featured founders (Yatharth Chauhan, Nensi Ravaliya) get a premium blue treatment
                             const isSpecialPerson = person.fullName === "Yatharth Chauhan" || person.fullName === "Nensi Ravaliya";
                             const specialCardClasses = isSpecialPerson
-                              ? "bg-black/80 dark:bg-white/80 backdrop-blur-sm border-yellow-500 border-4"
-                              : `bg-gradient-to-br ${cardColor.from} ${cardColor.via} ${cardColor.to} backdrop-blur-sm border ${cardColor.border}`;
+                              ? "bg-gradient-to-br from-brand-50 to-white border-2 border-primary ring-2 ring-primary/20 shadow-glow-soft"
+                              : "bg-white border border-brand-100";
 
                             return (
                               <motion.div
                                 key={person.id}
-                                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                                initial={prefersReducedMotion ? false : { opacity: 0, y: 30, scale: 0.94 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                                transition={{ delay: index * 0.08, duration: 0.5, ease: "easeOut" }}
+                                transition={{ delay: prefersReducedMotion ? 0 : index * 0.07, duration: 0.5, ease: "easeOut" }}
                                 whileHover={{ y: -8, scale: 1.02 }}
-                                className={`group relative flex flex-col ${specialCardClasses} rounded-2xl p-6 hover:border-opacity-60 transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden cursor-pointer`}
+                                className={`group relative flex flex-col ${specialCardClasses} rounded-2xl p-6 hover:border-primary/50 transition-all duration-300 shadow-card hover:shadow-elevated overflow-hidden cursor-pointer`}
                                 onClick={() => openPersonModal(person)}
                               >
                                 {/* Animated gradient background */}
@@ -1475,7 +1344,7 @@ const Achievements = () => {
                                 <div className="relative mb-6 z-10 flex justify-center">
                                   <motion.div
                                     className={`relative overflow-visible rounded-full border-4 shadow-xl transition-all duration-300 ${isSpecialPerson
-                                      ? "border-yellow-500 group-hover:border-yellow-400"
+                                      ? "border-primary group-hover:border-brand-600"
                                       : "border-primary/20 group-hover:border-primary/40"
                                       }`}
                                     whileHover={{ scale: 1.05 }}
@@ -1491,7 +1360,7 @@ const Achievements = () => {
                                     {/* Certification Count Badge - On the circular border, bottom right */}
                                     <motion.div
                                       className={`absolute bottom-0 right-0 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 shadow-lg z-20 ${isSpecialPerson
-                                        ? "bg-yellow-500 border-yellow-600"
+                                        ? "bg-gradient-to-br from-primary to-brand-700 border-white"
                                         : "bg-gradient-to-br from-primary to-primary/80 border-background"
                                         }`}
                                       style={{
@@ -1499,7 +1368,7 @@ const Achievements = () => {
                                       }}
                                     >
                                       <span className={`text-xs md:text-sm font-bold leading-none ${isSpecialPerson
-                                        ? "text-black"
+                                        ? "text-primary-foreground"
                                         : "text-primary-foreground"
                                         }`}>
                                         {totalCertCount}x
@@ -1509,8 +1378,8 @@ const Achievements = () => {
                                 </div>
 
                                 {/* Name */}
-                                <h4 className={`text-xl md:text-2xl font-bold mb-4 text-center relative z-10 transition-colors ${isSpecialPerson
-                                  ? "text-white dark:text-black group-hover:text-yellow-300 dark:group-hover:text-yellow-600"
+                                <h4 className={`text-xl md:text-2xl font-bold font-display mb-4 text-center relative z-10 transition-colors ${isSpecialPerson
+                                  ? "text-foreground group-hover:text-primary"
                                   : "text-foreground group-hover:text-primary"
                                   }`}>
                                   {person.fullName}
@@ -1566,7 +1435,7 @@ const Achievements = () => {
                                           {/* Certification count before logo - only show if NOT in "All" view */}
                                           {!isAllView && (
                                             <span className={`text-xs font-bold ${isSpecialPerson
-                                              ? "text-white dark:text-black"
+                                              ? "text-foreground/80"
                                               : "text-foreground/80"
                                               }`}>
                                               {count}x
@@ -1576,7 +1445,7 @@ const Achievements = () => {
                                             ? 'w-12 h-12'
                                             : 'w-8 h-8'
                                             } ${isSpecialPerson
-                                              ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40"
+                                              ? "bg-brand-50 border-brand-200"
                                               : "bg-background/50 border-border/40"
                                             }`}>
                                             <img
@@ -1597,7 +1466,7 @@ const Achievements = () => {
                                     <motion.div
                                       whileHover={{ scale: 1.1 }}
                                       className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${isSpecialPerson
-                                        ? "bg-white/30 dark:bg-white/30 border-yellow-300/40 dark:border-yellow-400/40"
+                                        ? "bg-brand-50 border-brand-200"
                                         : "bg-background/50 border-border/40"
                                         }`}
                                       title={getCountryName(person.country)}
@@ -1606,7 +1475,7 @@ const Achievements = () => {
                                         {getCountryFlag(person.country)}
                                       </span>
                                       <span className={`text-xs font-medium ${isSpecialPerson
-                                        ? "text-white dark:text-black font-semibold"
+                                        ? "text-foreground/80 font-semibold"
                                         : "text-foreground/80"
                                         }`}>
                                         {getCountryName(person.country)}
@@ -1652,16 +1521,16 @@ const Achievements = () => {
 
         {/* World Map Section */}
         {allMapMarkers.length > 0 && (
-          <section className="py-14 md:py-24 bg-muted/30">
+          <section className="py-14 md:py-24 band-tint">
             <div className="container mx-auto px-4 md:px-6 max-w-[1600px]">
               <ScrollReveal delay={0.2}>
                 <div className="mb-8">
                   <div className="text-center mb-8">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                      Your <span className="gradient-text">Reach</span>
+                    <h2 className="text-3xl md:text-4xl font-bold font-display mb-2">
+                      Yatris, <span className="gradient-text">worldwide</span>
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                      See our certified Yatris locations around the world
+                      From your city to theirs — see where our certified Yatris call home.
                     </p>
                   </div>
 

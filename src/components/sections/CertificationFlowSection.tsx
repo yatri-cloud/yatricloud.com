@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ExternalLink } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ExternalLink, BadgeCheck } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const eligibleExams = [
@@ -12,6 +12,12 @@ const eligibleExams = [
   "AWS Certified Data Engineer – Associate (DEA-C01)",
   "AWS Certified Machine Learning Engineer – Associate (MLA-C01)",
 ];
+
+// Public AWS exam codes for entries whose title doesn't include the code inline.
+const EXAM_CODE_FALLBACK: Record<string, string> = {
+  "cloud practitioner": "CLF-C02",
+  "ai practitioner": "AIF-C01",
+};
 
 const bonusFeatures = [
   {
@@ -74,7 +80,33 @@ const steps = [
   },
 ];
 
+const reveal = {
+  initial: { opacity: 0, y: 20 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+};
+
 export const CertificationFlowSection = () => {
+  const prefersReducedMotion = useReducedMotion();
+
+  // Preserved step-action logic (extracted so both the desktop + mobile
+  // timeline layouts can share the exact same handler — behaviour unchanged).
+  const handleStepAction = (
+    e: React.MouseEvent,
+    action: (typeof steps)[number]["action"]
+  ) => {
+    e.preventDefault();
+    if (action?.isPopup && window.Calendly) {
+      window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
+    } else if (action?.url?.startsWith('#')) {
+      const element = document.querySelector(action.url);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://assets.calendly.com/assets/external/widget.js";
@@ -87,104 +119,129 @@ export const CertificationFlowSection = () => {
   }, []);
 
   return (
-    <section id="certification-flow" className="py-32 relative overflow-hidden">
-      {/* Enhanced Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/3 to-transparent" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-
+    <section id="certification-flow" className="py-20 md:py-28 bg-background relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         {/* Header */}
         <ScrollReveal>
-          <div className="text-center mb-20">
-            <motion.div
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 mb-6"
-              animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <span className="text-primary font-semibold text-sm uppercase tracking-wider">
-                Get Certified with Yatri Cloud
-              </span>
-            </motion.div>
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+          <div className="text-center mb-16 md:mb-20 max-w-3xl mx-auto">
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
+              Get Certified with Yatri Cloud
+            </span>
+            <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] leading-[1.05] mb-6">
               Your Path to <span className="gradient-text">AWS Certification</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
               Schedule a meeting at your suitable time to start the certification scheduling process
             </p>
           </div>
         </ScrollReveal>
 
         <div className="max-w-6xl mx-auto">
-          {/* Eligible Exams - Clean Card Design */}
+          {/* Eligible Exams - Credential Cards */}
           <ScrollReveal delay={0.1}>
-            <motion.div
-              className="group relative bg-gradient-to-br from-card via-card/98 to-card/95 border-2 border-border/60 rounded-[2rem] p-10 md:p-12 mb-10 overflow-hidden hover:border-primary/50 transition-all duration-700 shadow-2xl"
-              whileHover={{ y: -8, scale: 1.01 }}
-            >
-              {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              {/* Decorative corner accents */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full translate-y-24 -translate-x-24 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
-
-              <div className="relative z-10">
-                <div className="mb-8">
-                  <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Eligible AWS Associate Exams</h3>
-                  <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
+            <div className="bg-card border border-border rounded-2xl p-6 md:p-10 mb-8">
+              {/* Header */}
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                <div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <img src="/logos/aws.svg" alt="AWS" className="h-6 w-auto" loading="lazy" />
+                    <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                      Eligible Associate Exams
+                    </h3>
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary tabular-nums">
+                      {eligibleExams.length} exams
+                    </span>
+                  </div>
+                  <div className="mt-3 h-1 w-20 bg-primary rounded-full" />
                 </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  {eligibleExams.map((exam, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.08, duration: 0.5 }}
-                      className="group/item flex items-start gap-4 p-5 rounded-xl bg-gradient-to-br from-card/50 to-card/30 border border-border/40 hover:border-primary/40 hover:bg-card/70 transition-all duration-300"
-                    >
-                      <div className="flex-shrink-0 mt-1.5">
-                        <div className="w-2 h-2 rounded-full bg-primary group-hover/item:scale-150 transition-transform duration-300" />
-                      </div>
-                      <span className="text-foreground text-base leading-relaxed font-medium">{exam}</span>
-                    </motion.div>
-                  ))}
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-primary">50% OFF</span> applies to every exam below
+                </p>
               </div>
 
-              {/* Shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            </motion.div>
+              {/* Credential grid */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                {eligibleExams.map((exam, index) => {
+                  const codeMatch = exam.match(/\(([^)]+)\)/);
+                  const code =
+                    codeMatch?.[1] ??
+                    Object.entries(EXAM_CODE_FALLBACK).find(([k]) => exam.toLowerCase().includes(k))?.[1] ??
+                    null;
+                  const title = exam.replace(/\s*\([^)]*\)\s*/, " ").replace(/\s+–\s+Associate\s*$/i, "").trim();
+                  const level = /associate/i.test(exam) ? "Associate" : /practitioner/i.test(exam) ? "Foundational" : null;
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 12 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                      whileHover={{ y: -3 }}
+                      className="group relative flex items-center gap-4 overflow-hidden rounded-xl border border-border bg-secondary/40 p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-card"
+                    >
+                      {/* Left accent bar (draws in on hover) */}
+                      <span className="absolute left-0 top-0 h-full w-0.5 origin-top scale-y-0 bg-primary transition-transform duration-300 group-hover:scale-y-100" />
+                      {/* Icon */}
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/15">
+                        <BadgeCheck className="h-5 w-5" />
+                      </div>
+                      {/* Title + level */}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-semibold leading-snug text-foreground" title={exam}>{title}</p>
+                        {level && (
+                          <span className="mt-1 inline-block rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            {level}
+                          </span>
+                        )}
+                      </div>
+                      {/* Exam code pill */}
+                      {code && (
+                        <span className="shrink-0 self-start rounded-md border border-border bg-background px-2 py-1 font-mono text-xs font-medium tabular-nums text-muted-foreground">
+                          {code}
+                        </span>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
           </ScrollReveal>
 
-          {/* Bonus Features - Matching PricingSection UI */}
+          {/* Bonus Features */}
           <ScrollReveal delay={0.2}>
-            <div id="benefits" className="mb-12 scroll-mt-20">
+            <div id="benefits" className="mb-16 scroll-mt-20">
               {/* Header */}
-              <div className="text-center mb-10">
+              <div className="text-center mb-10 max-w-2xl mx-auto">
                 <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
                   Certification Package
                 </span>
-                <h3 className="text-3xl md:text-5xl font-bold mb-4">
+                <h3 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-4">
                   What's <span className="gradient-text">Included</span>
                 </h3>
-                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                <p className="text-muted-foreground text-lg">
                   These benefits are available only after getting 50% OFF. Get everything you need to succeed with our comprehensive support package.
                 </p>
               </div>
 
               {/* Individual Benefit Boxes */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {bonusFeatures.map((feature, index) => {
                   const [isFlipped, setIsFlipped] = React.useState(false);
 
                   return (
-                    <ScrollReveal key={index} delay={0.2 + index * 0.15}>
+                    <ScrollReveal key={index} delay={0.1 + index * 0.06}>
                       <div
-                        className="group relative h-full min-h-[320px] cursor-pointer"
+                        className="group relative h-full min-h-[300px] cursor-pointer"
                         onClick={() => setIsFlipped(!isFlipped)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${feature.text} - click to flip for details`}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setIsFlipped(!isFlipped);
+                          }
+                        }}
                         style={{ perspective: 1000 }}
                       >
                         <motion.div
@@ -195,39 +252,28 @@ export const CertificationFlowSection = () => {
                         >
                           {/* Front of card */}
                           <div
-                            className="absolute inset-0 bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/60 hover:border-primary/40 rounded-3xl p-10 overflow-hidden text-left flex flex-col"
+                            className="absolute inset-0 bg-card border border-border group-hover:border-primary/40 group-hover:shadow-card rounded-2xl p-8 text-left flex flex-col transition-all duration-300"
                             style={{ backfaceVisibility: "hidden" }}
                           >
-                            {/* Animated gradient background */}
-                            <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                            <div className="flex-1 flex flex-col h-full">
+                              <span className="font-display text-4xl md:text-5xl font-black gradient-text mb-6">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
 
-                            {/* Decorative corner elements */}
-                            <div className="absolute top-0 left-0 w-40 h-40 bg-primary/5 rounded-full -translate-x-20 -translate-y-20 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
-                            <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full translate-x-16 translate-y-16 group-hover:bg-primary/10 transition-colors duration-500 blur-xl" />
-
-                            {/* Content */}
-                            <div className="relative z-10 flex-1 flex flex-col h-full">
-                              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/30 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-primary/10">
-                                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{index + 1}</span>
-                              </div>
-
-                              <h4 className="text-2xl font-bold text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
+                              <h4 className="font-display text-xl md:text-2xl font-bold tracking-tight text-foreground mb-3 leading-tight group-hover:text-primary transition-colors duration-300">
                                 {feature.text}
                               </h4>
 
-                              <div className="h-1.5 w-20 bg-gradient-to-r from-primary via-primary/50 to-primary/0 rounded-full mt-auto group-hover:w-28 transition-all duration-500" />
+                              <div className="h-1 w-12 bg-primary rounded-full mt-auto group-hover:w-20 transition-all duration-500" />
                             </div>
-
-                            {/* Bottom accent line */}
-                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                           </div>
 
                           {/* Back of card */}
                           <div
-                            className="absolute inset-0 bg-card border-2 border-primary/30 rounded-3xl p-8 shadow-xl flex flex-col justify-center text-center overflow-auto"
+                            className="absolute inset-0 bg-card border border-primary/40 rounded-2xl p-8 shadow-card flex flex-col justify-center text-center overflow-auto"
                             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                           >
-                            <p className="text-sm font-bold text-primary mb-4 uppercase tracking-wider">
+                            <p className="text-xs font-bold text-primary mb-4 uppercase tracking-wider">
                               {index === 0
                                 ? "DURING MEET YOU WILL GET NOT AFTER:"
                                 : index >= 4
@@ -237,7 +283,7 @@ export const CertificationFlowSection = () => {
                             <p className="text-base md:text-lg text-foreground leading-relaxed font-medium">
                               {feature.description}
                             </p>
-                            <div className="mt-6 text-xs text-muted-foreground flex items-center justify-center gap-1">
+                            <div className="mt-6 text-xs text-muted-foreground flex items-center justify-center gap-1.5">
                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                               </svg>
@@ -253,146 +299,213 @@ export const CertificationFlowSection = () => {
             </div>
           </ScrollReveal>
 
-          {/* Steps - Enhanced Timeline Design */}
-          <div className="relative pl-0 md:pl-20 mb-20">
-
-            <div className="space-y-12">
-              {steps.map((step, index) => (
-                <ScrollReveal key={index} delay={0.3 + index * 0.15}>
+          {/* Steps - Drawn-path certification journey */}
+          <div className="mb-16">
+            {/* ============ DESKTOP: horizontal drawn path with numbered nodes ============ */}
+            <div className="hidden md:block relative">
+              {/* Numbered nodes on a clean animated connector */}
+              <div className="relative mb-10">
+                {/* Connector line spanning the three node centers */}
+                <div className="absolute top-8 left-[16.67%] right-[16.67%] h-0.5 -translate-y-1/2 overflow-hidden rounded-full bg-border">
                   <motion.div
-                    className="group relative"
-                    initial={{ opacity: 0, y: 50 }}
+                    className="h-full w-full origin-left bg-gradient-to-r from-primary to-brand-600"
+                    initial={{ scaleX: prefersReducedMotion ? 1 : 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+                  />
+                </div>
+
+                {/* Numbered circle nodes sitting on the line */}
+                <div className="relative z-10 grid grid-cols-3">
+                  {steps.map((step, index) => (
+                    <motion.div
+                      key={index}
+                      initial={prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{
+                        delay: prefersReducedMotion ? 0 : 0.3 + index * 0.28,
+                        duration: prefersReducedMotion ? 0 : 0.5,
+                        ease: [0.16, 1, 0.3, 1],
+                      }}
+                      className="flex justify-center"
+                    >
+                      <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-primary font-display text-xl font-bold text-primary-foreground shadow-inset-btn ring-8 ring-background">
+                        {!prefersReducedMotion && (
+                          <motion.span
+                            className="absolute inset-0 rounded-full bg-primary/40"
+                            animate={{ scale: [1, 1.6, 1], opacity: [0.5, 0, 0.5] }}
+                            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: index * 0.35 }}
+                          />
+                        )}
+                        <span className="relative">{String(step.number).padStart(2, "0")}</span>
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Aligned content row */}
+              <div className="grid grid-cols-3 gap-8">
+                {steps.map((step, index) => (
+                  <motion.div
+                    key={index}
+                    initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.8, type: "spring" }}
+                    transition={{
+                      delay: prefersReducedMotion ? 0 : 0.45 + index * 0.28,
+                      duration: prefersReducedMotion ? 0 : 0.6,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="group flex flex-col items-center text-center"
                   >
-                    <div className="flex gap-6 md:gap-8 items-start">
-                      {/* Step Number Badge - Desktop */}
-                      <div className="hidden md:flex flex-shrink-0 relative z-20 -ml-10">
-                        <motion.div
-                          className="w-20 h-20 rounded-2xl bg-gradient-to-br from-card via-card to-card border-4 border-primary/40 flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 relative backdrop-blur-sm"
-                          whileHover={{ rotate: 360 }}
-                          transition={{ duration: 0.6 }}
-                        >
-                          {/* Solid background to cover the line */}
-                          <div className="absolute inset-0 rounded-2xl bg-card" />
-                          {/* Background circle behind number */}
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10" />
-                          <span className="relative z-10 text-3xl font-black bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-                            {step.number}
-                          </span>
-                        </motion.div>
-                        {/* Glow effect */}
-                        <div className="absolute inset-0 rounded-2xl bg-primary/30 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
-                      </div>
-
-                      {/* Content Card */}
-                      <motion.div
-                        className="flex-1 relative bg-gradient-to-br from-card via-card/98 to-card/95 border-2 border-border/60 rounded-[2rem] p-8 md:p-10 overflow-hidden hover:border-primary/50 transition-all duration-700 shadow-2xl group-hover:shadow-primary/10"
-                        whileHover={{ y: -8, scale: 1.02 }}
+                    <h3 className="font-display text-xl lg:text-2xl font-bold tracking-tight text-foreground mb-3 group-hover:text-primary transition-colors">
+                      {step.title}
+                    </h3>
+                    <div className="h-1 w-12 bg-primary rounded-full mb-4 transition-all duration-500 group-hover:w-16" />
+                    <p className="text-muted-foreground text-base leading-relaxed mb-6 max-w-xs">
+                      {step.description}
+                    </p>
+                    {step.action && (
+                      <motion.a
+                        href="#"
+                        onClick={(e) => handleStepAction(e, step.action)}
+                        whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                        whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                        aria-label={step.action.label}
+                        className="mt-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground shadow-inset-btn px-6 py-3 text-base font-semibold min-h-[44px] transition-all duration-300 hover:bg-brand-600"
                       >
-                        {/* Animated gradient background */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
-
-                        {/* Decorative elements */}
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -translate-y-20 translate-x-20 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
-                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full translate-y-16 -translate-x-16 blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
-
-                        <div className="relative z-10">
-                          {/* Step Number Badge - Mobile */}
-                          <div className="md:hidden flex items-center gap-4 mb-6">
-                            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-card via-card to-card border-4 border-primary/40 flex items-center justify-center shadow-lg backdrop-blur-sm">
-                              {/* Solid background */}
-                              <div className="absolute inset-0 rounded-2xl bg-card" />
-                              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10" />
-                              <span className="relative z-10 text-2xl font-black bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                                {step.number}
-                              </span>
-                            </div>
-                            <div className="h-1 flex-1 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full" />
-                          </div>
-
-                          {/* Header */}
-                          <div className="mb-6">
-                            <div className="flex items-center gap-3 mb-3">
-                              <h3 className="text-2xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">
-                                {step.title}
-                              </h3>
-                              {/* Action required logic removed since no steps are mandatory in this new flow */}
-                            </div>
-                            <div className="h-1.5 w-32 bg-gradient-to-r from-primary via-primary/50 to-transparent rounded-full group-hover:w-40 transition-all duration-500" />
-                          </div>
-
-                          {/* Description */}
-                          <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 group-hover:text-foreground/80 transition-colors">
-                            {step.description}
-                          </p>
-
-                          {/* Action Button */}
-                          {step.action && (
-                            <motion.a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (step.action?.isPopup && window.Calendly) {
-                                  window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
-                                } else if (step.action?.url?.startsWith('#')) {
-                                  const element = document.querySelector(step.action.url);
-                                  if (element) {
-                                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                  }
-                                }
-                              }}
-                              whileHover={{ scale: 1.05, y: -3 }}
-                              whileTap={{ scale: 0.95 }}
-                              className="group/btn relative inline-flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary px-8 py-4 text-base font-bold text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-300 hover:shadow-3xl hover:shadow-primary/40 overflow-hidden"
-                            >
-                              {/* Shine effect */}
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-
-                              <span className="relative z-10">{step.action.label}</span>
-                              <ExternalLink className="relative z-10 w-5 h-5 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-0.5 transition-transform duration-300" />
-
-                              {/* Glow effect */}
-                              <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover/btn:bg-primary/25 blur-2xl transition-all duration-300" />
-                            </motion.a>
-                          )}
-                        </div>
-
-                        {/* Bottom accent line */}
-                        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                        {/* Shine effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                      </motion.div>
-                    </div>
+                        <span>{step.action.label}</span>
+                        <ExternalLink className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </motion.a>
+                    )}
                   </motion.div>
-                </ScrollReveal>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            {/* ============ MOBILE: vertical timeline with a drawn spine ============ */}
+            <div className="md:hidden relative">
+              {/* Animated vertical spine (decorative) */}
+              <svg
+                className="absolute left-[19px] top-2 bottom-2 w-1"
+                viewBox="0 0 2 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <motion.line
+                  x1="1"
+                  y1="0"
+                  x2="1"
+                  y2="100"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                  initial={{ pathLength: prefersReducedMotion ? 1 : 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  viewport={{ once: true }}
+                  transition={
+                    prefersReducedMotion
+                      ? { duration: 0 }
+                      : { duration: 1.2, ease: [0.16, 1, 0.3, 1] }
+                  }
+                />
+              </svg>
+
+              <div className="relative space-y-10">
+                {steps.map((step, index) => (
+                  <motion.div
+                    key={index}
+                    initial={
+                      prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+                    }
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{
+                      delay: prefersReducedMotion ? 0 : 0.3 + index * 0.28,
+                      duration: prefersReducedMotion ? 0 : 0.6,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="group relative pl-14"
+                  >
+                    {/* Pulsing node dot on the spine */}
+                    <span className="absolute left-0 top-1 flex h-10 w-10 items-center justify-center">
+                      <span className="relative flex h-6 w-6 items-center justify-center">
+                        {!prefersReducedMotion && (
+                          <motion.span
+                            className="absolute inset-0 rounded-full bg-primary/40"
+                            animate={{ scale: [1, 1.9, 1], opacity: [0.55, 0, 0.55] }}
+                            transition={{
+                              duration: 2.4,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                              delay: index * 0.35,
+                            }}
+                          />
+                        )}
+                        <span className="relative h-4 w-4 rounded-full bg-primary ring-4 ring-background" />
+                      </span>
+                    </span>
+
+                    {/* Step number */}
+                    <span className="font-display text-4xl font-black gradient-text block mb-2">
+                      {String(step.number).padStart(2, "0")}
+                    </span>
+
+                    {/* Title */}
+                    <h3 className="font-display text-xl font-bold tracking-tight text-foreground mb-3 group-hover:text-primary transition-colors">
+                      {step.title}
+                    </h3>
+
+                    {/* Decorative line */}
+                    <div className="h-1 w-12 bg-primary rounded-full mb-4" />
+
+                    {/* Description */}
+                    <p className="text-muted-foreground text-base leading-relaxed mb-6">
+                      {step.description}
+                    </p>
+
+                    {/* Action Button */}
+                    {step.action && (
+                      <motion.a
+                        href="#"
+                        onClick={(e) => handleStepAction(e, step.action)}
+                        whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                        whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                        aria-label={step.action.label}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground shadow-inset-btn px-6 py-3 text-base font-semibold min-h-[44px] transition-all duration-300 hover:bg-brand-600"
+                      >
+                        <span>{step.action.label}</span>
+                        <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                      </motion.a>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Calendly Widget Section */}
           <ScrollReveal delay={0.3}>
-            <div id="schedule-meeting" className="relative mt-20 mb-12 scroll-mt-20">
-              <div className="text-center mb-10">
+            <div id="schedule-meeting" className="mb-16 scroll-mt-20">
+              <div className="text-center mb-10 max-w-2xl mx-auto">
                 <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
                   Schedule Meeting
                 </span>
-                <h3 className="text-3xl md:text-5xl font-bold mb-4">
+                <h3 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-4">
                   Let's Schedule Your <span className="gradient-text">Exam</span>
                 </h3>
-                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                <p className="text-muted-foreground text-lg">
                   Select a suitable time slot and schedule a meeting with us. We will assist you with the complete exam scheduling process.
                 </p>
               </div>
 
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-                className="w-full rounded-3xl overflow-hidden shadow-2xl border-2 border-primary/20 bg-card backdrop-blur-sm relative z-20"
+                {...reveal}
+                className="w-full rounded-2xl overflow-hidden border border-border bg-card relative z-20"
               >
                 <div
                   className="calendly-inline-widget w-full"
@@ -403,38 +516,16 @@ export const CertificationFlowSection = () => {
             </div>
           </ScrollReveal>
 
-          {/* Thank You Message - Clean Design */}
-          <ScrollReveal delay={0.7}>
-            <motion.div
-              className="mt-16 relative"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, type: "spring" }}
-            >
-              <div className="relative bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border-2 border-primary/40 rounded-[2rem] p-12 md:p-16 text-center overflow-hidden shadow-2xl">
-                {/* Animated background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/10 opacity-50" />
-
-                {/* Floating orbs */}
-                <div className="absolute top-0 left-1/4 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute bottom-0 right-1/4 w-40 h-40 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-
-                <div className="relative z-10">
-                  <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                    Thank you for trusting <span className="gradient-text">Yatri Cloud</span>
-                  </h3>
-                  <p className="text-xl md:text-2xl text-muted-foreground">
-                    Let's get you certified!
-                  </p>
-                </div>
-
-                {/* Shine effect */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-                />
+          {/* Thank You Message */}
+          <ScrollReveal delay={0.4}>
+            <motion.div {...reveal} className="relative">
+              <div className="bg-card border border-primary/40 rounded-2xl p-10 md:p-14 text-center">
+                <h3 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
+                  Thank you for trusting <span className="gradient-text">Yatri Cloud</span>
+                </h3>
+                <p className="text-xl md:text-2xl text-muted-foreground">
+                  Let's get you certified!
+                </p>
               </div>
             </motion.div>
           </ScrollReveal>

@@ -51,83 +51,118 @@ const AdminExamDumps = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-        >
-          <h1 className="text-3xl font-bold">Manage Exam Dumps</h1>
-          <p className="text-muted-foreground">Add and manage certification exam dumps</p>
-        </motion.div>
-        
-        <Button onClick={() => navigate("/admin/exam-dumps/add")} className="w-fit">
-          <Plus className="mr-2 h-4 w-4" /> Add New Dump
-        </Button>
-      </div>
+    <div className="px-4 md:px-8 py-8 md:py-10">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+        {/* Header band — distinct blue-tinted workspace panel */}
+        <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search dumps by title or provider..."
-          className="pl-10"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+          <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-1.5"
+            >
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Exam dumps
+              </p>
+              <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Manage Exam Dumps</h1>
+              <p className="text-muted-foreground">Add, edit, and organize your certification exam dumps.</p>
+            </motion.div>
 
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-          <p>Loading exam dumps...</p>
+            <Button
+              onClick={() => navigate("/admin/exam-dumps/add")}
+              className="w-fit min-h-[44px] rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add New Dump
+            </Button>
+          </div>
         </div>
-      ) : (
-        <div className="grid gap-4">
-          {filteredDumps.map((dump) => (
-            <Card key={dump.id} className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                    <img src={dump.image} alt="" className="h-full w-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold truncate">{dump.title}</h3>
-                      <Badge variant="secondary">{dump.provider}</Badge>
+
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search dumps by title or provider..."
+            className="pl-10 min-h-[44px] rounded-xl"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-sm text-muted-foreground">Loading exam dumps...</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {filteredDumps.map((dump) => (
+              <Card
+                key={dump.id}
+                className="overflow-hidden border border-border rounded-2xl bg-card hover:border-brand-200 hover:shadow-card transition"
+              >
+                <CardContent className="p-5 md:p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-16 w-16 rounded-xl overflow-hidden flex-shrink-0 bg-muted">
+                      <img src={dump.image} alt={`${dump.title} cover`} className="h-full w-full object-cover" />
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>Price: ₹{dump.price}</span>
-                      <span>Original: ₹{dump.originalPrice}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h3 className="font-semibold truncate">{dump.title}</h3>
+                        <Badge className="rounded-full bg-primary/10 text-primary text-xs font-medium border-transparent hover:bg-primary/10">{dump.provider}</Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>Price: <span className="tabular-nums text-foreground">₹{dump.price}</span></span>
+                        <span className="line-through">Original: <span className="tabular-nums">₹{dump.originalPrice}</span></span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-xl hover:bg-brand-50 hover:text-primary"
+                        aria-label={`Edit ${dump.title}`}
+                        onClick={() => navigate(`/admin/exam-dumps/edit/${dump.id}`)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-xl text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        aria-label={`Delete ${dump.title}`}
+                        onClick={() => handleDelete(dump.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => navigate(`/admin/exam-dumps/edit/${dump.id}`)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-destructive" 
-                      onClick={() => handleDelete(dump.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {filteredDumps.length === 0 && (
+              <div className="flex flex-col items-center justify-center text-center py-16 border border-border rounded-2xl bg-card">
+                <div className="h-14 w-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                  <Search className="h-6 w-6" />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-          {filteredDumps.length === 0 && (
-            <div className="text-center py-10 border-2 border-dashed rounded-xl">
-              <p className="text-muted-foreground">No exam dumps found.</p>
-            </div>
-          )}
-        </div>
-      )}
+                <h3 className="font-display text-lg font-semibold tracking-tight">No exam dumps yet</h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                  {searchTerm ? "No dumps match your search. Try a different title or provider." : "Add your first certification exam dump to get started."}
+                </p>
+                {!searchTerm && (
+                  <Button
+                    onClick={() => navigate("/admin/exam-dumps/add")}
+                    className="mt-5 min-h-[44px] rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Add New Dump
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

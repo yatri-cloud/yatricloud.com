@@ -89,223 +89,253 @@ const AdminAddProduct = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="mx-auto max-w-3xl px-4 md:px-8 py-8 md:py-10">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                className="mb-8"
             >
-                <h1 className="text-3xl font-bold mb-2">Add New Product</h1>
-                <p className="text-muted-foreground">
-                    Add a new certification voucher product to the store
+                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Add New Product</h1>
+                <p className="text-muted-foreground mt-1.5">
+                    Add a new certification voucher product to the store.
                 </p>
             </motion.div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Product Information</CardTitle>
-                    <CardDescription>
-                        Fill in the details below to add a new product
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Title */}
-                        <div className="space-y-2">
-                            <Label htmlFor="title">Product Title *</Label>
-                            <Input
-                                id="title"
-                                {...register("title")}
-                                placeholder="e.g., AWS Certified Solutions Architect - Associate (SAA-C03)"
-                            />
-                            {errors.title && (
-                                <p className="text-sm text-destructive">{errors.title.message}</p>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {/* Product details */}
+                <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+                    <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                        <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                        <div className="min-w-0">
+                            <h2 className="font-display text-lg font-semibold tracking-tight">Product Details</h2>
+                            <p className="text-sm text-muted-foreground">The basics learners will see in the store.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="title" className="block text-sm font-medium mb-1.5">Product Title *</Label>
+                        <Input
+                            id="title"
+                            {...register("title")}
+                            placeholder="e.g., AWS Certified Solutions Architect - Associate (SAA-C03)"
+                            className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                        />
+                        {errors.title && (
+                            <p className="text-sm text-destructive mt-1">{errors.title.message}</p>
+                        )}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-5">
+                        <div>
+                            <Label htmlFor="category" className="block text-sm font-medium mb-1.5">Category *</Label>
+                            <Select
+                                value={category}
+                                onValueChange={(value) => setValue("category", value as any)}
+                            >
+                                <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="AWS">AWS</SelectItem>
+                                    <SelectItem value="Azure">Azure</SelectItem>
+                                    <SelectItem value="GCP">GCP</SelectItem>
+                                    <SelectItem value="Oracle">Oracle</SelectItem>
+                                    <SelectItem value="Salesforce">Salesforce</SelectItem>
+                                    <SelectItem value="ServiceNow">ServiceNow</SelectItem>
+                                    <SelectItem value="GitHub">GitHub</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.category && (
+                                <p className="text-sm text-destructive mt-1">{errors.category.message}</p>
                             )}
                         </div>
 
-                        {/* Category and Level */}
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="category">Category *</Label>
-                                <Select
-                                    value={category}
-                                    onValueChange={(value) => setValue("category", value as any)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="AWS">AWS</SelectItem>
-                                        <SelectItem value="Azure">Azure</SelectItem>
-                                        <SelectItem value="GCP">GCP</SelectItem>
-                                        <SelectItem value="Oracle">Oracle</SelectItem>
-                                        <SelectItem value="Salesforce">Salesforce</SelectItem>
-                                        <SelectItem value="ServiceNow">ServiceNow</SelectItem>
-                                        <SelectItem value="GitHub">GitHub</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {errors.category && (
-                                    <p className="text-sm text-destructive">{errors.category.message}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="level">Level *</Label>
-                                <Select
-                                    onValueChange={(value) => setValue("level", value as any)}
-                                    defaultValue="Associate"
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Associate">Associate</SelectItem>
-                                        <SelectItem value="Practitioner">Practitioner</SelectItem>
-                                        <SelectItem value="Professional">Professional</SelectItem>
-                                        <SelectItem value="Specialty">Specialty</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {errors.level && (
-                                    <p className="text-sm text-destructive">{errors.level.message}</p>
-                                )}
-                            </div>
+                        <div>
+                            <Label htmlFor="level" className="block text-sm font-medium mb-1.5">Level *</Label>
+                            <Select
+                                onValueChange={(value) => setValue("level", value as any)}
+                                defaultValue="Associate"
+                            >
+                                <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Associate">Associate</SelectItem>
+                                    <SelectItem value="Practitioner">Practitioner</SelectItem>
+                                    <SelectItem value="Professional">Professional</SelectItem>
+                                    <SelectItem value="Specialty">Specialty</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.level && (
+                                <p className="text-sm text-destructive mt-1">{errors.level.message}</p>
+                            )}
                         </div>
+                    </div>
 
-                        {/* Exam Code */}
-                        <div className="space-y-2">
-                            <Label htmlFor="examCode">Exam Code (Optional)</Label>
+                    <div>
+                        <Label htmlFor="examCode" className="block text-sm font-medium mb-1.5">Exam Code</Label>
+                        <Input
+                            id="examCode"
+                            {...register("examCode")}
+                            placeholder="e.g., SAA-C03"
+                            className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Optional.</p>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="description" className="block text-sm font-medium mb-1.5">Description *</Label>
+                        <Textarea
+                            id="description"
+                            {...register("description")}
+                            placeholder="Product description..."
+                            rows={6}
+                            className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                        />
+                        {errors.description && (
+                            <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Pricing */}
+                <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+                    <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                        <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">2</span>
+                        <div className="min-w-0">
+                            <h2 className="font-display text-lg font-semibold tracking-tight">Pricing</h2>
+                            <p className="text-sm text-muted-foreground">Set the list price, offer price, and discount — they stay in sync.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-5">
+                        <div>
+                            <Label htmlFor="originalPrice" className="block text-sm font-medium mb-1.5">Original Price (₹) *</Label>
                             <Input
-                                id="examCode"
-                                {...register("examCode")}
-                                placeholder="e.g., SAA-C03"
-                            />
-                        </div>
-
-                        {/* Pricing */}
-                        <div className="grid md:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="originalPrice">Original Price (₹) *</Label>
-                                <Input
-                                    id="originalPrice"
-                                    type="text"
-                                    inputMode="decimal"
-                                    {...register("originalPrice", { valueAsNumber: true })}
-                                    onChange={(e) => {
-                                        const nextOriginal = parseNumber(e.target.value);
-                                        setValue("originalPrice", nextOriginal);
-                                        if (discountValue > 0) {
-                                            updateDiscountedFromOriginalAndPercent(nextOriginal, discountValue);
-                                        } else if (discountedPrice > 0) {
-                                            updateFromOriginalAndDiscounted(nextOriginal, discountedPrice);
-                                        }
-                                    }}
-                                />
-                                {errors.originalPrice && (
-                                    <p className="text-sm text-destructive">{errors.originalPrice.message}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="discountedPrice">Discounted Price (₹) *</Label>
-                                <Input
-                                    id="discountedPrice"
-                                    type="text"
-                                    inputMode="decimal"
-                                    {...register("discountedPrice", { valueAsNumber: true })}
-                                    onChange={(e) => {
-                                        const nextDiscounted = parseNumber(e.target.value);
-                                        setValue("discountedPrice", nextDiscounted);
-                                        if (originalPrice > 0) {
-                                            updateFromOriginalAndDiscounted(originalPrice, nextDiscounted);
-                                        }
-                                    }}
-                                />
-                                {errors.discountedPrice && (
-                                    <p className="text-sm text-destructive">{errors.discountedPrice.message}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="discount">Discount (%) *</Label>
-                                <Input
-                                    id="discount"
-                                    type="text"
-                                    inputMode="decimal"
-                                    {...register("discount", { valueAsNumber: true })}
-                                    onChange={(e) => {
-                                        const value = parseNumber(e.target.value);
-                                        const safeValue = isNaN(value) ? 0 : value;
-                                        setValue("discount", safeValue);
-                                        if (originalPrice > 0) {
-                                            updateDiscountedFromOriginalAndPercent(originalPrice, safeValue);
-                                        }
-                                    }}
-                                />
-                                {errors.discount && (
-                                    <p className="text-sm text-destructive">{errors.discount.message}</p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Image */}
-                        <div className="space-y-2">
-                            <Label htmlFor="image">Image URL *</Label>
-                            <Input
-                                id="image"
-                                {...register("image")}
-                                placeholder="https://example.com/image.jpg"
+                                id="originalPrice"
+                                type="text"
+                                inputMode="decimal"
+                                {...register("originalPrice", { valueAsNumber: true })}
                                 onChange={(e) => {
-                                    setValue("image", e.target.value);
-                                    setImagePreview(e.target.value);
+                                    const nextOriginal = parseNumber(e.target.value);
+                                    setValue("originalPrice", nextOriginal);
+                                    if (discountValue > 0) {
+                                        updateDiscountedFromOriginalAndPercent(nextOriginal, discountValue);
+                                    } else if (discountedPrice > 0) {
+                                        updateFromOriginalAndDiscounted(nextOriginal, discountedPrice);
+                                    }
                                 }}
+                                className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary"
                             />
-                            {errors.image && (
-                                <p className="text-sm text-destructive">{errors.image.message}</p>
-                            )}
-                            {imagePreview && (
-                                <div className="mt-2">
-                                    <img
-                                        src={imagePreview}
-                                        alt="Preview"
-                                        className="w-32 h-32 object-cover rounded-lg border"
-                                        onError={() => setImagePreview("")}
-                                    />
-                                </div>
+                            {errors.originalPrice && (
+                                <p className="text-sm text-destructive mt-1">{errors.originalPrice.message}</p>
                             )}
                         </div>
 
-                        {/* Description */}
-                        <div className="space-y-2">
-                            <Label htmlFor="description">Description *</Label>
-                            <Textarea
-                                id="description"
-                                {...register("description")}
-                                placeholder="Product description..."
-                                rows={6}
+                        <div>
+                            <Label htmlFor="discountedPrice" className="block text-sm font-medium mb-1.5">Discounted Price (₹) *</Label>
+                            <Input
+                                id="discountedPrice"
+                                type="text"
+                                inputMode="decimal"
+                                {...register("discountedPrice", { valueAsNumber: true })}
+                                onChange={(e) => {
+                                    const nextDiscounted = parseNumber(e.target.value);
+                                    setValue("discountedPrice", nextDiscounted);
+                                    if (originalPrice > 0) {
+                                        updateFromOriginalAndDiscounted(originalPrice, nextDiscounted);
+                                    }
+                                }}
+                                className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary"
                             />
-                            {errors.description && (
-                                <p className="text-sm text-destructive">{errors.description.message}</p>
+                            {errors.discountedPrice && (
+                                <p className="text-sm text-destructive mt-1">{errors.discountedPrice.message}</p>
                             )}
                         </div>
 
-                        {/* Submit Button */}
-                        <div className="flex gap-4">
-                            <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Adding Product...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        Add Product
-                                    </>
-                                )}
-                            </Button>
+                        <div>
+                            <Label htmlFor="discount" className="block text-sm font-medium mb-1.5">Discount (%) *</Label>
+                            <Input
+                                id="discount"
+                                type="text"
+                                inputMode="decimal"
+                                {...register("discount", { valueAsNumber: true })}
+                                onChange={(e) => {
+                                    const value = parseNumber(e.target.value);
+                                    const safeValue = isNaN(value) ? 0 : value;
+                                    setValue("discount", safeValue);
+                                    if (originalPrice > 0) {
+                                        updateDiscountedFromOriginalAndPercent(originalPrice, safeValue);
+                                    }
+                                }}
+                                className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary"
+                            />
+                            {errors.discount && (
+                                <p className="text-sm text-destructive mt-1">{errors.discount.message}</p>
+                            )}
                         </div>
-                    </form>
-                </CardContent>
-            </Card>
+                    </div>
+                </div>
+
+                {/* Media */}
+                <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+                    <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                        <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">3</span>
+                        <div className="min-w-0">
+                            <h2 className="font-display text-lg font-semibold tracking-tight">Media</h2>
+                            <p className="text-sm text-muted-foreground">A cover image shown on the product card.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="image" className="block text-sm font-medium mb-1.5">Image URL *</Label>
+                        <Input
+                            id="image"
+                            {...register("image")}
+                            placeholder="https://example.com/image.jpg"
+                            onChange={(e) => {
+                                setValue("image", e.target.value);
+                                setImagePreview(e.target.value);
+                            }}
+                            className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                        />
+                        {errors.image && (
+                            <p className="text-sm text-destructive mt-1">{errors.image.message}</p>
+                        )}
+                        {imagePreview && (
+                            <div className="mt-3">
+                                <img
+                                    src={imagePreview}
+                                    alt="Preview"
+                                    className="w-32 h-32 object-cover rounded-xl border border-border"
+                                    onError={() => setImagePreview("")}
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-end">
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full md:w-auto min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Adding Product...
+                            </>
+                        ) : (
+                            <>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Product
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </form>
         </div>
     );
 };

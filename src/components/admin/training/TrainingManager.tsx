@@ -497,19 +497,19 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     };
 
     return (
-        <Card className="w-full max-w-6xl mx-auto shadow-lg border-t-4 border-t-primary">
-            <CardHeader className="bg-muted/10 pb-6 border-b flex flex-row justify-between items-center">
+        <Card className="w-full max-w-6xl mx-auto rounded-2xl border border-border">
+            <CardHeader className="pb-6 border-b border-border flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
                 <div>
-                    <CardTitle className="flex items-center gap-2 text-2xl">
+                    <CardTitle className="flex items-center gap-2 font-display text-2xl md:text-3xl font-bold tracking-tight">
                         <FolderPlus className="w-7 h-7 text-primary" />
                         {editId ? "Edit Training" : "Curriculum Builder"}
                     </CardTitle>
-                    <p className="text-muted-foreground mt-1">
+                    <p className="text-muted-foreground mt-1.5">
                         {editId ? "Update your training details" : "Design your course structure."}
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleSubmit((d) => onSubmit(d, 'Draft'))} disabled={isSavingDraft || isLoading}>
+                    <Button variant="outline" onClick={handleSubmit((d) => onSubmit(d, 'Draft'))} disabled={isSavingDraft || isLoading} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
                         {isSavingDraft ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                         Save Draft
                     </Button>
@@ -518,9 +518,9 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
             <CardContent className="pt-6 min-h-[500px] flex flex-col">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
-                    <TabsList className="grid w-full grid-cols-4 mb-8">
+                    <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 h-auto gap-1 mb-8">
                         {STEPS.map((step) => (
-                            <TabsTrigger key={step} value={step}>{step}</TabsTrigger>
+                            <TabsTrigger key={step} value={step} className="rounded-lg">{step}</TabsTrigger>
                         ))}
                     </TabsList>
 
@@ -528,176 +528,202 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                         {/* STEP 1: IDENTITY */}
                         <TabsContent value="Identity" className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Training Type */}
-                                <div className="space-y-2">
-                                    <Label>Training Type</Label>
-                                    <Select onValueChange={(v) => setValue("type", v)} defaultValue={watch("type")}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {selectedType && (
-                                    <div className="space-y-2">
-                                        <Label>{selectedType === "Certification" ? "Provider Name" : "Role Name"}</Label>
-                                        {selectedType === "Certification" ? (
-                                            <Select onValueChange={(val) => setValue("subType", val)} value={watch("subType")}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Provider" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {providers.map(p => <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                        ) : (
-                                            <Input
-                                                {...register("subType")}
-                                                placeholder="e.g. DevOps Engineer"
-                                            />
-                                        )}
-                                    </div>
-                                )}
-
-                                {selectedType && (
-                                    <div className="space-y-2">
-                                        <Label>Course / Exam Name</Label>
-                                        {selectedType === "Certification" && selectedProvider ? (
-                                            <Select onValueChange={(val) => setValue("courseName", val)} value={watch("courseName")}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Exam" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {getExams().map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                        ) : (
-                                            <Input
-                                                {...register("courseName")}
-                                                placeholder="e.g. AZ-900"
-                                            />
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Brief Description</Label>
-                                <Textarea {...register("description")} placeholder="Course overview..." rows={3} />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Course Thumbnail (16:9)</Label>
-                                <div className="flex items-center gap-4">
-                                    <div className="relative w-40 h-24 bg-muted rounded-md overflow-hidden border flex items-center justify-center">
-                                        {thumbnailPreview ? (
-                                            <img src={thumbnailPreview} alt="Preview" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-xs text-muted-foreground">No image</span>
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <Input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleThumbnailChange}
-                                            className="cursor-pointer"
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1">Recommended size: 1280x720px.</p>
+                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                    <div className="min-w-0">
+                                        <h2 className="font-display text-lg font-semibold tracking-tight">Course Identity</h2>
+                                        <p className="text-sm text-muted-foreground">Tell learners what this training is and who it's for.</p>
                                     </div>
                                 </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    {/* Training Type */}
+                                    <div>
+                                        <Label className="block text-sm font-medium mb-1.5">Training Type</Label>
+                                        <Select onValueChange={(v) => setValue("type", v)} defaultValue={watch("type")}>
+                                            <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                                <SelectValue placeholder="Select type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {selectedType && (
+                                        <div>
+                                            <Label className="block text-sm font-medium mb-1.5">{selectedType === "Certification" ? "Provider Name" : "Role Name"}</Label>
+                                            {selectedType === "Certification" ? (
+                                                <Select onValueChange={(val) => setValue("subType", val)} value={watch("subType")}>
+                                                    <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                                        <SelectValue placeholder="Select Provider" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {providers.map(p => <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <Input
+                                                    {...register("subType")}
+                                                    placeholder="e.g. DevOps Engineer"
+                                                    className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {selectedType && (
+                                        <div>
+                                            <Label className="block text-sm font-medium mb-1.5">Course / Exam Name</Label>
+                                            {selectedType === "Certification" && selectedProvider ? (
+                                                <Select onValueChange={(val) => setValue("courseName", val)} value={watch("courseName")}>
+                                                    <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                                        <SelectValue placeholder="Select Exam" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {getExams().map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <Input
+                                                    {...register("courseName")}
+                                                    placeholder="e.g. AZ-900"
+                                                    className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <Label className="block text-sm font-medium mb-1.5">Brief Description</Label>
+                                    <Textarea {...register("description")} placeholder="Course overview..." rows={3} className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                </div>
+
+                                <div>
+                                    <Label className="block text-sm font-medium mb-1.5">Course Thumbnail (16:9)</Label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative w-40 h-24 bg-muted rounded-xl overflow-hidden border border-border flex items-center justify-center">
+                                            {thumbnailPreview ? (
+                                                <img src={thumbnailPreview} alt="Preview" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">No image</span>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <Input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleThumbnailChange}
+                                                className="cursor-pointer rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                                            />
+                                            <p className="text-xs text-muted-foreground mt-1">Recommended size: 1280x720px.</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="flex justify-end pt-4 mt-auto">
-                                <Button type="button" onClick={() => setActiveTab("Details")}>Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                            <div className="flex justify-end pt-2 mt-auto">
+                                <Button type="button" onClick={() => setActiveTab("Details")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
                             </div>
                         </TabsContent>
 
                         {/* STEP 2: DETAILS */}
                         <TabsContent value="Details" className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <Label className="flex items-center gap-1"><User className="w-3 h-3" /> Instructor Name</Label>
-                                    <Select 
-                                        onValueChange={(val) => !isTrainerMode && setValue("instructor", val)} 
-                                        value={isTrainerMode && trainerData ? trainerData.trainerId : watch("instructor")}
-                                        disabled={isTrainerMode}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Instructor" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {isTrainerMode && trainerData ? (
-                                                <SelectItem value={trainerData.trainerId}>{trainerData.fullName}</SelectItem>
-                                            ) : (
-                                                approvedTrainers.map((t) => (
-                                                    <SelectItem key={t.trainerId} value={t.trainerId}>
-                                                        {t.fullName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">2</span>
+                                    <div className="min-w-0">
+                                        <h2 className="font-display text-lg font-semibold tracking-tight">Course Details</h2>
+                                        <p className="text-sm text-muted-foreground">Instructor, duration, and what learners walk away with.</p>
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label className="flex items-center gap-1"><Clock className="w-3 h-3" /> Total Duration</Label>
-                                    <Input {...register("duration")} placeholder="e.g. 5 hours" />
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div>
+                                        <Label className="flex items-center gap-1.5 text-sm font-medium mb-1.5"><User className="w-3.5 h-3.5" /> Instructor Name</Label>
+                                        <Select
+                                            onValueChange={(val) => !isTrainerMode && setValue("instructor", val)}
+                                            value={isTrainerMode && trainerData ? trainerData.trainerId : watch("instructor")}
+                                            disabled={isTrainerMode}
+                                        >
+                                            <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                                <SelectValue placeholder="Select Instructor" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {isTrainerMode && trainerData ? (
+                                                    <SelectItem value={trainerData.trainerId}>{trainerData.fullName}</SelectItem>
+                                                ) : (
+                                                    approvedTrainers.map((t) => (
+                                                        <SelectItem key={t.trainerId} value={t.trainerId}>
+                                                            {t.fullName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label className="flex items-center gap-1.5 text-sm font-medium mb-1.5"><Clock className="w-3.5 h-3.5" /> Total Duration</Label>
+                                        <Input {...register("duration")} placeholder="e.g. 5 hours" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                    </div>
+                                    <div>
+                                        <Label className="block text-sm font-medium mb-1.5">Level</Label>
+                                        <Select onValueChange={(val) => setValue("level", val)} value={watch("level")}>
+                                            <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                                <SelectValue placeholder="Select Level" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Level</Label>
-                                    <Select onValueChange={(val) => setValue("level", val)} value={watch("level")}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Level" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
+                                <div>
+                                    <Label className="block text-sm font-medium mb-1.5">Skills Gained (Comma separated)</Label>
+                                    <Input {...register("skills")} placeholder="e.g. Python, Data Analysis, SQL" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                </div>
+                                <div>
+                                    <Label className="block text-sm font-medium mb-1.5">Learning Outcomes</Label>
+                                    <Textarea {...register("outcomes")} placeholder="e.g. • Write effective prompts..." rows={4} className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Skills Gained (Comma separated)</Label>
-                                <Input {...register("skills")} placeholder="e.g. Python, Data Analysis, SQL" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Learning Outcomes</Label>
-                                <Textarea {...register("outcomes")} placeholder="e.g. • Write effective prompts..." rows={4} />
-                            </div>
-                            <div className="flex justify-between pt-4 mt-auto">
-                                <Button type="button" variant="ghost" onClick={() => setActiveTab("Identity")}>Back</Button>
-                                <Button type="button" onClick={() => setActiveTab("Logistics")}>Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                            <div className="flex justify-between pt-2 mt-auto">
+                                <Button type="button" variant="ghost" onClick={() => setActiveTab("Identity")} className="min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">Back</Button>
+                                <Button type="button" onClick={() => setActiveTab("Logistics")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
                             </div>
                         </TabsContent>
 
                         {/* STEP 3: LOGISTICS */}
                         <TabsContent value="Logistics" className="space-y-6">
                             {/* Mode Section */}
-                            <div className="space-y-4 border p-4 rounded-lg bg-card text-card-foreground">
-                                <h3 className="font-semibold flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> Delivery Mode</h3>
+                            <div className="space-y-5 rounded-2xl border border-border p-6 md:p-8 bg-card text-card-foreground">
+                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">3</span>
+                                    <div className="min-w-0">
+                                        <h2 className="font-display text-lg font-semibold tracking-tight">Delivery Mode</h2>
+                                        <p className="text-sm text-muted-foreground">Choose how the training runs — online or on-site — and set the schedule.</p>
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className={`p-4 border rounded cursor-pointer transition-all ${watch("mode") === "Online" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted"}`} onClick={() => setValue("mode", "Online")}>
+                                    <div className={`p-4 border rounded-xl cursor-pointer transition-all ${watch("mode") === "Online" ? "border-primary bg-brand-50 ring-1 ring-primary" : "border-border hover:bg-brand-50"}`} onClick={() => setValue("mode", "Online")}>
                                         <div className="font-semibold">Online</div>
                                         <div className="text-xs text-muted-foreground">Virtual delivery via LMS.</div>
                                     </div>
-                                    <div className={`p-4 border rounded cursor-pointer transition-all ${watch("mode") === "On-site" ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted"}`} onClick={() => setValue("mode", "On-site")}>
+                                    <div className={`p-4 border rounded-xl cursor-pointer transition-all ${watch("mode") === "On-site" ? "border-primary bg-brand-50 ring-1 ring-primary" : "border-border hover:bg-brand-50"}`} onClick={() => setValue("mode", "On-site")}>
                                         <div className="font-semibold">On-site</div>
                                         <div className="text-xs text-muted-foreground">Physical classroom location.</div>
                                     </div>
                                 </div>
 
                                 {watch("mode") === "Online" && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 animate-in fade-in slide-in-from-top-2 border p-4 rounded-md bg-muted/20">
-                                        <div className="space-y-2">
-                                            <Label>Start Date (for Google Meet)</Label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2 animate-in fade-in slide-in-from-top-2 border border-border p-5 rounded-xl bg-muted/30">
+                                        <div>
+                                            <Label className="block text-sm font-medium mb-1.5">Start Date (for Google Meet)</Label>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <Button
                                                         variant={"outline"}
                                                         className={cn(
-                                                            "w-full justify-start text-left font-normal",
+                                                            "w-full h-11 justify-start text-left font-normal rounded-xl border border-input",
                                                             !watch("startDate") && "text-muted-foreground"
                                                         )}
                                                     >
@@ -716,10 +742,10 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                 </PopoverContent>
                                             </Popover>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label>Start Time</Label>
+                                        <div>
+                                            <Label className="block text-sm font-medium mb-1.5">Start Time</Label>
                                             <Select onValueChange={(val) => setValue("startTime", val)} value={watch("startTime")}>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                     <SelectValue placeholder="Select Time" />
                                                 </SelectTrigger>
                                                 <SelectContent className="h-48">
@@ -738,61 +764,73 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 )}
 
                                 {watch("mode") === "On-site" && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 animate-in fade-in slide-in-from-top-2">
-                                        <div><Label>Venue Name</Label><Input {...register("venueName")} placeholder="e.g. Yatri Conference Hall A" /></div>
-                                        <div><Label>Google Maps Link</Label><Input {...register("venueMapLink")} placeholder="https://maps.google.com/..." /></div>
-                                        <div className="md:col-span-2"><Label>Full Address</Label><Input {...register("venueAddress")} placeholder="Street, City, Zip" /></div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2 animate-in fade-in slide-in-from-top-2">
+                                        <div><Label className="block text-sm font-medium mb-1.5">Venue Name</Label><Input {...register("venueName")} placeholder="e.g. Yatri Conference Hall A" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" /></div>
+                                        <div><Label className="block text-sm font-medium mb-1.5">Google Maps Link</Label><Input {...register("venueMapLink")} placeholder="https://maps.google.com/..." className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" /></div>
+                                        <div className="md:col-span-2"><Label className="block text-sm font-medium mb-1.5">Full Address</Label><Input {...register("venueAddress")} placeholder="Street, City, Zip" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" /></div>
                                     </div>
                                 )}
                             </div>
 
                             {/* Capacity Section */}
-                            <div className="space-y-4 border p-4 rounded-lg bg-card text-card-foreground">
-                                <h3 className="font-semibold flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Capacity</h3>
+                            <div className="space-y-5 rounded-2xl border border-border p-6 md:p-8 bg-card text-card-foreground">
+                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">3</span>
+                                    <div className="min-w-0">
+                                        <h2 className="font-display text-lg font-semibold tracking-tight">Capacity</h2>
+                                        <p className="text-sm text-muted-foreground">Allow unlimited seats or cap the number of attendees.</p>
+                                    </div>
+                                </div>
                                 <div className="flex items-center gap-6">
                                     <div className="flex items-center space-x-2">
-                                        <input type="radio" id="cap-unlim" value="Unlimited" {...register("capacityType")} className="accent-primary" />
-                                        <label htmlFor="cap-unlim">Unlimited</label>
+                                        <input type="radio" id="cap-unlim" value="Unlimited" {...register("capacityType")} className="accent-primary h-4 w-4" />
+                                        <label htmlFor="cap-unlim" className="text-sm font-medium">Unlimited</label>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <input type="radio" id="cap-lim" value="Limited" {...register("capacityType")} className="accent-primary" />
-                                        <label htmlFor="cap-lim">Limited Slots</label>
+                                        <input type="radio" id="cap-lim" value="Limited" {...register("capacityType")} className="accent-primary h-4 w-4" />
+                                        <label htmlFor="cap-lim" className="text-sm font-medium">Limited Slots</label>
                                     </div>
                                 </div>
                                 {watch("capacityType") === "Limited" && (
                                     <div className="w-full max-w-xs mt-2 animate-in fade-in">
-                                        <Label>Max Attendees</Label>
-                                        <Input type="number" {...register("capacityCount")} placeholder="e.g. 50" />
+                                        <Label className="block text-sm font-medium mb-1.5">Max Attendees</Label>
+                                        <Input type="number" {...register("capacityCount")} placeholder="e.g. 50" className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary" />
                                     </div>
                                 )}
                             </div>
 
                             {/* Payment Section */}
-                            <div className="space-y-4 border p-4 rounded-lg bg-card text-card-foreground">
-                                <h3 className="font-semibold flex items-center gap-2"><CreditCard className="w-4 h-4 text-primary" /> Payment & Vouchers</h3>
-                                <div className="flex gap-4 mb-4">
-                                    <Button type="button" variant={watch("paymentType") === "Free" ? "default" : "outline"} onClick={() => setValue("paymentType", "Free")} className="w-32">Free</Button>
-                                    <Button type="button" variant={watch("paymentType") === "Paid" ? "default" : "outline"} onClick={() => setValue("paymentType", "Paid")} className="w-32">Paid</Button>
+                            <div className="space-y-5 rounded-2xl border border-border p-6 md:p-8 bg-card text-card-foreground">
+                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">3</span>
+                                    <div className="min-w-0">
+                                        <h2 className="font-display text-lg font-semibold tracking-tight">Payment &amp; Vouchers</h2>
+                                        <p className="text-sm text-muted-foreground">Set whether the course is free or paid, and generate a coupon code.</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <Button type="button" variant={watch("paymentType") === "Free" ? "default" : "outline"} onClick={() => setValue("paymentType", "Free")} className="w-32 min-h-[44px] rounded-xl">Free</Button>
+                                    <Button type="button" variant={watch("paymentType") === "Paid" ? "default" : "outline"} onClick={() => setValue("paymentType", "Paid")} className="w-32 min-h-[44px] rounded-xl">Paid</Button>
                                 </div>
 
                                 {watch("paymentType") === "Paid" && (
-                                    <div className="space-y-4 animate-in fade-in">
+                                    <div className="space-y-5 animate-in fade-in">
                                         <div className="flex gap-4">
                                             <div className="w-24">
-                                                <Label>Currency</Label>
-                                                <Input {...register("currency")} defaultValue="USD" />
+                                                <Label className="block text-sm font-medium mb-1.5">Currency</Label>
+                                                <Input {...register("currency")} defaultValue="USD" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                             </div>
                                             <div className="flex-1">
-                                                <Label>Price</Label>
-                                                <Input type="number" {...register("price")} placeholder="99.99" />
+                                                <Label className="block text-sm font-medium mb-1.5">Price</Label>
+                                                <Input type="number" {...register("price")} placeholder="99.99" className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary" />
                                             </div>
                                         </div>
 
-                                        <div className="bg-muted/30 p-4 rounded border border-dashed">
-                                            <Label className="flex items-center gap-2"><Ticket className="w-3 h-3" /> Coupon Code Generation</Label>
-                                            <div className="flex gap-2 mt-2">
-                                                <Input {...register("couponCode")} placeholder="CERT-AZURE-YATRI-001" className="font-mono uppercase" />
-                                                <Button type="button" variant="secondary" onClick={generateCoupon}>
+                                        <div className="bg-muted/30 p-5 rounded-xl border border-dashed border-border">
+                                            <Label className="flex items-center gap-2 text-sm font-medium mb-2"><Ticket className="w-3.5 h-3.5" /> Coupon Code Generation</Label>
+                                            <div className="flex gap-2">
+                                                <Input {...register("couponCode")} placeholder="CERT-AZURE-YATRI-001" className="h-11 rounded-xl border border-input bg-background font-mono uppercase focus:ring-2 focus:ring-ring focus:border-primary" />
+                                                <Button type="button" variant="secondary" onClick={generateCoupon} className="min-h-[44px] rounded-xl">
                                                     <Wand2 className="w-4 h-4 mr-2" /> Auto-Generate
                                                 </Button>
                                             </div>
@@ -804,25 +842,25 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 )}
                             </div>
 
-                            <div className="flex justify-between pt-4 mt-auto">
-                                <Button type="button" variant="ghost" onClick={() => setActiveTab("Details")}>Back</Button>
-                                <Button type="button" onClick={() => setActiveTab("Curriculum")}>Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                            <div className="flex justify-between pt-2 mt-auto">
+                                <Button type="button" variant="ghost" onClick={() => setActiveTab("Details")} className="min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">Back</Button>
+                                <Button type="button" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
                             </div>
                         </TabsContent>
 
                         {/* STEP 4: CURRICULUM */}
-                        <TabsContent value="Curriculum" className="space-y-4">
-                            <div className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border">
+                        <TabsContent value="Curriculum" className="space-y-5">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center bg-muted/30 p-4 rounded-xl border border-border">
                                 <div>
                                     <h4 className="font-semibold text-sm">Bulk Import</h4>
                                     <p className="text-xs text-muted-foreground">Upload a Markdown file to auto-populate modules.</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Button type="button" variant="outline" size="sm" onClick={downloadTemplate}>
+                                    <Button type="button" variant="outline" size="sm" onClick={downloadTemplate} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
                                         <Download className="w-4 h-4 mr-2" /> Template
                                     </Button>
                                     <div className="relative">
-                                        <Button type="button" variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+                                        <Button type="button" variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="min-h-[44px] rounded-xl">
                                             <Upload className="w-4 h-4 mr-2" /> Upload MD
                                         </Button>
                                         <input
@@ -836,65 +874,80 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
                             </div>
 
-                            <CurriculumEditor control={control} register={register} />
+                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">4</span>
+                                    <div className="min-w-0">
+                                        <h2 className="font-display text-lg font-semibold tracking-tight">Curriculum</h2>
+                                        <p className="text-sm text-muted-foreground">Build your modules and lessons, or bulk-import them from Markdown.</p>
+                                    </div>
+                                </div>
+                                <CurriculumEditor control={control} register={register} />
+                            </div>
 
-                            <div className="flex justify-between pt-4 mt-auto">
-                                <Button type="button" variant="ghost" onClick={() => setActiveTab("Logistics")}>Back</Button>
-                                <Button type="button" onClick={() => setActiveTab("Quiz")}>Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                            <div className="flex justify-between pt-2 mt-auto">
+                                <Button type="button" variant="ghost" onClick={() => setActiveTab("Logistics")} className="min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">Back</Button>
+                                <Button type="button" onClick={() => setActiveTab("Quiz")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
                             </div>
                         </TabsContent>
 
                         {/* Quiz Tab */}
-                        <TabsContent value="Quiz" className="space-y-4">
-                            <div className="mb-4">
-                                <h3 className="text-lg font-semibold">Training Quizzes</h3>
-                                <p className="text-sm text-muted-foreground">Create quiz questions to test students' knowledge</p>
+                        <TabsContent value="Quiz" className="space-y-5">
+                            <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">5</span>
+                                <div className="min-w-0">
+                                    <h2 className="font-display text-lg font-semibold tracking-tight">Training Quizzes</h2>
+                                    <p className="text-sm text-muted-foreground">Create quiz questions to test students' knowledge.</p>
+                                </div>
                             </div>
 
                             <QuizBuilder trainingId={editId || "new"} onSave={setQuizQuestions} />
 
-                            <div className="flex justify-between pt-4">
-                                <Button type="button" variant="outline" onClick={() => setActiveTab("Curriculum")}>
+                            <div className="flex justify-between pt-2">
+                                <Button type="button" variant="outline" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
                                     <ChevronLeft className="mr-2 w-4 h-4" /> Back
                                 </Button>
-                                <Button type="button" onClick={() => setActiveTab("Resources")}>
+                                <Button type="button" onClick={() => setActiveTab("Resources")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                     Next <ChevronRight className="ml-2 w-4 h-4" />
                                 </Button>
                             </div>
                         </TabsContent>
 
                         {/* Resources Tab */}
-                        <TabsContent value="Resources" className="space-y-4">
-                            <div className="mb-4">
-                                <h3 className="text-lg font-semibold">Training Resources</h3>
-                                <p className="text-sm text-muted-foreground">Add downloadable resources, PDFs, and links for students.</p>
+                        <TabsContent value="Resources" className="space-y-5">
+                            <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">6</span>
+                                <div className="min-w-0">
+                                    <h2 className="font-display text-lg font-semibold tracking-tight">Training Resources</h2>
+                                    <p className="text-sm text-muted-foreground">Add downloadable resources, PDFs, and links for students.</p>
+                                </div>
                             </div>
 
-                            <Card>
-                                <CardContent className="pt-6 space-y-4">
+                            <Card className="rounded-2xl border border-border">
+                                <CardContent className="pt-6 space-y-5">
                                     <Tabs value={resourceMode} onValueChange={(v) => setResourceMode(v as 'link' | 'upload')} className="w-full">
                                         <TabsList className="grid w-full grid-cols-2 mb-4">
-                                            <TabsTrigger value="link">External Link</TabsTrigger>
-                                            <TabsTrigger value="upload">Upload File</TabsTrigger>
+                                            <TabsTrigger value="link" className="rounded-lg">External Link</TabsTrigger>
+                                            <TabsTrigger value="upload" className="rounded-lg">Upload File</TabsTrigger>
                                         </TabsList>
 
-                                        <TabsContent value="link" className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
+                                        <TabsContent value="link" className="space-y-5">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div>
-                                                    <Label>Resource Name</Label>
-                                                    <Input id="resource-name" placeholder="e.g., Study Guide" />
+                                                    <Label htmlFor="resource-name" className="block text-sm font-medium mb-1.5">Resource Name</Label>
+                                                    <Input id="resource-name" placeholder="e.g., Study Guide" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                                 </div>
                                                 <div>
-                                                    <Label>Resource URL</Label>
-                                                    <Input id="resource-url" type="url" placeholder="https://..." />
+                                                    <Label htmlFor="resource-url" className="block text-sm font-medium mb-1.5">Resource URL</Label>
+                                                    <Input id="resource-url" type="url" placeholder="https://..." className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div>
-                                                    <Label>Resource Type</Label>
+                                                    <Label className="block text-sm font-medium mb-1.5">Resource Type</Label>
                                                     <Select onValueChange={val => (document.getElementById('resource-type') as any).value = val}>
-                                                        <SelectTrigger id="resource-type">
+                                                        <SelectTrigger id="resource-type" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                             <SelectValue placeholder="Select type" />
                                                         </SelectTrigger>
                                                         <SelectContent>
@@ -906,12 +959,12 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                     </Select>
                                                 </div>
                                                 <div>
-                                                    <Label>Description (Optional)</Label>
-                                                    <Input id="resource-desc" placeholder="Brief description" />
+                                                    <Label htmlFor="resource-desc" className="block text-sm font-medium mb-1.5">Description (Optional)</Label>
+                                                    <Input id="resource-desc" placeholder="Brief description" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                                 </div>
                                             </div>
 
-                                            <Button type="button" onClick={() => {
+                                            <Button type="button" className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring" onClick={() => {
                                                 const name = (document.getElementById('resource-name') as HTMLInputElement).value;
                                                 const url = (document.getElementById('resource-url') as HTMLInputElement).value;
                                                 const type = (document.getElementById('resource-type') as any).value || 'Link';
@@ -937,11 +990,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             </Button>
                                         </TabsContent>
 
-                                        <TabsContent value="upload" className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
+                                        <TabsContent value="upload" className="space-y-5">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div>
-                                                    <Label>File Upload</Label>
-                                                    <Input id="resource-file" type="file" onChange={(e) => {
+                                                    <Label htmlFor="resource-file" className="block text-sm font-medium mb-1.5">File Upload</Label>
+                                                    <Input id="resource-file" type="file" className="cursor-pointer rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (file) {
                                                             (document.getElementById('resource-name-upload') as HTMLInputElement).value = file.name;
@@ -949,17 +1002,17 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                     }} />
                                                 </div>
                                                 <div>
-                                                    <Label>Resource Name</Label>
-                                                    <Input id="resource-name-upload" placeholder="e.g., Study Guide" />
+                                                    <Label htmlFor="resource-name-upload" className="block text-sm font-medium mb-1.5">Resource Name</Label>
+                                                    <Input id="resource-name-upload" placeholder="e.g., Study Guide" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                                 </div>
                                             </div>
 
                                             <div>
-                                                <Label>Description (Optional)</Label>
-                                                <Input id="resource-desc-upload" placeholder="Brief description" />
+                                                <Label htmlFor="resource-desc-upload" className="block text-sm font-medium mb-1.5">Description (Optional)</Label>
+                                                <Input id="resource-desc-upload" placeholder="Brief description" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                             </div>
 
-                                            <Button type="button" disabled={isUploading} onClick={handleResourceUpload}>
+                                            <Button type="button" disabled={isUploading} onClick={handleResourceUpload} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                                 {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
                                                 {isUploading ? "Uploading..." : "Upload & Add Resource"}
                                             </Button>
@@ -967,14 +1020,14 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     </Tabs>
 
                                     {resources.length > 0 && (
-                                        <Card>
+                                        <Card className="rounded-2xl border border-border">
                                             <CardHeader>
-                                                <CardTitle className="text-base">Added Resources ({resources.length})</CardTitle>
+                                                <CardTitle className="font-display text-base font-semibold">Added Resources ({resources.length})</CardTitle>
                                             </CardHeader>
                                             <CardContent>
                                                 <div className="space-y-2">
                                                     {resources.map((resource, idx) => (
-                                                        <div key={resource.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                                        <div key={resource.id} className="flex items-center justify-between p-3 bg-muted rounded-xl">
                                                             <div>
                                                                 <p className="font-medium">{resource.name}</p>
                                                                 <p className="text-xs text-muted-foreground">{resource.type} • {resource.url.substring(0, 50)}...</p>
@@ -983,6 +1036,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                                 type="button"
                                                                 variant="ghost"
                                                                 size="icon"
+                                                                aria-label="Remove resource"
                                                                 onClick={() => setResources(resources.filter((_, i) => i !== idx))}
                                                             >
                                                                 <Trash2 className="w-4 h-4 text-destructive" />
@@ -996,11 +1050,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </CardContent>
                             </Card>
 
-                            <div className="flex justify-between pt-4">
-                                <Button type="button" variant="outline" onClick={() => setActiveTab("Quiz")}>
+                            <div className="flex justify-between pt-2">
+                                <Button type="button" variant="outline" onClick={() => setActiveTab("Quiz")} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
                                     <ChevronLeft className="mr-2 w-4 h-4" /> Back
                                 </Button>
-                                <Button type="button" onClick={() => setActiveTab("Review")}>
+                                <Button type="button" onClick={() => setActiveTab("Review")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                     Next <ChevronRight className="ml-2 w-4 h-4" />
                                 </Button>
                             </div>
@@ -1008,9 +1062,15 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                         {/* STEP 4: REVIEW */}
                         <TabsContent value="Review" className="space-y-6">
-                            <div className="bg-muted p-4 rounded-lg space-y-3">
-                                <h3 className="font-bold text-lg border-b pb-2">Training Summary</h3>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-4">
+                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">7</span>
+                                    <div className="min-w-0">
+                                        <h2 className="font-display text-lg font-semibold tracking-tight">Training Summary</h2>
+                                        <p className="text-sm text-muted-foreground">Review the key details before you publish.</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                     <div><span className="font-semibold">Type:</span> {watch("type")}</div>
                                     <div><span className="font-semibold">Type:</span> {watch("type")}</div>
                                     <div><span className="font-semibold">Sub-Type:</span> {watch("subType")}</div>
@@ -1019,15 +1079,21 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     <div><span className="font-semibold">Level:</span> {watch("level")}</div>
                                     <div><span className="font-semibold">Mode:</span> {watch("mode") === "On-site" ? `On-site (${watch("venueName")})` : "Online"}</div>
                                     <div><span className="font-semibold">Payment:</span> {watch("paymentType")} {watch("paymentType") === "Paid" && `(${watch("currency")} ${watch("price")})`}</div>
-                                    {watch("couponCode") && <div className="col-span-2 text-green-600 font-mono text-xs mt-1">Coupon: {watch("couponCode")}</div>}
+                                    {watch("couponCode") && <div className="col-span-1 md:col-span-2 text-success font-mono text-xs mt-1">Coupon: {watch("couponCode")}</div>}
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 className="font-bold text-lg mb-3">Curriculum Preview</h3>
-                                <div className="space-y-3 max-h-[300px] overflow-y-auto border p-2 rounded">
+                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">7</span>
+                                    <div className="min-w-0">
+                                        <h2 className="font-display text-lg font-semibold tracking-tight">Curriculum Preview</h2>
+                                        <p className="text-sm text-muted-foreground">A quick look at the modules and lessons you've built.</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-3 max-h-[300px] overflow-y-auto border border-border p-3 rounded-xl">
                                     {curriculum?.map((module, i) => (
-                                        <div key={i} className="border rounded p-3 bg-card">
+                                        <div key={i} className="border border-border rounded-xl p-3 bg-card">
                                             <div className="font-semibold flex items-center gap-2">
                                                 <Layers className="w-4 h-4 text-primary" />
                                                 Module {i + 1}: {module.title}
@@ -1038,7 +1104,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                         {lesson.type === "Video" && <Video className="w-3 h-3" />}
                                                         {lesson.type === "Reading" && <FileText className="w-3 h-3" />}
                                                         {lesson.type === "Assignment" && <ClipboardList className="w-3 h-3" />}
-                                                        {lesson.title} <span className="text-xs border px-1 rounded">{lesson.duration}</span>
+                                                        {lesson.title} <span className="text-xs border border-border px-1.5 py-0.5 rounded-md">{lesson.duration}</span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -1047,9 +1113,9 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
                             </div>
 
-                            <div className="flex justify-between pt-4 mt-auto">
-                                <Button type="button" variant="ghost" onClick={() => setActiveTab("Curriculum")}>Back</Button>
-                                <Button type="submit" disabled={isLoading} size="lg">
+                            <div className="flex justify-between pt-2 mt-auto">
+                                <Button type="button" variant="ghost" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">Back</Button>
+                                <Button type="submit" disabled={isLoading} size="lg" className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                     {isLoading ? (
                                         <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1081,14 +1147,14 @@ function CurriculumEditor({ control, register }: { control: Control<TrainingForm
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Modules & Lessons</h3>
-                <Button type="button" size="sm" onClick={() => appendModule({ title: "New Module", lessons: [] })} variant="secondary">
+                <h3 className="font-display text-lg font-semibold">Modules & Lessons</h3>
+                <Button type="button" size="sm" onClick={() => appendModule({ title: "New Module", lessons: [] })} variant="secondary" className="min-h-[44px] rounded-xl">
                     <Plus className="w-4 h-4 mr-2" /> Add Module
                 </Button>
             </div>
 
             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                {moduleFields.length === 0 && <p className="text-center text-muted-foreground py-8 border-2 border-dashed rounded">No modules yet. Add one or Import from Markdown.</p>}
+                {moduleFields.length === 0 && <p className="text-center text-muted-foreground py-8 border-2 border-dashed border-border rounded-xl">No modules yet. Add one or Import from Markdown.</p>}
 
                 {moduleFields.map((field, index) => (
                     <ModuleItem key={field.id} control={control} register={register} moduleIndex={index} removeModule={removeModule} />
@@ -1105,9 +1171,9 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
     });
 
     return (
-        <div className="border rounded-lg p-4 bg-card shadow-sm">
+        <div className="border border-border rounded-xl p-4 bg-card transition-shadow hover:shadow-card">
             <div className="flex items-center gap-3 mb-4">
-                <Badge variant="outline" className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/10 border-primary font-bold">
+                <Badge variant="outline" className="h-8 w-8 flex items-center justify-center rounded-full bg-brand-50 border-primary font-bold tabular-nums">
                     {moduleIndex + 1}
                 </Badge>
                 <div className="flex-1">
@@ -1117,7 +1183,7 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                         className="font-semibold text-lg border-none shadow-none focus-visible:ring-0 px-0 h-auto rounded-none border-b focus-visible:border-primary"
                     />
                 </div>
-                <Button type="button" variant="ghost" size="icon" onClick={() => removeModule(moduleIndex)} className="text-destructive hover:bg-destructive/10">
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeModule(moduleIndex)} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
                     <Trash2 className="w-4 h-4" />
                 </Button>
             </div>
@@ -1138,7 +1204,7 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                                 <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.duration`)} placeholder="Dur." className="h-8 text-sm" />
                             </div>
                             <div className="col-span-1 flex justify-end">
-                                <Button type="button" variant="ghost" size="icon" onClick={() => removeLesson(lessonIndex)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                <Button type="button" variant="ghost" size="icon" onClick={() => removeLesson(lessonIndex)} className="h-8 w-8 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground">
                                     <Trash2 className="w-3 h-3" />
                                 </Button>
                             </div>

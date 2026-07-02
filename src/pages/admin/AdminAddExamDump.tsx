@@ -58,89 +58,119 @@ const AdminAddExamDump = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" onClick={() => navigate("/admin/exam-dumps")} className="mb-4">
+    <div className="mx-auto max-w-3xl px-4 md:px-8 py-8 md:py-10">
+      <Button variant="ghost" onClick={() => navigate("/admin/exam-dumps")} className="mb-6 min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to List
       </Button>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
       >
-        <h1 className="text-3xl font-bold mb-2">Add New Exam Dump</h1>
-        <p className="text-muted-foreground">Fill in the details for the certification exam dump</p>
+        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Add New Exam Dump</h1>
+        <p className="text-muted-foreground mt-1.5">Fill in the details for the certification exam dump.</p>
       </motion.div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Dump Information</CardTitle>
-          <CardDescription>All fields are required</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Exam Title</Label>
-              <Input id="title" {...register("title")} placeholder="e.g., AWS Solutions Architect Associate SAA-C03" />
-              {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Dump details */}
+        <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+          <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+            <div className="min-w-0">
+              <h2 className="font-display text-lg font-semibold tracking-tight">Dump Details</h2>
+              <p className="text-sm text-muted-foreground">Title, provider, resource link, and description — all required.</p>
             </div>
+          </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="provider">Certification Provider</Label>
-                <Input id="provider" {...register("provider")} placeholder="e.g., AWS, Azure, GCP" />
-                {errors.provider && <p className="text-sm text-destructive">{errors.provider.message}</p>}
+          <div>
+            <Label htmlFor="title" className="block text-sm font-medium mb-1.5">Exam Title</Label>
+            <Input id="title" {...register("title")} placeholder="e.g., AWS Solutions Architect Associate SAA-C03" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+            {errors.title && <p className="text-sm text-destructive mt-1">{errors.title.message}</p>}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5">
+            <div>
+              <Label htmlFor="provider" className="block text-sm font-medium mb-1.5">Certification Provider</Label>
+              <Input id="provider" {...register("provider")} placeholder="e.g., AWS, Azure, GCP" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+              {errors.provider && <p className="text-sm text-destructive mt-1">{errors.provider.message}</p>}
+            </div>
+            <div>
+              <Label htmlFor="downloadUrl" className="block text-sm font-medium mb-1.5">JioAICloud Resource Link</Label>
+              <Input id="downloadUrl" {...register("downloadUrl")} placeholder="https://jioaicloud.com/s/..." className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+              <p className="text-xs text-muted-foreground mt-1">Sent to buyers via email after purchase.</p>
+              {errors.downloadUrl && <p className="text-sm text-destructive mt-1">{errors.downloadUrl.message}</p>}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="description" className="block text-sm font-medium mb-1.5">Description</Label>
+            <Textarea id="description" {...register("description")} placeholder="Details about the exam dump..." rows={5} className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+            {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
+          </div>
+        </div>
+
+        {/* Pricing */}
+        <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+          <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">2</span>
+            <div className="min-w-0">
+              <h2 className="font-display text-lg font-semibold tracking-tight">Pricing</h2>
+              <p className="text-sm text-muted-foreground">List price and the offer buyers pay.</p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5">
+            <div>
+              <Label htmlFor="originalPrice" className="block text-sm font-medium mb-1.5">Original Price (₹)</Label>
+              <Input id="originalPrice" type="number" {...register("originalPrice", { valueAsNumber: true })} className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary" />
+              {errors.originalPrice && <p className="text-sm text-destructive mt-1">{errors.originalPrice.message}</p>}
+            </div>
+            <div>
+              <Label htmlFor="price" className="block text-sm font-medium mb-1.5">Offer Price (₹)</Label>
+              <Input id="price" type="number" {...register("price", { valueAsNumber: true })} className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary" />
+              {errors.price && <p className="text-sm text-destructive mt-1">{errors.price.message}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Media */}
+        <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
+          <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">3</span>
+            <div className="min-w-0">
+              <h2 className="font-display text-lg font-semibold tracking-tight">Media</h2>
+              <p className="text-sm text-muted-foreground">A cover image shown on the listing.</p>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="image" className="block text-sm font-medium mb-1.5">Image URL</Label>
+            <Input
+              id="image"
+              {...register("image")}
+              placeholder="https://example.com/image.jpg"
+              onChange={(e) => {
+                setValue("image", e.target.value);
+                setImagePreview(e.target.value);
+              }}
+              className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+            />
+            {errors.image && <p className="text-sm text-destructive mt-1">{errors.image.message}</p>}
+            {imagePreview && (
+              <div className="mt-3 h-32 w-32 border border-border rounded-xl overflow-hidden">
+                <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="downloadUrl">JioAICloud Resource Link (Sent via email)</Label>
-                <Input id="downloadUrl" {...register("downloadUrl")} placeholder="https://jioaicloud.com/s/..." />
-                {errors.downloadUrl && <p className="text-sm text-destructive">{errors.downloadUrl.message}</p>}
-              </div>
-            </div>
+            )}
+          </div>
+        </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="originalPrice">Original Price (₹)</Label>
-                <Input id="originalPrice" type="number" {...register("originalPrice", { valueAsNumber: true })} />
-                {errors.originalPrice && <p className="text-sm text-destructive">{errors.originalPrice.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Offer Price (₹)</Label>
-                <Input id="price" type="number" {...register("price", { valueAsNumber: true })} />
-                {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="image">Image URL</Label>
-              <Input 
-                id="image" 
-                {...register("image")} 
-                placeholder="https://example.com/image.jpg"
-                onChange={(e) => {
-                  setValue("image", e.target.value);
-                  setImagePreview(e.target.value);
-                }}
-              />
-              {errors.image && <p className="text-sm text-destructive">{errors.image.message}</p>}
-              {imagePreview && (
-                <div className="mt-2 h-32 w-32 border rounded-lg overflow-hidden">
-                  <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" {...register("description")} placeholder="Details about the exam dump..." rows={5} />
-              {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
-            </div>
-
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</> : <><Plus className="mr-2 h-4 w-4" /> Add Exam Dump</>}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
+            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...</> : <><Plus className="mr-2 h-4 w-4" /> Add Exam Dump</>}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 };

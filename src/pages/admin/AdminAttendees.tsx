@@ -121,34 +121,46 @@ export default function AdminAttendees() {
     };
 
     return (
-        <div className="p-6">
-            <div className="max-w-3xl mx-auto">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold mb-2">Attendee Verification</h1>
-                    <p className="text-muted-foreground">
-                        Enter the attendee's registration code to verify and check them in
-                    </p>
+        <div className="px-4 md:px-8 py-8 md:py-10">
+            <div className="max-w-3xl mx-auto space-y-6 md:space-y-8">
+                {/* Header band — distinct blue-tinted workspace panel */}
+                <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                    <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
+
+                    <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                        <div className="space-y-1.5">
+                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Event attendees
+                            </p>
+                            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Attendee Verification</h1>
+                            <p className="text-muted-foreground">
+                                Enter an attendee's registration code to verify and check them in.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Code Entry */}
-                <Card className="p-6 mb-6">
+                <Card className="border border-border rounded-2xl bg-card p-5 md:p-6 shadow-none">
                     <label className="block text-sm font-medium mb-2">
                         Registration Code
                     </label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <Input
                             type="text"
                             placeholder="EVT-XXXX1234"
                             value={code}
                             onChange={(e) => setCode(e.target.value.toUpperCase())}
                             onKeyPress={handleKeyPress}
-                            className="text-lg font-mono tracking-wider"
+                            className="min-h-[44px] rounded-xl text-lg font-mono tracking-wider tabular-nums"
                             disabled={loading || verified}
                         />
                         <Button
                             onClick={handleVerify}
                             disabled={loading || !code.trim() || verified}
                             size="lg"
+                            className="min-h-[44px] rounded-xl"
                         >
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -160,33 +172,33 @@ export default function AdminAttendees() {
                             )}
                         </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
+                    <p className="text-xs text-muted-foreground mt-3">
                         Format: EVT-XXXX1234 (4 letters + 4 numbers)
                     </p>
                 </Card>
 
                 {/* Attendee Details */}
                 {attendee && !verified && (
-                    <Card className="p-6 mb-6 border-2 border-primary">
-                        <div className="flex items-start justify-between mb-4">
-                            <div>
-                                <h2 className="text-2xl font-bold mb-1">{attendee.name}</h2>
+                    <Card className="border border-border rounded-2xl bg-card p-5 md:p-6 shadow-none ring-1 ring-primary/20">
+                        <div className="flex items-start justify-between gap-4 mb-6">
+                            <div className="space-y-1">
+                                <h2 className="text-xl md:text-2xl font-bold tracking-tight">{attendee.name}</h2>
                                 <p className="text-muted-foreground">{attendee.eventName}</p>
                             </div>
                             <Badge className={
                                 attendee.status === 'attended'
-                                    ? 'bg-green-600'
-                                    : 'bg-blue-600'
+                                    ? 'rounded-full border-0 bg-success/10 text-success text-xs font-medium'
+                                    : 'rounded-full border-0 bg-primary/10 text-primary text-xs font-medium'
                             }>
                                 {attendee.status === 'attended' ? 'Already Checked In' : 'Pending Check-in'}
                             </Badge>
                         </div>
 
-                        <div className="space-y-3 mb-6">
+                        <div className="space-y-4 mb-6">
                             <div className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Email</p>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
                                     <p className="font-medium">{attendee.email}</p>
                                 </div>
                             </div>
@@ -194,15 +206,15 @@ export default function AdminAttendees() {
                             <div className="flex items-center gap-3">
                                 <Phone className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Phone</p>
-                                    <p className="font-medium">{attendee.phone}</p>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Phone</p>
+                                    <p className="font-medium tabular-nums">{attendee.phone}</p>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-3">
                                 <MapPin className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Location</p>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Location</p>
                                     <p className="font-medium">
                                         {attendee.city}, {attendee.state}, {attendee.country}
                                     </p>
@@ -213,7 +225,7 @@ export default function AdminAttendees() {
                                 <div className="flex items-center gap-3">
                                     <Linkedin className="w-5 h-5 text-muted-foreground" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">LinkedIn</p>
+                                        <p className="text-xs uppercase tracking-wide text-muted-foreground">LinkedIn</p>
                                         <a
                                             href={attendee.linkedIn}
                                             target="_blank"
@@ -226,10 +238,10 @@ export default function AdminAttendees() {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-3 pt-3 border-t">
+                            <div className="flex items-center gap-3 pt-4 border-t border-border">
                                 <User className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Registration Details</p>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Registration Details</p>
                                     <p className="font-medium text-sm">
                                         Code: {attendee.code} •
                                         Registered: {new Date(attendee.registeredAt).toLocaleDateString()}
@@ -245,7 +257,7 @@ export default function AdminAttendees() {
                             <Button
                                 onClick={handleConfirm}
                                 disabled={confirming}
-                                className="w-full"
+                                className="w-full min-h-[44px] rounded-xl"
                                 size="lg"
                             >
                                 {confirming ? (
@@ -261,8 +273,8 @@ export default function AdminAttendees() {
                                 )}
                             </Button>
                         ) : (
-                            <div className="text-center p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
-                                <AlertCircle className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+                            <div className="text-center p-5 bg-warning/10 rounded-xl">
+                                <AlertCircle className="w-8 h-8 text-warning mx-auto mb-2" />
                                 <p className="font-semibold">Already Checked In</p>
                                 <p className="text-sm text-muted-foreground">
                                     This attendee was checked in on {new Date(attendee.attendedAt!).toLocaleString()}
@@ -274,27 +286,29 @@ export default function AdminAttendees() {
 
                 {/* Success State */}
                 {verified && (
-                    <Card className="p-8 text-center bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
-                        <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                        <h3 className="text-2xl font-bold mb-2">Check-in Successful!</h3>
-                        <p className="text-muted-foreground mb-4">
-                            {attendee?.name} has been marked as attended
+                    <Card className="border border-success/20 rounded-2xl bg-success/10 p-10 text-center shadow-none">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-success/15 text-success">
+                            <CheckCircle2 className="w-9 h-9" />
+                        </div>
+                        <h3 className="font-display text-xl md:text-2xl font-bold mb-2">Check-in Successful</h3>
+                        <p className="text-muted-foreground mb-1">
+                            {attendee?.name} has been marked as attended.
                         </p>
                         <p className="text-sm text-muted-foreground">
-                            Ready for next attendee...
+                            Ready for the next attendee.
                         </p>
                     </Card>
                 )}
 
                 {/* Instructions */}
-                <Card className="p-6 bg-muted/50">
-                    <h3 className="font-semibold mb-2">Quick Guide</h3>
-                    <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                        <li>Ask the attendee for their registration code</li>
-                        <li>Enter the code and press Enter or click Verify</li>
-                        <li>Review the attendee details to confirm identity</li>
-                        <li>Click "Confirm Attendance" to check them in</li>
-                        <li>The system will automatically prepare for the next attendee</li>
+                <Card className="border border-border rounded-2xl bg-muted/50 p-5 md:p-6 shadow-none">
+                    <h3 className="font-display font-semibold mb-3">Quick Guide</h3>
+                    <ol className="list-decimal list-inside space-y-1.5 text-sm text-muted-foreground">
+                        <li>Ask the attendee for their registration code.</li>
+                        <li>Enter the code and press Enter or click Verify.</li>
+                        <li>Review the attendee details to confirm identity.</li>
+                        <li>Click "Confirm Attendance" to check them in.</li>
+                        <li>The system automatically prepares for the next attendee.</li>
                     </ol>
                 </Card>
             </div>

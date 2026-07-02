@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Loader2, BookOpen, Star } from "lucide-react";
+import { Loader2, FileSearch, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -60,14 +60,11 @@ const ExamDumps = () => {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-8"
             >
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-medium text-primary mb-6 shadow-sm">
-                Exam Dumps
-              </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
-                Verified Certification <span className="text-primary">Dumps</span>
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] mb-4">
+                Pass on your <span className="gradient-text">first attempt</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Pass your certification exams on the first attempt with our high-quality, verified practice materials.
+                Verified, high-quality exam dumps and practice materials — trusted by 50,000+ Yatris preparing for AWS, Azure & GCP. No guesswork, just confidence.
               </p>
             </motion.div>
           </div>
@@ -99,12 +96,20 @@ const ExamDumps = () => {
             {isLoading ? (
               <div className="text-center py-20">
                 <Loader2 className="h-16 w-16 text-primary mx-auto mb-4 animate-spin" />
-                <h3 className="text-2xl font-semibold">Loading Exam Dumps...</h3>
+                <h3 className="text-2xl font-semibold">Loading your dumps…</h3>
               </div>
             ) : filteredDumps.length === 0 ? (
               <div className="text-center py-20">
-                <Sparkles className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-2xl font-semibold">No dumps found</h3>
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <FileSearch className="h-8 w-8" />
+                </div>
+                <h3 className="font-display text-2xl font-bold">No dumps here yet, Yatris</h3>
+                <p className="mt-2 max-w-md mx-auto text-muted-foreground">
+                  Fresh, verified sets drop regularly. Tell us which exam you're chasing and we'll prioritise it.
+                </p>
+                <Button onClick={() => navigate("/requestvoucher")} className="mt-6 rounded-xl shadow-inset-btn">
+                  Request a dump <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

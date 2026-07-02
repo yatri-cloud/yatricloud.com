@@ -198,15 +198,27 @@ const UdemyAdmin = () => {
 
     return (
 
-        <div className="p-8">
+        <div className="px-4 md:px-8 py-8 md:py-10">
+          <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
             <ScrollReveal>
-                <div className="mb-12">
-                    <h1 className="text-4xl font-bold mb-2">
-                        Add <span className="gradient-text">Udemy Course</span>
-                    </h1>
-                    <p className="text-lg text-muted-foreground">
-                        Submit a new course to be displayed in the course section
-                    </p>
+                {/* Header band — distinct blue-tinted workspace panel */}
+                <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                    <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
+
+                    <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                        <div className="space-y-1.5">
+                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Udemy management
+                            </p>
+                            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
+                                Add <span className="gradient-text">Udemy Course</span>
+                            </h1>
+                            <p className="text-muted-foreground">
+                                Submit a new course to feature in the course section.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </ScrollReveal>
 
@@ -214,7 +226,7 @@ const UdemyAdmin = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-xl max-w-4xl"
+                    className="bg-card border border-border rounded-2xl p-5 md:p-6"
                 >
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Course Title */}
@@ -228,7 +240,7 @@ const UdemyAdmin = () => {
                                     required: "Course title is required",
                                 })}
                                 placeholder="e.g., AWS Certified Solutions Architect - Associate"
-                                className="w-full"
+                                className="w-full min-h-[44px] rounded-xl"
                             />
                             {errors.courseTitle && (
                                 <p className="text-sm text-destructive">
@@ -253,7 +265,7 @@ const UdemyAdmin = () => {
                                     },
                                 })}
                                 placeholder="https://www.udemy.com/course/..."
-                                className="w-full"
+                                className="w-full min-h-[44px] rounded-xl"
                             />
                             {errors.courseLink && (
                                 <p className="text-sm text-destructive">
@@ -274,7 +286,7 @@ const UdemyAdmin = () => {
                                         type="file"
                                         accept="image/*"
                                         onChange={handleImageChange}
-                                        className="w-full cursor-pointer"
+                                        className="w-full min-h-[44px] rounded-xl cursor-pointer"
                                         required
                                     />
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -286,7 +298,7 @@ const UdemyAdmin = () => {
                                 </div>
                             ) : (
                                 <div className="relative">
-                                    <div className="relative rounded-lg overflow-hidden border-2 border-border mx-auto" style={{ width: '750px', maxWidth: '100%', aspectRatio: '750/422' }}>
+                                    <div className="relative rounded-xl overflow-hidden border border-border mx-auto" style={{ width: '750px', maxWidth: '100%', aspectRatio: '750/422' }}>
                                         <img
                                             src={imagePreview}
                                             alt="Course preview"
@@ -296,7 +308,8 @@ const UdemyAdmin = () => {
                                         <button
                                             type="button"
                                             onClick={removeImage}
-                                            className="absolute top-2 right-2 p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                                            aria-label="Remove selected image"
+                                            className="absolute top-2 right-2 p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors focus-visible:ring-2 focus-visible:ring-ring"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
@@ -322,7 +335,7 @@ const UdemyAdmin = () => {
                                 value={creator}
                                 onValueChange={(value) => setValue("creator", value)}
                             >
-                                <SelectTrigger id="creator" className="w-full">
+                                <SelectTrigger id="creator" className="w-full min-h-[44px] rounded-xl">
                                     <SelectValue placeholder="Select creator" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -349,7 +362,7 @@ const UdemyAdmin = () => {
                                 value={watch("tech")}
                                 onValueChange={(value) => setValue("tech", value)}
                             >
-                                <SelectTrigger id="tech" className="w-full">
+                                <SelectTrigger id="tech" className="w-full min-h-[44px] rounded-xl">
                                     <SelectValue placeholder="Select tech" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -376,7 +389,7 @@ const UdemyAdmin = () => {
                                 value={watch("category")}
                                 onValueChange={(value) => setValue("category", value)}
                             >
-                                <SelectTrigger id="category" className="w-full">
+                                <SelectTrigger id="category" className="w-full min-h-[44px] rounded-xl">
                                     <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -399,7 +412,7 @@ const UdemyAdmin = () => {
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 text-lg"
+                                className="w-full min-h-[44px] rounded-xl bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn py-6 text-lg"
                             >
                                 {isSubmitting ? (
                                     <>
@@ -417,6 +430,7 @@ const UdemyAdmin = () => {
                     </form>
                 </motion.div>
             </ScrollReveal>
+          </div>
         </div>
 
     );

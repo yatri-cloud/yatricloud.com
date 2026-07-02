@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, User, Settings, LogOut, Calendar, BookOpen, Info, List } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAuthenticated, getStoredUser, logout } from "@/lib/yatris-api";
 import {
@@ -65,20 +64,20 @@ export const Navbar = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-          ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
+          ? "glass-nav shadow-card"
           : "bg-transparent"
           }`}
       >
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between h-16 md:h-20 gap-3 md:gap-6 flex-wrap">
             {/* Logo */}
-            <a href="/" className="flex items-center gap-2">
+            <a href="/" className="group flex items-center gap-2.5">
               <img
                 src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
                 alt="Yatri Cloud"
-                className="h-8 w-8"
+                className="h-8 w-8 transition-transform duration-300 ease-out-expo group-hover:scale-110 group-hover:rotate-6"
               />
-              <span className="text-xl font-bold text-foreground">Yatri Cloud</span>
+              <span className="font-display text-xl font-bold tracking-tight text-foreground">Yatri Cloud</span>
             </a>
 
             {/* Desktop Navigation */}
@@ -117,16 +116,18 @@ export const Navbar = () => {
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium"
+                  className={`group relative py-1 text-sm font-medium transition-colors ${location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   {link.label}
+                  <span
+                    className={`absolute -bottom-0.5 left-0 h-px rounded-full bg-primary transition-all duration-300 ease-out-expo ${location.pathname === link.href ? "w-full" : "w-0 group-hover:w-full"}`}
+                  />
                 </a>
               ))}
             </div>
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-4">
-              <ThemeToggle />
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -253,7 +254,6 @@ export const Navbar = () => {
                 </a>
               ))}
               <div className="flex items-center gap-4 mt-4">
-                <ThemeToggle />
                 {user ? (
                   <div className="flex flex-col gap-2 w-full">
                     <Button

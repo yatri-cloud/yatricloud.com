@@ -100,84 +100,98 @@ export default function AdminEvents() {
     ];
 
     return (
-        <div className="p-8">
-            {/* Header */}
-            <div className="flex items-start justify-between mb-8">
-                <div>
-                    <h1 className="text-4xl font-bold mb-2">My Events</h1>
-                    <p className="text-muted-foreground">
-                        Manage and track all your events in one place
-                    </p>
-                </div>
-                <Button
-                    className="flex items-center gap-2"
-                    onClick={() => navigate('/createevent')}
-                    size="lg"
-                >
-                    <Plus className="w-5 h-5" />
-                    Create Event
-                </Button>
-            </div>
+        <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-6 md:space-y-8">
+            {/* Header band — distinct blue-tinted workspace panel */}
+            <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                {/* soft blue glow accents */}
+                <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatsCard
-                    title="Active Events"
-                    value={stats.activeEvents}
-                    icon={Calendar}
-                    color="bg-yellow-500/10 text-yellow-500"
-                />
-                <StatsCard
-                    title="Total Events"
-                    value={stats.totalEvents}
-                    icon={Layers}
-                    color="bg-purple-500/10 text-purple-500"
-                />
-                <StatsCard
-                    title="Past Events"
-                    value={stats.pastEvents}
-                    icon={Clock}
-                    color="bg-blue-500/10 text-blue-500"
-                />
-                <StatsCard
-                    title="Draft Events"
-                    value={stats.draftEvents}
-                    icon={Mic}
-                    color="bg-gray-500/10 text-gray-500"
-                />
-            </div>
-
-            {/* Tabs */}
-            <div className="flex items-center gap-2 mb-6 border-b border-border">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-4 py-3 font-medium transition-colors relative ${activeTab === tab.id
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-foreground"
-                            }`}
+                <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div className="space-y-1.5">
+                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Events workspace
+                        </p>
+                        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">My Events</h1>
+                        <p className="text-muted-foreground">
+                            Manage and track all your events in one place.
+                        </p>
+                    </div>
+                    <Button
+                        className="flex items-center gap-2 self-start md:self-auto bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
+                        onClick={() => navigate('/createevent')}
+                        size="lg"
                     >
-                        {tab.label}
-                        {activeTab === tab.id && (
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-                        )}
-                    </button>
-                ))}
+                        <Plus className="w-5 h-5" />
+                        Create Event
+                    </Button>
+                </div>
+
+                {/* Stats Cards inside the band so white cards pop against the tint */}
+                <div className="relative mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <StatsCard
+                        title="Active Events"
+                        value={stats.activeEvents}
+                        icon={Calendar}
+                        color="bg-warning/10 text-warning"
+                    />
+                    <StatsCard
+                        title="Total Events"
+                        value={stats.totalEvents}
+                        icon={Layers}
+                        color="bg-primary/10 text-primary"
+                    />
+                    <StatsCard
+                        title="Past Events"
+                        value={stats.pastEvents}
+                        icon={Clock}
+                        color="bg-primary/10 text-primary"
+                    />
+                    <StatsCard
+                        title="Draft Events"
+                        value={stats.draftEvents}
+                        icon={Mic}
+                        color="bg-muted text-muted-foreground"
+                    />
+                </div>
+            </div>
+
+            {/* Tabs — segmented control with live counts */}
+            <div className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-border bg-card p-1">
+                {tabs.map((tab) => {
+                    const count = tab.id === "active" ? stats.activeEvents : tab.id === "draft" ? stats.draftEvents : stats.pastEvents;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            aria-pressed={isActive}
+                            className={`inline-flex items-center gap-2 min-h-[40px] px-4 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive
+                                ? "bg-primary text-primary-foreground shadow-inset-btn"
+                                : "text-muted-foreground hover:bg-brand-50 hover:text-foreground"
+                                }`}
+                        >
+                            {tab.label}
+                            <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold tabular-nums ${isActive ? "bg-white/20 text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                                {count}
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Events List */}
             <div className="space-y-4">
                 {filteredEvents.length > 0 ? (
                     filteredEvents.map(event => (
-                        <div key={event.id} className="bg-card border rounded-xl p-5 hover:shadow-md transition-all flex flex-col md:flex-row gap-6 items-start md:items-center">
-                            <div className="w-full md:w-48 aspect-video rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                        <div key={event.id} className="border border-border rounded-2xl bg-card p-5 md:p-6 hover:border-brand-200 hover:shadow-card transition flex flex-col md:flex-row gap-6 items-start md:items-center">
+                            <div className="w-full md:w-48 aspect-video rounded-xl overflow-hidden bg-muted flex-shrink-0">
                                 <img src={event.imageUrl} alt={event.name} className="w-full h-full object-cover" />
                             </div>
 
-                            <div className="flex-1 space-y-2">
+                            <div className="flex-1 space-y-2 min-w-0">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-bold">{event.name}</h3>
+                                    <h3 className="text-lg md:text-xl font-bold tracking-tight">{event.name}</h3>
                                 </div>
                                 <p className="text-muted-foreground line-clamp-2 text-sm">{event.description}</p>
 
@@ -268,7 +282,7 @@ export default function AdminEvents() {
 
                                         <DropdownMenuItem
                                             onClick={() => handleDelete(event.id, event.name, event.driveFolderId)}
-                                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                            className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
                                         >
                                             <Trash2 className="w-4 h-4 mr-2" />
                                             Delete Event
@@ -279,11 +293,21 @@ export default function AdminEvents() {
                         </div>
                     ))
                 ) : (
-                    <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed">
-                        <p className="text-muted-foreground">No {activeTab} events found.</p>
+                    <div className="text-center py-16 border border-dashed border-border rounded-2xl bg-card flex flex-col items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                            <Calendar className="w-7 h-7" />
+                        </div>
+                        <div className="space-y-1">
+                            <h3 className="font-display text-lg font-semibold">No {activeTab} events yet</h3>
+                            <p className="text-muted-foreground text-sm">Your {activeTab} events will show up here.</p>
+                        </div>
                         {activeTab === 'active' && (
-                            <Button variant="link" onClick={() => navigate('/createevent')}>
-                                Create one now
+                            <Button
+                                onClick={() => navigate('/createevent')}
+                                className="bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Create your first event
                             </Button>
                         )}
                     </div>

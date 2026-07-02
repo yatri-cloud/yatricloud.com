@@ -48,23 +48,23 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-background">
-            <Card className="w-full max-w-md">
-                <CardHeader className="space-y-1">
-                    <div className="flex justify-center mb-4">
-                        <div className="p-3 bg-primary/10 rounded-full">
-                            <Lock className="w-8 h-8 text-primary" />
+        <div className="flex items-center justify-center min-h-screen bg-background px-4 py-10">
+            <Card className="w-full max-w-md border border-border rounded-2xl shadow-elevated">
+                <CardHeader className="space-y-3 pt-8">
+                    <div className="flex justify-center">
+                        <div className="p-3.5 bg-brand-50 rounded-2xl">
+                            <Lock className="w-7 h-7 text-primary" />
                         </div>
                     </div>
-                    <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
-                    <CardDescription className="text-center">
+                    <CardTitle className="font-display text-2xl md:text-3xl font-bold tracking-tight text-center">Admin Login</CardTitle>
+                    <CardDescription className="text-center text-muted-foreground">
                         Enter your credentials to access the admin dashboard
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleLogin}>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                    <CardContent className="space-y-5 pt-2">
+                        <div>
+                            <Label htmlFor="email" className="block text-sm font-medium mb-1.5">Email</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -72,10 +72,11 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                        <div>
+                            <Label htmlFor="password" className="block text-sm font-medium mb-1.5">Password</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -83,11 +84,16 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
                             />
                         </div>
                     </CardContent>
-                    <CardFooter>
-                        <Button className="w-full" type="submit" disabled={isLoading}>
+                    <CardFooter className="pb-8">
+                        <Button
+                            className="w-full min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring"
+                            type="submit"
+                            disabled={isLoading}
+                        >
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

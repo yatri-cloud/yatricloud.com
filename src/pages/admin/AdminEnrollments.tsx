@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Loader2, Search, Trash2, Edit2, Mail, Phone, MapPin, Linkedin, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Search, Trash2, Edit2, Mail, Phone, MapPin, Linkedin, CheckCircle, XCircle, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -87,23 +87,32 @@ export default function AdminEnrollments() {
     );
 
     return (
-        <div className="space-y-6 animate-in fade-in">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Student Enrollments</h1>
-                    <p className="text-muted-foreground">Manage course registrations and payments.</p>
+        <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in">
+            {/* Header band — distinct blue-tinted workspace panel */}
+            <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
+
+                <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div className="space-y-1.5">
+                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Enrollments
+                        </p>
+                        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Student Enrollments</h1>
+                        <p className="text-muted-foreground">Manage course registrations and payments.</p>
+                    </div>
                 </div>
             </div>
 
-            <Card>
+            <Card className="border border-border rounded-2xl shadow-none">
                 <CardHeader className="pb-3">
-                    <div className="flex justify-between items-center">
-                        <CardTitle>All Enrollments ({filteredEnrollments.length})</CardTitle>
-                        <div className="relative w-72">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <CardTitle className="text-lg">All Enrollments ({filteredEnrollments.length})</CardTitle>
+                        <div className="relative w-full sm:w-72">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search students or courses..."
-                                className="pl-8"
+                                className="pl-9 rounded-xl"
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                             />
@@ -112,33 +121,41 @@ export default function AdminEnrollments() {
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
-                        <div className="flex justify-center py-8">
+                        <div className="flex justify-center py-12">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
                         </div>
                     ) : (
-                        <div className="rounded-md border">
+                        <div className="rounded-xl border border-border overflow-hidden">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Student</TableHead>
-                                        <TableHead>Course</TableHead>
-                                        <TableHead>Contact</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Payment</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Date</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Student</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Course</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Contact</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Status</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Payment</TableHead>
+                                        <TableHead className="text-right text-xs uppercase tracking-wide text-muted-foreground">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {filteredEnrollments.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                                No enrollments found.
+                                            <TableCell colSpan={7} className="text-center py-16">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                        <UserCheck className="w-7 h-7" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <h3 className="font-display text-lg font-semibold">No enrollments yet</h3>
+                                                        <p className="text-muted-foreground text-sm">Student registrations will appear here as they come in.</p>
+                                                    </div>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ) : (
                                         filteredEnrollments.map((enrollment) => (
-                                            <TableRow key={enrollment.rowIndex}>
+                                            <TableRow key={enrollment.rowIndex} className="hover:bg-brand-50">
                                                 <TableCell className="whitespace-nowrap font-medium">
                                                     {new Date(enrollment.timestamp).toLocaleDateString()}
                                                 </TableCell>
@@ -164,17 +181,17 @@ export default function AdminEnrollments() {
                                                 </TableCell>
                                                 <TableCell>
                                                     {enrollment.paymentStatus === 'Paid' ? (
-                                                        <Badge className="bg-green-600 hover:bg-green-700">
+                                                        <Badge className="rounded-full bg-success/10 text-success hover:bg-success/10 border-0 tabular-nums">
                                                             Paid ({enrollment.amount})
                                                         </Badge>
                                                     ) : (
-                                                        <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
+                                                        <Badge className="rounded-full text-primary bg-primary/10 hover:bg-primary/10 border-0">
                                                             Free
                                                         </Badge>
                                                     )}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(enrollment.rowIndex)}>
+                                                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => handleDelete(enrollment.rowIndex)}>
                                                         <Trash2 className="w-4 h-4" />
                                                     </Button>
                                                 </TableCell>

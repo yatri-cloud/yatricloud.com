@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Linkedin, Award, Sparkles, Trophy } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Linkedin, Award, Trophy, Medal, Building2, Users } from "lucide-react";
 import { fetchCertifications } from "@/lib/google-sheets";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -21,6 +21,7 @@ export const AchievementsSection = () => {
   const [certifications, setCertifications] = useState<CertificationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     loadCertifications();
@@ -97,7 +98,7 @@ export const AchievementsSection = () => {
           <div className="flex items-center justify-center py-24">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading achievements...</p>
+              <p className="text-muted-foreground">Loading the Wall of Fame…</p>
             </div>
           </div>
         </div>
@@ -106,28 +107,29 @@ export const AchievementsSection = () => {
   }
 
   return (
-    <section id="achievements" className="py-24 relative">
-      {/* Background Elements */}
+    <section id="achievements" className="py-24 relative bg-white">
+      {/* Soft blue ambience */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      
+
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <ScrollReveal>
           <div className="text-center mb-12">
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6"
+              initial={prefersReducedMotion ? false : { scale: 0, rotate: -12 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", duration: 0.6, bounce: 0.4 }}
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand-50 border border-brand-100 mb-6 shadow-glow-soft"
             >
-              <Trophy className="w-10 h-10 text-primary" />
+              <Trophy className="w-10 h-10 text-primary" strokeWidth={2} />
             </motion.div>
-            
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Our <span className="gradient-text">Achievements</span>
+
+            <h2 className="text-3xl md:text-5xl font-bold font-display mb-4">
+              Meet the <span className="gradient-text">Yatris who made it</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Celebrating the success of our certified Yatris (In Testing Mode)
+              Real people, real certifications, real proof it can be done.
+              This is our Wall of Fame — you could be on it next.
             </p>
           </div>
         </ScrollReveal>
@@ -168,11 +170,14 @@ export const AchievementsSection = () => {
         {/* Achievements by Category */}
         {certifications.length === 0 ? (
           <ScrollReveal delay={0.2}>
-            <div className="text-center py-24">
-              <Trophy className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No achievements yet</h3>
+            <div className="text-center py-24 max-w-md mx-auto">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-50 border border-brand-100 mb-5">
+                <Users className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold font-display mb-2">The wall is waiting, Yatris</h3>
               <p className="text-muted-foreground">
-                Be the first to share your certification success!
+                No certifications up here yet — be the first to plant your flag.
+                Pass your exam, then share it and start the Wall of Fame. 🎉
               </p>
             </div>
           </ScrollReveal>
@@ -183,13 +188,13 @@ export const AchievementsSection = () => {
                 <div>
                   {/* Provider Header */}
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-100 to-brand-50 border border-brand-100 flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-foreground">{provider} Certifications</h3>
+                      <h3 className="text-2xl font-bold font-display text-foreground">{provider} Certifications</h3>
                       <p className="text-sm text-muted-foreground">
-                        {certs.length} {certs.length === 1 ? "achievement" : "achievements"}
+                        {certs.length} {certs.length === 1 ? "Yatri certified" : "Yatris certified"}
                       </p>
                     </div>
                   </div>
@@ -199,11 +204,11 @@ export const AchievementsSection = () => {
                     {certs.map((cert, index) => (
                       <motion.div
                         key={cert.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        whileHover={{ y: -5 }}
-                        className="bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-all shadow-lg hover:shadow-xl"
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: 24, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ delay: prefersReducedMotion ? 0 : index * 0.06, duration: 0.5, ease: "easeOut" }}
+                        whileHover={{ y: -6 }}
+                        className="bg-white border border-brand-100 rounded-2xl p-6 hover:border-primary/50 transition-all shadow-card hover:shadow-elevated"
                       >
                         {/* Photo and Name */}
                         <div className="flex items-center gap-4 mb-4">

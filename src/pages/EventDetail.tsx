@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
     Calendar,
     MapPin,
@@ -11,7 +11,12 @@ import {
     Users,
     Tag,
     Share2,
-    Linkedin
+    Linkedin,
+    Check,
+    ArrowRight,
+    Inbox,
+    CalendarX,
+    ImageOff
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -31,6 +36,7 @@ const EventDetail = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
+    const reduceMotion = useReducedMotion();
     const [event, setEvent] = useState<Event | null>(null);
     const [activeTab, setActiveTab] = useState<'about' | 'tickets' | 'speakers' | 'attendees' | 'community' | 'gallery'>('about');
     const [lightboxAlbum, setLightboxAlbum] = useState<GalleryAlbum | null>(null);
@@ -144,14 +150,14 @@ const EventDetail = () => {
 
             <main className="container mx-auto px-4 md:px-6 pt-24 pb-12">
                 {/* Back Button */}
-                <Link to="/events" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 group">
+                <Link to="/events" className="inline-flex items-center gap-2 min-h-[44px] text-muted-foreground hover:text-primary transition-colors mb-6 group">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    <span>Back to Events</span>
+                    <span>Back to all events</span>
                 </Link>
 
                 {/* Event Title */}
                 <ScrollReveal>
-                    <h1 className="text-3xl md:text-5xl font-bold mb-8">{event.name}</h1>
+                    <h1 className="font-display text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8">{event.name}</h1>
                 </ScrollReveal>
 
                 {/* Hero Section: Image Left + Details Right */}
@@ -189,7 +195,7 @@ const EventDetail = () => {
                     {/* Event Details Card - Right Side */}
                     <div className="lg:col-span-2">
                         <ScrollReveal>
-                            <div className="bg-card border-2 border-primary/20 rounded-3xl p-6 space-y-6 h-full">
+                            <div className="bg-card border border-border rounded-3xl p-6 space-y-6 h-full shadow-card">
                                 {/* Date */}
                                 <div className="flex items-start gap-3">
                                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -251,31 +257,31 @@ const EventDetail = () => {
 
                                 <div className="pt-4 border-t border-border">
                                     {event.seatsAvailable && event.seatsAvailable < 20 && (
-                                        <p className="text-sm text-orange-500 mb-4 flex items-center gap-2">
+                                        <p className="text-sm text-warning mb-4 flex items-center gap-2 font-medium">
                                             <Users className="w-4 h-4" />
-                                            Only {event.seatsAvailable} seats left!
+                                            Almost full — only {event.seatsAvailable} seats left!
                                         </p>
                                     )}
 
                                     {/* Registration Button */}
                                     {isRegistered ? (
-                                        <div className="w-full bg-green-100 text-green-700 border border-green-200 px-6 py-3 rounded-full font-semibold flex items-center justify-center gap-2 cursor-default">
+                                        <div className="w-full bg-success/10 text-success border border-success/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
                                             <CheckCircle2 className="w-5 h-5" />
-                                            <span>You are going!</span>
+                                            <span>You're in, Yatri — see you there!</span>
                                         </div>
                                     ) : event.requiresLogin && !isUserLoggedIn ? (
                                         <button
                                             onClick={() => setShowLoginModal(true)}
-                                            className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                                            className="w-full min-h-[44px] bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold shadow-inset-btn hover:bg-brand-600 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                         >
-                                            Login to Register
+                                            Log in to save your spot
                                         </button>
                                     ) : (
                                         <button
                                             onClick={handleRegister}
-                                            className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold hover:bg-primary/90 transition-colors"
+                                            className="w-full min-h-[44px] bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold shadow-inset-btn hover:bg-brand-600 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                         >
-                                            Register Now
+                                            Save my spot <ArrowRight className="w-4 h-4" />
                                         </button>
                                     )}
 
@@ -296,13 +302,14 @@ const EventDetail = () => {
                     <div className="lg:col-span-2">
 
                         {/* Tabs */}
-                        <div className="border-b border-border mb-8">
-                            <div className="flex gap-8">
+                        <div className="border-b border-border mb-8 overflow-x-auto scrollbar-hide">
+                            <div className="flex gap-6 md:gap-8">
                                 {tabs.map(tab => (
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id as any)}
-                                        className={`pb-4 px-2 text-sm font-medium transition-colors relative ${activeTab === tab.id
+                                        aria-pressed={activeTab === tab.id}
+                                        className={`min-h-[44px] pb-4 px-2 text-sm font-medium whitespace-nowrap transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm ${activeTab === tab.id
                                             ? 'text-primary'
                                             : 'text-muted-foreground hover:text-foreground'
                                             }`}
@@ -312,6 +319,7 @@ const EventDetail = () => {
                                             <motion.div
                                                 layoutId="activeTab"
                                                 className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                                                transition={reduceMotion ? { duration: 0 } : undefined}
                                             />
                                         )}
                                     </button>
@@ -324,7 +332,7 @@ const EventDetail = () => {
                             {activeTab === 'about' && (
                                 <ScrollReveal>
                                     <div>
-                                        <h2 className="text-2xl font-bold mb-4">About this Event</h2>
+                                        <h2 className="font-display text-2xl font-bold mb-4">What this is about</h2>
                                         <p className="text-muted-foreground leading-relaxed">
                                             {event.fullDescription || event.description}
                                         </p>
@@ -335,13 +343,13 @@ const EventDetail = () => {
                             {activeTab === 'tickets' && (
                                 <ScrollReveal>
                                     <div>
-                                        <h2 className="text-2xl font-bold mb-6">Available Tickets</h2>
+                                        <h2 className="font-display text-2xl font-bold mb-6">Pick your ticket</h2>
                                         {event.tickets && event.tickets.length > 0 ? (
                                             <div className="space-y-4">
                                                 {event.tickets.map(ticket => (
                                                     <div
                                                         key={ticket.id}
-                                                        className="bg-card border-2 border-border rounded-2xl p-6 hover:border-primary/30 transition-all"
+                                                        className="bg-card border border-border rounded-2xl p-6 hover:border-brand-200 hover:shadow-card transition-all"
                                                     >
                                                         <div className="flex items-start justify-between mb-4">
                                                             <div>
@@ -351,8 +359,8 @@ const EventDetail = () => {
                                                             <div className="text-right">
                                                                 <div className="text-2xl font-bold text-primary">{ticket.price}</div>
                                                                 {ticket.available && (
-                                                                    <span className="inline-block mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-500">
-                                                                        Available
+                                                                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-success/10 text-success">
+                                                                        <Check className="w-3 h-3" /> Available
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -363,7 +371,7 @@ const EventDetail = () => {
                                                                 <ul className="space-y-2">
                                                                     {ticket.benefits.map((benefit, idx) => (
                                                                         <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                                                                            <span className="text-primary mt-1">✓</span>
+                                                                            <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                                                                             <span>{benefit}</span>
                                                                         </li>
                                                                     ))}
@@ -374,7 +382,10 @@ const EventDetail = () => {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <p className="text-muted-foreground">Ticket information will be available soon.</p>
+                                            <div className="rounded-2xl border border-border band-tint p-8 text-center">
+                                                <Inbox className="w-8 h-8 text-primary mx-auto mb-3" />
+                                                <p className="text-muted-foreground">Tickets aren't live yet, Yatri — they'll drop here soon. Save your spot above and we'll keep you posted.</p>
+                                            </div>
                                         )}
                                     </div>
                                 </ScrollReveal>
@@ -383,13 +394,13 @@ const EventDetail = () => {
                             {activeTab === 'speakers' && (
                                 <ScrollReveal>
                                     <div>
-                                        <h2 className="text-2xl font-bold mb-6">Featured Speakers</h2>
+                                        <h2 className="font-display text-2xl font-bold mb-6">Who you'll learn from</h2>
                                         {event.speakers && event.speakers.length > 0 ? (
                                             <div className="space-y-6">
                                                 {event.speakers.map(speaker => (
                                                     <div
                                                         key={speaker.id}
-                                                        className="bg-card border-2 border-border rounded-2xl p-6 hover:border-primary/30 transition-all"
+                                                        className="bg-card border border-border rounded-2xl p-6 hover:border-brand-200 hover:shadow-card transition-all"
                                                     >
                                                         <div className="flex flex-col md:flex-row items-end gap-6">
                                                             <img
@@ -409,7 +420,7 @@ const EventDetail = () => {
                                                                                 className="inline-flex items-center justify-center w-8 h-8 hover:opacity-80 transition-opacity"
                                                                                 aria-label="LinkedIn Profile"
                                                                             >
-                                                                                <Linkedin className="w-5 h-5 text-blue-600" />
+                                                                                <Linkedin className="w-5 h-5 text-primary" />
                                                                             </a>
                                                                         )}
                                                                     </div>
@@ -427,7 +438,10 @@ const EventDetail = () => {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <p className="text-muted-foreground">Speaker information will be announced soon.</p>
+                                            <div className="rounded-2xl border border-border band-tint p-8 text-center">
+                                                <Users className="w-8 h-8 text-primary mx-auto mb-3" />
+                                                <p className="text-muted-foreground">The speaker line-up is being finalised, Yatri — check back soon to see who's taking the stage.</p>
+                                            </div>
                                         )}
                                     </div>
                                 </ScrollReveal>
@@ -437,9 +451,9 @@ const EventDetail = () => {
                                 <ScrollReveal>
                                     <div>
                                         <div className="flex items-center gap-3 mb-6">
-                                            <h2 className="text-2xl font-bold">Attendees</h2>
+                                            <h2 className="font-display text-2xl font-bold">Yatris going</h2>
                                             {event.attendees && event.attendees.length > 0 && (
-                                                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20">
+                                                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
                                                     {event.attendees.length} {event.attendees.length === 1 ? 'Person' : 'People'}
                                                 </span>
                                             )}
@@ -449,7 +463,7 @@ const EventDetail = () => {
                                                 {event.attendees.map(attendee => (
                                                     <div
                                                         key={attendee.id}
-                                                        className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-all hover:shadow-md"
+                                                        className="bg-card border border-border rounded-xl p-4 hover:border-brand-200 transition-all hover:shadow-card"
                                                     >
                                                         <div className="flex flex-col items-center text-center">
                                                             <img
@@ -467,7 +481,10 @@ const EventDetail = () => {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <p className="text-muted-foreground">No attendees yet. Be the first to register!</p>
+                                            <div className="rounded-2xl border border-border band-tint p-8 text-center">
+                                                <Users className="w-8 h-8 text-primary mx-auto mb-3" />
+                                                <p className="text-muted-foreground">No Yatris have signed up yet — be the first to save your spot and set the tone for this one.</p>
+                                            </div>
                                         )}
                                     </div>
                                 </ScrollReveal>
@@ -476,19 +493,19 @@ const EventDetail = () => {
                             {activeTab === 'community' && (
                                 <ScrollReveal>
                                     <div>
-                                        <h2 className="text-2xl font-bold mb-4">Join Our Community</h2>
+                                        <h2 className="font-display text-2xl font-bold mb-4">You're not doing this alone</h2>
                                         <p className="text-muted-foreground leading-relaxed mb-6">
-                                            Connect with fellow learners, share knowledge, and stay updated with the latest news and announcements.
+                                            Meet the other Yatris going, swap prep tips, ask the awkward questions, and keep the conversation alive long after the event ends. 50,000+ learners are already inside.
                                         </p>
                                         {event.communityLink && (
                                             <a
                                                 href={event.communityLink}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl"
+                                                className="inline-flex items-center gap-3 min-h-[44px] bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:bg-brand-600 transition-colors shadow-inset-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                             >
                                                 <ExternalLink className="w-5 h-5" />
-                                                Join Discord Community
+                                                Join the Yatris on Discord
                                             </a>
                                         )}
                                     </div>
@@ -498,7 +515,7 @@ const EventDetail = () => {
                             {activeTab === 'gallery' && (
                                 <ScrollReveal>
                                     <div>
-                                        <h2 className="text-2xl font-bold mb-6">Event Gallery</h2>
+                                        <h2 className="font-display text-2xl font-bold mb-6">Moments from the day</h2>
                                         {(event as Event).gallery && (event as Event).gallery!.length > 0 ? (
                                             <div className="space-y-8">
                                                 {(event as Event).gallery!.map((album) => (
@@ -533,7 +550,10 @@ const EventDetail = () => {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <p className="text-muted-foreground">No photos available yet.</p>
+                                            <div className="rounded-2xl border border-border band-tint p-8 text-center">
+                                                <ImageOff className="w-8 h-8 text-primary mx-auto mb-3" />
+                                                <p className="text-muted-foreground">Photos and highlights from this one are on the way, Yatri — check back soon to relive the day.</p>
+                                            </div>
                                         )}
                                     </div>
                                 </ScrollReveal>
@@ -566,9 +586,9 @@ const EventDetail = () => {
 
                             {/* Share Button */}
                             <ScrollReveal>
-                                <button className="flex items-center justify-center gap-2 w-full border border-border hover:bg-muted px-6 py-3 rounded-full font-medium transition-colors">
+                                <button className="flex items-center justify-center gap-2 w-full min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-6 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                                     <Share2 className="w-4 h-4" />
-                                    Share Event
+                                    Share with a friend
                                 </button>
                             </ScrollReveal>
                         </div>
@@ -600,9 +620,9 @@ const EventDetail = () => {
             <section className="container mx-auto px-4 md:px-6 py-16 border-t border-border">
                 <ScrollReveal>
                     <div className="flex items-center justify-between mb-10">
-                        <h2 className="text-2xl md:text-3xl font-bold text-foreground">Upcoming Events</h2>
+                        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">More ways to connect, Yatri</h2>
                         <Link to="/events" className="text-primary hover:underline font-medium text-sm flex items-center gap-1">
-                            View All Events <ExternalLink className="w-3 h-3" />
+                            View all events <ExternalLink className="w-3 h-3" />
                         </Link>
                     </div>
                 </ScrollReveal>
@@ -614,7 +634,7 @@ const EventDetail = () => {
                         .map((otherEvent, index) => (
                             <ScrollReveal key={otherEvent.id} delay={index * 0.1}>
                                 <Link to={`/events/${otherEvent.id}`} className="block h-full">
-                                    <div className="group bg-card rounded-3xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 h-full flex flex-col">
+                                    <div className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-brand-200 hover:shadow-card transition-all duration-300 h-full flex flex-col">
                                         <div className="aspect-video overflow-hidden">
                                             <img
                                                 src={otherEvent.imageUrl}
@@ -627,7 +647,7 @@ const EventDetail = () => {
                                                 <Calendar className="w-3 h-3" />
                                                 <span>{new Date(otherEvent.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                             </div>
-                                            <h3 className="text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{otherEvent.name}</h3>
+                                            <h3 className="font-display text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{otherEvent.name}</h3>
                                             <div className="mt-auto flex items-center text-muted-foreground text-sm">
                                                 <MapPin className="w-4 h-4 mr-1 text-primary" />
                                                 <span className="truncate">{otherEvent.location.venue || otherEvent.location.city}</span>
@@ -643,7 +663,7 @@ const EventDetail = () => {
                         MOCK_EVENTS.filter(e => e.id !== id).slice(0, 3).map((otherEvent, index) => (
                             <ScrollReveal key={otherEvent.id} delay={index * 0.1}>
                                 <Link to={`/events/${otherEvent.id}`} className="block h-full">
-                                    <div className="group bg-card rounded-3xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 h-full flex flex-col">
+                                    <div className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-brand-200 hover:shadow-card transition-all duration-300 h-full flex flex-col">
                                         <div className="aspect-video overflow-hidden">
                                             <img
                                                 src={otherEvent.imageUrl}
@@ -656,7 +676,7 @@ const EventDetail = () => {
                                                 <Calendar className="w-3 h-3" />
                                                 <span>{new Date(otherEvent.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                             </div>
-                                            <h3 className="text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{otherEvent.name}</h3>
+                                            <h3 className="font-display text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{otherEvent.name}</h3>
                                             <div className="mt-auto flex items-center text-muted-foreground text-sm">
                                                 <MapPin className="w-4 h-4 mr-1 text-primary" />
                                                 <span className="truncate">{otherEvent.location.venue || otherEvent.location.city}</span>

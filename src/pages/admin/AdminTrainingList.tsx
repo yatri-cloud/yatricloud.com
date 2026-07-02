@@ -204,29 +204,39 @@ export default function AdminTrainingList() {
     };
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Manage Training</h1>
-                    <p className="text-muted-foreground mt-1">
-                        View and manage all training content, including drafts and published courses.
-                    </p>
+        <div className="px-4 md:px-8 py-8 md:py-10">
+            <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+            {/* Header band — distinct blue-tinted workspace panel */}
+            <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
+
+                <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div className="space-y-1.5">
+                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Training courses
+                        </p>
+                        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Manage Training</h1>
+                        <p className="text-muted-foreground">
+                            View and manage all training content, including drafts and published courses.
+                        </p>
+                    </div>
+                    <Link to="/admin/training/create" className="self-start md:self-auto">
+                        <Button className="gap-2 rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
+                            <Plus className="w-4 h-4" /> Create New
+                        </Button>
+                    </Link>
                 </div>
-                <Link to="/admin/training/create">
-                    <Button className="gap-2">
-                        <Plus className="w-4 h-4" /> Create New
-                    </Button>
-                </Link>
             </div>
 
-            <Card>
-                <CardHeader className="pb-3 border-b">
+            <div className="border border-border rounded-2xl bg-card overflow-hidden">
+                <div className="p-5 md:p-6 border-b border-border">
                     <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
                         <div className="relative flex-1 max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search courses, providers..."
-                                className="pl-9"
+                                className="pl-9 min-h-[44px]"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -236,6 +246,7 @@ export default function AdminTrainingList() {
                                 variant={statusFilter === "All" ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setStatusFilter("All")}
+                                className={cn("rounded-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring", statusFilter === "All" && "bg-primary text-primary-foreground hover:bg-brand-600")}
                             >
                                 All
                             </Button>
@@ -243,7 +254,7 @@ export default function AdminTrainingList() {
                                 variant={statusFilter === "Published" ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setStatusFilter("Published")}
-                                className="gap-2"
+                                className={cn("gap-2 rounded-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring", statusFilter === "Published" && "bg-primary text-primary-foreground hover:bg-brand-600")}
                             >
                                 <CheckCircle2 className="w-3 h-3" /> Published
                             </Button>
@@ -251,14 +262,14 @@ export default function AdminTrainingList() {
                                 variant={statusFilter === "Draft" ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setStatusFilter("Draft")}
-                                className="gap-2"
+                                className={cn("gap-2 rounded-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring", statusFilter === "Draft" && "bg-primary text-primary-foreground hover:bg-brand-600")}
                             >
                                 <Clock className="w-3 h-3" /> Drafts
                             </Button>
                         </div>
                     </div>
-                </CardHeader>
-                <CardContent className="p-0">
+                </div>
+                <div className="p-0">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -266,52 +277,56 @@ export default function AdminTrainingList() {
                         </div>
                     ) : filteredCourses.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-                            <AlertCircle className="w-12 h-12 text-muted-foreground opacity-20 mb-4" />
-                            <h3 className="text-lg font-medium">No training found</h3>
-                            <p className="text-muted-foreground">
+                            <div className="rounded-2xl bg-primary/10 text-primary p-4 mb-4">
+                                <FileText className="w-6 h-6" />
+                            </div>
+                            <h3 className="font-display text-lg font-semibold">No training found</h3>
+                            <p className="text-muted-foreground mt-1">
                                 {searchTerm ? "Try adjusting your search or filters." : "Get started by creating your first training."}
                             </p>
                             {!searchTerm && (
-                                <Link to="/admin/training" className="mt-4">
-                                    <Button variant="outline">Create Training</Button>
+                                <Link to="/admin/training/create" className="mt-5">
+                                    <Button className="rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring gap-2">
+                                        <Plus className="w-4 h-4" /> Create Training
+                                    </Button>
                                 </Link>
                             )}
                         </div>
                     ) : (
                         <Table>
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Course Name</TableHead>
-                                    <TableHead>Provider</TableHead>
-                                    <TableHead>Instructor</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Date Created</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                <TableRow className="hover:bg-transparent">
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Course Name</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Provider</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Instructor</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Status</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Date Created</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3 text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody className="divide-y divide-border">
                                 {filteredCourses.map((course) => (
-                                    <TableRow key={course.id}>
-                                        <TableCell className="font-medium">
+                                    <TableRow key={course.id} className="text-sm hover:bg-brand-50">
+                                        <TableCell className="font-medium px-4 py-3">
                                             <div className="flex flex-col">
                                                 <span>{course.courseName}</span>
                                                 <span className="text-xs text-muted-foreground font-normal">ID: {course.id.substring(0, 8)}...</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell>{course.subType}</TableCell>
-                                        <TableCell>{course.instructor}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={course.status === "Published" ? "default" : "secondary"}>
+                                        <TableCell className="px-4 py-3">{course.subType}</TableCell>
+                                        <TableCell className="px-4 py-3">{course.instructor}</TableCell>
+                                        <TableCell className="px-4 py-3">
+                                            <Badge className={`rounded-full text-xs font-medium ${course.status === "Published" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                                                 {course.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
+                                        <TableCell className="text-muted-foreground text-sm px-4 py-3 tabular-nums">
                                             {new Date(course.timestamp).toLocaleDateString()}
                                         </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="px-4 py-3 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
+                                                    <Button variant="ghost" size="icon" aria-label="Open course actions" className="focus-visible:ring-2 focus-visible:ring-ring">
                                                         <MoreVertical className="w-4 h-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
@@ -330,7 +345,7 @@ export default function AdminTrainingList() {
                                                         <Eye className="w-4 h-4 mr-2" /> View Details
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
-                                                        className="text-destructive focus:text-destructive"
+                                                        className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
                                                         onClick={() => handleDelete(course.id)}
                                                     >
                                                         <Trash2 className="w-4 h-4 mr-2" /> Delete
@@ -343,13 +358,13 @@ export default function AdminTrainingList() {
                             </TableBody>
                         </Table>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Training Details</DialogTitle>
+                        <DialogTitle className="font-display">Training Details</DialogTitle>
                         <DialogDescription>Full information for {selectedCourse?.courseName}</DialogDescription>
                     </DialogHeader>
                     {selectedCourse && (
@@ -370,7 +385,7 @@ export default function AdminTrainingList() {
                                 <div>
                                     <Label className="text-muted-foreground">Status</Label>
                                     <div>
-                                        <Badge variant={selectedCourse.status === "Published" ? "default" : "secondary"}>
+                                        <Badge className={`rounded-full text-xs font-medium ${selectedCourse.status === "Published" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                                             {selectedCourse.status}
                                         </Badge>
                                     </div>
@@ -419,7 +434,7 @@ export default function AdminTrainingList() {
                             </div>
 
                             {selectedCourse.mode === "Online" && (
-                                <div className="bg-muted/30 p-4 rounded-lg border border-primary/20">
+                                <div className="bg-muted/30 p-4 rounded-2xl border border-primary/20">
                                     <Label className="text-primary font-semibold flex items-center gap-2">
                                         <Video className="w-4 h-4" /> Google Meet Link
                                     </Label>
@@ -439,7 +454,7 @@ export default function AdminTrainingList() {
                                         </>
                                     ) : (
                                         <div className="mt-2 space-y-3 bg-card p-3 rounded border">
-                                            <div className="text-sm font-medium flex items-center gap-2 text-yellow-600">
+                                            <div className="text-sm font-medium flex items-center gap-2 text-warning">
                                                 <AlertCircle className="w-4 h-4" /> Link needed? Set schedule to generate.
                                             </div>
                                             <div className="grid grid-cols-2 gap-2">
@@ -479,7 +494,7 @@ export default function AdminTrainingList() {
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                            <Button size="sm" onClick={handleUpdateSchedule} disabled={isUpdating} className="w-full">
+                                            <Button size="sm" onClick={handleUpdateSchedule} disabled={isUpdating} className="w-full rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                                 {isUpdating ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Video className="w-3 h-3 mr-2" />}
                                                 Generate Link
                                             </Button>
@@ -490,10 +505,11 @@ export default function AdminTrainingList() {
                         </div>
                     )}
                     <DialogFooter>
-                        <Button onClick={() => setIsDetailsOpen(false)}>Close</Button>
+                        <Button className="rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setIsDetailsOpen(false)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            </div>
         </div >
     );
 }
