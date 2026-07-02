@@ -69,7 +69,7 @@ const Reviews = () => {
                 "@context": "https://schema.org",
                 "@type": "Organization",
                 name: "Yatri Cloud",
-                url: "https://yatricloud.com",
+                url: "https://www.yatricloud.com",
                 aggregateRating: {
                   "@type": "AggregateRating",
                   ratingValue: avg,

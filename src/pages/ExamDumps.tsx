@@ -60,7 +60,7 @@ const ExamDumps = () => {
                     "@type": "ListItem",
                     position: i + 1,
                     name: d.title,
-                    url: "https://yatricloud.com/examdumps",
+                    url: "https://www.yatricloud.com/examdumps",
                   })),
                 }
               : undefined

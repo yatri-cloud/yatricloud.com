@@ -74,7 +74,7 @@ const YatriStore = () => {
                     "@type": "ListItem",
                     position: i + 1,
                     name: p.title,
-                    url: "https://yatricloud.com/yatristore",
+                    url: "https://www.yatricloud.com/yatristore",
                   })),
                 }
               : undefined

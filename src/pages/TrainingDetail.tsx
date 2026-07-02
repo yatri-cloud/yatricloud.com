@@ -193,7 +193,7 @@ export default function TrainingDetail() {
                     provider: {
                         "@type": "Organization",
                         name: "Yatri Cloud",
-                        url: "https://yatricloud.com",
+                        url: "https://www.yatricloud.com",
                     },
                     ...(course.thumbnailUrl ? { image: course.thumbnailUrl } : {}),
                 }}

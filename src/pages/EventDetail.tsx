@@ -169,7 +169,7 @@ const EventDetail = () => {
                         event.location?.type === "online"
                             ? {
                                   "@type": "VirtualLocation",
-                                  url: `https://yatricloud.com/events/${event.slug || event.id}`,
+                                  url: `https://www.yatricloud.com/events/${event.slug || event.id}`,
                               }
                             : {
                                   "@type": "Place",
@@ -181,7 +181,7 @@ const EventDetail = () => {
                     organizer: {
                         "@type": "Organization",
                         name: event.organizer?.name || "Yatri Cloud",
-                        url: "https://yatricloud.com",
+                        url: "https://www.yatricloud.com",
                     },
                     ...(event.tickets && event.tickets.length > 0
                         ? {
@@ -190,7 +190,7 @@ const EventDetail = () => {
                                   name: t.type,
                                   price: Number(String(t.price).replace(/[^\d.]/g, "")) || 0,
                                   priceCurrency: "INR",
-                                  url: `https://yatricloud.com/events/${event.slug || event.id}`,
+                                  url: `https://www.yatricloud.com/events/${event.slug || event.id}`,
                                   availability: t.available
                                       ? "https://schema.org/InStock"
                                       : "https://schema.org/SoldOut",
