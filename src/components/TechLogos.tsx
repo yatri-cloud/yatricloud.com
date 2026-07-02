@@ -1,23 +1,19 @@
 import { useReducedMotion } from "framer-motion";
+import {
+  useSiteContent,
+  getTechLogos,
+  FALLBACK_TECH_LOGOS,
+} from "@/lib/site-content";
 
 /**
  * Official tech/cloud brand logos used across the site's marquees.
- * SVGs are stored locally in /public/logos (sourced from Devicon).
- * Rendered inside white chips so brand colors stay legible on light,
- * tint, blue, and dark section bands alike.
+ * Loaded from the `tech_logos` table (grp 'marquee') with the exact
+ * live values as the hardcoded fallback. SVGs are stored locally in
+ * /public/logos (sourced from Devicon). Rendered inside white chips
+ * so brand colors stay legible on light, tint, blue, and dark
+ * section bands alike.
  */
-export const TECH_LOGOS = [
-  { name: "AWS", src: "/logos/aws.svg" },
-  { name: "Azure", src: "/logos/azure.svg" },
-  { name: "Google Cloud", src: "/logos/googlecloud.svg" },
-  { name: "Kubernetes", src: "/logos/kubernetes.svg" },
-  { name: "Terraform", src: "/logos/terraform.svg" },
-  { name: "Docker", src: "/logos/docker.svg" },
-  { name: "Ansible", src: "/logos/ansible.svg" },
-  { name: "Python", src: "/logos/python.svg" },
-  { name: "Linux", src: "/logos/linux.svg" },
-  { name: "GitHub", src: "/logos/github.svg" },
-] as const;
+const MARQUEE_FALLBACK = FALLBACK_TECH_LOGOS.filter((l) => l.grp === "marquee");
 
 type LogoMarqueeProps = {
   /** Scroll direction. */
@@ -42,7 +38,8 @@ export const LogoMarquee = ({
   className = "",
 }: LogoMarqueeProps) => {
   const reduce = useReducedMotion();
-  const items = reduce ? TECH_LOGOS : [...TECH_LOGOS, ...TECH_LOGOS];
+  const logos = useSiteContent(() => getTechLogos("marquee"), MARQUEE_FALLBACK);
+  const items = reduce ? logos : [...logos, ...logos];
 
   const anim = reduce
     ? ""

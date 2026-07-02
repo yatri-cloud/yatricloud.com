@@ -12,7 +12,7 @@ import {
  * (`site_settings`, `site_stats`, `promotions`, `faqs`, `team_members`,
  * `package_benefits`, `certification_steps`, `eligible_exams`,
  * `recognitions`, `trust_features`, `communities`, `nav_links`,
- * `option_lists`, `legal_pages`, `guides`) with hardcoded fallbacks that match
+ * `option_lists`, `legal_pages`, `guides`, `tech_logos`) with hardcoded fallbacks that match
  * the live values exactly. If Supabase is slow,
  * errors, or returns nothing, the site keeps rendering the fallback so
  * visitors never see a blank section. Fetches once per session; every
@@ -100,6 +100,16 @@ export type NavLink = { href: string; label: string };
 
 export type OptionItem = { value: string; label: string };
 
+export type TechLogoGroup = "marquee" | "community";
+
+export type TechLogo = {
+  name: string;
+  src: string;
+  /** For community logos this holds the light-theme logo variant URL. */
+  href: string | null;
+  grp: TechLogoGroup;
+};
+
 export type LegalPage = { slug: string; title: string; body_md: string };
 
 export type Guide = { slug: string; title: string; body_md: string };
@@ -130,7 +140,67 @@ export const FALLBACK_SETTINGS: Record<string, any> = {
       "Master cloud certifications the affordable way — AWS, Azure & GCP at 50% OFF, with exam dumps, resources, and personal guidance.",
     designed_by: "Uimitra",
   },
+  hero: {
+    subheadline:
+      "Get AWS certified at 50% OFF. Book your time slot and we'll schedule your exam during the meeting. Dumps, resources, and support included!",
+  },
 };
+
+/* Tech logos — grp 'marquee' copied verbatim from TECH_LOGOS in
+ * src/components/TechLogos.tsx; grp 'community' copied verbatim from
+ * `companies` in src/components/sections/CommunitySection.tsx, where
+ * `href` carries the light-theme logo variant (logoLight). */
+const COMMUNITY_LOGO_BASE_URL =
+  "https://raw.githubusercontent.com/yatricloud/yatri-images/main/certification.yatricloud.com/logo/certifications";
+
+export const FALLBACK_TECH_LOGOS: TechLogo[] = [
+  { name: "AWS", src: "/logos/aws.svg", href: null, grp: "marquee" },
+  { name: "Azure", src: "/logos/azure.svg", href: null, grp: "marquee" },
+  { name: "Google Cloud", src: "/logos/googlecloud.svg", href: null, grp: "marquee" },
+  { name: "Kubernetes", src: "/logos/kubernetes.svg", href: null, grp: "marquee" },
+  { name: "Terraform", src: "/logos/terraform.svg", href: null, grp: "marquee" },
+  { name: "Docker", src: "/logos/docker.svg", href: null, grp: "marquee" },
+  { name: "Ansible", src: "/logos/ansible.svg", href: null, grp: "marquee" },
+  { name: "Python", src: "/logos/python.svg", href: null, grp: "marquee" },
+  { name: "Linux", src: "/logos/linux.svg", href: null, grp: "marquee" },
+  { name: "GitHub", src: "/logos/github.svg", href: null, grp: "marquee" },
+  {
+    name: "AWS",
+    src: `${COMMUNITY_LOGO_BASE_URL}/aws.svg`,
+    href: `${COMMUNITY_LOGO_BASE_URL}/aws-light.png`,
+    grp: "community",
+  },
+  {
+    name: "Google Cloud",
+    src: `${COMMUNITY_LOGO_BASE_URL}/google_cloud.svg`,
+    href: null,
+    grp: "community",
+  },
+  {
+    name: "Azure",
+    src: `${COMMUNITY_LOGO_BASE_URL}/Microsoft_Azure.svg`,
+    href: null,
+    grp: "community",
+  },
+  {
+    name: "Salesforce",
+    src: `${COMMUNITY_LOGO_BASE_URL}/Salesforce.com_logo.svg`,
+    href: null,
+    grp: "community",
+  },
+  {
+    name: "Oracle",
+    src: `${COMMUNITY_LOGO_BASE_URL}/Oracle_logo.svg`,
+    href: null,
+    grp: "community",
+  },
+  {
+    name: "GitHub",
+    src: `${COMMUNITY_LOGO_BASE_URL}/github-white-icon.webp`,
+    href: `${COMMUNITY_LOGO_BASE_URL}/github-white-icon.webp`,
+    grp: "community",
+  },
+];
 
 export const FALLBACK_STATS: SiteStat[] = [
   { key: "learners", value: "50K+", label: "Learners" },
@@ -617,6 +687,7 @@ let eligibleExamsPromise: Promise<EligibleExam[]> | null = null;
 let recognitionsPromise: Promise<Recognition[]> | null = null;
 const trustFeaturesPromises: Partial<Record<TrustFeatureKind, Promise<TrustFeature[]>>> = {};
 let communitiesPromise: Promise<CommunityEntry[]> | null = null;
+let techLogosPromise: Promise<TechLogo[]> | null = null;
 const navLinksPromises: Partial<Record<NavLinkLocation, Promise<NavLink[]>>> = {};
 const optionListPromises: Record<string, Promise<OptionItem[]>> = {};
 const legalPagePromises: Record<string, Promise<LegalPage | null>> = {};
@@ -909,6 +980,32 @@ export function getCommunities(grp?: CommunityGroup): Promise<CommunityEntry[]> 
   }
   if (!grp) return communitiesPromise;
   return communitiesPromise.then((rows) => rows.filter((c) => c.grp === grp));
+}
+
+/** Active tech logos in display order, optionally filtered by group. Never throws. */
+export function getTechLogos(grp?: TechLogoGroup): Promise<TechLogo[]> {
+  if (!techLogosPromise) {
+    techLogosPromise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("tech_logos")
+          .select("name, src, href, grp")
+          .eq("active", true)
+          .order("sort_order", { ascending: true });
+        if (error || !data || data.length === 0) return FALLBACK_TECH_LOGOS;
+        return data.map((row: any) => ({
+          name: String(row.name ?? ""),
+          src: String(row.src ?? ""),
+          href: row.href ? String(row.href) : null,
+          grp: (row.grp === "community" ? "community" : "marquee") as TechLogoGroup,
+        }));
+      } catch {
+        return FALLBACK_TECH_LOGOS;
+      }
+    })();
+  }
+  if (!grp) return techLogosPromise;
+  return techLogosPromise.then((rows) => rows.filter((l) => l.grp === grp));
 }
 
 /** Active nav links for a location in display order. Never throws. */

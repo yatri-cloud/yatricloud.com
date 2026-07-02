@@ -5,39 +5,16 @@ import ScrollReveal from "@/components/ScrollReveal";
 import Marquee from "@/components/Marquee";
 import { useEffect, useRef } from "react";
 import { useTheme } from "@/components/ThemeProvider";
+import {
+  useSiteContent,
+  getTechLogos,
+  FALLBACK_TECH_LOGOS,
+} from "@/lib/site-content";
 
-// Base URL for certification logos (same as used in certification form)
-const LOGO_BASE_URL = "https://raw.githubusercontent.com/yatricloud/yatri-images/main/certification.yatricloud.com/logo/certifications";
-
-// Company logos with image URLs (using same logos as certification form)
-const companies = [
-  {
-    name: "AWS",
-    logo: `${LOGO_BASE_URL}/aws.svg`,
-    logoLight: `${LOGO_BASE_URL}/aws-light.png`,
-  },
-  {
-    name: "Google Cloud",
-    logo: `${LOGO_BASE_URL}/google_cloud.svg`,
-  },
-  {
-    name: "Azure",
-    logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg`,
-  },
-  {
-    name: "Salesforce",
-    logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg`,
-  },
-  {
-    name: "Oracle",
-    logo: `${LOGO_BASE_URL}/Oracle_logo.svg`,
-  },
-  {
-    name: "GitHub",
-    logo: `${LOGO_BASE_URL}/github-white-icon.webp`,
-    logoLight: `${LOGO_BASE_URL}/github-white-icon.webp`,
-  },
-];
+// Company logos loaded from the `tech_logos` table (grp 'community');
+// the fallback list matches the live values exactly. `href` carries the
+// light-theme logo variant (logoLight) where one exists.
+const COMPANIES_FALLBACK = FALLBACK_TECH_LOGOS.filter((l) => l.grp === "community");
 
 // Profile pictures for the globe - mix of actual and real profile images
 const profilePictures = [
@@ -227,6 +204,16 @@ const GlobeVisualization = () => {
 export const CommunitySection = () => {
   const { theme } = useTheme();
   const reduce = useReducedMotion();
+
+  const communityLogos = useSiteContent(
+    () => getTechLogos("community"),
+    COMPANIES_FALLBACK
+  );
+  const companies = communityLogos.map((logo) => ({
+    name: logo.name,
+    logo: logo.src,
+    logoLight: logo.href ?? undefined,
+  }));
 
   return (
     <section className="relative band-tint text-foreground overflow-hidden">

@@ -609,6 +609,32 @@ const CommunitiesEditor = () => (
 );
 
 /* ------------------------------------------------------------------ */
+/* Tech logos — same editor with a group select on every row           */
+/* ------------------------------------------------------------------ */
+
+const TECH_LOGO_GROUPS: ContentFieldOption[] = [
+    { value: "marquee", label: "Logo marquee" },
+    { value: "community", label: "Community section" },
+];
+
+const TechLogosEditor = () => (
+    <ContentListSection
+        eyebrow="Site-wide"
+        title="Tech Logos"
+        hint="The brand logos that scroll across the site. Marquee logos show in the white chips, and community logos show under Join Our Community."
+        table="tech_logos"
+        fields={[
+            { key: "name", label: "Name", half: true, required: true },
+            { key: "src", label: "Image URL", half: true, required: true },
+            { key: "href", label: "Light theme image URL (optional)" },
+            { key: "grp", label: "Group", type: "select", half: true, options: TECH_LOGO_GROUPS },
+        ]}
+        itemLabel="logo"
+        addLabel="Add a logo"
+    />
+);
+
+/* ------------------------------------------------------------------ */
 /* Navigation links — same editor with a location toggle               */
 /* ------------------------------------------------------------------ */
 
@@ -1047,6 +1073,7 @@ const AdminSiteContent = () => {
     const [social, setSocial] = useState({ ...FALLBACK_SETTINGS.social });
     const [booking, setBooking] = useState({ ...FALLBACK_SETTINGS.booking });
     const [brand, setBrand] = useState({ ...FALLBACK_SETTINGS.brand });
+    const [hero, setHero] = useState({ ...FALLBACK_SETTINGS.hero });
 
     const [stats, setStats] = useState<StatRow[]>([]);
     const [promo, setPromo] = useState<PromoRow>({
@@ -1089,6 +1116,7 @@ const AdminSiteContent = () => {
                         if (row.key === "social") setSocial((prev: any) => ({ ...prev, ...value }));
                         if (row.key === "booking") setBooking((prev: any) => ({ ...prev, ...value }));
                         if (row.key === "brand") setBrand((prev: any) => ({ ...prev, ...value }));
+                        if (row.key === "hero") setHero((prev: any) => ({ ...prev, ...value }));
                     }
                 }
 
@@ -1168,6 +1196,7 @@ const AdminSiteContent = () => {
                 { key: "social", value: social },
                 { key: "booking", value: booking },
                 { key: "brand", value: brand },
+                { key: "hero", value: hero },
             ],
             { onConflict: "key" }
         );
@@ -1456,6 +1485,10 @@ const AdminSiteContent = () => {
                                     <div className="space-y-2 md:col-span-2">
                                         <FieldLabel htmlFor="brand-tagline">Tagline (shown in the footer)</FieldLabel>
                                         <Textarea id="brand-tagline" className="min-h-[80px] rounded-xl" value={brand.tagline} onChange={(e) => setBrand({ ...brand, tagline: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <FieldLabel htmlFor="hero-subheadline">Hero subheadline (shown under the homepage headline)</FieldLabel>
+                                        <Textarea id="hero-subheadline" className="min-h-[80px] rounded-xl" value={hero.subheadline} onChange={(e) => setHero({ ...hero, subheadline: e.target.value })} />
                                     </div>
                                 </div>
                             </div>
@@ -1782,6 +1815,11 @@ const AdminSiteContent = () => {
                 {/* ── Communities ── */}
                 <ScrollReveal delay={0.05}>
                     <CommunitiesEditor />
+                </ScrollReveal>
+
+                {/* ── Tech logos ── */}
+                <ScrollReveal delay={0.05}>
+                    <TechLogosEditor />
                 </ScrollReveal>
 
                 {/* ── Navigation links ── */}

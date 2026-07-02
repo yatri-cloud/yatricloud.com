@@ -217,12 +217,11 @@ export const HeroSection = () => {
             {renderWords(HEADLINE_LINE_TWO, true)}
           </motion.h1>
 
-          {/* Subheadline — stays hardcoded: no `site_content` table exists in
-           * site-content.ts and no site_settings key matches this copy. */}
+          {/* Subheadline — lives in site_settings under the `hero` key,
+           * with the exact live copy as the hardcoded fallback. */}
           <ScrollReveal delay={0.35}>
             <p className="mb-9 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              Get AWS certified at 50% OFF. Book your time slot and we'll schedule
-              your exam during the meeting. Dumps, resources, and support included!
+              {settings.hero?.subheadline || FALLBACK_SETTINGS.hero.subheadline}
             </p>
           </ScrollReveal>
 
