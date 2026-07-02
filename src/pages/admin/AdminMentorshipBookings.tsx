@@ -23,34 +23,21 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { sendEmail } from "@/lib/email";
 import ScrollReveal from "@/components/ScrollReveal";
+import type {
+    BookingStatus,
+    MentorshipBooking as MentorshipBookingRecord,
+} from "@/lib/mentorship";
 
 /* ------------------------------------------------------------------ */
-/* Types — local copies of the shared mentorship types.                */
-/* src/lib/mentorship.ts is being authored in a parallel batch; the    */
-/* integration pass swaps these for imports once both land.            */
+/* Types — canonical shapes from @/lib/mentorship, narrowed to the     */
+/* columns this admin page actually selects. Answers keep a legacy     */
+/* `value` key: older rows stored { label, value } instead of          */
+/* { label, answer }.                                                  */
 /* ------------------------------------------------------------------ */
 
-interface MentorshipBooking {
-    id: string;
-    service_id: string;
-    mentor_id: string;
-    user_id: string;
-    customer_name: string;
-    customer_email: string;
-    customer_phone: string | null;
+type MentorshipBooking = Omit<MentorshipBookingRecord, "updated_at" | "answers"> & {
     answers: { label?: string; answer?: string; value?: string }[];
-    slot_start: string | null;
-    slot_end: string | null;
-    buyer_timezone: string;
-    amount: number;
-    currency: string;
-    status: string;
-    order_id: string | null;
-    payment_id: string | null;
-    meeting_link: string | null;
-    admin_notes: string | null;
-    created_at: string;
-}
+};
 
 interface MentorOption {
     id: string;
@@ -221,7 +208,8 @@ const AdminMentorshipBookings = () => {
         if (!managing) return;
         setSaving(true);
         const patch = {
-            status: manageStatus,
+            // The manage dialog only offers STATUSES values, so this is safe.
+            status: manageStatus as BookingStatus,
             meeting_link: manageMeetingLink.trim() || null,
             admin_notes: manageNotes.trim() || null,
         };

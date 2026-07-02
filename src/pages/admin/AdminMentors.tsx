@@ -42,43 +42,19 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
+import type {
+    Mentor as MentorRecord,
+    AvailabilityRule as AvailabilityRuleRecord,
+} from "@/lib/mentorship";
 
 /* ------------------------------------------------------------------ */
-/* Types — local copies of the shared mentorship types.                */
-/* src/lib/mentorship.ts is being authored in a parallel batch; the    */
-/* integration pass swaps these for imports once both land.            */
+/* Types — canonical shapes from @/lib/mentorship, narrowed to the     */
+/* columns this admin page actually selects.                           */
 /* ------------------------------------------------------------------ */
 
-interface Mentor {
-    id: string;
-    user_id: string | null;
-    slug: string;
-    name: string;
-    headline: string;
-    bio: string;
-    photo_url: string | null;
-    linkedin_url: string | null;
-    expertise: string[];
-    languages: string[];
-    timezone: string;
-    notice_hours: number;
-    booking_window_days: number;
-    buffer_min: number;
-    avg_rating: number;
-    review_count: number;
-    is_featured: boolean;
-    sort_order: number;
-    status: string;
-}
+type Mentor = Omit<MentorRecord, "created_at" | "updated_at">;
 
-interface AvailabilityRule {
-    id: string;
-    mentor_id: string;
-    weekday: number;
-    start_time: string;
-    end_time: string;
-    active: boolean;
-}
+type AvailabilityRule = Omit<AvailabilityRuleRecord, "updated_at">;
 
 interface MentorFormState {
     slug: string;

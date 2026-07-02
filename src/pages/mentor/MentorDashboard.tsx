@@ -6,9 +6,8 @@
  * All queries run through the anon supabase client; RLS from migration 015
  * scopes every read and write to the mentor's own rows.
  *
- * NOTE: types below are local copies of the migration 015 row shapes. Agent A
- * owns src/lib/mentorship.ts (built concurrently); once it lands these local
- * types can be swapped for imports from "@/lib/mentorship".
+ * Row types come from the canonical @/lib/mentorship module; the *Row
+ * aliases below keep this file's original naming.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -53,74 +52,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-/* ---------- local row types (mirror supabase/migrations/015_mentorship.sql) ---------- */
+import type {
+  AvailabilityRule,
+  Mentor,
+  MentorshipBooking,
+  MentorshipService,
+} from "@/lib/mentorship";
 
-interface MentorRow {
-  id: string;
-  user_id: string | null;
-  slug: string;
-  name: string;
-  headline: string;
-  bio: string;
-  photo_url: string | null;
-  linkedin_url: string | null;
-  expertise: string[];
-  languages: string[];
-  timezone: string;
-  notice_hours: number;
-  booking_window_days: number;
-  buffer_min: number;
-  avg_rating: number;
-  review_count: number;
-  is_featured: boolean;
-  sort_order: number;
-  status: string;
-}
+/* ---------- row aliases (canonical types from @/lib/mentorship) ---------- */
 
-interface ServiceRow {
-  id: string;
-  mentor_id: string;
-  slug: string;
-  type: "call" | "package" | "digital" | "webinar";
-  title: string;
-  short_description: string;
-  description: string;
-  price: number;
-  compare_at_price: number | null;
-  currency: string;
-  duration_min: number | null;
-  sessions_count: number;
-  cta_label: string;
-  badge: "Popular" | "Best Seller" | null;
-  sort_order: number;
-  status: string;
-}
-
-interface AvailabilityRow {
-  id: string;
-  mentor_id: string;
-  weekday: number;
-  start_time: string;
-  end_time: string;
-  active: boolean;
-}
-
-interface BookingRow {
-  id: string;
-  service_id: string;
-  mentor_id: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string | null;
-  slot_start: string | null;
-  slot_end: string | null;
-  buyer_timezone: string;
-  amount: number;
-  currency: string;
-  status: "pending" | "confirmed" | "completed" | "cancelled" | "refunded";
-  meeting_link: string | null;
-  created_at: string;
-}
+type MentorRow = Mentor;
+type ServiceRow = MentorshipService;
+type AvailabilityRow = AvailabilityRule;
+type BookingRow = MentorshipBooking;
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 

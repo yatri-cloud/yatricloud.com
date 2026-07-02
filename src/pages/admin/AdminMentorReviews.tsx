@@ -23,25 +23,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
-
-/* ------------------------------------------------------------------ */
-/* Types — local copies of the shared mentorship types.                */
-/* src/lib/mentorship.ts is being authored in a parallel batch; the    */
-/* integration pass swaps these for imports once both land.            */
-/* ------------------------------------------------------------------ */
-
-interface MentorReview {
-    id: string;
-    mentor_id: string;
-    service_id: string | null;
-    booking_id: string | null;
-    user_id: string | null;
-    name: string;
-    rating: number;
-    review: string;
-    is_public: boolean;
-    created_at: string;
-}
+import type { MentorReview } from "@/lib/mentorship";
 
 interface MentorOption {
     id: string;

@@ -33,11 +33,11 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
+import type { MentorshipService as MentorshipServiceRecord } from "@/lib/mentorship";
 
 /* ------------------------------------------------------------------ */
-/* Types — local copies of the shared mentorship types.                */
-/* src/lib/mentorship.ts is being authored in a parallel batch; the    */
-/* integration pass swaps these for imports once both land.            */
+/* Types — canonical shapes from @/lib/mentorship, narrowed to the     */
+/* columns this admin page actually selects.                           */
 /* ------------------------------------------------------------------ */
 
 interface MentorOption {
@@ -46,34 +46,7 @@ interface MentorOption {
     slug: string;
 }
 
-interface ServiceQuestion {
-    label: string;
-    required: boolean;
-    type: "text";
-}
-
-interface MentorshipService {
-    id: string;
-    mentor_id: string;
-    slug: string;
-    type: string;
-    title: string;
-    short_description: string;
-    description: string;
-    price: number;
-    compare_at_price: number | null;
-    currency: string;
-    duration_min: number | null;
-    sessions_count: number;
-    webinar_start_at: string | null;
-    capacity: number | null;
-    cta_label: string;
-    badge: string | null;
-    cover_url: string | null;
-    questions: ServiceQuestion[];
-    sort_order: number;
-    status: string;
-}
+type MentorshipService = Omit<MentorshipServiceRecord, "created_at" | "updated_at">;
 
 interface ServiceFormState {
     mentor_id: string;
