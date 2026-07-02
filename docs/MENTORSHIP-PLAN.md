@@ -76,7 +76,7 @@ Also add Mentorship to nav fallback list in src/lib/site-content.ts.
 - /admin/mentorship/reviews → AdminMentorReviews.tsx (moderate is_public, delete)
 
 ## 5. Mentor self service — /mentor/dashboard → src/pages/mentor/MentorDashboard.tsx
-Gate: signed in user with mentors row (user_id = auth.uid()); else friendly not a mentor screen. Tabs: Services (edit own) · Availability (rules + scheduling settings) · Bookings (upcoming/completed, meeting link, mark completed). TrainerDashboard page pattern. No payouts Phase 1.
+Gate: signed in user with mentors row (user_id = auth.uid()); else application aware screen (apply CTA, pending, rejected states). Tabs: Profile (edit own + SELF PUBLISH Live/Offline switch — Topmate model, superseding the old team publishes gate) · Services (FULL CRUD incl. create/delete, questions, secrets) · Availability · Bookings. No payouts Phase 1.
 
 ## 6. SEO
 - /mentorship: "Mentorship · Book 1:1 Sessions with Cloud Experts | Yatri Cloud" + ItemList of Person jsonLd.
