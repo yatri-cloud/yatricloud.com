@@ -17,6 +17,7 @@ import Achievements from "./pages/Achievements";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
 import Community from "./pages/Community";
+import Partners from "./pages/Partners";
 import Udemy from "./pages/Udemy";
 import YatriStore from "./pages/YatriStore";
 import AddProduct from "./pages/AddProduct";
@@ -88,6 +89,7 @@ const App = () => (
               <Route path="/events" element={<Events />} />
               <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/community" element={<Community />} />
+              <Route path="/partners" element={<Partners />} />
               <Route path="/udemy" element={<Udemy />} />
               <Route path="/yatristore" element={<YatriStore />} />
               <Route path="/examdumps" element={<ExamDumps />} />
