@@ -37,6 +37,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -289,15 +299,21 @@ const MentorDashboard = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="services" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full max-w-xl grid-cols-4">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="availability">Availability</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="profile" className="mt-6">
+            <ProfileTab mentor={mentor} onSaved={loadMentor} />
+          </TabsContent>
+
           <TabsContent value="services" className="mt-6">
             <ServicesTab
+              mentorId={mentor.id}
               services={services}
               loading={loadingData}
               onSaved={() => loadData(mentor.id)}
@@ -369,9 +385,245 @@ const GateCard = ({
   </div>
 );
 
+/* ---------- Profile tab ---------- */
+
+const textToList = (text: string) =>
+  text
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+interface ProfileForm {
+  name: string;
+  headline: string;
+  bio: string;
+  photo_url: string;
+  linkedin_url: string;
+  expertise: string;
+  languages: string;
+}
+
+const mentorToProfileForm = (m: MentorRow): ProfileForm => ({
+  name: m.name,
+  headline: m.headline,
+  bio: m.bio,
+  photo_url: m.photo_url ?? "",
+  linkedin_url: m.linkedin_url ?? "",
+  expertise: (m.expertise ?? []).join(", "),
+  languages: (m.languages ?? []).join(", "),
+});
+
+const ProfileTab = ({ mentor, onSaved }: { mentor: MentorRow; onSaved: () => void }) => {
+  const [form, setForm] = useState<ProfileForm>(() => mentorToProfileForm(mentor));
+  const [saving, setSaving] = useState(false);
+  const [togglingLive, setTogglingLive] = useState(false);
+
+  useEffect(() => {
+    setForm(mentorToProfileForm(mentor));
+  }, [mentor]);
+
+  const set = (key: keyof ProfileForm, value: string) =>
+    setForm((f) => ({ ...f, [key]: value }));
+
+  const save = async () => {
+    if (!form.name.trim()) {
+      toast.error("Name is required.");
+      return;
+    }
+    setSaving(true);
+    try {
+      // Status is deliberately not part of this payload; the publish switch below owns it.
+      const { error } = await supabase
+        .from("mentors")
+        .update({
+          name: form.name.trim(),
+          headline: form.headline.trim(),
+          bio: form.bio.trim(),
+          photo_url: form.photo_url.trim() || null,
+          linkedin_url: form.linkedin_url.trim() || null,
+          expertise: textToList(form.expertise),
+          languages: textToList(form.languages),
+        })
+        .eq("id", mentor.id);
+      if (error) throw error;
+      toast.success("Profile saved.");
+      onSaved();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Could not save your profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const setLive = async (live: boolean) => {
+    setTogglingLive(true);
+    try {
+      const { error } = await supabase
+        .from("mentors")
+        .update({ status: live ? "published" : "draft" })
+        .eq("id", mentor.id);
+      if (error) throw error;
+      toast.success(live ? "Your profile is live." : "Your profile is now offline.");
+      onSaved();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Could not change your visibility.");
+    } finally {
+      setTogglingLive(false);
+    }
+  };
+
+  const isLive = mentor.status === "published";
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-5">
+      <Card className="border border-border shadow-sm lg:col-span-3">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg">Your profile</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            This is what Yatris see on your public mentorship page.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-6 flex flex-col gap-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="prof-name">Name</Label>
+              <Input id="prof-name" value={form.name} onChange={(e) => set("name", e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="prof-headline">Headline</Label>
+              <Input
+                id="prof-headline"
+                placeholder="AWS, Azure and DevOps mentor"
+                value={form.headline}
+                onChange={(e) => set("headline", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="prof-bio">Bio</Label>
+            <Textarea
+              id="prof-bio"
+              rows={5}
+              placeholder="A few warm lines about how you help Yatris."
+              value={form.bio}
+              onChange={(e) => set("bio", e.target.value)}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="prof-photo">Photo URL</Label>
+              <Input
+                id="prof-photo"
+                placeholder="https://…"
+                value={form.photo_url}
+                onChange={(e) => set("photo_url", e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="prof-linkedin">LinkedIn or website URL</Label>
+              <Input
+                id="prof-linkedin"
+                placeholder="https://linkedin.com/in/…"
+                value={form.linkedin_url}
+                onChange={(e) => set("linkedin_url", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="prof-expertise">Expertise, comma separated</Label>
+              <Input
+                id="prof-expertise"
+                placeholder="AWS, Azure, DevOps"
+                value={form.expertise}
+                onChange={(e) => set("expertise", e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="prof-languages">Languages, comma separated</Label>
+              <Input
+                id="prof-languages"
+                placeholder="English, Hindi"
+                value={form.languages}
+                onChange={(e) => set("languages", e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <Button className="bg-brand-500 hover:bg-brand-600 text-white" onClick={save} disabled={saving}>
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save profile
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border border-border shadow-sm lg:col-span-2 h-fit">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg">Visibility</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            You decide when your profile appears on the mentorship page.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-4 py-3">
+            <div>
+              <p className="font-medium">{isLive ? "Live" : "Offline"}</p>
+              <p className="text-sm text-muted-foreground">
+                {isLive
+                  ? "Your profile is live on the mentorship page."
+                  : "Your profile is offline. Publish it when you are ready."}
+              </p>
+            </div>
+            <Switch
+              checked={isLive}
+              disabled={togglingLive}
+              onCheckedChange={setLive}
+              aria-label="Your profile is live on the mentorship page"
+            />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Going offline hides your profile and services from Yatris right away. Your data stays
+            safe and you can come back live any time.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 /* ---------- Services tab ---------- */
 
+const TYPE_LABELS: Record<string, string> = {
+  call: "1 on 1 call",
+  package: "Package",
+  digital: "Digital product",
+  webinar: "Webinar",
+};
+
+const kebabCase = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+/** ISO timestamp → value for a datetime local input, in local time. */
+const isoToLocalInput = (iso: string | null) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const localInputToIso = (value: string) => {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+};
+
 interface ServiceForm {
+  type: string;
   title: string;
   short_description: string;
   description: string;
@@ -379,13 +631,39 @@ interface ServiceForm {
   compare_at_price: string;
   duration_min: string;
   sessions_count: string;
+  webinar_start_at: string;
+  capacity: string;
   cta_label: string;
   badge: string;
   status: string;
   sort_order: string;
+  questions: { label: string; required: boolean }[];
+  delivery_url: string;
+  meeting_link: string;
 }
 
+const EMPTY_SERVICE_FORM: ServiceForm = {
+  type: "call",
+  title: "",
+  short_description: "",
+  description: "",
+  price: "0",
+  compare_at_price: "",
+  duration_min: "30",
+  sessions_count: "1",
+  webinar_start_at: "",
+  capacity: "",
+  cta_label: "Book Now",
+  badge: "none",
+  status: "draft",
+  sort_order: "0",
+  questions: [],
+  delivery_url: "",
+  meeting_link: "",
+};
+
 const serviceToForm = (s: ServiceRow): ServiceForm => ({
+  type: s.type,
   title: s.title,
   short_description: s.short_description,
   description: s.description,
@@ -393,35 +671,106 @@ const serviceToForm = (s: ServiceRow): ServiceForm => ({
   compare_at_price: s.compare_at_price == null ? "" : String(s.compare_at_price),
   duration_min: s.duration_min == null ? "" : String(s.duration_min),
   sessions_count: String(s.sessions_count),
+  webinar_start_at: isoToLocalInput(s.webinar_start_at),
+  capacity: s.capacity == null ? "" : String(s.capacity),
   cta_label: s.cta_label,
   badge: s.badge ?? "none",
   status: s.status,
   sort_order: String(s.sort_order),
+  questions: (s.questions ?? []).map((q) => ({ label: q.label, required: q.required })),
+  delivery_url: "",
+  meeting_link: "",
 });
 
 const ServicesTab = ({
+  mentorId,
   services,
   loading,
   onSaved,
 }: {
+  mentorId: string;
   services: ServiceRow[];
   loading: boolean;
   onSaved: () => void;
 }) => {
+  const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [editing, setEditing] = useState<ServiceRow | null>(null);
   const [form, setForm] = useState<ServiceForm | null>(null);
+  const [hadSecrets, setHadSecrets] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [toDelete, setToDelete] = useState<ServiceRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const openEdit = (s: ServiceRow) => {
+  const openCreate = () => {
+    setEditing(null);
+    setHadSecrets(false);
+    setForm(EMPTY_SERVICE_FORM);
+    setMode("create");
+  };
+
+  const openEdit = async (s: ServiceRow) => {
     setEditing(s);
     setForm(serviceToForm(s));
+    setHadSecrets(false);
+    setMode("edit");
+    // Private delivery details live in the secrets table (owner readable per RLS).
+    const { data } = await supabase
+      .from("mentorship_service_secrets")
+      .select("delivery_url, meeting_link")
+      .eq("service_id", s.id)
+      .maybeSingle();
+    if (data) {
+      setHadSecrets(true);
+      setForm((f) =>
+        f
+          ? {
+              ...f,
+              delivery_url: data.delivery_url ?? "",
+              meeting_link: data.meeting_link ?? "",
+            }
+          : f
+      );
+    }
+  };
+
+  const closeDialog = () => {
+    setMode(null);
+    setEditing(null);
+    setForm(null);
   };
 
   const set = (key: keyof ServiceForm, value: string) =>
     setForm((f) => (f ? { ...f, [key]: value } : f));
 
+  const addQuestion = () =>
+    setForm((f) =>
+      f ? { ...f, questions: [...f.questions, { label: "", required: false }] } : f
+    );
+
+  const updateQuestion = (index: number, patch: Partial<{ label: string; required: boolean }>) =>
+    setForm((f) =>
+      f
+        ? { ...f, questions: f.questions.map((q, i) => (i === index ? { ...q, ...patch } : q)) }
+        : f
+    );
+
+  const removeQuestion = (index: number) =>
+    setForm((f) =>
+      f ? { ...f, questions: f.questions.filter((_, i) => i !== index) } : f
+    );
+
+  /** Kebab slug from the title, unique among this mentor's services. */
+  const uniqueSlug = (title: string) => {
+    const base = kebabCase(title) || "service";
+    const taken = new Set(services.map((s) => s.slug));
+    if (!taken.has(base)) return base;
+    let n = 2;
+    while (taken.has(`${base}-${n}`)) n += 1;
+    return `${base}-${n}`;
+  };
+
   const save = async () => {
-    if (!editing || !form) return;
+    if (!form) return;
     const price = Number(form.price);
     if (!form.title.trim()) { toast.error("Title is required."); return; }
     if (!Number.isFinite(price) || price < 0) { toast.error("Price must be zero or more."); return; }
@@ -432,32 +781,108 @@ const ServicesTab = ({
     }
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("mentorship_services")
-        .update({
-          title: form.title.trim(),
-          short_description: form.short_description,
-          description: form.description,
-          price,
-          compare_at_price: compare,
-          duration_min: form.duration_min.trim() === "" ? null : Number(form.duration_min),
-          sessions_count: Math.max(1, Number(form.sessions_count) || 1),
-          cta_label: form.cta_label.trim() || "Book Now",
-          badge: form.badge === "none" ? null : form.badge,
-          status: form.status,
-          sort_order: Number(form.sort_order) || 0,
-        })
-        .eq("id", editing.id);
-      if (error) throw error;
-      toast.success("Service updated.");
-      setEditing(null);
-      setForm(null);
+      const payload = {
+        title: form.title.trim(),
+        short_description: form.short_description,
+        description: form.description,
+        price,
+        compare_at_price: compare,
+        duration_min:
+          form.type === "digital" || form.duration_min.trim() === ""
+            ? null
+            : Number(form.duration_min),
+        sessions_count: Math.max(1, Number(form.sessions_count) || 1),
+        webinar_start_at:
+          form.type === "webinar" ? localInputToIso(form.webinar_start_at) : null,
+        capacity:
+          form.type === "webinar" && form.capacity.trim() !== ""
+            ? Math.max(1, Number(form.capacity) || 1)
+            : null,
+        cta_label: form.cta_label.trim() || "Book Now",
+        badge: form.badge === "none" ? null : form.badge,
+        questions: form.questions
+          .filter((q) => q.label.trim())
+          .map((q) => ({ label: q.label.trim(), required: q.required, type: "text" })),
+        status: form.status,
+      };
+
+      let serviceId = editing?.id ?? null;
+      if (mode === "edit" && editing) {
+        const { error } = await supabase
+          .from("mentorship_services")
+          .update({ ...payload, sort_order: Number(form.sort_order) || 0 })
+          .eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const nextOrder =
+          services.length > 0 ? Math.max(...services.map((s) => s.sort_order)) + 1 : 1;
+        const { data, error } = await supabase
+          .from("mentorship_services")
+          .insert({
+            ...payload,
+            mentor_id: mentorId,
+            type: form.type,
+            slug: uniqueSlug(form.title),
+            sort_order: nextOrder,
+          })
+          .select("id")
+          .single();
+        if (error || !data) throw error ?? new Error("Could not create the service.");
+        serviceId = data.id;
+      }
+
+      // Secrets: upsert when set, remove when cleared on an existing row.
+      const deliveryUrl = form.delivery_url.trim();
+      const meetingLink = form.meeting_link.trim();
+      if (serviceId) {
+        if (deliveryUrl || meetingLink) {
+          const { error } = await supabase.from("mentorship_service_secrets").upsert({
+            service_id: serviceId,
+            delivery_url: deliveryUrl || null,
+            meeting_link: meetingLink || null,
+          });
+          if (error) throw error;
+        } else if (hadSecrets) {
+          await supabase
+            .from("mentorship_service_secrets")
+            .delete()
+            .eq("service_id", serviceId);
+        }
+      }
+
+      toast.success(mode === "edit" ? "Service updated." : "Service created.");
+      closeDialog();
       onSaved();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Could not save the service.");
     } finally {
       setSaving(false);
     }
+  };
+
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    const { error } = await supabase
+      .from("mentorship_services")
+      .delete()
+      .eq("id", toDelete.id);
+    setDeleting(false);
+    setToDelete(null);
+    if (error) {
+      const fkBlocked =
+        (error as { code?: string }).code === "23503" ||
+        /foreign key/i.test(error.message ?? "") ||
+        /violates/i.test(error.message ?? "");
+      toast.error(
+        fkBlocked
+          ? "This service has bookings, so it cannot be deleted. Unpublish it instead and the booking records stay safe."
+          : "Could not delete the service."
+      );
+      return;
+    }
+    toast.success("Service deleted.");
+    onSaved();
   };
 
   const toggleStatus = async (s: ServiceRow) => {
@@ -477,16 +902,23 @@ const ServicesTab = ({
   return (
     <Card className="border border-border shadow-sm">
       <CardHeader className="border-b border-border">
-        <CardTitle className="text-lg">Your services</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Edit pricing and copy. Draft services stay hidden from your public page.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <CardTitle className="text-lg">Your services</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1.5">
+              Create, price and publish your offerings. Draft services stay hidden from your public page.
+            </p>
+          </div>
+          <Button className="bg-brand-500 hover:bg-brand-600 text-white" onClick={openCreate}>
+            New service
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {loading ? (
           <LoadingRows />
         ) : services.length === 0 ? (
-          <EmptyState text="No services yet. The Yatri Cloud team can add your first service." />
+          <EmptyState text="No services yet. Create your first one and it will appear on your public page." />
         ) : (
           <Table>
             <TableHeader>
@@ -509,7 +941,9 @@ const ServicesTab = ({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="capitalize text-muted-foreground">{s.type}</TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {TYPE_LABELS[s.type] ?? s.type}
+                  </TableCell>
                   <TableCell>
                     <span className="font-medium">{formatINR(s.price)}</span>
                     {s.compare_at_price != null && (
@@ -537,6 +971,14 @@ const ServicesTab = ({
                       <Button variant="ghost" size="sm" onClick={() => toggleStatus(s)}>
                         {s.status === "published" ? "Unpublish" : "Publish"}
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => setToDelete(s)}
+                      >
+                        Delete
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -546,17 +988,47 @@ const ServicesTab = ({
         )}
       </CardContent>
 
-      <Dialog open={!!editing} onOpenChange={(open) => { if (!open) { setEditing(null); setForm(null); } }}>
+      <Dialog open={mode !== null} onOpenChange={(open) => { if (!open) closeDialog(); }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit service</DialogTitle>
-            <DialogDescription>{editing?.title}</DialogDescription>
+            <DialogTitle>{mode === "edit" ? "Edit service" : "Create a service"}</DialogTitle>
+            <DialogDescription>
+              {mode === "edit"
+                ? editing?.title
+                : "Set it up the way you want. You can keep it as a draft until it feels ready."}
+            </DialogDescription>
           </DialogHeader>
           {form && (
             <div className="grid gap-5 py-2">
+              {mode === "create" ? (
+                <div className="grid gap-2">
+                  <Label>Type</Label>
+                  <Select value={form.type} onValueChange={(v) => set("type", v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Type: <span className="font-medium text-foreground">{TYPE_LABELS[form.type] ?? form.type}</span>
+                </p>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="svc-title">Title</Label>
                 <Input id="svc-title" value={form.title} onChange={(e) => set("title", e.target.value)} />
+                {mode === "create" && form.title.trim() && (
+                  <p className="text-xs text-muted-foreground">
+                    Public link ends with /{uniqueSlug(form.title)}
+                  </p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="svc-short">Short description</Label>
@@ -592,35 +1064,62 @@ const ServicesTab = ({
                     id="svc-compare"
                     type="number"
                     min={0}
-                    placeholder="Optional"
+                    placeholder="Optional, must be higher"
                     value={form.compare_at_price}
                     onChange={(e) => set("compare_at_price", e.target.value)}
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="svc-duration">Duration in minutes</Label>
-                  <Input
-                    id="svc-duration"
-                    type="number"
-                    min={0}
-                    placeholder="Leave blank for digital"
-                    value={form.duration_min}
-                    onChange={(e) => set("duration_min", e.target.value)}
-                  />
+              {form.type !== "digital" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="svc-duration">Duration in minutes</Label>
+                    <Input
+                      id="svc-duration"
+                      type="number"
+                      min={0}
+                      value={form.duration_min}
+                      onChange={(e) => set("duration_min", e.target.value)}
+                    />
+                  </div>
+                  {form.type === "package" && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="svc-sessions">Sessions in the package</Label>
+                      <Input
+                        id="svc-sessions"
+                        type="number"
+                        min={1}
+                        value={form.sessions_count}
+                        onChange={(e) => set("sessions_count", e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="svc-sessions">Sessions</Label>
-                  <Input
-                    id="svc-sessions"
-                    type="number"
-                    min={1}
-                    value={form.sessions_count}
-                    onChange={(e) => set("sessions_count", e.target.value)}
-                  />
+              )}
+              {form.type === "webinar" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="svc-webinar-start">Webinar start</Label>
+                    <Input
+                      id="svc-webinar-start"
+                      type="datetime-local"
+                      value={form.webinar_start_at}
+                      onChange={(e) => set("webinar_start_at", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="svc-capacity">Capacity in seats</Label>
+                    <Input
+                      id="svc-capacity"
+                      type="number"
+                      min={1}
+                      placeholder="Leave blank for unlimited"
+                      value={form.capacity}
+                      onChange={(e) => set("capacity", e.target.value)}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Badge</Label>
@@ -653,29 +1152,136 @@ const ServicesTab = ({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="svc-sort">Sort order</Label>
-                  <Input
-                    id="svc-sort"
-                    type="number"
-                    value={form.sort_order}
-                    onChange={(e) => set("sort_order", e.target.value)}
-                  />
+                {mode === "edit" && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="svc-sort">Sort order</Label>
+                    <Input
+                      id="svc-sort"
+                      type="number"
+                      value={form.sort_order}
+                      onChange={(e) => set("sort_order", e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-3">
+                <div>
+                  <p className="text-sm font-medium">Questions asked at checkout</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Yatris answer these while booking so you can prepare for the session.
+                  </p>
+                </div>
+                {form.questions.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No questions yet.</p>
+                )}
+                {form.questions.map((question, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      className="flex-1"
+                      placeholder="What would you like to focus on?"
+                      aria-label={`Question ${index + 1}`}
+                      value={question.label}
+                      onChange={(e) => updateQuestion(index, { label: e.target.value })}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={question.required}
+                        onCheckedChange={(checked) => updateQuestion(index, { required: checked })}
+                        aria-label={`Question ${index + 1} is required`}
+                      />
+                      <span className="hidden sm:block text-xs text-muted-foreground">Required</span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => removeQuestion(index)}>
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+                <div>
+                  <Button variant="outline" size="sm" onClick={addQuestion}>
+                    Add question
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-3">
+                <div>
+                  <p className="text-sm font-medium">Private delivery</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Only buyers with a confirmed booking can see these.
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {form.type === "digital" && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="svc-delivery">Delivery URL</Label>
+                      <Input
+                        id="svc-delivery"
+                        placeholder="https://…"
+                        value={form.delivery_url}
+                        onChange={(e) => set("delivery_url", e.target.value)}
+                      />
+                    </div>
+                  )}
+                  {form.type !== "digital" && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="svc-meeting">Default meeting link</Label>
+                      <Input
+                        id="svc-meeting"
+                        placeholder="https://meet.google.com/…"
+                        value={form.meeting_link}
+                        onChange={(e) => set("meeting_link", e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setEditing(null); setForm(null); }}>
+            <Button variant="outline" onClick={closeDialog}>
               Cancel
             </Button>
             <Button className="bg-brand-500 hover:bg-brand-600 text-white" onClick={save} disabled={saving}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Save changes
+              {mode === "edit" ? "Save changes" : "Create service"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={toDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {toDelete?.title ?? "this service"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the service from your public page for good. Existing bookings keep
+              their records, and if the service already has bookings the delete will be blocked, so
+              unpublishing is often the safer choice.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Delete service
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

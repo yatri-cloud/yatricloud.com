@@ -137,6 +137,12 @@ const AdminMentors = () => {
     const [mentors, setMentors] = useState<Mentor[]>([]);
     const [contactEmails, setContactEmails] = useState<Record<string, string>>({});
     const [loginEmails, setLoginEmails] = useState<Record<string, string>>({});
+    const [totals, setTotals] = useState<{
+        mentors: number;
+        published: number;
+        services: number;
+        bookings: number;
+    } | null>(null);
 
     // Add or edit dialog
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -164,7 +170,27 @@ const AdminMentors = () => {
 
     /* ---------------------------- load ---------------------------- */
 
+    /** Oversight totals for the band under the header (count only queries). */
+    const loadTotals = async () => {
+        const [allMentors, publishedMentors, allServices, allBookings] = await Promise.all([
+            supabase.from("mentors").select("id", { count: "exact", head: true }),
+            supabase
+                .from("mentors")
+                .select("id", { count: "exact", head: true })
+                .eq("status", "published"),
+            supabase.from("mentorship_services").select("id", { count: "exact", head: true }),
+            supabase.from("mentorship_bookings").select("id", { count: "exact", head: true }),
+        ]);
+        setTotals({
+            mentors: allMentors.count ?? 0,
+            published: publishedMentors.count ?? 0,
+            services: allServices.count ?? 0,
+            bookings: allBookings.count ?? 0,
+        });
+    };
+
     const loadMentors = async () => {
+        void loadTotals();
         const { data, error } = await supabase
             .from("mentors")
             .select(
@@ -389,6 +415,7 @@ const AdminMentors = () => {
             );
             return saveFailed();
         }
+        void loadTotals();
         saveDone();
     };
 
@@ -572,6 +599,28 @@ const AdminMentors = () => {
                                 Add mentor
                             </Button>
                         </div>
+                    </div>
+                </ScrollReveal>
+
+                {/* Oversight totals */}
+                <ScrollReveal delay={0.03}>
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                        {[
+                            { label: "Total mentors", value: totals?.mentors },
+                            { label: "Published mentors", value: totals?.published },
+                            { label: "Total services", value: totals?.services },
+                            { label: "Total bookings", value: totals?.bookings },
+                        ].map((item) => (
+                            <div
+                                key={item.label}
+                                className="rounded-2xl border border-brand-100 bg-card px-4 py-3 shadow-card"
+                            >
+                                <p className="font-display text-2xl font-bold tracking-tight text-foreground">
+                                    {item.value ?? "…"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">{item.label}</p>
+                            </div>
+                        ))}
                     </div>
                 </ScrollReveal>
 
