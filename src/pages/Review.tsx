@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,31 +62,25 @@ const Review = () => {
   const onSubmit = async (data: ReviewFormData) => {
     setIsSubmitting(true);
     try {
-      const appsScriptUrl = import.meta.env.VITE_CERTIFICATE_REVIEWS_APPS_SCRIPT_URL;
-      if (!appsScriptUrl) {
-        throw new Error("Apps Script URL not configured");
-      }
-
-      // POST to Apps Script with no-cors mode to bypass CORS restrictions
-      await fetch(appsScriptUrl, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          feedback: data.feedback,
-          rating: data.rating,
-          linkedinProfile: data.linkedinProfile || "",
+      // Public review submit → Supabase `reviews` (RLS: anyone may insert).
+      // Extra context lives in `context` JSON so the review wall can show it.
+      const { error } = await supabase.from("reviews").insert({
+        name: data.name,
+        review: data.feedback,
+        rating: Number(data.rating) || null,
+        context: JSON.stringify({
           provider: data.provider || "",
           country: data.country || "",
+          linkedin: data.linkedinProfile || "",
           source: "web",
         }),
+        is_public: true,
       });
+      if (error) throw new Error(error.message);
 
-      // With no-cors mode, we can't access the response, so assume success
       toast({
         title: "Thank you for your feedback!",
-        description: "Your review has been submitted successfully.",
+        description: "Your review has been submitted — it'll appear on the wall shortly.",
       });
       reset();
     } catch (error: any) {
