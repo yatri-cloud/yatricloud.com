@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, CheckCircle2, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -123,13 +124,9 @@ const UdemyAdmin = () => {
         setValue("imageFile", null);
     };
 
-    const getWebhookUrl = (creator: string): string => {
-        if (creator === "yatharth-chauhan") {
-            return import.meta.env.VITE_UDEMY_YATHARTH_WEBHOOK_URL || "";
-        } else if (creator === "nensi-ravaliya") {
-            return import.meta.env.VITE_UDEMY_NENSI_WEBHOOK_URL || "";
-        }
-        return "";
+    const CREATOR_DISPLAY: Record<string, string> = {
+        "yatharth-chauhan": "Yatharth Chauhan",
+        "nensi-ravaliya": "Nensi Ravaliya",
     };
 
     const onSubmit = async (data: UdemyCourseFormData) => {
@@ -153,33 +150,37 @@ const UdemyAdmin = () => {
 
         setIsSubmitting(true);
         try {
-            const webhookUrl = getWebhookUrl(data.creator);
-            if (!webhookUrl) {
-                throw new Error("Webhook URL not configured for this creator");
-            }
+            // 1) Upload cover image to Storage (admin-only bucket policy)
+            const path = `udemy/${Date.now()}-${data.imageFile.name.replace(/[^\w.-]+/g, "_")}`;
+            const { error: upErr } = await supabase.storage
+                .from("product-images")
+                .upload(path, data.imageFile, { upsert: true });
+            if (upErr) throw new Error("Image upload failed: " + upErr.message);
+            const imageUrl = supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
 
-            const imageBase64 = await fileToBase64(data.imageFile);
-
-            const response = await fetch(webhookUrl, {
-                method: "POST",
-                mode: "no-cors",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    timestamp: new Date().toISOString(),
-                    courseTitle: data.courseTitle,
-                    courseLink: data.courseLink,
-                    imageLink: imageBase64,
-                    creator: data.creator,
-                    tech: data.tech,
-                    category: data.category,
-                }),
+            // 2) Insert the course (admin-only via RLS)
+            const { error } = await supabase.from("udemy_courses").insert({
+                title: data.courseTitle,
+                course_url: data.courseLink,
+                image_url: imageUrl,
+                creator: CREATOR_DISPLAY[data.creator] ?? data.creator,
+                tech: data.tech || null,
+                category: data.category || null,
+                status: "published",
             });
+            if (error) {
+                throw new Error(
+                    error.message.includes("duplicate")
+                        ? "A course with this link already exists."
+                        : error.message.includes("row-level security")
+                        ? "You need an admin account to add courses — please sign in as admin."
+                        : error.message
+                );
+            }
 
             toast({
                 title: "Success!",
-                description: "Course submitted successfully",
+                description: "Course published — it's live on the site immediately.",
             });
             reset();
             setSelectedImage(null);
