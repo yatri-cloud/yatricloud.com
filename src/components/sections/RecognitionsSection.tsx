@@ -25,25 +25,38 @@ export const RecognitionsSection = () => {
   const reduce = useReducedMotion();
 
   return (
-    <section className="relative overflow-hidden band-tint py-20 md:py-28">
-      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+    <section className="relative overflow-hidden band-blue py-20 md:py-28">
+      {/* soft light accents on the blue band */}
+      <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+      {/* dotted texture */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage: "radial-gradient(#fff 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+          maskImage: "radial-gradient(ellipse 60% 55% at 50% 40%, black, transparent 80%)",
+          WebkitMaskImage: "radial-gradient(ellipse 60% 55% at 50% 40%, black, transparent 80%)",
+        }}
+      />
 
       <div className="container relative z-10 mx-auto px-4 md:px-6">
         <ScrollReveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background px-4 py-1.5 text-sm font-medium text-primary shadow-sm">
+          <div className="mx-auto max-w-2xl text-center text-white">
+            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
               <Award className="h-4 w-4" /> Technical leadership
             </p>
             <h2 className="font-display text-3xl font-bold tracking-tight md:text-5xl">
-              Learn from the <span className="gradient-text">best in the industry</span>
+              Learn from the best in the industry
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
+            <p className="mt-4 text-lg text-white/85">
               Your instructors aren't random tutors, Yatri — they're MVPs, AWS Heroes, Google Developer Experts and Ambassadors recognised by the very companies you're getting certified in.
             </p>
           </div>
         </ScrollReveal>
 
-        {/* Recognition badge wall — real program/brand logos + label */}
+        {/* Recognition badge wall — white pills w/ real brand logos on the blue band */}
         <div className="mx-auto mt-12 flex max-w-4xl flex-wrap justify-center gap-3">
           {RECOGNITIONS.map((r, i) => (
             <motion.div
@@ -53,14 +66,14 @@ export const RecognitionsSection = () => {
               viewport={{ once: true, margin: "-40px" }}
               transition={{ delay: Math.min(i * 0.04, 0.35), duration: 0.45, ease: EASE }}
               whileHover={reduce ? undefined : { y: -3 }}
-              className="group inline-flex items-center gap-2.5 rounded-full border border-border bg-background px-4 py-2.5 transition-colors duration-300 hover:border-brand-200 hover:shadow-card"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-white px-4 py-2.5 text-foreground shadow-sm transition-shadow duration-300 hover:shadow-elevated"
             >
               <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
                 <img
                   src={r.logo}
                   alt=""
                   aria-hidden="true"
-                  className="h-full w-full object-contain opacity-80 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0"
+                  className="h-full w-full object-contain"
                   loading="lazy"
                 />
               </span>
