@@ -1,5 +1,5 @@
 import { type ReactNode, type FormEvent } from "react";
-import { ArrowRight, Mail, Phone, MapPin, Clock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,10 +15,10 @@ const Field = ({ id, label, children }: { id: string; label: string; children: R
 );
 
 const CONTACT_INFO = [
-  { icon: Mail, label: "Email", value: "info@yatricloud.com", href: "mailto:info@yatricloud.com" },
-  { icon: Phone, label: "Phone", value: "+91 97248 23602", href: "tel:+919724823602" },
-  { icon: MapPin, label: "Location", value: "Bengaluru, Karnataka, India" },
-  { icon: Clock, label: "Office hours (IST)", value: "Mon to Fri: 9:00 AM to 6:00 PM · Sat & Sun: 10:00 AM to 4:00 PM" },
+  { label: "Email", value: "info@yatricloud.com", href: "mailto:info@yatricloud.com" },
+  { label: "Phone", value: "+91 97248 23602", href: "tel:+919724823602" },
+  { label: "Location", value: "Bengaluru, Karnataka, India" },
+  { label: "Office hours (IST)", value: "Mon to Fri: 9:00 AM to 6:00 PM · Sat & Sun: 10:00 AM to 4:00 PM" },
 ];
 
 export const ContactSection = () => {
@@ -52,11 +52,9 @@ export const ContactSection = () => {
           {/* Contact info */}
           <div className="space-y-4 lg:col-span-2">
             {CONTACT_INFO.map((info) => {
-              const Icon = info.icon;
               const inner = (
                 <div className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-brand-200">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    <Icon className="h-4 w-4 text-primary" />
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {info.label}
                   </div>
                   <div className="mt-1.5 font-medium">{info.value}</div>

@@ -29,3 +29,4 @@ dist-ssr
 *.sln
 *.sw?
 VITE_CANVA_TEMPLATE_ID=your_template_id_here
+.vercel

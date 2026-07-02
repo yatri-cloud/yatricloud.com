@@ -246,7 +246,8 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-destructive hover:text-destructive"
+                              aria-label="Remove from cart"
+                              className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                               onClick={() => removeFromCart(item.id)}
                             >
                               <Trash2 className="h-4 w-4" />
