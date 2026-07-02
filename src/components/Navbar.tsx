@@ -48,16 +48,13 @@ export const Navbar = () => {
 
   const navLinks = [
     { href: "#certification-process", label: "Get Certified" },
-    { href: "#benefits", label: "Benefits" },
     { href: "#courses", label: "Practice Tests" },
-    // { href: "/training", label: "Training" },
+    { href: "/training", label: "Training" },
     { href: "/examdumps", label: "Exam Dumps" },
+    { href: "/events", label: "Events" },
     { href: "/community", label: "Community" },
     { href: "/partners", label: "Partners" },
     { href: "/achievements", label: "Achievements" },
-    // { href: "/events", label: "Events" },
-    // { href: "/yatristore", label: "Store" },
-    { href: "#faq", label: "FAQ" },
   ];
 
   return (
