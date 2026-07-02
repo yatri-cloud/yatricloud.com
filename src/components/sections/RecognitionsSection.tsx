@@ -1,5 +1,4 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Award } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -44,14 +43,11 @@ export const RecognitionsSection = () => {
       <div className="container relative z-10 mx-auto px-4 md:px-6">
         <ScrollReveal>
           <div className="mx-auto max-w-2xl text-center text-white">
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
-              <Award className="h-4 w-4" /> Technical leadership
-            </p>
             <h2 className="font-display text-3xl font-bold tracking-tight md:text-5xl">
               Learn from the best in the industry
             </h2>
             <p className="mt-4 text-lg text-white/85">
-              Your instructors aren't random tutors, Yatri — they're MVPs, AWS Heroes, Google Developer Experts and Ambassadors recognised by the very companies you're getting certified in.
+              Your instructors aren't random tutors, Yatri. They're MVPs, AWS Heroes, Google Developer Experts and Ambassadors recognised by the very companies you're getting certified in.
             </p>
           </div>
         </ScrollReveal>

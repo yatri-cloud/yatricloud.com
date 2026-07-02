@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, animate, useInView, useReducedMotion } from "framer-motion";
-import { BadgeCheck, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -59,14 +59,11 @@ export const IndustryLeadersSection = () => {
         {/* Header */}
         <ScrollReveal>
           <div className="mx-auto max-w-2xl text-center">
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
-              <BadgeCheck className="h-4 w-4" /> Certified expertise
-            </p>
             <h2 className="font-display text-3xl font-bold tracking-tight md:text-5xl">
               Backed by <span className="gradient-text">industry leaders</span>
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              We help Yatris get certified across the platforms that actually get you hired — official tracks from the world's top technology providers.
+              We help Yatris get certified across the platforms that actually get you hired. Official tracks from the world's top technology providers.
             </p>
           </div>
         </ScrollReveal>
