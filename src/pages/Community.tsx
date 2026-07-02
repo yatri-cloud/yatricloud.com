@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight,
-  MessageCircle,
   Cpu,
   Infinity as InfinityIcon,
   Heart,
@@ -10,7 +9,6 @@ import {
   Linkedin,
   Database,
   Gamepad2,
-  Radio,
   type LucideIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -83,8 +81,7 @@ const CommunityCard = ({ c, index }: { c: Community; index: number }) => {
       </div>
 
       <span className="relative mt-7 inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-inset-btn transition-colors duration-300 group-hover:bg-brand-600">
-        <MessageCircle className="h-5 w-5" />
-        Join on WhatsApp
+        Join Community
         <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </span>
     </motion.a>
@@ -140,8 +137,7 @@ const Community = () => {
                   rel="noopener noreferrer"
                   className="group inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-white px-7 text-base font-semibold text-primary shadow-sm transition-shadow hover:shadow-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                 >
-                  <Radio className="h-5 w-5" />
-                  Follow the WhatsApp Channel
+                  Follow Yatri Community
                   <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </a>
               </div>
@@ -219,8 +215,7 @@ const Community = () => {
               rel="noopener noreferrer"
               className="group mt-8 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-white px-8 text-base font-semibold text-primary shadow-sm transition-shadow hover:shadow-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
-              <Radio className="h-5 w-5" />
-              Follow the Yatri Cloud Channel
+              Follow Yatri Community
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </a>
           </div>
