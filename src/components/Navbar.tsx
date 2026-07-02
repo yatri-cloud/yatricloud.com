@@ -47,13 +47,13 @@ export const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { href: "#courses", label: "Practice Tests" },
     { href: "/training", label: "Training" },
+    { href: "#courses", label: "Practice Tests" },
     { href: "/examdumps", label: "Exam Dumps" },
     { href: "/events", label: "Events" },
     { href: "/community", label: "Community" },
-    { href: "/partners", label: "Partners" },
     { href: "/achievements", label: "Achievements" },
+    { href: "/partners", label: "Partners" },
   ];
 
   return (
