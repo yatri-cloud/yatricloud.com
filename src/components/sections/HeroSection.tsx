@@ -148,8 +148,7 @@ export const HeroSection = () => {
           >
             <span className="text-foreground">
               <YatriGreeting />
-            </span>{" "}
-            <span className="text-muted-foreground">ready to get certified?</span>
+            </span>
           </motion.p>
 
           {/* Kinetic headline */}
