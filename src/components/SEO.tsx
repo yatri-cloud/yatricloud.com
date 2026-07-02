@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const SITE_URL = 'https://yatricloud.com';
+const SITE_URL = 'https://www.yatricloud.com';
 const SITE_NAME = 'Yatri Cloud';
 const DEFAULT_IMAGE =
   'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png';
