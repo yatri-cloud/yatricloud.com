@@ -65,7 +65,7 @@ const CommunityCard = ({ c, index }: { c: Community; index: number }) => {
       viewport={{ once: true, margin: "-40px" }}
       transition={{ delay: Math.min(index * 0.04, 0.3), duration: 0.5, ease: EASE }}
       whileHover={reduce ? undefined : { y: -6 }}
-      aria-label={`Join ${c.name} on WhatsApp`}
+      aria-label={`Join the ${c.name} community`}
       className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-3xl border border-border bg-card p-7 md:p-8 transition-colors duration-300 hover:border-brand-200 hover:bg-brand-50/40 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* giant editorial index numeral */}
@@ -97,7 +97,7 @@ const Community = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO title="Community - Yatri Cloud" description="Join 50,000+ Yatris across 17 WhatsApp communities for AWS, Azure, GCP, DevOps, Kubernetes, AI and more." />
+      <SEO title="Community - Yatri Cloud" description="You're not learning alone. Join 50,000+ Yatris in 17 friendly communities for AWS, Azure, GCP, DevOps, Kubernetes, AI and more." />
       <div className="noise-overlay" />
       <Navbar />
 
@@ -127,7 +127,7 @@ const Community = () => {
                 You're not doing this alone, Yatri
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-lg text-white/85 md:text-xl">
-                50,000+ Yatris are learning, sharing dumps, dropping job leads and celebrating wins across 17 focused WhatsApp communities. Find your track and jump in. It's free, forever.
+                Behind every certification is a person who had the same questions, doubts, and late nights you do. 50,000+ Yatris are already in the rooms below, ready to answer, cheer you on, and share what actually worked. Find the one that feels like yours. It's free, for life.
               </p>
 
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -162,10 +162,10 @@ const Community = () => {
           <ScrollReveal>
             <div className="mx-auto mb-12 max-w-2xl text-center">
               <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
-                Pick your <span className="gradient-text">tribe</span>
+Find <span className="gradient-text">your people</span>
               </h2>
               <p className="mt-3 text-lg text-muted-foreground">
-                One community per track, so the chat stays relevant. Join as many as you like.
+                One room per track, so the chat stays real and relevant. Join as many as speak to you.
               </p>
             </div>
           </ScrollReveal>
@@ -204,10 +204,10 @@ const Community = () => {
         <div className="container relative z-10 mx-auto px-4 md:px-6">
           <div className="mx-auto max-w-2xl text-center text-white">
             <h2 className="font-display text-3xl font-bold tracking-tight md:text-5xl">
-              Never miss a drop, Yatri
+Stay close to the Yatri community
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-lg text-white/85">
-              Free vouchers, new dumps, live sessions and job alerts land on our WhatsApp Channel first. Follow it and stay one step ahead.
+              Free vouchers, fresh dumps, live sessions and real job openings reach the Yatri community first. Follow along so nothing that could change your career slips past you.
             </p>
             <a
               href={CHANNEL_URL}
