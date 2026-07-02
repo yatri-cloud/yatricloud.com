@@ -1,76 +1,52 @@
-# Documentation Index
+# Yatri Cloud
 
-This directory contains all project documentation organized by category.
+**Master IT certifications the affordable way.** AWS · Azure · GCP · DevOps · Kubernetes · Terraform — practice tests, verified exam dumps, training, community events, and 50%-off vouchers. 50K+ Yatris and counting.
 
-## 📁 Documentation Categories
+## Stack
 
-### 📊 [Google Sheets](./google-sheets/)
-Documentation related to Google Sheets integration and Apps Script setup.
+| Layer | Tech |
+|---|---|
+| Frontend | Vite + React 18 + TypeScript, Tailwind CSS, shadcn/ui + Radix, Framer Motion |
+| Backend | **Supabase** (Postgres + Auth + Storage + RLS) — project `yatricloud.com`, `ap-south-1` Mumbai |
+| Payments | Razorpay (Stripe-ready schema) |
+| Deploy | Vercel (SPA + `api/` serverless), GitHub `main` auto-deploy |
 
-- `GOOGLE_SHEET_STRUCTURE.md` - Google Sheet structure and column definitions
-- `GOOGLE_APPS_SCRIPT_SETUP.md` - Google Apps Script setup guide
-- `GOOGLE_APPS_SCRIPT_SETUP_NEW.md` - Updated Apps Script setup guide
-- `NEW_SHEET_STRUCTURE.md` - New sheet structure documentation
-- `CERTIFIED_YATRIS_SETUP.md` - Certified Yatris feature setup
-- `appscript-README.md` - Apps Script directory README
+## Getting started
 
-### ⚙️ [Setup](./setup/)
-Configuration and setup guides for various services and APIs.
+```bash
+npm install
+cp .env.example .env      # fill in Supabase keys etc. (never commit .env)
+npm run dev               # app on :8080
+npm run dev:all           # app + local server.js (Ollama AI chat, email)
+npm run build             # production build
+```
 
-- `SETUP_ENV.md` - Environment variables setup
-- `SETUP_PROXY.md` - Proxy server setup
-- `SETUP_WITH_TOKEN.md` - Setup with authentication token
-- `UDEMY_API_SETUP.md` - Udemy API integration setup
-- `INSTRUCTOR_API_SETUP.md` - Instructor API setup
-- `SEO_SETUP.md` - SEO configuration guide
+## Project layout
 
-### 🚀 [Deployment](./deployment/)
-Deployment guides for different platforms.
+```
+src/
+  components/      UI components (sections/, admin/, trainer/, ui/ primitives…)
+  pages/           routes (60+), incl. admin/ + trainer/ portals
+  lib/             data layer — supabase.ts (client), auth.ts (auth core),
+                   yatris-api.ts, exam-dumps.ts, store-products.ts, voucher-api.ts…
+  hooks/           use-reviews, use-udemy-sheets, …
+supabase/
+  migrations/      numbered SQL migrations (source of truth for schema + RLS)
+scripts/
+  supabase-import.mjs   idempotent legacy-data importer
+api/               Vercel serverless (razorpay, send-email, canva)
+docs/              SYSTEM-DESIGN.md (backend), SESSION-GUIDE.md, VOICE.md, guides…
+archive/           retired legacy code (Apps Script, old proxies) — reference only
+```
 
-- `DEPLOYMENT.md` - General deployment guide
-- `VERCEL_DEPLOYMENT.md` - Vercel deployment guide
-- `QUICK_START_VERCEL.md` - Quick start for Vercel
+## Backend in one paragraph
 
-### 🔧 [CORS Fixes](./cors-fixes/)
-Troubleshooting guides for CORS and error fixes.
+All data lives in **22 RLS-secured Postgres tables** (see `docs/SYSTEM-DESIGN.md`). The browser talks to Supabase directly with the publishable key — Row Level Security is the boundary: published content is public-readable, users own their rows, form tables are insert-only for the public, payments are server-side only. Auth is Supabase Auth (email/password + Google ID-token). Files live in Storage buckets (public images; private PDFs via signed URLs). Schema changes happen **only** via a new numbered file in `supabase/migrations/` applied with psql.
 
-- `FIX_CORS_GET_REQUEST.md` - Fix CORS issues with GET requests
-- `FIX_401_ERROR.md` - Fix 401 Unauthorized errors
-- `CORS_FIX_INSTRUCTIONS.md` - CORS fix instructions
-- `DEBUGGING_GUIDE.md` - General debugging guide
+## House rules
 
-### 🏃 [Quick Start](./quick-start/)
-Quick start guides and getting started documentation.
+- **Secrets:** only in git-ignored `.env` (template: `.env.example`). Never commit, never hardcode, never `VITE_`-prefix a server secret.
+- **Design:** read `DESIGN.md` before UI work — frozen blue palette, single light theme, section bands, "Yatris" voice (`docs/VOICE.md`).
+- **New sessions:** start with `docs/SESSION-GUIDE.md` + `docs/NEW-SESSION-PROMPT.md`.
 
-- `QUICK_START.md` - Quick start guide
-- `READY_TO_RUN.md` - Ready to run checklist
-- `START_SERVER.md` - Server startup guide
-- `QUICK_FIX.md` - Quick fixes for common issues
-
-### 📖 [General](./general/)
-General project documentation.
-
-- `README.md` - Main project README (copy)
-- `TROUBLESHOOTING.md` - Troubleshooting guide
-- `IMPLEMENTATION_SUMMARY.md` - Implementation summary
-
-### 🛍️ [Yatri Store](./yatri-store/)
-E-commerce store for certification vouchers.
-
-- `YATRI_STORE.md` - Complete Yatri Store documentation and setup guide
-
-### 📘 [User & Admin Guides](./guides/)
-Detailed guides for platform navigation and management.
-
-- `admin_guide.md` - Comprehensive guide for the Admin Sidebar and Portal.
-- `user_guide.md` - Professional guide for the User Profile Menu and Learner Portal.
-
-## 🔍 Quick Links
-
-- **Main README**: See root `README.md` for project overview
-- **Google Sheets Setup**: Start with `google-sheets/GOOGLE_APPS_SCRIPT_SETUP.md`
-- **Environment Setup**: See `setup/SETUP_ENV.md`
-- **Deployment**: See `deployment/DEPLOYMENT.md`
-- **Yatri Store**: See `yatri-store/YATRI_STORE.md` for store documentation
-- **Troubleshooting**: See `cors-fixes/DEBUGGING_GUIDE.md` or `general/TROUBLESHOOTING.md`
-
+© Yatri Cloud · [yatricloud.com](https://yatricloud.com) · Designed by [Uimitra](https://uimitra.com)

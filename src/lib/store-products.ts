@@ -123,28 +123,24 @@ export async function fetchStoreProducts(): Promise<StoreProduct[]> {
  * Submit product to Google Sheets
  */
 export async function submitProduct(product: Omit<StoreProduct, 'id' | 'status'>): Promise<void> {
-  const webhookUrl = STORE_PRODUCTS_WEBHOOK_URL;
-  
-  if (!webhookUrl) {
-    throw new Error('Store products webhook URL not configured. Please set VITE_STORE_PRODUCTS_WEBHOOK_URL in .env');
-  }
-
-  try {
-    // Use no-cors mode to bypass CORS limitations of Google Apps Script.
-    // We can't read the JSON response, but the data will still be written to the sheet.
-    await fetch(webhookUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify({
-        ...product,
-        timestamp: new Date().toISOString(),
-      }),
-    });
-    console.log('✅ Product submitted to Google Sheets (no-cors mode). Check sheet to confirm.');
-    
-  } catch (error) {
-    console.error('❌ Error submitting product:', error);
-    throw error;
+  const CATEGORY_TO_PROVIDER: Record<string, string> = {
+    AWS: 'AWS', Azure: 'AZURE', GCP: 'GCP', Oracle: 'ORACLE',
+    Salesforce: 'SALESFORCE', ServiceNow: 'SERVICENOW', GitHub: 'GITHUB',
+  };
+  const { error } = await supabase.from('products').insert({
+    title: product.title,
+    provider: CATEGORY_TO_PROVIDER[product.category] ?? 'OTHER',
+    exam_code: product.examCode || null,
+    level: product.level,
+    original_price_inr: product.originalPrice,
+    discounted_price_inr: product.discountedPrice,
+    image_url: product.image || null,
+    description: product.description || null,
+    status: 'published',
+  });
+  if (error) {
+    console.error('❌ Error submitting product:', error.message);
+    throw new Error(error.message);
   }
 }
 

@@ -6,8 +6,6 @@
 
 import { supabase, USE_SUPABASE } from "@/lib/supabase";
 
-const EXAM_DUMPS_WEBHOOK_URL = import.meta.env.VITE_EXAM_DUMPS_WEBHOOK_URL || "";
-
 export interface ExamDump {
   id: string;
   title: string;
@@ -20,7 +18,6 @@ export interface ExamDump {
   status?: string;
 }
 
-const PROXY_URL = '/api/exam-dumps';
 
 /**
  * Fetch exam dumps (Supabase-first, legacy fallback).
@@ -45,97 +42,53 @@ export async function fetchExamDumps(): Promise<ExamDump[]> {
         status: "active",
       }));
     }
-    console.error("❌ Supabase exam_dumps fetch failed, falling back:", error?.message);
+    console.error("❌ Supabase exam_dumps fetch failed:", error?.message);
   }
-  try {
-    const response = await fetch(PROXY_URL, {
-      method: "GET",
-    });
+  return [];
+}
 
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    let dumps: ExamDump[] = [];
-
-    if (data.dumps && Array.isArray(data.dumps)) {
-      dumps = data.dumps;
-    } else if (Array.isArray(data)) {
-      dumps = data;
-    }
-
-    return dumps.map((dump: any) => ({
-      id: dump.id || `dump-${Date.now()}`,
-      title: dump.title || '',
-      provider: dump.provider || '',
-      originalPrice: parseFloat(dump.originalPrice ?? dump.originalprice ?? 0),
-      price: parseFloat(dump.price ?? 0),
-      image: dump.image || '',
-      downloadUrl: dump.downloadUrl || dump.downloadurl || '',
-      description: dump.description || '',
-      status: dump.status || 'active',
-    }));
-
-  } catch (error) {
-    console.error("❌ Error fetching exam dumps:", error);
-    return [];
-  }
+/** Map the UI shape → DB columns. */
+function toRow(dump: Partial<ExamDump>) {
+  const row: Record<string, unknown> = {};
+  if (dump.title !== undefined) row.title = dump.title;
+  if (dump.provider !== undefined) row.provider = dump.provider.toUpperCase();
+  if (dump.originalPrice !== undefined) row.original_price_inr = dump.originalPrice;
+  if (dump.price !== undefined) row.price_inr = dump.price;
+  if (dump.image !== undefined) row.image_url = dump.image;
+  if (dump.downloadUrl !== undefined) row.download_url = dump.downloadUrl;
+  if (dump.description !== undefined) row.description = dump.description;
+  return row;
 }
 
 /**
- * Submit exam dump to Google Sheets
+ * Add an exam dump (admin — enforced by RLS).
  */
 export async function submitExamDump(dump: Omit<ExamDump, 'id' | 'status'>): Promise<void> {
-  try {
-    await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...dump,
-        action: 'add',
-        timestamp: new Date().toISOString(),
-      }),
-    });
-  } catch (error) {
-    console.error('❌ Error submitting exam dump:', error);
-    throw error;
+  const { error } = await supabase.from('exam_dumps').insert({ ...toRow(dump), status: 'published' });
+  if (error) {
+    console.error('❌ Error submitting exam dump:', error.message);
+    throw new Error(error.message);
   }
 }
 
 /**
- * Update an existing exam dump
+ * Update an existing exam dump (admin — enforced by RLS).
  */
 export async function updateExamDump(id: string, data: Partial<ExamDump>): Promise<void> {
-  try {
-    await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...data,
-        id,
-        action: 'update'
-      }),
-    });
-  } catch (error) {
-    console.error('❌ Error updating exam dump:', error);
-    throw error;
+  const { error } = await supabase.from('exam_dumps').update(toRow(data)).eq('id', id);
+  if (error) {
+    console.error('❌ Error updating exam dump:', error.message);
+    throw new Error(error.message);
   }
 }
 
 /**
- * Delete an exam dump (soft delete)
+ * Delete an exam dump (soft delete → archived; admin — enforced by RLS).
  */
 export async function deleteExamDump(id: string): Promise<void> {
-  try {
-    await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id,
-        action: 'delete'
-      }),
-    });
-  } catch (error) {
-    console.error('❌ Error deleting exam dump:', error);
-    throw error;
+  const { error } = await supabase.from('exam_dumps').update({ status: 'archived' }).eq('id', id);
+  if (error) {
+    console.error('❌ Error deleting exam dump:', error.message);
+    throw new Error(error.message);
   }
 }

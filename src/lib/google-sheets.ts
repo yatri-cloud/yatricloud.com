@@ -161,6 +161,46 @@ async function uploadPhoto(photo: File): Promise<string> {
 export async function submitCertification(
   data: CertificationSubmission
 ): Promise<void> {
+  // ── Supabase path (production): insert + photo upload to Storage ──
+  if (USE_SUPABASE) {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) throw new Error("Please sign in to submit your certification.");
+
+    // Photo: profile URL wins; else upload the file to the avatars bucket
+    let photoUrl = data.photoUrl || "";
+    if (!photoUrl && data.photo) {
+      const path = `${authUser.id}/${Date.now()}-${data.photo.name.replace(/[^\w.-]+/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, data.photo, { upsert: true });
+      if (upErr) throw new Error("Photo upload failed — please try again.");
+      photoUrl = supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+    }
+
+    const DISPLAY_TO_ENUM: Record<string, string> = {
+      aws: "AWS", azure: "AZURE", gcp: "GCP", github: "GITHUB", oracle: "ORACLE",
+      salesforce: "SALESFORCE", servicenow: "SERVICENOW", openai: "OPENAI",
+      hashicorp: "HASHICORP", kubernetes: "KUBERNETES",
+    };
+    const { error } = await supabase.from("certifications").insert({
+      user_id: authUser.id,
+      email: data.email.trim().toLowerCase(),
+      full_name: data.fullName,
+      provider: DISPLAY_TO_ENUM[data.certificationProvider.toLowerCase()] ?? "OTHER",
+      certification_name: data.certificationName,
+      exam_code: data.examCode || null,
+      certification_date: data.certificationDate || null,
+      verified_credential_url: data.verifiedCredential || null,
+      linkedin_url: data.linkedinUrl || null,
+      photo_url: photoUrl || null,
+      country: data.country || null,
+      state_province: data.stateProvince || null,
+      city: data.city || null,
+      additional_notes: data.additionalNotes || null,
+    });
+    if (error) throw new Error("Submission failed — please try again.");
+    return;
+  }
+
+  // ── Legacy webhook path (dead once USE_SUPABASE is on) ──
   // Get the appropriate webhook URL based on provider
   const webhookUrl = getWebhookUrl(data.certificationProvider);
 

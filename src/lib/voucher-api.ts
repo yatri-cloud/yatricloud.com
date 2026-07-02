@@ -1,6 +1,8 @@
 /**
- * Service for handling certification voucher requests
+ * Certification voucher requests — public form → RLS-guarded Supabase insert.
  */
+
+import { supabase } from "@/lib/supabase";
 
 export interface VoucherRequestData {
   fullName: string;
@@ -14,30 +16,30 @@ export interface VoucherRequestData {
   timestamp?: string;
 }
 
+const PROVIDER_ENUM: Record<string, string> = {
+  AWS: "AWS", Azure: "AZURE", "Microsoft Azure": "AZURE", GCP: "GCP",
+  "Google Cloud": "GCP", GitHub: "GITHUB", Oracle: "ORACLE",
+  Salesforce: "SALESFORCE", ServiceNow: "SERVICENOW", OpenAI: "OPENAI",
+  HashiCorp: "HASHICORP", Kubernetes: "KUBERNETES",
+};
+
 /**
- * Submit a voucher request to the backend
+ * Submit a voucher request.
  */
 export async function submitVoucherRequest(data: VoucherRequestData) {
-  try {
-    const response = await fetch('/api/voucher-request', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...data,
-        timestamp: new Date().toISOString(),
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to submit request');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('❌ Error submitting voucher request:', error);
-    throw error;
+  const { error } = await supabase.from("voucher_requests").insert({
+    full_name: data.fullName,
+    email: data.email.trim().toLowerCase(),
+    whatsapp: data.whatsapp || null,
+    contact_number: data.contactNumber || null,
+    country: data.country || null,
+    provider: PROVIDER_ENUM[data.provider] ?? "OTHER",
+    exams: data.exams,
+    reason: data.reason || null,
+  });
+  if (error) {
+    console.error("❌ Error submitting voucher request:", error.message);
+    throw new Error("Failed to submit request — please try again.");
   }
+  return { success: true };
 }

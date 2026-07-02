@@ -15,8 +15,6 @@ import {
 } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
-const API_URL_EVENTS = '/api/yatris/events';
-
 /** Display provider name → DB enum. */
 const PROVIDER_TO_ENUM: Record<string, string> = {
   AWS: 'AWS', Azure: 'AZURE', GCP: 'GCP', GitHub: 'GITHUB', Oracle: 'ORACLE',
