@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import {
+  ADMIN_GUIDE_CONTENT,
+  USER_GUIDE_CONTENT,
+  ADMIN_URL_SITE_MAP,
+  USER_URL_SITE_MAP,
+} from "@/data/guides-content";
 
 /**
  * Site content loader — reads homepage/site copy from Supabase
  * (`site_settings`, `site_stats`, `promotions`, `faqs`, `team_members`,
  * `package_benefits`, `certification_steps`, `eligible_exams`,
  * `recognitions`, `trust_features`, `communities`, `nav_links`,
- * `option_lists`) with hardcoded fallbacks that match
+ * `option_lists`, `legal_pages`, `guides`) with hardcoded fallbacks that match
  * the live values exactly. If Supabase is slow,
  * errors, or returns nothing, the site keeps rendering the fallback so
  * visitors never see a blank section. Fetches once per session; every
@@ -93,6 +99,10 @@ export type NavLinkLocation =
 export type NavLink = { href: string; label: string };
 
 export type OptionItem = { value: string; label: string };
+
+export type LegalPage = { slug: string; title: string; body_md: string };
+
+export type Guide = { slug: string; title: string; body_md: string };
 
 /* ------------------------------------------------------------------ */
 /* Fallbacks — must always equal today's live values                   */
@@ -443,6 +453,155 @@ export const FALLBACK_OPTION_LISTS: Record<string, OptionItem[]> = {
   ],
 };
 
+/* Legal pages — converted 1:1 from the JSX that used to live in
+ * src/pages/PrivacyPolicy.tsx and src/pages/TermsOfService.tsx.
+ * One `## heading` per former <section>, every sentence verbatim.
+ * The H1 lives in `title`; the "Last updated" line stays page rendered. */
+export const FALLBACK_LEGAL_PAGES: Record<string, LegalPage> = {
+  "privacy-policy": {
+    slug: "privacy-policy",
+    title: "Privacy Policy",
+    body_md: `## 1. Introduction
+
+Yatri Cloud ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services.
+
+## 2. Information We Collect
+
+We may collect information about you in a variety of ways:
+
+- Personal information you provide when using our services
+- Usage data and analytics information
+- Cookies and tracking technologies
+- Information from third-party services integrated with our platform
+
+## 3. How We Use Your Information
+
+We use the information we collect to:
+
+- Provide, maintain, and improve our services
+- Process transactions and send related information
+- Send technical notices and support messages
+- Respond to your comments and questions
+- Monitor and analyze trends and usage
+
+## 4. Information Sharing
+
+We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
+
+- With your consent
+- To comply with legal obligations
+- To protect our rights and safety
+- With service providers who assist us in operating our platform
+
+## 5. Data Security
+
+We implement appropriate technical and organizational security measures to protect your personal information. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.
+
+## 6. Your Rights
+
+You have the right to:
+
+- Access and receive a copy of your personal data
+- Rectify inaccurate personal data
+- Request deletion of your personal data
+- Object to processing of your personal data
+- Request restriction of processing your personal data
+
+## 7. Cookies
+
+We use cookies and similar tracking technologies to track activity on our website and hold certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
+
+## 8. Changes to This Privacy Policy
+
+We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
+
+## 9. Contact Us
+
+If you have any questions about this Privacy Policy, please contact us through our website or email.`,
+  },
+  "terms-of-service": {
+    slug: "terms-of-service",
+    title: "Terms of Service",
+    body_md: `## 1. Agreement to Terms
+
+By accessing or using Yatri Cloud's services, you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access our services.
+
+## 2. Use License
+
+Permission is granted to temporarily access the materials on Yatri Cloud's website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+
+- Modify or copy the materials
+- Use the materials for any commercial purpose or for any public display
+- Attempt to reverse engineer any software contained on the website
+- Remove any copyright or other proprietary notations from the materials
+
+## 3. User Accounts
+
+When you create an account with us, you must provide information that is accurate, complete, and current at all times. You are responsible for safeguarding the password and for all activities that occur under your account.
+
+## 4. Content
+
+Our service allows you to post, link, store, share and otherwise make available certain information. You are responsible for the content that you post on or through the service, including its legality, reliability, and appropriateness.
+
+By posting content on or through the service, you grant us the right and license to use, modify, publicly perform, publicly display, reproduce, and distribute such content on and through the service.
+
+## 5. Prohibited Uses
+
+You may not use our service:
+
+- In any way that violates any applicable law or regulation
+- To transmit any malicious code or viruses
+- To impersonate or attempt to impersonate another user
+- To engage in any automated use of the system
+- To interfere with or disrupt the service or servers
+
+## 6. Intellectual Property
+
+The service and its original content, features, and functionality are and will remain the exclusive property of Yatri Cloud and its licensors. The service is protected by copyright, trademark, and other laws.
+
+## 7. Disclaimer
+
+The materials on Yatri Cloud's website are provided on an 'as is' basis. Yatri Cloud makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
+
+## 8. Limitations
+
+In no event shall Yatri Cloud or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Yatri Cloud's website.
+
+## 9. Revisions
+
+Yatri Cloud may revise these terms of service at any time without notice. By using this website you are agreeing to be bound by the then current version of these terms of service.
+
+## 10. Governing Law
+
+These terms and conditions are governed by and construed in accordance with applicable laws. Any disputes relating to these terms will be subject to the exclusive jurisdiction of the courts in the applicable jurisdiction.`,
+  },
+};
+
+/* Guides — bodies come straight from src/data/guides-content.ts so the
+ * markdown lives in exactly one place. Titles equal each guide's H1. */
+export const FALLBACK_GUIDES: Record<string, Guide> = {
+  "admin-guide": {
+    slug: "admin-guide",
+    title: "Yatri Cloud: The Definitive Operations Manual",
+    body_md: ADMIN_GUIDE_CONTENT,
+  },
+  "user-guide": {
+    slug: "user-guide",
+    title: "Yatri Cloud: The Professional Growth Guide",
+    body_md: USER_GUIDE_CONTENT,
+  },
+  "admin-sitemap": {
+    slug: "admin-sitemap",
+    title: "Yatri Cloud: Administrative Sitemap & Operations Guide",
+    body_md: ADMIN_URL_SITE_MAP,
+  },
+  "user-sitemap": {
+    slug: "user-sitemap",
+    title: "Yatri Cloud: User Sitemap & Access Guide",
+    body_md: USER_URL_SITE_MAP,
+  },
+};
+
 /* ------------------------------------------------------------------ */
 /* Session cache — one shared promise per resource                     */
 /* ------------------------------------------------------------------ */
@@ -460,6 +619,8 @@ const trustFeaturesPromises: Partial<Record<TrustFeatureKind, Promise<TrustFeatu
 let communitiesPromise: Promise<CommunityEntry[]> | null = null;
 const navLinksPromises: Partial<Record<NavLinkLocation, Promise<NavLink[]>>> = {};
 const optionListPromises: Record<string, Promise<OptionItem[]>> = {};
+const legalPagePromises: Record<string, Promise<LegalPage | null>> = {};
+const guidePromises: Record<string, Promise<Guide | null>> = {};
 
 /** key → value map from `site_settings`. Never throws; falls back per key. */
 export function getSiteSettings(): Promise<Record<string, any>> {
@@ -797,6 +958,62 @@ export function getOptionList(list: string): Promise<OptionItem[]> {
     })();
   }
   return optionListPromises[list];
+}
+
+/** A legal page (`legal_pages` row) by slug. Never throws; falls back
+ * to the verbatim hardcoded copy so visitors never see a blank page. */
+export function getLegalPage(slug: string): Promise<LegalPage | null> {
+  if (!legalPagePromises[slug]) {
+    const fallback = FALLBACK_LEGAL_PAGES[slug] ?? null;
+    legalPagePromises[slug] = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("legal_pages")
+          .select("slug, title, body_md")
+          .eq("slug", slug)
+          .limit(1);
+        if (error || !data || data.length === 0) return fallback;
+        const row: any = data[0];
+        if (!row?.body_md) return fallback;
+        return {
+          slug: String(row.slug ?? slug),
+          title: String(row.title ?? fallback?.title ?? ""),
+          body_md: String(row.body_md),
+        };
+      } catch {
+        return fallback;
+      }
+    })();
+  }
+  return legalPagePromises[slug];
+}
+
+/** A guide (`guides` row) by slug. Never throws; falls back to the
+ * constants exported from src/data/guides-content.ts. */
+export function getGuide(slug: string): Promise<Guide | null> {
+  if (!guidePromises[slug]) {
+    const fallback = FALLBACK_GUIDES[slug] ?? null;
+    guidePromises[slug] = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("guides")
+          .select("slug, title, body_md")
+          .eq("slug", slug)
+          .limit(1);
+        if (error || !data || data.length === 0) return fallback;
+        const row: any = data[0];
+        if (!row?.body_md) return fallback;
+        return {
+          slug: String(row.slug ?? slug),
+          title: String(row.title ?? fallback?.title ?? ""),
+          body_md: String(row.body_md),
+        };
+      } catch {
+        return fallback;
+      }
+    })();
+  }
+  return guidePromises[slug];
 }
 
 /* ------------------------------------------------------------------ */

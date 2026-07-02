@@ -5,14 +5,23 @@ import { ArrowLeft, BookOpen, Info, ChevronRight, Home, List } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ADMIN_GUIDE_CONTENT, USER_GUIDE_CONTENT, ADMIN_URL_SITE_MAP, USER_URL_SITE_MAP } from "@/data/guides-content";
+import { getGuide, useSiteContent, type Guide } from "@/lib/site-content";
 
 interface GuideViewProps {
   type: "admin" | "user" | "admin-access" | "user-access";
 }
 
+/* Each view type maps to a row in the `guides` table. */
+const GUIDE_SLUGS: Record<GuideViewProps["type"], string> = {
+  admin: "admin-guide",
+  user: "user-guide",
+  "admin-access": "admin-sitemap",
+  "user-access": "user-sitemap",
+};
+
 const GuideView: React.FC<GuideViewProps> = ({ type }) => {
   const navigate = useNavigate();
-  const content =
+  const fallbackContent =
     type === "admin"
       ? ADMIN_GUIDE_CONTENT
       : type === "user"
@@ -20,6 +29,11 @@ const GuideView: React.FC<GuideViewProps> = ({ type }) => {
       : type === "admin-access"
       ? ADMIN_URL_SITE_MAP
       : USER_URL_SITE_MAP;
+
+  /* Loads the guide body from Supabase, session cached; the local
+   * constant renders first and stays in place if the fetch fails. */
+  const guide = useSiteContent<Guide | null>(() => getGuide(GUIDE_SLUGS[type]), null);
+  const content = guide?.body_md ?? fallbackContent;
 
   const title =
     type === "admin"

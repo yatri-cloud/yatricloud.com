@@ -1,7 +1,85 @@
 /**
  * Email Templates for Yatri Cloud
  * Uses inline styles for maximum email client compatibility.
+ *
+ * Each builder first tries the matching `email_templates` row in
+ * Supabase (seeded by supabase/migrations/013_legal_guides_emails.sql
+ * with the exact same HTML). RLS makes that table admin only, so for
+ * non admin sessions the fetch returns nothing and the hardcoded
+ * builder output below is used as the fallback. That is expected and
+ * required. Builders stay synchronous because every call site uses the
+ * return value directly, so the table is fetched once per session in
+ * the background and rows are read from the cache on later calls.
  */
+
+import { supabase } from "@/lib/supabase";
+
+type EmailTemplateRow = { key: string; subject: string; body_html: string };
+
+const templateCache = new Map<string, EmailTemplateRow>();
+let templatesFetch: Promise<void> | null = null;
+
+/** Fetches all template rows once per session (admin only via RLS). */
+const warmTemplates = (): void => {
+  if (templatesFetch) return;
+  templatesFetch = (async () => {
+    try {
+      const { data, error } = await supabase
+        .from("email_templates")
+        .select("key, subject, body_html");
+      if (error || !data) return;
+      for (const row of data) {
+        if (row?.key && row?.body_html) {
+          templateCache.set(String(row.key), {
+            key: String(row.key),
+            subject: String(row.subject ?? ""),
+            body_html: String(row.body_html),
+          });
+        }
+      }
+    } catch {
+      /* keep the hardcoded fallbacks */
+    }
+  })();
+};
+
+/**
+ * Substitutes template placeholders:
+ * - `{{#if variable}}...{{/if}}` blocks are kept when the variable is
+ *   truthy and removed otherwise.
+ * - `{{variable}}` is replaced from `vars`; `{{year}}` is always the
+ *   current year.
+ */
+const fillTemplate = (
+  html: string,
+  vars: Record<string, string | undefined>
+): string => {
+  return html
+    .replace(/{{#if\s+(\w+)\s*}}([\s\S]*?){{\/if}}/g, (_match, name, block) =>
+      vars[name] ? block : ""
+    )
+    .replace(/{{\s*(\w+)\s*}}/g, (match, name) => {
+      if (name === "year") return String(new Date().getFullYear());
+      const value = vars[name];
+      return value !== undefined && value !== null ? value : match;
+    });
+};
+
+/**
+ * Renders a DB template if the row is already cached for this session.
+ * Returns null when the row is not available (non admin session, fetch
+ * still in flight, offline) so the caller falls back to the hardcoded
+ * builder output.
+ */
+const renderDbTemplate = (
+  key: string,
+  vars: Record<string, string | undefined>
+): string | null => {
+  warmTemplates();
+  const row = templateCache.get(key);
+  if (!row?.body_html) return null;
+  return fillTemplate(row.body_html, vars);
+};
 
 const COLORS = {
   primary: '#3b82f6', // blue-500
@@ -57,7 +135,22 @@ const BASE_TEMPLATE = (content: string, title: string) => `
 </html>
 `;
 
+/**
+ * DB template key: `registration_confirmed`.
+ * Placeholder mapping: name -> {{name}}, eventName -> {{event_name}},
+ * code -> {{code}}, date -> {{date}}, meetLink -> {{meet_link}}.
+ * The Join Meeting block is wrapped in {{#if meet_link}}...{{/if}}.
+ */
 export const getRegistrationEmail = (name: string, eventName: string, code: string, date: string, meetLink?: string) => {
+  const fromDb = renderDbTemplate("registration_confirmed", {
+    name,
+    event_name: eventName,
+    code,
+    date,
+    meet_link: meetLink,
+  });
+  if (fromDb) return fromDb;
+
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Registration Confirmed!</h2>
     <p>Hello ${name},</p>
@@ -81,7 +174,20 @@ export const getRegistrationEmail = (name: string, eventName: string, code: stri
   return BASE_TEMPLATE(content, `Registration Confirmed: ${eventName}`);
 };
 
+/**
+ * DB template key: `product_purchase`.
+ * Placeholder mapping: name -> {{name}}, productNames -> {{product_names}},
+ * amount -> {{amount}}, paymentId -> {{payment_id}}.
+ */
 export const getProductPurchaseEmail = (name: string, productNames: string, amount: string, paymentId: string) => {
+  const fromDb = renderDbTemplate("product_purchase", {
+    name,
+    product_names: productNames,
+    amount,
+    payment_id: paymentId,
+  });
+  if (fromDb) return fromDb;
+
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Order Confirmed!</h2>
     <p>Hello ${name},</p>
@@ -102,7 +208,19 @@ export const getProductPurchaseEmail = (name: string, productNames: string, amou
   return BASE_TEMPLATE(content, "Order Confirmation - Yatri Cloud");
 };
 
+/**
+ * DB template key: `certificate_submission`.
+ * Placeholder mapping: name -> {{name}}, certName -> {{cert_name}},
+ * provider -> {{provider}}.
+ */
 export const getCertificateSubmissionEmail = (name: string, certName: string, provider: string) => {
+  const fromDb = renderDbTemplate("certificate_submission", {
+    name,
+    cert_name: certName,
+    provider,
+  });
+  if (fromDb) return fromDb;
+
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Achievement Unlocked!</h2>
     <p>Hello ${name},</p>
@@ -119,7 +237,14 @@ export const getCertificateSubmissionEmail = (name: string, certName: string, pr
   return BASE_TEMPLATE(content, `Submission Received: ${certName}`);
 };
 
+/**
+ * DB template key: `welcome`.
+ * Placeholder mapping: name -> {{name}}.
+ */
 export const getWelcomeEmail = (name: string) => {
+  const fromDb = renderDbTemplate("welcome", { name });
+  if (fromDb) return fromDb;
+
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Welcome to Yatri Cloud!</h2>
     <p>Hello ${name},</p>
@@ -141,7 +266,19 @@ export const getWelcomeEmail = (name: string) => {
   return BASE_TEMPLATE(content, "Welcome to Yatri Cloud");
 };
 
+/**
+ * DB template key: `event_feedback`.
+ * Placeholder mapping: name -> {{name}}, eventName -> {{event_name}},
+ * feedbackLink -> {{feedback_link}}.
+ */
 export const getEventFeedbackEmail = (name: string, eventName: string, feedbackLink: string) => {
+  const fromDb = renderDbTemplate("event_feedback", {
+    name,
+    event_name: eventName,
+    feedback_link: feedbackLink,
+  });
+  if (fromDb) return fromDb;
+
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Thank You for Attending!</h2>
     <p>Hello ${name},</p>
@@ -158,7 +295,22 @@ export const getEventFeedbackEmail = (name: string, eventName: string, feedbackL
   return BASE_TEMPLATE(content, `Feedback Request: ${eventName}`);
 };
 
+/**
+ * DB template key: `exam_dump_purchase`.
+ * Placeholder mapping: name -> {{name}}, dumpTitle -> {{dump_title}},
+ * amount -> {{amount}}, downloadUrl -> {{download_url}} (used twice),
+ * paymentId -> {{payment_id}}.
+ */
 export const getExamDumpPurchaseEmail = (name: string, dumpTitle: string, amount: string, downloadUrl: string, paymentId: string) => {
+  const fromDb = renderDbTemplate("exam_dump_purchase", {
+    name,
+    dump_title: dumpTitle,
+    amount,
+    download_url: downloadUrl,
+    payment_id: paymentId,
+  });
+  if (fromDb) return fromDb;
+
   const content = `
     <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Exam Dump Access!</h2>
     <p>Hello ${name},</p>

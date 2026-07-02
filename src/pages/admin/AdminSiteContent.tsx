@@ -24,6 +24,9 @@ import {
     MessagesSquare,
     Link2,
     ListChecks,
+    ScrollText,
+    BookOpen,
+    Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -746,6 +749,312 @@ const OptionListsEditor = () => {
         />
     );
 };
+
+/* ------------------------------------------------------------------ */
+/* Fixed-key document editors                                          */
+/*                                                                     */
+/* One reusable card for the tables that hold a small, fixed set of    */
+/* documents keyed by slug or key: legal pages, guides, and email      */
+/* templates. No add or delete — the keys are fixed. Each row shows    */
+/* its read-only key, a title (or subject) input, a large body editor, */
+/* and its own save button. Saves upsert on the primary key.           */
+/* ------------------------------------------------------------------ */
+
+interface DocRowState {
+    title: string;
+    body: string;
+}
+
+interface FixedDocsSectionProps {
+    icon: typeof Globe;
+    title: string;
+    hint: string;
+    table: string;
+    /** Primary key column name ("slug" or "key"). */
+    pkColumn: string;
+    /** The fixed primary key values, in display order. */
+    rowKeys: string[];
+    titleColumn: string;
+    titleLabel: string;
+    bodyColumn: string;
+    bodyLabel: string;
+    /** Extra classes for the body textarea (size + font). */
+    bodyClassName: string;
+    /** Small helper line shown under the body editor. */
+    bodyHint: string;
+    itemLabel: string;
+    /** Show a per-row live HTML preview toggle (sandboxed iframe). */
+    withPreview?: boolean;
+}
+
+const FixedDocsSection = ({
+    icon,
+    title,
+    hint,
+    table,
+    pkColumn,
+    rowKeys,
+    titleColumn,
+    titleLabel,
+    bodyColumn,
+    bodyLabel,
+    bodyClassName,
+    bodyHint,
+    itemLabel,
+    withPreview,
+}: FixedDocsSectionProps) => {
+    const { toast } = useToast();
+    const [rows, setRows] = useState<Record<string, DocRowState>>(() =>
+        Object.fromEntries(rowKeys.map((key) => [key, { title: "", body: "" }]))
+    );
+    const [loading, setLoading] = useState(true);
+    const [savingKey, setSavingKey] = useState<string | null>(null);
+    const [previewOpen, setPreviewOpen] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from(table)
+                    .select([pkColumn, titleColumn, bodyColumn].join(", "));
+                if (!error && data) {
+                    setRows((prev) => {
+                        const next = { ...prev };
+                        for (const row of data as any[]) {
+                            const pk = row[pkColumn];
+                            if (typeof pk === "string" && pk in next) {
+                                next[pk] = {
+                                    title: row[titleColumn] ?? "",
+                                    body: row[bodyColumn] ?? "",
+                                };
+                            }
+                        }
+                        return next;
+                    });
+                }
+            } catch (e) {
+                console.error(`Failed to load ${table}`, e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const failed = () =>
+        toast({
+            title: "That did not save",
+            description: "Please try again in a moment.",
+            variant: "destructive",
+        });
+
+    const done = () =>
+        toast({
+            title: "Saved",
+            description: "Your changes are live on the site.",
+        });
+
+    const updateRow = (pk: string, patch: Partial<DocRowState>) => {
+        setRows((prev) => ({ ...prev, [pk]: { ...prev[pk], ...patch } }));
+    };
+
+    const saveRow = async (pk: string) => {
+        const row = rows[pk];
+        if (!row.title.trim() || !row.body.trim()) {
+            toast({
+                title: "Almost there",
+                description: `Please fill in both the ${titleLabel.toLowerCase()} and the ${bodyLabel.toLowerCase()} before saving.`,
+                variant: "destructive",
+            });
+            return;
+        }
+        setSavingKey(pk);
+        const payload: Record<string, any> = {
+            [pkColumn]: pk,
+            [titleColumn]: row.title.trim(),
+            [bodyColumn]: row.body,
+        };
+        const { error } = await supabase.from(table).upsert(payload, { onConflict: pkColumn });
+        setSavingKey(null);
+        if (error) return failed();
+        done();
+    };
+
+    const Icon = icon;
+
+    return (
+        <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+            <SectionHeader icon={Icon} title={title} hint={hint} />
+
+            {loading ? (
+                <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span>Loading…</span>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {rowKeys.map((pk) => {
+                        const row = rows[pk];
+                        const showPreview = previewOpen[pk] === true;
+                        return (
+                            <div key={pk} className="rounded-xl border border-border bg-background p-4 md:p-5 space-y-4">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="inline-flex items-center rounded-lg bg-primary/10 px-2.5 py-1 font-mono text-xs font-semibold text-primary">
+                                        {pk}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                        {pkColumn === "slug" ? "Slug" : "Key"} — read only
+                                    </span>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <FieldLabel htmlFor={`${table}-title-${pk}`}>{titleLabel}</FieldLabel>
+                                    <Input
+                                        id={`${table}-title-${pk}`}
+                                        className="min-h-[44px] rounded-xl"
+                                        value={row.title}
+                                        onChange={(e) => updateRow(pk, { title: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <FieldLabel htmlFor={`${table}-body-${pk}`}>{bodyLabel}</FieldLabel>
+                                    <Textarea
+                                        id={`${table}-body-${pk}`}
+                                        className={`rounded-xl ${bodyClassName}`}
+                                        value={row.body}
+                                        onChange={(e) => updateRow(pk, { body: e.target.value })}
+                                    />
+                                    <p className="text-xs text-muted-foreground">{bodyHint}</p>
+                                </div>
+
+                                {withPreview && showPreview && (
+                                    <div className="space-y-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Preview
+                                        </span>
+                                        <iframe
+                                            title={`Preview of the ${pk} ${itemLabel}`}
+                                            sandbox=""
+                                            srcDoc={row.body}
+                                            className="h-[360px] w-full rounded-xl border border-border bg-white"
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    {withPreview ? (
+                                        <div className="flex items-center gap-3">
+                                            <Switch
+                                                id={`${table}-preview-${pk}`}
+                                                checked={showPreview}
+                                                onCheckedChange={(checked) =>
+                                                    setPreviewOpen((prev) => ({ ...prev, [pk]: checked }))
+                                                }
+                                                aria-label={`Show a preview of this ${itemLabel}`}
+                                            />
+                                            <Label htmlFor={`${table}-preview-${pk}`} className="text-sm font-medium">
+                                                Show preview
+                                            </Label>
+                                        </div>
+                                    ) : (
+                                        <span />
+                                    )}
+                                    <Button
+                                        onClick={() => saveRow(pk)}
+                                        disabled={savingKey === pk}
+                                        className={saveButtonClass}
+                                    >
+                                        {savingKey === pk ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Save className="mr-2 h-4 w-4" />
+                                        )}
+                                        Save {itemLabel}
+                                    </Button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const MARKDOWN_HINT = "Write in simple markdown. ## makes a heading, - makes a bullet.";
+
+const LEGAL_PAGE_SLUGS = ["privacy-policy", "terms-of-service"];
+
+const GUIDE_SLUGS = ["admin-guide", "user-guide", "admin-sitemap", "user-sitemap"];
+
+const EMAIL_TEMPLATE_KEYS = [
+    "welcome",
+    "registration_confirmed",
+    "event_feedback",
+    "product_purchase",
+    "exam_dump_purchase",
+    "certificate_submission",
+];
+
+const EMAIL_PLACEHOLDER_HINT =
+    "Keep every {{placeholder}} exactly as written — like {{name}}, {{event_name}}, {{amount}}, or {{download_url}}. They are filled in automatically when the email is sent.";
+
+const LegalPagesEditor = () => (
+    <FixedDocsSection
+        icon={ScrollText}
+        title="Legal Pages"
+        hint="The Privacy Policy and Terms of Service pages Yatris read."
+        table="legal_pages"
+        pkColumn="slug"
+        rowKeys={LEGAL_PAGE_SLUGS}
+        titleColumn="title"
+        titleLabel="Title"
+        bodyColumn="body_md"
+        bodyLabel="Page content"
+        bodyClassName="min-h-[320px] font-mono text-sm"
+        bodyHint={MARKDOWN_HINT}
+        itemLabel="page"
+    />
+);
+
+const GuidesEditor = () => (
+    <FixedDocsSection
+        icon={BookOpen}
+        title="Guides"
+        hint="The in-app guides and sitemaps for admins and Yatris."
+        table="guides"
+        pkColumn="slug"
+        rowKeys={GUIDE_SLUGS}
+        titleColumn="title"
+        titleLabel="Title"
+        bodyColumn="body_md"
+        bodyLabel="Guide content"
+        bodyClassName="min-h-[320px] font-mono text-sm"
+        bodyHint={MARKDOWN_HINT}
+        itemLabel="guide"
+    />
+);
+
+const EmailTemplatesEditor = () => (
+    <FixedDocsSection
+        icon={Mail}
+        title="Email Templates"
+        hint="The emails Yatris receive after signing up, registering, or buying. Only admins can see these."
+        table="email_templates"
+        pkColumn="key"
+        rowKeys={EMAIL_TEMPLATE_KEYS}
+        titleColumn="subject"
+        titleLabel="Subject"
+        bodyColumn="body_html"
+        bodyLabel="Email HTML"
+        bodyClassName="min-h-[320px] font-mono text-xs"
+        bodyHint={EMAIL_PLACEHOLDER_HINT}
+        itemLabel="template"
+        withPreview
+    />
+);
 
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
@@ -1509,6 +1818,21 @@ const AdminSiteContent = () => {
                 {/* ── Dropdown options ── */}
                 <ScrollReveal delay={0.05}>
                     <OptionListsEditor />
+                </ScrollReveal>
+
+                {/* ── Legal pages ── */}
+                <ScrollReveal delay={0.05}>
+                    <LegalPagesEditor />
+                </ScrollReveal>
+
+                {/* ── Guides ── */}
+                <ScrollReveal delay={0.05}>
+                    <GuidesEditor />
+                </ScrollReveal>
+
+                {/* ── Email templates ── */}
+                <ScrollReveal delay={0.05}>
+                    <EmailTemplatesEditor />
                 </ScrollReveal>
             </div>
         </div>
