@@ -15,6 +15,9 @@ import {
   getMentorReviews,
   getMentorServices,
 } from "@/lib/mentorship";
+import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const SITE_URL = "https://www.yatricloud.com";
 
@@ -34,6 +37,8 @@ const MentorProfile = () => {
   const [reviews, setReviews] = useState<MentorReview[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [filter, setFilter] = useState<TypeFilter>("all");
+  const [isOwner, setIsOwner] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -50,6 +55,19 @@ const MentorProfile = () => {
         if (!mounted) return;
         setServices(svc);
         setReviews(rev);
+
+        // Is the signed in visitor this mentor? Show a manage shortcut.
+        const { data: authData } = await supabase.auth.getUser();
+        const uid = authData?.user?.id;
+        if (mounted && uid) {
+          const { data: own } = await supabase
+            .from("mentors")
+            .select("id")
+            .eq("user_id", uid)
+            .eq("id", found.id)
+            .maybeSingle();
+          if (mounted) setIsOwner(Boolean(own));
+        }
       }
       setLoaded(true);
     })();
@@ -198,6 +216,14 @@ const MentorProfile = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
+                  {isOwner && (
+                    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-100 bg-brand-50/50 p-3">
+                      <p className="text-sm text-muted-foreground">This is your public page.</p>
+                      <Button size="sm" onClick={() => navigate("/mentor/dashboard")} className="ml-auto font-semibold">
+                        Manage my page
+                      </Button>
+                    </div>
+                  )}
                   <h1 className="font-display text-3xl md:text-5xl font-bold tracking-[-0.02em]">
                     {mentor.name}
                   </h1>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, User, Settings, LogOut, Calendar, BookOpen, Info, List } from "lucide-react";
+import { Menu, X, User, Settings, LogOut, Calendar, BookOpen, Info, List, LayoutDashboard } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAuthenticated, getStoredUser, logout } from "@/lib/yatris-api";
 import { useSiteContent, getNavLinks, FALLBACK_NAV_LINKS } from "@/lib/site-content";
+import { supabase } from "@/lib/supabase";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isMentor, setIsMentor] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,6 +39,20 @@ export const Navbar = () => {
     const interval = setInterval(checkAuth, 1000);
     return () => clearInterval(interval);
   }, [location]);
+
+  // Does this signed in user have a mentor profile? If so, surface their dashboard.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!user) { setIsMentor(false); return; }
+      const { data: authData } = await supabase.auth.getUser();
+      const uid = authData?.user?.id;
+      if (!uid) { if (!cancelled) setIsMentor(false); return; }
+      const { data } = await supabase.from("mentors").select("id").eq("user_id", uid).maybeSingle();
+      if (!cancelled) setIsMentor(Boolean(data));
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -132,6 +148,12 @@ export const Navbar = () => {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    {isMentor && (
+                      <DropdownMenuItem onClick={() => navigate("/mentor/dashboard")}>
+                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        Mentor Dashboard
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                       <Settings className="w-4 h-4 mr-2" />
                       Edit Profile

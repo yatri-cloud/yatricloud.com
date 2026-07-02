@@ -68,6 +68,7 @@ import MentorProfile from "./pages/mentorship/MentorProfile";
 import MentorServiceDetail from "./pages/mentorship/MentorServiceDetail";
 import MyMentorshipBookings from "./pages/mentorship/MyMentorshipBookings";
 import MentorDashboard from "./pages/mentor/MentorDashboard";
+import MentorLogin from "./pages/mentor/MentorLogin";
 import AdminMentors from "./pages/admin/AdminMentors";
 import AdminMentorApplications from "./pages/admin/AdminMentorApplications";
 import AdminMentorshipServices from "./pages/admin/AdminMentorshipServices";
@@ -122,6 +123,7 @@ const App = () => (
               <Route path="/mentorship/:mentorSlug/:serviceSlug" element={<MentorServiceDetail />} />
 
               {/* Mentor Self Service */}
+              <Route path="/mentor/login" element={<MentorLogin />} />
               <Route path="/mentor/dashboard" element={<MentorDashboard />} />
 
               {/* ... inside Routes ... */}
