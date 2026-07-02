@@ -372,9 +372,13 @@ const AdminMentorApplications = () => {
         if (mentorError || !mentorRow) {
             console.error("Mentor insert failed", mentorError);
             setApproving(false);
+            const message = mentorError?.message || "";
+            const isRls = message.toLowerCase().includes("row-level security") || (mentorError as any)?.code === "42501";
             return toast({
                 title: "Approval did not go through",
-                description: "The mentor profile could not be created, so nothing was changed. Please try again.",
+                description: isRls
+                    ? "Your admin session was replaced by another login in this browser. Please log out of the admin area and log in again as admin."
+                    : `The mentor profile could not be created, so nothing was changed. ${message ? `Reason: ${message}` : "Please try again."}`,
                 variant: "destructive",
             });
         }
