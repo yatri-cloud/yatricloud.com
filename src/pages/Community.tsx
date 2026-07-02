@@ -55,18 +55,9 @@ const STATS = [
   { value: "24/7", label: "Always active" },
 ];
 
-const Badge = ({ c }: { c: Community }) => (
-  <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-border bg-white p-2.5">
-    {c.logo ? (
-      <img src={c.logo} alt={`${c.name} logo`} className="h-full w-full object-contain opacity-85 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0" loading="lazy" />
-    ) : c.icon ? (
-      <c.icon className="h-6 w-6 text-primary" />
-    ) : null}
-  </span>
-);
-
 const CommunityCard = ({ c, index }: { c: Community; index: number }) => {
   const reduce = useReducedMotion();
+  const num = String(index + 1).padStart(2, "0");
   return (
     <motion.a
       href={c.url}
@@ -78,19 +69,25 @@ const CommunityCard = ({ c, index }: { c: Community; index: number }) => {
       transition={{ delay: Math.min(index * 0.04, 0.3), duration: 0.5, ease: EASE }}
       whileHover={reduce ? undefined : { y: -6 }}
       aria-label={`Join ${c.name} on WhatsApp`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 transition-colors duration-300 hover:border-brand-200 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-3xl border border-border bg-card p-7 md:p-8 transition-colors duration-300 hover:border-brand-200 hover:bg-brand-50/40 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <span aria-hidden="true" className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
-      <div className="relative flex items-start justify-between gap-3">
-        <Badge c={c} />
-        <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-muted-foreground/50 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
+      {/* giant editorial index numeral */}
+      <span aria-hidden="true" className="pointer-events-none absolute -right-2 -top-3 font-display text-8xl font-black leading-none tabular-nums text-foreground/[0.04] transition-colors duration-300 group-hover:text-primary/10">
+        {num}
+      </span>
+
+      <div className="relative">
+        <h3 className="font-display text-3xl font-bold leading-[1.02] tracking-[-0.02em] transition-colors duration-300 group-hover:text-primary md:text-4xl">
+          {c.name}
+        </h3>
+        <p className="mt-3 max-w-[22ch] text-sm text-muted-foreground md:text-base">{c.tagline}</p>
       </div>
-      <h3 className="relative mt-4 font-display text-base font-bold tracking-tight">{c.name}</h3>
-      <p className="relative mt-0.5 text-sm text-muted-foreground">{c.tagline}</p>
-      <div className="relative mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary">
-        <MessageCircle className="h-4 w-4" />
+
+      <span className="relative mt-7 inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-inset-btn transition-colors duration-300 group-hover:bg-brand-600">
+        <MessageCircle className="h-5 w-5" />
         Join on WhatsApp
-      </div>
+        <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </span>
     </motion.a>
   );
 };
@@ -179,7 +176,7 @@ const Community = () => {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {MAIN.map((c, i) => (
               <CommunityCard key={c.name} c={c} index={i} />
             ))}
