@@ -54,7 +54,31 @@ export function initiateRazorpayPayment(
     name: 'Yatri Cloud Events',
     description: `Registration for ${options.eventName}`,
     image: 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png',
-    handler: function (response: RazorpayResponse) {
+    handler: async function (response: RazorpayResponse) {
+      // Server-side signature verification — the payment is only trusted
+      // if /api/razorpay/verify confirms the HMAC. Never trust the client.
+      try {
+        const verifyRes = await fetch('/api/razorpay/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            amount: Math.round(options.amount * 100),
+            currency: options.currency,
+          }),
+        });
+        const verdict = await verifyRes.json().catch(() => ({}));
+        if (!verifyRes.ok || !verdict.verified) {
+          onFailure({ error: 'Payment could not be verified. If money was deducted it will be auto-refunded — please contact support.' });
+          return;
+        }
+      } catch (e) {
+        console.error('Payment verification request failed:', e);
+        onFailure({ error: 'Payment verification failed — please contact support with your payment ID.' });
+        return;
+      }
       onSuccess(response);
     },
     prefill: {
@@ -185,7 +209,30 @@ export function initiatePayment(
     description: productName,
     order_id: orderId,
     image: "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png",
-    handler: function (response: any) {
+    handler: async function (response: any) {
+      // Server-side signature verification before trusting the payment.
+      try {
+        const verifyRes = await fetch('/api/razorpay/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            amount,
+            currency: 'INR',
+          }),
+        });
+        const verdict = await verifyRes.json().catch(() => ({}));
+        if (!verifyRes.ok || !verdict.verified) {
+          onFailure('Payment could not be verified. If money was deducted it will be auto-refunded — please contact support.');
+          return;
+        }
+      } catch (e) {
+        console.error('Payment verification request failed:', e);
+        onFailure('Payment verification failed — please contact support with your payment ID.');
+        return;
+      }
       onSuccess(response.razorpay_payment_id);
     },
     prefill: {
