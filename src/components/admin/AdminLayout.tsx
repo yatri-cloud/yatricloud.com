@@ -310,7 +310,6 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
 
                         {/* Route-aware breadcrumb — "you are here" for daily tasks */}
                         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 min-w-0">
-                            <LayoutDashboard className="hidden sm:block w-4 h-4 flex-shrink-0 text-muted-foreground" />
                             <span className="hidden sm:block text-sm text-muted-foreground">Admin</span>
                             <ChevronRight className="hidden sm:block w-4 h-4 flex-shrink-0 text-muted-foreground/60" />
                             <span className="font-display text-sm md:text-base font-bold tracking-tight truncate">{pageTitle}</span>
@@ -342,7 +341,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-auto bg-gradient-to-b from-brand-50/40 via-background to-background">
+                <main className="flex-1 overflow-auto bg-gradient-to-b from-brand-50/70 via-brand-50/40 to-brand-50/20">
                     {children}
                 </main>
             </div>

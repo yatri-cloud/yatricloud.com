@@ -1,32 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-    Globe,
-    Phone,
-    Share2,
-    CalendarClock,
-    Sparkles,
-    BarChart3,
-    Megaphone,
-    HelpCircle,
     Plus,
     Trash2,
     ArrowUp,
     ArrowDown,
     Loader2,
     Save,
-    Users,
-    Gift,
-    ListOrdered,
-    BadgeCheck,
-    Award,
-    ShieldCheck,
-    MessagesSquare,
-    Link2,
-    ListChecks,
-    ScrollText,
-    BookOpen,
-    Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,22 +65,18 @@ interface FaqRow {
 /* ------------------------------------------------------------------ */
 
 const SectionHeader = ({
-    icon: Icon,
+    eyebrow,
     title,
     hint,
 }: {
-    icon: typeof Globe;
+    eyebrow: string;
     title: string;
     hint: string;
 }) => (
-    <div className="flex items-start gap-3 border-b border-border pb-4 mb-5">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Icon className="h-5 w-5" />
-        </span>
-        <div>
-            <h2 className="font-display text-lg font-bold tracking-tight">{title}</h2>
-            <p className="text-sm text-muted-foreground">{hint}</p>
-        </div>
+    <div className="-mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 rounded-t-2xl border-b border-brand-100 bg-gradient-to-r from-brand-50 to-transparent px-5 md:px-6 py-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">{eyebrow}</p>
+        <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">{title}</h2>
+        <p className="text-sm text-muted-foreground">{hint}</p>
     </div>
 );
 
@@ -157,7 +133,7 @@ interface ContentRow {
 }
 
 interface ContentListSectionProps {
-    icon: typeof Globe;
+    eyebrow: string;
     title: string;
     hint: string;
     table: string;
@@ -170,7 +146,7 @@ interface ContentListSectionProps {
 }
 
 const ContentListSection = ({
-    icon,
+    eyebrow,
     title,
     hint,
     table,
@@ -380,8 +356,8 @@ const ContentListSection = ({
     };
 
     return (
-        <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
-            <SectionHeader icon={icon} title={title} hint={hint} />
+        <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
+            <SectionHeader eyebrow={eyebrow} title={title} hint={hint} />
             {headerExtra}
 
             {loading ? (
@@ -394,7 +370,7 @@ const ContentListSection = ({
                     {rows.map((row, index) => {
                         const key = rowKey(row, index);
                         return (
-                            <div key={key} className="rounded-xl border border-border bg-background p-4 md:p-5 space-y-4">
+                            <div key={key} className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 p-4 md:p-5 space-y-4">
                                 <div className="flex items-center justify-between gap-3">
                                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
                                         {index + 1}
@@ -579,7 +555,7 @@ const TrustFeaturesEditor = () => {
     return (
         <ContentListSection
             key={kind}
-            icon={ShieldCheck}
+            eyebrow="Homepage"
             title="Trust Features"
             hint={
                 kind === "feature"
@@ -616,7 +592,7 @@ const COMMUNITY_GROUPS: ContentFieldOption[] = [
 
 const CommunitiesEditor = () => (
     <ContentListSection
-        icon={MessagesSquare}
+        eyebrow="Site-wide"
         title="Communities"
         hint="The community channels and groups Yatris can join across the site."
         table="communities"
@@ -676,7 +652,7 @@ const NavLinksEditor = () => {
     return (
         <ContentListSection
             key={location}
-            icon={Link2}
+            eyebrow="Site-wide"
             title="Navigation Links"
             hint={`The links Yatris see in the ${locationLabel} area. Reorder them within this spot.`}
             table="nav_links"
@@ -733,7 +709,7 @@ const OptionListsEditor = () => {
     return (
         <ContentListSection
             key={list}
-            icon={ListChecks}
+            eyebrow="Forms"
             title="Dropdown Options"
             hint={`The choices shown in the ${listLabel} dropdown. Reorder them within this list.`}
             table="option_lists"
@@ -766,7 +742,7 @@ interface DocRowState {
 }
 
 interface FixedDocsSectionProps {
-    icon: typeof Globe;
+    eyebrow: string;
     title: string;
     hint: string;
     table: string;
@@ -788,7 +764,7 @@ interface FixedDocsSectionProps {
 }
 
 const FixedDocsSection = ({
-    icon,
+    eyebrow,
     title,
     hint,
     table,
@@ -881,11 +857,9 @@ const FixedDocsSection = ({
         done();
     };
 
-    const Icon = icon;
-
     return (
-        <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
-            <SectionHeader icon={Icon} title={title} hint={hint} />
+        <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
+            <SectionHeader eyebrow={eyebrow} title={title} hint={hint} />
 
             {loading ? (
                 <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
@@ -898,7 +872,7 @@ const FixedDocsSection = ({
                         const row = rows[pk];
                         const showPreview = previewOpen[pk] === true;
                         return (
-                            <div key={pk} className="rounded-xl border border-border bg-background p-4 md:p-5 space-y-4">
+                            <div key={pk} className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 p-4 md:p-5 space-y-4">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <span className="inline-flex items-center rounded-lg bg-primary/10 px-2.5 py-1 font-mono text-xs font-semibold text-primary">
                                         {pk}
@@ -1003,7 +977,7 @@ const EMAIL_PLACEHOLDER_HINT =
 
 const LegalPagesEditor = () => (
     <FixedDocsSection
-        icon={ScrollText}
+        eyebrow="Documents"
         title="Legal Pages"
         hint="The Privacy Policy and Terms of Service pages Yatris read."
         table="legal_pages"
@@ -1021,7 +995,7 @@ const LegalPagesEditor = () => (
 
 const GuidesEditor = () => (
     <FixedDocsSection
-        icon={BookOpen}
+        eyebrow="Documents"
         title="Guides"
         hint="The in-app guides and sitemaps for admins and Yatris."
         table="guides"
@@ -1039,7 +1013,7 @@ const GuidesEditor = () => (
 
 const EmailTemplatesEditor = () => (
     <FixedDocsSection
-        icon={Mail}
+        eyebrow="Documents"
         title="Email Templates"
         hint="The emails Yatris receive after signing up, registering, or buying. Only admins can see these."
         table="email_templates"
@@ -1395,10 +1369,10 @@ const AdminSiteContent = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-card border border-border rounded-2xl p-5 md:p-6"
+                        className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card"
                     >
                         <SectionHeader
-                            icon={Globe}
+                            eyebrow="Global"
                             title="Site Settings"
                             hint="Contact details, social links, booking, and brand copy."
                         />
@@ -1406,8 +1380,8 @@ const AdminSiteContent = () => {
                         <div className="space-y-8">
                             {/* Contact */}
                             <div>
-                                <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                    <Phone className="h-3.5 w-3.5" /> Contact
+                                <p className="mb-3 border-l-2 border-primary pl-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    Contact
                                 </p>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
@@ -1435,8 +1409,8 @@ const AdminSiteContent = () => {
 
                             {/* Social */}
                             <div>
-                                <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                    <Share2 className="h-3.5 w-3.5" /> Social links
+                                <p className="mb-3 border-l-2 border-primary pl-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    Social links
                                 </p>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
@@ -1456,8 +1430,8 @@ const AdminSiteContent = () => {
 
                             {/* Booking */}
                             <div>
-                                <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                    <CalendarClock className="h-3.5 w-3.5" /> Booking
+                                <p className="mb-3 border-l-2 border-primary pl-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    Booking
                                 </p>
                                 <div className="space-y-2">
                                     <FieldLabel htmlFor="booking-calendly">Calendly URL</FieldLabel>
@@ -1467,8 +1441,8 @@ const AdminSiteContent = () => {
 
                             {/* Brand */}
                             <div>
-                                <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                    <Sparkles className="h-3.5 w-3.5" /> Brand
+                                <p className="mb-3 border-l-2 border-primary pl-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                                    Brand
                                 </p>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
@@ -1496,9 +1470,9 @@ const AdminSiteContent = () => {
 
                 {/* ── Stats ── */}
                 <ScrollReveal delay={0.05}>
-                    <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+                    <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
                         <SectionHeader
-                            icon={BarChart3}
+                            eyebrow="Homepage"
                             title="Stats"
                             hint="The numbers shown on the homepage, community, and training pages."
                         />
@@ -1507,7 +1481,7 @@ const AdminSiteContent = () => {
                             {stats.map((stat) => (
                                 <div
                                     key={stat.id}
-                                    className="grid grid-cols-1 items-center gap-3 rounded-xl border border-border bg-background p-4 sm:grid-cols-[110px_1fr_1fr_auto]"
+                                    className="grid grid-cols-1 items-center gap-3 rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 p-4 sm:grid-cols-[110px_1fr_1fr_auto]"
                                 >
                                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         {stat.key}
@@ -1556,9 +1530,9 @@ const AdminSiteContent = () => {
 
                 {/* ── Promotion ── */}
                 <ScrollReveal delay={0.05}>
-                    <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+                    <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
                         <SectionHeader
-                            icon={Megaphone}
+                            eyebrow="Homepage"
                             title="Promotion"
                             hint="The voucher offer shown in the homepage hero."
                         />
@@ -1604,16 +1578,16 @@ const AdminSiteContent = () => {
 
                 {/* ── FAQs ── */}
                 <ScrollReveal delay={0.05}>
-                    <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+                    <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
                         <SectionHeader
-                            icon={HelpCircle}
+                            eyebrow="Homepage"
                             title="FAQs"
                             hint="The questions and answers shown on the homepage. Save each card after editing."
                         />
 
                         <div className="space-y-4">
                             {faqs.map((faq, index) => (
-                                <div key={faq.id ?? `new-${index}`} className="rounded-xl border border-border bg-background p-4 md:p-5 space-y-4">
+                                <div key={faq.id ?? `new-${index}`} className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 p-4 md:p-5 space-y-4">
                                     <div className="flex items-center justify-between gap-3">
                                         <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
                                             {index + 1}
@@ -1718,7 +1692,7 @@ const AdminSiteContent = () => {
                 {/* ── Team ── */}
                 <ScrollReveal delay={0.05}>
                     <ContentListSection
-                        icon={Users}
+                        eyebrow="Homepage"
                         title="Team"
                         hint="The people shown in the Meet the Team section on the homepage."
                         table="team_members"
@@ -1736,7 +1710,7 @@ const AdminSiteContent = () => {
                 {/* ── Package benefits ── */}
                 <ScrollReveal delay={0.05}>
                     <ContentListSection
-                        icon={Gift}
+                        eyebrow="Certification flow"
                         title="Package Benefits"
                         hint="The flip cards under What's Included in the certification flow."
                         table="package_benefits"
@@ -1752,7 +1726,7 @@ const AdminSiteContent = () => {
                 {/* ── Certification steps ── */}
                 <ScrollReveal delay={0.05}>
                     <ContentListSection
-                        icon={ListOrdered}
+                        eyebrow="Certification flow"
                         title="Certification Steps"
                         hint="The numbered journey from picking a time to exam scheduling."
                         table="certification_steps"
@@ -1771,7 +1745,7 @@ const AdminSiteContent = () => {
                 {/* ── Eligible exams ── */}
                 <ScrollReveal delay={0.05}>
                     <ContentListSection
-                        icon={BadgeCheck}
+                        eyebrow="Certification flow"
                         title="Eligible Exams"
                         hint="The AWS exams covered by the 50% OFF offer."
                         table="eligible_exams"
@@ -1787,7 +1761,7 @@ const AdminSiteContent = () => {
                 {/* ── Recognitions ── */}
                 <ScrollReveal delay={0.05}>
                     <ContentListSection
-                        icon={Award}
+                        eyebrow="Homepage"
                         title="Recognitions"
                         hint="The instructor recognition badges on the blue band."
                         table="recognitions"

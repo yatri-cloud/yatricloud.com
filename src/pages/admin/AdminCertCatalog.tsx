@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-    Award,
     ArrowDown,
     ArrowUp,
-    BadgeCheck,
-    Home,
-    ListChecks,
     Loader2,
     Pencil,
     Plus,
@@ -591,17 +587,13 @@ const AdminCertCatalog = () => {
                 <ScrollReveal delay={0.05}>
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] items-start">
                         {/* ── Providers list ── */}
-                        <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
-                            <div className="flex items-start gap-3 border-b border-border pb-4 mb-5">
-                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                    <Award className="h-5 w-5" />
-                                </span>
-                                <div>
-                                    <h2 className="font-display text-lg font-bold tracking-tight">Providers</h2>
-                                    <p className="text-sm text-muted-foreground">
-                                        Pick a provider to manage its exams.
-                                    </p>
-                                </div>
+                        <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
+                            <div className="-mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 rounded-t-2xl border-b border-brand-100 bg-gradient-to-r from-brand-50 to-transparent px-5 md:px-6 py-4">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Catalog</p>
+                                <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">Providers</h2>
+                                <p className="text-sm text-muted-foreground">
+                                    Pick a provider to manage its exams.
+                                </p>
                             </div>
 
                             <div className="space-y-2">
@@ -611,8 +603,8 @@ const AdminCertCatalog = () => {
                                         <div
                                             key={provider.id}
                                             className={`rounded-xl border p-3 transition-colors ${selected
-                                                ? "border-primary/40 bg-primary/5"
-                                                : "border-border bg-background hover:bg-brand-50"
+                                                ? "border-primary/30 bg-primary/5"
+                                                : "border-border bg-background hover:bg-brand-50/50 hover:border-brand-100"
                                                 }`}
                                         >
                                             <button
@@ -622,18 +614,16 @@ const AdminCertCatalog = () => {
                                                 aria-pressed={selected}
                                                 aria-label={`Manage ${provider.label} certifications`}
                                             >
-                                                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
-                                                    {provider.logo_url ? (
+                                                {provider.logo_url && (
+                                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
                                                         <img
                                                             src={provider.logo_url}
                                                             alt=""
                                                             className="h-7 w-7 object-contain"
                                                             loading="lazy"
                                                         />
-                                                    ) : (
-                                                        <Award className="h-4 w-4 text-muted-foreground" />
-                                                    )}
-                                                </span>
+                                                    </span>
+                                                )}
                                                 <span className="min-w-0 flex-1">
                                                     <span className={`block truncate text-sm font-semibold ${selected ? "text-primary" : ""}`}>
                                                         {provider.label}
@@ -647,13 +637,13 @@ const AdminCertCatalog = () => {
                                             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                                                 <div className="flex flex-wrap items-center gap-1.5">
                                                     {provider.show_on_home && (
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                                                            <Home className="h-3 w-3" /> On homepage
+                                                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                                            On homepage
                                                         </span>
                                                     )}
                                                     {provider.show_in_forms && (
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
-                                                            <ListChecks className="h-3 w-3" /> In forms
+                                                        <span className="inline-flex items-center rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
+                                                            In forms
                                                         </span>
                                                     )}
                                                 </div>
@@ -700,13 +690,11 @@ const AdminCertCatalog = () => {
                         </div>
 
                         {/* ── Selected provider's certifications ── */}
-                        <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
-                            <div className="flex items-start gap-3 border-b border-border pb-4 mb-5">
-                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                    <BadgeCheck className="h-5 w-5" />
-                                </span>
+                        <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
+                            <div className="-mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 flex flex-wrap items-start justify-between gap-3 rounded-t-2xl border-b border-brand-100 bg-gradient-to-r from-brand-50 to-transparent px-5 md:px-6 py-4">
                                 <div className="min-w-0 flex-1">
-                                    <h2 className="font-display text-lg font-bold tracking-tight">
+                                    <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Catalog</p>
+                                    <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">
                                         {selectedProvider ? `${selectedProvider.label} certifications` : "Certifications"}
                                     </h2>
                                     <p className="text-sm text-muted-foreground">
@@ -759,7 +747,7 @@ const AdminCertCatalog = () => {
                                         return (
                                             <div
                                                 key={cert.id}
-                                                className="rounded-xl border border-border bg-background p-3 md:p-4"
+                                                className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 hover:bg-brand-50/50 transition-colors p-3 md:p-4"
                                             >
                                                 {isEditing ? (
                                                     <div className="space-y-3">
