@@ -39,6 +39,7 @@ import MyEvents from "./pages/MyEvents";
 import AdminAttendees from "./pages/admin/AdminAttendees";
 import EventRegistrationsList from "./pages/admin/EventRegistrationsList";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 import EventFeedback from "./pages/EventFeedback";
 import AdminTraining from "./pages/admin/AdminTraining";
 import AdminEditTraining from "./pages/admin/AdminEditTraining";
@@ -86,6 +87,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <ThemeProvider defaultTheme="light">
     <SpeedInsights />
+    <Analytics />
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <CartProvider>
