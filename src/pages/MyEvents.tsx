@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -73,6 +75,7 @@ export default function MyEvents() {
     const [signedIn, setSignedIn] = useState(false);
     const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     // Cancel confirmation state
     const [pendingCancel, setPendingCancel] = useState<EventRegistration | null>(null);
@@ -157,6 +160,15 @@ export default function MyEvents() {
         setPendingCancel(null);
     };
 
+    const query = search.trim().toLowerCase();
+    const filteredRegistrations = query
+        ? registrations.filter((reg) =>
+            (reg.eventName || "").toLowerCase().includes(query) ||
+            (reg.eventLocation || "").toLowerCase().includes(query) ||
+            (reg.attendees[0]?.ticketId || "").toLowerCase().includes(query)
+        )
+        : registrations;
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             <SEO
@@ -215,8 +227,24 @@ export default function MyEvents() {
                             </Button>
                         </div>
                     ) : (
+                        <>
+                        <div className="relative mb-6 max-w-md">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search events by name, location or code"
+                                aria-label="Search registered events"
+                                className="h-10 pl-9"
+                            />
+                        </div>
+                        {filteredRegistrations.length === 0 ? (
+                        <div className="py-12 text-center text-muted-foreground">
+                            No events match your search.
+                        </div>
+                    ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {registrations.map((reg) => {
+                            {filteredRegistrations.map((reg) => {
                                 const cal = getEventCalendar(reg);
                                 const code = reg.attendees[0]?.ticketId;
                                 const isConfirmed = reg.status === "confirmed";
@@ -361,6 +389,8 @@ export default function MyEvents() {
                                 );
                             })}
                         </div>
+                    )}
+                        </>
                     )}
                 </div>
             </main>

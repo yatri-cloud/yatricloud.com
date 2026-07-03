@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Receipt } from "lucide-react";
+import { ArrowLeft, Loader2, Receipt, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { getStoredUser } from "@/lib/yatris-api";
 import { getMyInvoices, formatInvoiceMoney, type Invoice } from "@/lib/invoices-api";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -17,6 +18,7 @@ export default function MyPurchases() {
     const [user, setUser] = useState<any>(null);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -46,6 +48,15 @@ export default function MyPurchases() {
         return more > 0 ? `${first} and ${more} more` : first;
     };
 
+    const query = search.trim().toLowerCase();
+    const filteredInvoices = query
+        ? invoices.filter((inv) =>
+            (inv.kindLabel || "").toLowerCase().includes(query) ||
+            (inv.number || "").toLowerCase().includes(query) ||
+            inv.items.some((it) => (it.name || "").toLowerCase().includes(query))
+        )
+        : invoices;
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             <SEO title="My Receipts | Yatri Cloud" description="View and download receipts for your purchases" />
@@ -72,6 +83,19 @@ export default function MyPurchases() {
                         </p>
                     </motion.div>
 
+                    {!isLoading && invoices.length > 0 && (
+                        <div className="relative mb-5 max-w-md">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search receipts by item or number"
+                                aria-label="Search receipts"
+                                className="h-10 pl-9"
+                            />
+                        </div>
+                    )}
+
                     {isLoading ? (
                         <div className="flex justify-center py-12">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -85,9 +109,13 @@ export default function MyPurchases() {
                             </p>
                             <Button onClick={() => navigate("/store")}>Visit the store</Button>
                         </div>
+                    ) : filteredInvoices.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            No receipts match your search.
+                        </div>
                     ) : (
                         <div className="space-y-3">
-                            {invoices.map((inv, index) => (
+                            {filteredInvoices.map((inv, index) => (
                                 <motion.button
                                     key={inv.number || index}
                                     type="button"

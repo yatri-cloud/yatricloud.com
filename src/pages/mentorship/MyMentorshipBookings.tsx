@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
+import { Input } from "@/components/ui/input";
 import { LoginModal } from "@/components/LoginModal";
 import SlotPicker from "@/components/mentorship/SlotPicker";
 import BookingCalendar from "@/components/mentorship/BookingCalendar";
@@ -77,6 +78,7 @@ const MyMentorshipBookings = () => {
   const [signedIn, setSignedIn] = useState(hasSession());
   const [showLogin, setShowLogin] = useState(false);
   const [bookings, setBookings] = useState<MentorshipBookingWithRefs[]>([]);
+  const [search, setSearch] = useState("");
   const [secrets, setSecrets] = useState<ServiceSecret[]>([]);
   const [myReviews, setMyReviews] = useState<MentorReview[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -127,6 +129,16 @@ const MyMentorshipBookings = () => {
     () => new Set(myReviews.map((r) => r.booking_id).filter(Boolean)),
     [myReviews]
   );
+
+  const filteredBookings = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return bookings;
+    return bookings.filter((b) =>
+      (b.mentor?.name || "").toLowerCase().includes(q) ||
+      (b.service?.title || "").toLowerCase().includes(q) ||
+      (b.status || "").toLowerCase().includes(q)
+    );
+  }, [bookings, search]);
 
   const secretFor = (serviceId: string): ServiceSecret | undefined =>
     secrets.find((s) => s.service_id === serviceId);
@@ -365,7 +377,19 @@ const MyMentorshipBookings = () => {
           </div>
         ) : (
           <div className="space-y-5 max-w-3xl">
-            {bookings.map((booking) => {
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search bookings by mentor, service or status"
+                aria-label="Search bookings"
+                className="h-10 pl-9"
+              />
+            </div>
+            {filteredBookings.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">No bookings match your search.</div>
+            ) : filteredBookings.map((booking) => {
               const secret = secretFor(booking.service_id);
               const isDigital = booking.service?.type === "digital";
               const canAccess =

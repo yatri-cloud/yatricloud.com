@@ -11,6 +11,7 @@ import {
     User,
     Clock,
     GraduationCap,
+    Search,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -19,6 +20,7 @@ import { getStoredUser } from "@/lib/yatris-api";
 import { listMyEnrollments } from "@/lib/training-api";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -53,6 +55,7 @@ export default function MyTrainings() {
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [trainings, setTrainings] = useState<Record<string, TrainingDetails>>({});
     const [isLoading, setIsLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -87,6 +90,17 @@ export default function MyTrainings() {
         }
     };
 
+    const query = search.trim().toLowerCase();
+    const filteredEnrollments = query
+        ? enrollments.filter((e) => {
+            const t = trainings[e.trainingId];
+            if (!t) return false;
+            return (t.courseName || "").toLowerCase().includes(query) ||
+                (t.instructor || "").toLowerCase().includes(query) ||
+                (t.venue || "").toLowerCase().includes(query);
+        })
+        : enrollments;
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             <SEO title="My Trainings | Yatri Cloud" description="Manage your enrolled training programs" />
@@ -113,6 +127,19 @@ export default function MyTrainings() {
                         </p>
                     </motion.div>
 
+                    {!isLoading && enrollments.length > 0 && (
+                        <div className="relative mb-6 max-w-md">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search trainings by name or instructor"
+                                aria-label="Search trainings"
+                                className="h-10 pl-9"
+                            />
+                        </div>
+                    )}
+
                     {isLoading ? (
                         <div className="flex justify-center py-12">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -126,9 +153,11 @@ export default function MyTrainings() {
                             </p>
                             <Button onClick={() => navigate('/training')}>Explore Training</Button>
                         </div>
+                    ) : filteredEnrollments.length === 0 ? (
+                        <div className="py-12 text-center text-muted-foreground">No trainings match your search.</div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {enrollments.map((enrollment, index) => {
+                            {filteredEnrollments.map((enrollment, index) => {
                                 const training = trainings[enrollment.trainingId];
                                 if (!training) return null;
 

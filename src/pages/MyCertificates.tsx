@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Award } from "lucide-react";
+import { ArrowLeft, Loader2, Award, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { getStoredUser } from "@/lib/yatris-api";
 import { getMyCertificates, type MyCertificate } from "@/lib/certificates-api";
@@ -17,6 +18,7 @@ export default function MyCertificates() {
     const [user, setUser] = useState<any>(null);
     const [certs, setCerts] = useState<MyCertificate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -36,6 +38,16 @@ export default function MyCertificates() {
         })();
     }, [user]);
 
+    const query = search.trim().toLowerCase();
+    const filteredCerts = query
+        ? certs.filter((c) =>
+            (c.title || "").toLowerCase().includes(query) ||
+            (c.kindLabel || "").toLowerCase().includes(query) ||
+            (c.recipientName || "").toLowerCase().includes(query) ||
+            (c.serial || "").toLowerCase().includes(query)
+        )
+        : certs;
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             <SEO title="My Certificates | Yatri Cloud" description="Your earned certificates" />
@@ -52,6 +64,19 @@ export default function MyCertificates() {
                         <p className="text-lg text-muted-foreground">Every certificate you have earned. Open one to view, share or verify it.</p>
                     </motion.div>
 
+                    {!isLoading && certs.length > 0 && (
+                        <div className="relative mb-6 max-w-md">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search certificates by title or serial"
+                                aria-label="Search certificates"
+                                className="h-10 pl-9"
+                            />
+                        </div>
+                    )}
+
                     {isLoading ? (
                         <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                     ) : certs.length === 0 ? (
@@ -64,9 +89,11 @@ export default function MyCertificates() {
                                 <Button variant="outline" onClick={() => navigate("/events")}>Browse events</Button>
                             </div>
                         </div>
+                    ) : filteredCerts.length === 0 ? (
+                        <div className="py-12 text-center text-muted-foreground">No certificates match your search.</div>
                     ) : (
                         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                            {certs.map((c, i) => (
+                            {filteredCerts.map((c, i) => (
                                 <motion.div key={c.serial || i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.04, 0.3) }}>
                                     <Link to={c.serial ? `/certificate/${c.serial}` : "#"} className="block h-full">
                                         <Card className="group h-full overflow-hidden transition-colors hover:border-primary/40 hover:bg-brand-50/40">
