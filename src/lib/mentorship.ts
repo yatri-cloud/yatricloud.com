@@ -673,10 +673,10 @@ export async function cancelBooking(
 }
 
 /**
- * Moves an upcoming booking to a new slot. RLS lets the mentee update their
- * own row; we only allow it while the booking is pending or confirmed. The
- * unique slot index is the real double booking guard, surfaced here as a
- * friendly "slot taken" so the caller can ask for another time.
+ * Moves an upcoming booking to a new slot. Row level security does not let a
+ * mentee change a confirmed booking, so this runs on the server with the
+ * service role after verifying the caller. The unique slot index is the real
+ * double booking guard, surfaced here as a friendly "slot taken".
  */
 export async function rescheduleBooking(
   bookingId: string,
@@ -684,47 +684,31 @@ export async function rescheduleBooking(
   newSlotEnd: string
 ): Promise<{ error: string | null; slotTaken: boolean }> {
   try {
-    const { data: current, error: readError } = await supabase
-      .from("mentorship_bookings")
-      .select("rescheduled_count, status")
-      .eq("id", bookingId)
-      .single();
-    if (readError || !current) {
-      return { error: "We could not find this booking.", slotTaken: false };
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) {
+      return { error: "Please sign in again to reschedule this booking.", slotTaken: false };
     }
-    if (current.status !== "pending" && current.status !== "confirmed") {
-      return {
-        error: "Only upcoming sessions can be moved to a new time.",
-        slotTaken: false,
-      };
-    }
-    const { error } = await supabase
-      .from("mentorship_bookings")
-      .update({
+    const res = await fetch("/api/mentorship/reschedule-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        booking_id: bookingId,
+        access_token: accessToken,
         slot_start: newSlotStart,
         slot_end: newSlotEnd,
-        rescheduled_count: (Number(current.rescheduled_count) || 0) + 1,
-      })
-      .eq("id", bookingId)
-      .in("status", ["pending", "confirmed"]);
-    if (error) {
-      if (error.code === "23505") {
-        return {
-          error: "That time was just taken. Please pick another slot.",
-          slotTaken: true,
-        };
-      }
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.ok) {
       return {
-        error: "This session could not be rescheduled. Please try again.",
-        slotTaken: false,
+        error: data?.message || "This session could not be rescheduled. Please try again.",
+        slotTaken: Boolean(data?.slotTaken),
       };
     }
     return { error: null, slotTaken: false };
   } catch {
-    return {
-      error: "This session could not be rescheduled. Please try again.",
-      slotTaken: false,
-    };
+    return { error: "This session could not be rescheduled. Please try again.", slotTaken: false };
   }
 }
 
