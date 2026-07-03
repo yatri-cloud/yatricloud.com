@@ -136,9 +136,13 @@ export const Navbar = () => {
               ))}
             </div>
 
+            {/* Search — one instance for every screen size (its trigger
+                collapses to icon-only below lg, and mounting it twice would
+                double-toggle the Cmd+K listener). */}
+            <GlobalSearch />
+
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-4">
-              <GlobalSearch />
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

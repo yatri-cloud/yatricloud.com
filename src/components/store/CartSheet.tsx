@@ -10,6 +10,8 @@ import { useCart } from "@/contexts/CartContext";
 import { initiatePayment, isTestMode } from "@/lib/razorpay";
 import { toast } from "sonner";
 import { getStoredUser } from "@/lib/yatris-api";
+import { validateCoupon, redeemCoupon, discountedInr, type AppliedCoupon } from "@/lib/coupons";
+import { Input } from "@/components/ui/input";
 import { sendEmail } from "@/lib/email";
 import { getProductPurchaseEmail } from "@/lib/email-templates";
 import { CurrencySelect } from "@/components/CurrencySelect";
@@ -38,8 +40,27 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
   }, []);
   const testMode = isTestMode();
   const user = getStoredUser();
-  const convertedTotal = convertFromInr(totalPrice, currency);
+  // Coupon: discount applies to the INR total before currency conversion.
+  // Guests can use codes too; usage counting only runs for signed-in buyers
+  // (the redeem RPC is authenticated-only), so caps under-count, never over.
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const [couponChecking, setCouponChecking] = useState(false);
+  const [couponError, setCouponError] = useState("");
+
+  const applyCoupon = async () => {
+    setCouponChecking(true);
+    setCouponError("");
+    const result = await validateCoupon(couponInput, "store");
+    setCouponChecking(false);
+    if (result) setCoupon(result);
+    else { setCoupon(null); setCouponError("That code did not work. Check the spelling or try another."); }
+  };
+
+  const effectiveTotalInr = discountedInr(totalPrice, coupon);
+  const convertedTotal = convertFromInr(effectiveTotalInr, currency);
   const totalLabel = formatMoney(convertedTotal, currency);
+  const originalTotalLabel = formatMoney(convertFromInr(totalPrice, currency), currency);
 
   const handleCheckout = async () => {
     if (items.length === 0) {
@@ -50,7 +71,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
     setIsProcessing(true);
     try {
       // Amount in the smallest unit of the chosen currency (converted from INR).
-      const chargeAmount = convertFromInr(totalPrice, currency);
+      const chargeAmount = convertFromInr(effectiveTotalInr, currency);
       const amountInSmallestUnit = toSmallestUnit(chargeAmount, currency);
       const amountLabel = formatMoney(chargeAmount, currency);
 
@@ -94,6 +115,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
         customerEmail,
         customerPhone,
         async (paymentId) => {
+          if (coupon) void redeemCoupon(coupon.code);
           // Check if any item is an exam dump for both email and success popup
           const examDumps = items.filter(item => item.downloadUrl);
           
@@ -320,9 +342,34 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                       disabled={isProcessing}
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <div className="flex gap-2">
+                      <Input
+                        value={couponInput}
+                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
+                        placeholder="Coupon code (optional)"
+                        className="h-9 uppercase"
+                        disabled={isProcessing || !!coupon}
+                      />
+                      {coupon ? (
+                        <Button type="button" variant="outline" size="sm" className="h-9" onClick={() => { setCoupon(null); setCouponInput(""); }} disabled={isProcessing}>
+                          Remove
+                        </Button>
+                      ) : (
+                        <Button type="button" variant="outline" size="sm" className="h-9" onClick={applyCoupon} disabled={couponChecking || !couponInput.trim() || isProcessing}>
+                          Apply
+                        </Button>
+                      )}
+                    </div>
+                    {coupon && <p className="text-xs text-success">{coupon.code} applied — you save {coupon.percentOff}%.</p>}
+                    {couponError && <p className="text-xs text-destructive">{couponError}</p>}
+                  </div>
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>{totalLabel}</span>
+                    <span>
+                      {totalLabel}
+                      {coupon && <s className="ml-2 text-sm font-normal text-muted-foreground">{originalTotalLabel}</s>}
+                    </span>
                   </div>
                 </div>
                 <div className="flex gap-2">

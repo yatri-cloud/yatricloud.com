@@ -14,7 +14,7 @@ export interface AppliedCoupon {
 /** Check a code for a checkout scope ('training' | 'event'). Never throws. */
 export async function validateCoupon(
   code: string,
-  scope: "training" | "event",
+  scope: "training" | "event" | "store",
 ): Promise<AppliedCoupon | null> {
   const trimmed = code.trim();
   if (!trimmed) return null;

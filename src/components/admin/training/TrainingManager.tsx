@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { QuizBuilder } from "@/components/trainer/QuizBuilder";
+import { QuizBuilder, type QuizSettings } from "@/components/trainer/QuizBuilder";
 import { QuizQuestion } from "@/types/quiz";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -101,6 +101,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     const [thumbnailMimeType, setThumbnailMimeType] = useState<string>("");
     const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
     const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+    const [quizSettings, setQuizSettings] = useState<QuizSettings>({ title: "Practice Quiz", passingScore: 70, timeLimitMin: null });
     const [resources, setResources] = useState<{ id: string; name: string; url: string; type: string; description: string }[]>([]);
     const [resourceMode, setResourceMode] = useState<'link' | 'upload'>('link');
     const [isUploading, setIsUploading] = useState(false);
@@ -280,7 +281,14 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 // Load the saved practice quiz into the builder (best effort).
                 try {
                     const quizzes = await listQuizzes(trainingId);
-                    if (quizzes[0]?.questions?.length) setQuizQuestions(quizzes[0].questions);
+                    if (quizzes[0]) {
+                        if (quizzes[0].questions?.length) setQuizQuestions(quizzes[0].questions);
+                        setQuizSettings({
+                            title: quizzes[0].title || "Practice Quiz",
+                            passingScore: quizzes[0].passingScore ?? 70,
+                            timeLimitMin: quizzes[0].timeLimitMin ?? null,
+                        });
+                    }
                 } catch { /* builder simply starts empty */ }
                 toast.success("Training loaded successfully");
             } else {
@@ -354,7 +362,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
             // never blocks the course save — the trainer just retries.
             if (trainingId) {
                 try {
-                    await saveQuizForTraining(trainingId, quizQuestions);
+                    await saveQuizForTraining(trainingId, quizQuestions, { title: quizSettings.title || "Practice Quiz", passingScore: quizSettings.passingScore, timeLimitMin: quizSettings.timeLimitMin });
                 } catch (quizError) {
                     console.error("Quiz save error", quizError);
                     toast.error("Course saved, but the quiz did not save. Open the course and save again.");
@@ -1014,7 +1022,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
                             </div>
 
-                            <QuizBuilder trainingId={editId || "new"} onSave={setQuizQuestions} initialQuestions={quizQuestions} />
+                            <QuizBuilder trainingId={editId || "new"} onSave={setQuizQuestions} initialQuestions={quizQuestions} settings={quizSettings} onSettingsChange={setQuizSettings} />
 
                             <div className="flex justify-between pt-2">
                                 <Button type="button" variant="outline" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">

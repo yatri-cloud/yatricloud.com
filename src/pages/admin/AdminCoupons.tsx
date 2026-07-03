@@ -26,7 +26,7 @@ interface Coupon {
     created_at: string;
 }
 
-const SCOPE_LABELS: Record<string, string> = { all: "Everything", training: "Trainings", event: "Events" };
+const SCOPE_LABELS: Record<string, string> = { all: "Everything", training: "Trainings", event: "Events", store: "Store" };
 
 const EMPTY = { code: "", percent_off: "10", applies_to: "all", max_uses: "", expires_at: "" };
 
@@ -130,7 +130,7 @@ export default function AdminCoupons() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="font-display text-3xl font-black tracking-tight">Coupons</h1>
-                    <p className="mt-1 text-muted-foreground">Discount codes for training and event checkouts.</p>
+                    <p className="mt-1 text-muted-foreground">Discount codes for training, event and store checkouts.</p>
                 </div>
                 <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> New coupon</Button>
             </div>
@@ -150,6 +150,7 @@ export default function AdminCoupons() {
                                 <SelectItem value="all">Everything</SelectItem>
                                 <SelectItem value="training">Trainings</SelectItem>
                                 <SelectItem value="event">Events</SelectItem>
+                                <SelectItem value="store">Store</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -235,6 +236,7 @@ export default function AdminCoupons() {
                                         <SelectItem value="all">Everything</SelectItem>
                                         <SelectItem value="training">Trainings only</SelectItem>
                                         <SelectItem value="event">Events only</SelectItem>
+                                        <SelectItem value="store">Store only</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

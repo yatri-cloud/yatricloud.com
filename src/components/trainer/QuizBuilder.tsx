@@ -8,14 +8,24 @@ import { QuestionEditor } from './QuestionEditor';
 import { CSVImportDialog } from './CSVImportDialog';
 import { useToast } from '@/hooks/use-toast';
 
+export interface QuizSettings {
+    title: string;
+    passingScore: number;
+    /** Minutes; null = no time limit. */
+    timeLimitMin: number | null;
+}
+
 interface QuizBuilderProps {
     trainingId: string;
     onSave?: (questions: QuizQuestion[]) => void;
     /** Existing questions loaded from the DB when editing a training. */
     initialQuestions?: QuizQuestion[];
+    /** Quiz-level settings (title, pass mark, time limit), lifted to the form. */
+    settings?: QuizSettings;
+    onSettingsChange?: (settings: QuizSettings) => void;
 }
 
-export const QuizBuilder = ({ trainingId, onSave, initialQuestions }: QuizBuilderProps) => {
+export const QuizBuilder = ({ trainingId, onSave, initialQuestions, settings, onSettingsChange }: QuizBuilderProps) => {
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
 
     // Hydrate once when the saved quiz arrives (async on edit). Never clobber
@@ -113,7 +123,51 @@ export const QuizBuilder = ({ trainingId, onSave, initialQuestions }: QuizBuilde
         });
     };
 
+    const currentSettings: QuizSettings = settings || { title: "Practice Quiz", passingScore: 70, timeLimitMin: null };
+    const patchSettings = (patch: Partial<QuizSettings>) =>
+        onSettingsChange?.({ ...currentSettings, ...patch });
+
     return (
+        <div className="space-y-4">
+        {/* Quiz-level settings — saved with the course */}
+        {onSettingsChange && (
+            <div className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-3">
+                <div className="space-y-1">
+                    <label htmlFor="quiz-title" className="text-sm font-medium">Quiz title</label>
+                    <input
+                        id="quiz-title"
+                        value={currentSettings.title}
+                        onChange={(e) => patchSettings({ title: e.target.value })}
+                        placeholder="Practice Quiz"
+                        className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <label htmlFor="quiz-pass" className="text-sm font-medium">Passing score (%)</label>
+                    <input
+                        id="quiz-pass"
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={currentSettings.passingScore}
+                        onChange={(e) => patchSettings({ passingScore: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
+                        className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <label htmlFor="quiz-time" className="text-sm font-medium">Time limit (minutes, empty = none)</label>
+                    <input
+                        id="quiz-time"
+                        type="number"
+                        min={1}
+                        value={currentSettings.timeLimitMin ?? ""}
+                        onChange={(e) => patchSettings({ timeLimitMin: e.target.value ? Math.max(1, Number(e.target.value) || 1) : null })}
+                        className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                </div>
+            </div>
+        )}
+
         <div className="flex h-[calc(100vh-200px)] gap-4">
             {/* Left Sidebar - Question List */}
             <div className="w-80 flex flex-col border-r bg-card">
@@ -177,6 +231,7 @@ export const QuizBuilder = ({ trainingId, onSave, initialQuestions }: QuizBuilde
                 onClose={() => setIsCSVDialogOpen(false)}
                 onImport={handleCSVImport}
             />
+        </div>
         </div>
     );
 };
