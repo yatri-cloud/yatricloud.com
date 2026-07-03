@@ -141,4 +141,57 @@ run("timezone boundary: 18:00 IST Monday rule yields a 12:30 UTC Monday slot", (
   );
 });
 
+/* ---------- date specific override cases ---------- */
+
+// The only Monday inside a 7 day window from NOW (2026-07-01) is 2026-07-06.
+const MONDAY_DATE = "2026-07-06";
+
+run("whole day block: an override with no times removes that entire day", () => {
+  const base = generateSlots(MONDAY_ONLY, [], 30, 15, 0, 7, NOW);
+  assert.ok(base.length > 0, "sanity: the Monday should have slots without overrides");
+
+  const override = { date: MONDAY_DATE, kind: "blocked", start_time: null, end_time: null };
+  const blocked = generateSlots(MONDAY_ONLY, [], 30, 15, 0, 7, NOW, [override]);
+  assert.equal(blocked.length, 0, "a whole day block must remove every slot that day");
+});
+
+run("open override: adds slots on a day with no weekly rule at all", () => {
+  // No weekly rules; open an extra window on Friday 2026-07-03 (inside the 7 day window).
+  const override = { date: "2026-07-03", kind: "open", start_time: "10:00", end_time: "11:00" };
+  const slots = generateSlots([], [], 30, 15, 0, 7, NOW, [override]);
+  // 10:00 IST is 04:30 UTC; a single 30 minute slot fits inside 10:00 to 11:00.
+  assert.equal(slots.length, 1, `expected exactly one open override slot, got ${slots.length}`);
+  assert.equal(
+    new Date(startMs(slots[0])).toISOString(),
+    "2026-07-03T04:30:00.000Z",
+    "the open override slot must convert 10:00 IST to 04:30 UTC"
+  );
+});
+
+run("blocked window: removes overlapping slots but keeps the rest of the day", () => {
+  const base = generateSlots(MONDAY_ONLY, [], 30, 15, 0, 7, NOW);
+  // Base Monday slots start 18:00, 18:45, 19:30, 20:15 IST.
+  assert.equal(base.length, 4, `sanity: expected 4 base slots, got ${base.length}`);
+
+  // Block 18:00 to 20:00 IST; only the 20:00 to 21:00 IST tail should survive.
+  const override = { date: MONDAY_DATE, kind: "blocked", start_time: "18:00", end_time: "20:00" };
+  const slots = generateSlots(MONDAY_ONLY, [], 30, 15, 0, 7, NOW, [override]);
+
+  const blockStartUtc = new Date("2026-07-06T12:30:00Z").getTime(); // 18:00 IST
+  const blockEndUtc = new Date("2026-07-06T14:30:00Z").getTime(); // 20:00 IST
+  for (const s of slots) {
+    const start = startMs(s);
+    const end = endMs(s);
+    assert.ok(
+      end <= blockStartUtc || start >= blockEndUtc,
+      `slot ${new Date(start).toISOString()} must not overlap the blocked 18:00 to 20:00 IST window`
+    );
+  }
+  assert.ok(slots.length > 0, "the 20:00 to 21:00 IST tail must still offer a slot");
+  assert.ok(
+    slots.some((s) => startMs(s) === blockEndUtc),
+    "a slot must start at 20:00 IST (14:30 UTC) once the earlier window is blocked"
+  );
+});
+
 console.log("\nAll mentorship slot contract tests passed.");

@@ -9,6 +9,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
+import type { DateOverride } from "@/lib/mentorship-slots";
 
 /* ------------------------------------------------------------------ */
 /* Canonical types (other agents import these)                         */
@@ -406,6 +407,85 @@ export function getMentorAvailability(
     })();
   }
   return availabilityPromises[mentorId];
+}
+
+/* ------------------------------------------------------------------ */
+/* Date specific availability overrides                                */
+/*                                                                     */
+/* Weekly rules set the recurring shape; overrides bend a single day:  */
+/* block the whole day, block a window, or open an extra window. Public */
+/* read (the slot picker needs them); owner mentor and admin write.    */
+/* Always fetched fresh so the picker reflects the latest edits.       */
+/* ------------------------------------------------------------------ */
+
+/** Normalises a Postgres date/timestamp value to "YYYY-MM-DD". */
+function normalizeOverrideDate(value: unknown): string {
+  return String(value ?? "").slice(0, 10);
+}
+
+/**
+ * Date specific overrides for a mentor, mapped to the pure DateOverride the
+ * slot generator consumes. Fresh read, never throws (empty list on any error).
+ */
+export async function getMentorDateOverrides(
+  mentorId: string
+): Promise<DateOverride[]> {
+  try {
+    const { data, error } = await supabase
+      .from("mentor_date_overrides")
+      .select("date, kind, start_time, end_time")
+      .eq("mentor_id", mentorId);
+    if (error || !data) return [];
+    return data.map((row: any) => ({
+      date: normalizeOverrideDate(row.date),
+      kind: row.kind === "open" ? "open" : "blocked",
+      start_time: row.start_time ?? null,
+      end_time: row.end_time ?? null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export interface DateOverrideInput {
+  date: string;
+  kind: "blocked" | "open";
+  start_time: string | null;
+  end_time: string | null;
+  note: string | null;
+}
+
+/** Adds a date override. Owner write (RLS: the mentor's own rows or admin). */
+export async function addDateOverride(
+  mentorId: string,
+  input: DateOverrideInput
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from("mentor_date_overrides").insert({
+    mentor_id: mentorId,
+    date: input.date,
+    kind: input.kind,
+    start_time: input.start_time,
+    end_time: input.end_time,
+    note: input.note,
+  });
+  if (error) {
+    return { error: "This date override could not be saved. Please try again." };
+  }
+  return { error: null };
+}
+
+/** Deletes a date override by id. Owner write (RLS: own rows or admin). */
+export async function deleteDateOverride(
+  id: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("mentor_date_overrides")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    return { error: "This date override could not be removed. Please try again." };
+  }
+  return { error: null };
 }
 
 /* ------------------------------------------------------------------ */

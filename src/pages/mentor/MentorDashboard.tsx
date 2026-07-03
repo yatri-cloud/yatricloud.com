@@ -67,6 +67,8 @@ import {
   getMyMentorApplication,
   getMentorEarnings,
   cancelBooking,
+  addDateOverride,
+  deleteDateOverride,
   googleCalendarUrl,
   buildIcs,
   icsDataUri,
@@ -86,6 +88,16 @@ type MentorRow = Mentor;
 type ServiceRow = MentorshipService;
 type AvailabilityRow = AvailabilityRule;
 type BookingRow = MentorshipBooking;
+
+/** A date specific availability override row (mentor_date_overrides). */
+type DateOverrideRow = {
+  id: string;
+  date: string;
+  kind: "blocked" | "open";
+  start_time: string | null;
+  end_time: string | null;
+  note: string | null;
+};
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -125,6 +137,7 @@ const MentorDashboard = () => {
 
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [availability, setAvailability] = useState<AvailabilityRow[]>([]);
+  const [dateOverrides, setDateOverrides] = useState<DateOverrideRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [earnings, setEarnings] = useState<MentorEarnings | null>(null);
   const [loadingData, setLoadingData] = useState(false);
@@ -160,7 +173,7 @@ const MentorDashboard = () => {
   const loadData = useCallback(async (mentorId: string) => {
     setLoadingData(true);
     try {
-      const [svc, avail, book] = await Promise.all([
+      const [svc, avail, overrides, book] = await Promise.all([
         supabase
           .from("mentorship_services")
           .select("*")
@@ -172,6 +185,11 @@ const MentorDashboard = () => {
           .eq("mentor_id", mentorId)
           .order("weekday", { ascending: true }),
         supabase
+          .from("mentor_date_overrides")
+          .select("id, date, kind, start_time, end_time, note")
+          .eq("mentor_id", mentorId)
+          .order("date", { ascending: true }),
+        supabase
           .from("mentorship_bookings")
           .select("*")
           .eq("mentor_id", mentorId)
@@ -179,9 +197,11 @@ const MentorDashboard = () => {
       ]);
       if (svc.error) throw svc.error;
       if (avail.error) throw avail.error;
+      if (overrides.error) throw overrides.error;
       if (book.error) throw book.error;
       setServices((svc.data as ServiceRow[]) ?? []);
       setAvailability((avail.data as AvailabilityRow[]) ?? []);
+      setDateOverrides((overrides.data as DateOverrideRow[]) ?? []);
       setBookings((book.data as BookingRow[]) ?? []);
       setEarnings(await getMentorEarnings(mentorId));
     } catch (e) {
@@ -336,6 +356,7 @@ const MentorDashboard = () => {
             <AvailabilityTab
               mentor={mentor}
               rules={availability}
+              overrides={dateOverrides}
               loading={loadingData}
               onChanged={() => loadData(mentor.id)}
               onMentorSaved={loadMentor}
@@ -1309,12 +1330,14 @@ const ServicesTab = ({
 const AvailabilityTab = ({
   mentor,
   rules,
+  overrides,
   loading,
   onChanged,
   onMentorSaved,
 }: {
   mentor: MentorRow;
   rules: AvailabilityRow[];
+  overrides: DateOverrideRow[];
   loading: boolean;
   onChanged: () => void;
   onMentorSaved: () => void;
@@ -1329,11 +1352,88 @@ const AvailabilityTab = ({
   const [buffer, setBuffer] = useState(String(mentor.buffer_min));
   const [savingSettings, setSavingSettings] = useState(false);
 
+  // Date specific override form.
+  const [ovDate, setOvDate] = useState("");
+  const [ovKind, setOvKind] = useState<"blocked" | "open">("blocked");
+  const [ovWholeDay, setOvWholeDay] = useState(true);
+  const [ovStart, setOvStart] = useState("18:00");
+  const [ovEnd, setOvEnd] = useState("21:00");
+  const [ovNote, setOvNote] = useState("");
+  const [savingOverride, setSavingOverride] = useState(false);
+
+  // Open overrides always need a window; only a full day block omits times.
+  const needsWindow = ovKind === "open" || !ovWholeDay;
+
   useEffect(() => {
     setNotice(String(mentor.notice_hours));
     setWindowDays(String(mentor.booking_window_days));
     setBuffer(String(mentor.buffer_min));
   }, [mentor]);
+
+  const todayKey = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD (local)
+  const upcomingOverrides = overrides
+    .filter((o) => (o.date ?? "").slice(0, 10) >= todayKey)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const describeOverride = (o: DateOverrideRow): string => {
+    if (o.kind === "open") {
+      return o.start_time && o.end_time
+        ? `Open ${hhmm(o.start_time)} to ${hhmm(o.end_time)}`
+        : "Open";
+    }
+    return o.start_time && o.end_time
+      ? `Blocked ${hhmm(o.start_time)} to ${hhmm(o.end_time)}`
+      : "Blocked all day";
+  };
+
+  const formatOverrideDate = (date: string): string => {
+    const d = new Date(`${date.slice(0, 10)}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return date;
+    return d.toLocaleDateString("en-IN", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const addOverride = async () => {
+    if (!ovDate) {
+      toast.error("Please pick a date.");
+      return;
+    }
+    if (needsWindow && ovEnd <= ovStart) {
+      toast.error("End time must be after the start time.");
+      return;
+    }
+    setSavingOverride(true);
+    const { error } = await addDateOverride(mentor.id, {
+      date: ovDate,
+      kind: ovKind,
+      start_time: needsWindow ? ovStart : null,
+      end_time: needsWindow ? ovEnd : null,
+      note: ovNote.trim() || null,
+    });
+    setSavingOverride(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success("Date override saved.");
+    setOvDate("");
+    setOvNote("");
+    onChanged();
+  };
+
+  const removeOverride = async (o: DateOverrideRow) => {
+    const { error } = await deleteDateOverride(o.id);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success("Date override removed.");
+    onChanged();
+  };
 
   const addRule = async () => {
     if (endTime <= startTime) {
@@ -1397,6 +1497,7 @@ const AvailabilityTab = ({
   };
 
   return (
+    <div className="flex flex-col gap-6">
     <div className="grid gap-6 lg:grid-cols-5">
       <Card className="border border-border shadow-sm lg:col-span-3">
         <CardHeader className="border-b border-border">
@@ -1506,6 +1607,140 @@ const AvailabilityTab = ({
             {savingSettings && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save settings
           </Button>
+        </CardContent>
+      </Card>
+    </div>
+
+      <Card className="border border-border shadow-sm">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg">Date specific</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Bend a single day without touching your weekly hours. Block a day off,
+            block a window, or open an extra window. Times are in {mentor.timezone}.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {loading ? (
+            <LoadingRows />
+          ) : upcomingOverrides.length === 0 ? (
+            <EmptyState text="No date overrides yet. Add one below to block or open a specific day." />
+          ) : (
+            <div className="flex flex-col gap-3">
+              {upcomingOverrides.map((o) => (
+                <div
+                  key={o.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-4 py-3"
+                >
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium">{formatOverrideDate(o.date)}</span>
+                      <Badge
+                        variant="outline"
+                        className={
+                          o.kind === "open"
+                            ? "bg-brand-50 text-brand-700 border-brand-100"
+                            : "bg-muted text-muted-foreground border-border"
+                        }
+                      >
+                        {describeOverride(o)}
+                      </Badge>
+                    </div>
+                    {o.note ? (
+                      <span className="text-sm text-muted-foreground">{o.note}</span>
+                    ) : null}
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => removeOverride(o)}>
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Separator className="my-6" />
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
+            <div className="grid gap-2">
+              <Label htmlFor="ov-date">Date</Label>
+              <Input
+                id="ov-date"
+                type="date"
+                value={ovDate}
+                min={todayKey}
+                onChange={(e) => setOvDate(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Type</Label>
+              <Select
+                value={ovKind}
+                onValueChange={(v) => setOvKind(v as "blocked" | "open")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="blocked">Block</SelectItem>
+                  <SelectItem value="open">Open</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {ovKind === "blocked" ? (
+              <div className="flex items-center gap-3 sm:col-span-2 lg:col-span-1">
+                <Switch
+                  id="ov-wholeday"
+                  checked={ovWholeDay}
+                  onCheckedChange={setOvWholeDay}
+                />
+                <Label htmlFor="ov-wholeday" className="cursor-pointer">
+                  Whole day
+                </Label>
+              </div>
+            ) : (
+              <div className="hidden lg:block" />
+            )}
+            <Button
+              className="bg-brand-500 hover:bg-brand-600 text-white"
+              onClick={addOverride}
+              disabled={savingOverride}
+            >
+              {savingOverride && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Add override
+            </Button>
+
+            {needsWindow ? (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="ov-start">Start</Label>
+                  <Input
+                    id="ov-start"
+                    type="time"
+                    value={ovStart}
+                    onChange={(e) => setOvStart(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="ov-end">End</Label>
+                  <Input
+                    id="ov-end"
+                    type="time"
+                    value={ovEnd}
+                    onChange={(e) => setOvEnd(e.target.value)}
+                  />
+                </div>
+              </>
+            ) : null}
+
+            <div className="grid gap-2 sm:col-span-2">
+              <Label htmlFor="ov-note">Note</Label>
+              <Input
+                id="ov-note"
+                value={ovNote}
+                placeholder="Optional, only you see this"
+                onChange={(e) => setOvNote(e.target.value)}
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

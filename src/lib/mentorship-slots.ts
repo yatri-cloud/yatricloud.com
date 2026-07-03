@@ -35,6 +35,26 @@ export interface SlotBooking {
   created_at: string;
 }
 
+/**
+ * Date specific availability override (structural: matches
+ * mentor_date_overrides rows). The date is a calendar day in the mentor
+ * timezone (IST for Yatri Cloud), formatted "YYYY-MM-DD".
+ *
+ * Semantics:
+ *   - kind "blocked" with null times  → the whole day is off.
+ *   - kind "blocked" with times       → that window is unavailable that day.
+ *   - kind "open" with times          → an extra available window that day,
+ *                                        even when no weekly rule covers it.
+ */
+export interface DateOverride {
+  /** "YYYY-MM-DD" calendar day in the mentor timezone (IST). */
+  date: string;
+  kind: "blocked" | "open";
+  /** "HH:MM" / "HH:MM:SS" wall clock in IST, or null for a whole day block. */
+  start_time: string | null;
+  end_time: string | null;
+}
+
 /** A bookable slot. Both instants are UTC Dates. */
 export interface Slot {
   start: Date;
@@ -62,6 +82,39 @@ function bookingBlocks(booking: SlotBooking, nowMs: number): boolean {
   return false; // cancelled / refunded never block
 }
 
+/** Half open minute interval [start, end) within a single IST day. */
+type MinuteWindow = [number, number];
+
+/**
+ * Subtracts a set of blocked intervals from each day window, returning the
+ * remaining open pieces. Both inputs are minutes since IST midnight. A blocked
+ * interval that carves the middle of a window splits it into two pieces.
+ */
+function subtractWindows(
+  windows: MinuteWindow[],
+  blocked: MinuteWindow[]
+): MinuteWindow[] {
+  if (blocked.length === 0) return windows.slice();
+  const result: MinuteWindow[] = [];
+  for (const [ws, we] of windows) {
+    let segments: MinuteWindow[] = [[ws, we]];
+    for (const [bs, be] of blocked) {
+      const next: MinuteWindow[] = [];
+      for (const [ss, se] of segments) {
+        if (be <= ss || bs >= se) {
+          next.push([ss, se]); // no overlap
+          continue;
+        }
+        if (bs > ss) next.push([ss, Math.min(bs, se)]);
+        if (be < se) next.push([Math.max(be, ss), se]);
+      }
+      segments = next;
+    }
+    for (const seg of segments) if (seg[1] > seg[0]) result.push(seg);
+  }
+  return result;
+}
+
 /**
  * Generates bookable slots for a mentor.
  *
@@ -73,6 +126,9 @@ function bookingBlocks(booking: SlotBooking, nowMs: number): boolean {
  * @param noticeHours      Minimum lead time before the first offered slot.
  * @param windowDays       How far ahead slots are offered.
  * @param now              The reference instant (injectable for tests).
+ * @param overrides        Date specific overrides (blocks / extra openings)
+ *                         in the mentor timezone. Optional and backward
+ *                         compatible: an empty list behaves exactly as before.
  * @returns Sorted ascending list of open slots as UTC instants.
  */
 export function generateSlots(
@@ -82,7 +138,8 @@ export function generateSlots(
   bufferMin: number,
   noticeHours: number,
   windowDays: number,
-  now: Date = new Date()
+  now: Date = new Date(),
+  overrides: DateOverride[] = []
 ): Slot[] {
   if (!Number.isFinite(durationMin) || durationMin <= 0) return [];
 
@@ -107,7 +164,36 @@ export function generateSlots(
       r.weekday >= 0 &&
       r.weekday <= 6
   );
-  if (activeRules.length === 0) return [];
+
+  // Group overrides by their IST calendar day so a single day lookup is O(1).
+  interface DayOverride {
+    blockedAllDay: boolean;
+    open: MinuteWindow[];
+    blocked: MinuteWindow[];
+  }
+  const overridesByDate = new Map<string, DayOverride>();
+  let hasOpenOverride = false;
+  for (const o of overrides) {
+    if (!o || typeof o.date !== "string") continue;
+    let entry = overridesByDate.get(o.date);
+    if (!entry) {
+      entry = { blockedAllDay: false, open: [], blocked: [] };
+      overridesByDate.set(o.date, entry);
+    }
+    const startMin = o.start_time != null ? parseTimeToMinutes(o.start_time) : NaN;
+    const endMin = o.end_time != null ? parseTimeToMinutes(o.end_time) : NaN;
+    const hasWindow = Number.isFinite(startMin) && Number.isFinite(endMin) && endMin > startMin;
+    if (o.kind === "blocked") {
+      if (o.start_time == null || o.end_time == null) entry.blockedAllDay = true;
+      else if (hasWindow) entry.blocked.push([startMin, endMin]);
+    } else if (o.kind === "open" && hasWindow) {
+      entry.open.push([startMin, endMin]);
+      hasOpenOverride = true;
+    }
+  }
+
+  // Nothing to offer when there are neither weekly rules nor extra openings.
+  if (activeRules.length === 0 && !hasOpenOverride) return [];
 
   const slots: Slot[] = [];
 
@@ -121,12 +207,33 @@ export function generateSlots(
       Date.UTC(istRef.getUTCFullYear(), istRef.getUTCMonth(), istRef.getUTCDate()) -
       IST_OFFSET_MIN * MIN_MS;
 
+    // Day key in the SAME IST space, matching the DateOverride "YYYY-MM-DD".
+    const dayKey =
+      `${istRef.getUTCFullYear()}-` +
+      `${String(istRef.getUTCMonth() + 1).padStart(2, "0")}-` +
+      `${String(istRef.getUTCDate()).padStart(2, "0")}`;
+    const dayOverride = overridesByDate.get(dayKey);
+
+    // Whole day off: skip the day entirely.
+    if (dayOverride?.blockedAllDay) continue;
+
+    // Day windows = weekly rules for this weekday PLUS any 'open' overrides.
+    const windows: MinuteWindow[] = [];
     for (const rule of activeRules) {
       if (rule.weekday !== weekday) continue;
       const startMin = parseTimeToMinutes(rule.start_time);
       const endMin = parseTimeToMinutes(rule.end_time);
       if (!Number.isFinite(startMin) || !Number.isFinite(endMin)) continue;
+      if (endMin <= startMin) continue;
+      windows.push([startMin, endMin]);
+    }
+    if (dayOverride) for (const w of dayOverride.open) windows.push(w);
+    if (windows.length === 0) continue;
 
+    // Subtract any blocked windows before slicing the remainder into slots.
+    const openPieces = subtractWindows(windows, dayOverride?.blocked ?? []);
+
+    for (const [startMin, endMin] of openPieces) {
       const windowStartMs = istMidnightUtcMs + startMin * MIN_MS;
       const windowCloseMs = istMidnightUtcMs + endMin * MIN_MS;
 

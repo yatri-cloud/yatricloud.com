@@ -11,7 +11,7 @@ import { hasSession, getCachedUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { createRazorpayOrder } from "@/lib/razorpay";
 import { sendEmail } from "@/lib/email";
-import { generateSlots, Slot } from "@/lib/mentorship-slots";
+import { generateSlots, Slot, type DateOverride } from "@/lib/mentorship-slots";
 import {
   Mentor,
   MentorshipService,
@@ -23,6 +23,7 @@ import {
   getServiceBySlug,
   getMentorAvailability,
   getMentorBookedSlots,
+  getMentorDateOverrides,
   createBooking,
   createMentorshipOrder,
   openMentorshipCheckout,
@@ -47,6 +48,7 @@ const MentorServiceDetail = () => {
   const [service, setService] = useState<MentorshipService | null>(null);
   const [rules, setRules] = useState<AvailabilityRule[]>([]);
   const [bookedRows, setBookedRows] = useState<BookedSlotRow[]>([]);
+  const [overrides, setOverrides] = useState<DateOverride[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
@@ -78,15 +80,17 @@ const MentorServiceDetail = () => {
       if (!mounted) return;
       setMentor(foundMentor);
       if (foundMentor) {
-        const [foundService, availability, booked] = await Promise.all([
+        const [foundService, availability, booked, dateOverrides] = await Promise.all([
           getServiceBySlug(foundMentor.id, serviceSlug || ""),
           getMentorAvailability(foundMentor.id),
           getMentorBookedSlots(foundMentor.id),
+          getMentorDateOverrides(foundMentor.id),
         ]);
         if (!mounted) return;
         setService(foundService);
         setRules(availability);
         setBookedRows(booked);
+        setOverrides(dateOverrides);
       }
       setLoaded(true);
     })();
@@ -108,9 +112,10 @@ const MentorServiceDetail = () => {
       mentor.buffer_min,
       mentor.notice_hours,
       mentor.booking_window_days,
-      new Date()
+      new Date(),
+      overrides
     );
-  }, [mentor, service, rules, bookedRows, needsSlot]);
+  }, [mentor, service, rules, bookedRows, overrides, needsSlot]);
 
   const refreshBookedSlots = useCallback(async () => {
     if (!mentor) return;

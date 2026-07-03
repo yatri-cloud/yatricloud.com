@@ -40,6 +40,7 @@ import {
   getMentorBySlug,
   getMentorAvailability,
   getMentorBookedSlots,
+  getMentorDateOverrides,
   submitReview,
   formatServicePrice,
   formatInstant,
@@ -157,9 +158,10 @@ const MyMentorshipBookings = () => {
     if (!booking.mentor?.slug) return [];
     const mentor = await getMentorBySlug(booking.mentor.slug);
     if (!mentor) return [];
-    const [rules, booked] = await Promise.all([
+    const [rules, booked, overrides] = await Promise.all([
       getMentorAvailability(mentor.id),
       getMentorBookedSlots(mentor.id),
+      getMentorDateOverrides(mentor.id),
     ]);
     return generateSlots(
       rules,
@@ -168,7 +170,8 @@ const MyMentorshipBookings = () => {
       mentor.buffer_min,
       mentor.notice_hours,
       mentor.booking_window_days,
-      new Date()
+      new Date(),
+      overrides
     );
   };
 
