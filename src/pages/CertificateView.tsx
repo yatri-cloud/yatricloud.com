@@ -213,6 +213,15 @@ export default function CertificateView() {
                         <Button variant="outline" className="h-11 px-6" onClick={shareCertificate}>
                             Share
                         </Button>
+                        <Button asChild variant="outline" className="h-11 px-6">
+                            <a
+                                href={`https://wa.me/?text=${encodeURIComponent(`${certificate.recipient_name} earned "${certificate.title}" on Yatri Cloud. Verify it here: ${pageUrl}`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Share on WhatsApp
+                            </a>
+                        </Button>
                     </div>
 
                     <div className="mt-8 flex flex-col items-center gap-3 text-center">

@@ -808,6 +808,14 @@ const EventDetail = () => {
                                 >
                                     Share with a friend
                                 </button>
+                                <a
+                                    href={`https://wa.me/?text=${encodeURIComponent(`Join me at ${event.name} — a Yatri Cloud event: ${typeof window !== "undefined" ? window.location.href : ""}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-2 flex items-center justify-center gap-2 w-full min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-6 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                >
+                                    Share on WhatsApp
+                                </a>
                             </ScrollReveal>
                         </div>
                     </div>

@@ -28,6 +28,8 @@ export default function EventFeedback() {
         likes: "",
         improvements: ""
     });
+    // Opt-in: publish the good part of the feedback on /reviews.
+    const [shareAsReview, setShareAsReview] = useState(false);
 
     // Decode event name from URL for display
     const displayEventName = eventName ? decodeURIComponent(eventName).replace(/-/g, ' ') : "Event";
@@ -39,6 +41,15 @@ export default function EventFeedback() {
             toast({
                 title: "Rating Required",
                 description: "Please select a star rating",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        if (shareAsReview && (!formData.name.trim() || !formData.likes.trim())) {
+            toast({
+                title: "Almost there",
+                description: "To share your feedback as a public review, add your name and what you liked.",
                 variant: "destructive"
             });
             return;
@@ -61,10 +72,26 @@ export default function EventFeedback() {
             });
             if (error) throw error;
 
+            // With consent, the good part also becomes a public review on
+            // /reviews. Best effort — a hiccup here never fails the feedback.
+            if (shareAsReview && formData.name.trim() && formData.likes.trim()) {
+                await supabase.from("reviews").insert({
+                    name: formData.name.trim(),
+                    review: formData.likes.trim(),
+                    rating,
+                    context: JSON.stringify({ source: "event", event: displayEventName }),
+                    is_public: true,
+                }).then(({ error: reviewError }) => {
+                    if (reviewError) console.error("Review publish failed", reviewError);
+                });
+            }
+
             setIsSubmitted(true);
             toast({
                 title: "Feedback Submitted!",
-                description: "Thank you for helping us improve.",
+                description: shareAsReview
+                    ? "Thank you! Your review is live on our Reviews page."
+                    : "Thank you for helping us improve.",
             });
         } catch (error) {
             console.error("Submission error:", error);
@@ -210,6 +237,22 @@ export default function EventFeedback() {
                                         />
                                     </div>
                                 </div>
+
+                                {/* Consent: publish the "what you liked" answer on /reviews */}
+                                <label className="flex items-start gap-3 rounded-xl border border-border bg-secondary/30 p-4 text-sm cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={shareAsReview}
+                                        onChange={(e) => setShareAsReview(e.target.checked)}
+                                        className="mt-0.5 h-4 w-4 rounded border-border"
+                                    />
+                                    <span>
+                                        <span className="font-medium">Share my feedback as a public review.</span>{" "}
+                                        <span className="text-muted-foreground">
+                                            Your name, star rating and "what you liked" will appear on our Reviews page and help other Yatris decide.
+                                        </span>
+                                    </span>
+                                </label>
 
                                 <Button
                                     type="submit"

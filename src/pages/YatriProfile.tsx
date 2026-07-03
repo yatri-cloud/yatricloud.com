@@ -153,6 +153,15 @@ export default function YatriProfile() {
                             <Button onClick={share} className="min-h-[44px] rounded-xl bg-primary px-6 font-semibold text-primary-foreground shadow-inset-btn hover:bg-brand-600">
                                 Share this profile
                             </Button>
+                            <Button asChild variant="outline" className="min-h-[44px] rounded-xl px-6">
+                                <a
+                                    href={`https://wa.me/?text=${encodeURIComponent(`${person.fullName} holds ${certs.length} cloud certification${certs.length === 1 ? "" : "s"} on Yatri Cloud: ${typeof window !== "undefined" ? window.location.origin : "https://www.yatricloud.com"}/yatri/${slug}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    WhatsApp
+                                </a>
+                            </Button>
                         </div>
                     </motion.section>
 
