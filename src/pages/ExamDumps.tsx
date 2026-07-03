@@ -11,6 +11,7 @@ import { MobileCartBar } from "@/components/store/MobileCartBar";
 import { fetchExamDumps, ExamDump } from "@/lib/exam-dumps";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 const ExamDumps = () => {
@@ -19,6 +20,7 @@ const ExamDumps = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<string>("All");
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("featured");
 
   useEffect(() => {
     const loadDumps = async () => {
@@ -43,14 +45,19 @@ const ExamDumps = () => {
 
   const filteredDumps = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return dumps.filter((d) => {
+    const list = dumps.filter((d) => {
       if (selectedProvider !== "All" && d.provider !== selectedProvider) return false;
       if (!q) return true;
       return d.title.toLowerCase().includes(q)
         || d.provider.toLowerCase().includes(q)
         || (d.description || "").toLowerCase().includes(q);
     });
-  }, [selectedProvider, search, dumps]);
+    const sorted = [...list];
+    if (sort === "price-asc") sorted.sort((a, b) => a.price - b.price);
+    else if (sort === "price-desc") sorted.sort((a, b) => b.price - a.price);
+    else if (sort === "name") sorted.sort((a, b) => a.title.localeCompare(b.title));
+    return sorted;
+  }, [selectedProvider, search, sort, dumps]);
 
   return (
     <>
@@ -98,8 +105,8 @@ const ExamDumps = () => {
 
         {/* Filters */}
         <section className="sticky top-16 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
-          <div className="container mx-auto px-4 md:px-6 pt-4">
-            <div className="relative max-w-md">
+          <div className="container mx-auto px-4 md:px-6 pt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="relative w-full max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <Input
                 value={search}
@@ -109,6 +116,17 @@ const ExamDumps = () => {
                 className="h-10 rounded-full pl-9"
               />
             </div>
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger className="h-10 w-full rounded-full sm:w-[190px]" aria-label="Sort exam dumps">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="featured">Featured</SelectItem>
+                <SelectItem value="price-asc">Price: low to high</SelectItem>
+                <SelectItem value="price-desc">Price: high to low</SelectItem>
+                <SelectItem value="name">Name: A to Z</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="container mx-auto px-4 md:px-6 flex items-center justify-between py-4">
             <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">

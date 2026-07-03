@@ -12,6 +12,7 @@ import { categories, ProductCategory } from "@/data/store-products";
 import { fetchStoreProducts, StoreProduct } from "@/lib/store-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { CartProvider, useCart } from "@/contexts/CartContext";
 
@@ -21,6 +22,7 @@ const YatriStore = () => {
   const rise = prefersReducedMotion ? 0 : 18;
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | "All">("All");
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("featured");
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,7 +46,7 @@ const YatriStore = () => {
 
   const filteredProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return products.filter((product) => {
+    const list = products.filter((product) => {
       if (selectedCategory !== "All" && product.category !== selectedCategory) return false;
       if (!q) return true;
       return product.title.toLowerCase().includes(q)
@@ -53,7 +55,12 @@ const YatriStore = () => {
         || product.category.toLowerCase().includes(q)
         || (product.level || "").toLowerCase().includes(q);
     });
-  }, [selectedCategory, search, products]);
+    const sorted = [...list];
+    if (sort === "price-asc") sorted.sort((a, b) => a.discountedPrice - b.discountedPrice);
+    else if (sort === "price-desc") sorted.sort((a, b) => b.discountedPrice - a.discountedPrice);
+    else if (sort === "name") sorted.sort((a, b) => a.title.localeCompare(b.title));
+    return sorted;
+  }, [selectedCategory, search, sort, products]);
 
   const handleViewProcedure = () => {
     // Navigate to home and scroll to the 3-step certification process section
@@ -149,8 +156,8 @@ const YatriStore = () => {
         {/* Category Filters + Cart CTA */}
         <section className="sticky top-16 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="pt-4">
-              <div className="relative max-w-md">
+            <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:items-center">
+              <div className="relative w-full max-w-md">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <Input
                   value={search}
@@ -160,6 +167,17 @@ const YatriStore = () => {
                   className="h-10 rounded-full pl-9"
                 />
               </div>
+              <Select value={sort} onValueChange={setSort}>
+                <SelectTrigger className="h-10 w-full rounded-full sm:w-[190px]" aria-label="Sort vouchers">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="featured">Featured</SelectItem>
+                  <SelectItem value="price-asc">Price: low to high</SelectItem>
+                  <SelectItem value="price-desc">Price: high to low</SelectItem>
+                  <SelectItem value="name">Name: A to Z</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <motion.div
               initial={{ opacity: 0, y: -10 }}

@@ -293,6 +293,7 @@ const Achievements = () => {
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("default");
   const [selectedMapProvider, setSelectedMapProvider] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<GroupedPerson | null>(null);
@@ -489,6 +490,13 @@ const Achievements = () => {
         (c.examCode || "").toLowerCase().includes(q)
       )
     );
+  }
+
+  // Optional sort (default keeps the curated person order)
+  if (sortBy === "name") {
+    filteredPersons = [...filteredPersons].sort((a, b) => a.fullName.localeCompare(b.fullName));
+  } else if (sortBy === "certs") {
+    filteredPersons = [...filteredPersons].sort((a, b) => b.certifications.length - a.certifications.length);
   }
 
   // Filter based on selected provider
@@ -1188,10 +1196,10 @@ const Achievements = () => {
               </ScrollReveal>
             )}
 
-            {/* Search by name or certification */}
+            {/* Search + sort by name or certification */}
             {!isLoading && certifications.length > 0 && (
               <ScrollReveal delay={0.12}>
-                <div className="flex justify-center">
+                <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
                   <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                     <Input
@@ -1202,6 +1210,16 @@ const Achievements = () => {
                       className="h-11 rounded-xl pl-9"
                     />
                   </div>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="h-11 w-full rounded-xl sm:w-[200px]" aria-label="Sort the Wall of Fame">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Featured order</SelectItem>
+                      <SelectItem value="name">Name: A to Z</SelectItem>
+                      <SelectItem value="certs">Most certifications</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </ScrollReveal>
             )}

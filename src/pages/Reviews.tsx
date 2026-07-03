@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   CERTIFICATION_PROVIDER_LOGOS,
@@ -25,6 +26,7 @@ const Reviews = () => {
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
+  const [sort, setSort] = useState<string>("newest");
   const resolvedTheme = theme;
 
   const avg = reviews.length
@@ -42,7 +44,7 @@ const Reviews = () => {
           (r) => r.country && getCountryName(r.country) === selectedCountry
         );
   const searchQuery = search.trim().toLowerCase();
-  const filteredReviews = searchQuery
+  const searchedReviews = searchQuery
     ? filteredByCountry.filter((r) => {
         const providerLabel = r.provider ? CERTIFICATION_PROVIDER_LOGOS[r.provider]?.label ?? "" : "";
         return (
@@ -52,6 +54,11 @@ const Reviews = () => {
         );
       })
     : filteredByCountry;
+  const filteredReviews = (() => {
+    if (sort === "rating-desc") return [...searchedReviews].sort((a, b) => Number(b.rating) - Number(a.rating));
+    if (sort === "rating-asc") return [...searchedReviews].sort((a, b) => Number(a.rating) - Number(b.rating));
+    return searchedReviews; // "newest" — already ordered by created_at desc from the query
+  })();
 
   // Only show known certificate providers in the filter (exclude "web" / source)
   const providers = Array.from(
@@ -148,6 +155,17 @@ const Reviews = () => {
                         className="h-10 pl-9"
                       />
                     </div>
+                    {/* Sort */}
+                    <Select value={sort} onValueChange={setSort}>
+                      <SelectTrigger className="h-10 min-w-[170px] bg-card" aria-label="Sort reviews">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest first</SelectItem>
+                        <SelectItem value="rating-desc">Highest rated</SelectItem>
+                        <SelectItem value="rating-asc">Lowest rated</SelectItem>
+                      </SelectContent>
+                    </Select>
                     {/* Certification dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
