@@ -1,0 +1,40 @@
+name: CI
+
+# The gate every change passes before Vercel ships it:
+#  1. tsc            — type errors
+#  2. undefined-JSX  — the class of bug tsc misses (a removed import whose
+#                      component is still rendered once white-screened prod)
+#  3. vite build     — the real production build
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Undefined-JSX guard
+        run: node scripts/check-undefined-jsx.mjs
+
+      - name: Build
+        run: npm run build
+        env:
+          # Public keys only — the build needs them baked in, same as Vercel.
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
