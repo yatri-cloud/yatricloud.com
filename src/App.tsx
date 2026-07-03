@@ -51,6 +51,7 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import AdminRazorpayInvoices from "./pages/admin/AdminRazorpayInvoices";
 import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminSitemapView from "./pages/admin/AdminSitemapView";
+import UserSitemapView from "./pages/UserSitemapView";
 import Training from "./pages/Training";
 import TrainingDetail from "./pages/TrainingDetail";
 import AdminTrainingList from "@/pages/admin/AdminTrainingList";
@@ -158,7 +159,7 @@ const App = () => (
               <Route path="/profile/purchases" element={<MyPurchases />} />
               <Route path="/receipt/:invoiceNumber" element={<ReceiptView />} />
               <Route path="/profile/guide" element={<GuideView type="user" />} />
-              <Route path="/profile/sitemap" element={<GuideView type="user-access" />} />
+              <Route path="/profile/sitemap" element={<UserSitemapView />} />
 
               {/* Trainer Routes */}
               <Route path="/trainer/login" element={<TrainerLogin />} />
