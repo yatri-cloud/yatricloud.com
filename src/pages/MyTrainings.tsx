@@ -36,6 +36,7 @@ interface Enrollment {
 
 interface TrainingDetails {
     id: string;
+    slug?: string;
     courseName: string;
     thumbnailUrl: string;
     mode: "Online" | "On-site";
@@ -193,7 +194,7 @@ export default function MyTrainings() {
                                                 className="flex-1"
                                                 asChild
                                             >
-                                                <a href={`/training/${training.id}/dashboard`}>
+                                                <a href={`/training/${training.slug || training.id}/dashboard`}>
                                                     <BookOpen className="w-4 h-4 mr-2" />
                                                     Go to Training
                                                 </a>
@@ -203,7 +204,7 @@ export default function MyTrainings() {
                                                     className="flex-1 gap-2 bg-[#007CFF] hover:bg-[#0066D6]"
                                                     asChild
                                                 >
-                                                    <a href={`/training/${training.id}/dashboard?tab=class`}>
+                                                    <a href={`/training/${training.slug || training.id}/dashboard?tab=class`}>
                                                         <Video className="w-4 h-4" /> Join Class
                                                     </a>
                                                 </Button>

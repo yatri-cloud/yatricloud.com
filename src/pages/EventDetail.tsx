@@ -33,7 +33,9 @@ import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, A
 const MOCK_EVENTS: Event[] = [];
 
 const EventDetail = () => {
-    const { id } = useParams<{ id: string }>();
+    const { slug, id } = useParams<{ slug?: string; id?: string }>();
+    // Resolve by slug first; keep id as a fallback so old bookmarked links still work.
+    const eventParam = slug || id;
     const navigate = useNavigate();
     const { toast } = useToast();
     const reduceMotion = useReducedMotion();
@@ -53,20 +55,31 @@ const EventDetail = () => {
     }, []);
 
     useEffect(() => {
-        // Find event by ID or Slug
-        getEventBySlug(id || "").then((foundEvent) => {
+        // Resolve the event by slug (getEventBySlug also accepts an id fallback)
+        getEventBySlug(eventParam || "").then((foundEvent) => {
+            let resolvedId: string | null = null;
             if (foundEvent) {
                 // Map store event to detail event if needed, or just use as is
                 // For now, the interfaces are mostly compatible for common fields
                 setEvent(foundEvent as any);
+                resolvedId = foundEvent.id;
             } else {
                 // Check if it's one of the internal MOCK_EVENTS as fallback
-                const mockEvent = MOCK_EVENTS.find(e => e.id === id); // Mocks don't have slugs yet usually
+                const mockEvent = MOCK_EVENTS.find(e => e.id === eventParam);
                 if (mockEvent) {
                     setEvent(mockEvent);
+                    resolvedId = mockEvent.id;
                 } else {
                     navigate('/events');
                 }
+            }
+
+            // Check registration status against the resolved event id
+            if (isAuthenticated() && resolvedId) {
+                getRegisteredEvents().then((regs) => {
+                    const isReg = regs.some(r => r.eventId === resolvedId && r.status === 'confirmed');
+                    setIsRegistered(isReg);
+                });
             }
         });
 
@@ -75,17 +88,7 @@ const EventDetail = () => {
 
         // Scroll to top
         window.scrollTo(0, 0);
-
-        // Check registration status
-        const checkRegistration = async () => {
-            if (isAuthenticated()) {
-                const regs = await getRegisteredEvents();
-                const isReg = regs.some(r => r.eventId === id && r.status === 'confirmed');
-                setIsRegistered(isReg);
-            }
-        };
-        checkRegistration();
-    }, [id, navigate]);
+    }, [eventParam, navigate]);
 
     const handleRegister = () => {
         if (!isUserLoggedIn) {
@@ -697,11 +700,11 @@ const EventDetail = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {allEvents
-                        .filter(e => e.id !== id && e.status === 'upcoming' && new Date(e.date) > new Date())
+                        .filter(e => e.id !== event.id && e.status === 'upcoming' && new Date(e.date) > new Date())
                         .slice(0, 3)
                         .map((otherEvent, index) => (
                             <ScrollReveal key={otherEvent.id} delay={index * 0.1}>
-                                <Link to={`/events/${otherEvent.id}`} className="block h-full">
+                                <Link to={`/events/${otherEvent.slug || otherEvent.id}`} className="block h-full">
                                     <div className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-brand-200 hover:shadow-card transition-all duration-300 h-full flex flex-col">
                                         <div className="aspect-video overflow-hidden">
                                             <img
@@ -727,10 +730,10 @@ const EventDetail = () => {
                         ))}
 
                     {/* Fallback if no local events, show MOCK_EVENTS */}
-                    {allEvents.filter(e => e.id !== id && e.status === 'upcoming').length === 0 &&
-                        MOCK_EVENTS.filter(e => e.id !== id).slice(0, 3).map((otherEvent, index) => (
+                    {allEvents.filter(e => e.id !== event.id && e.status === 'upcoming').length === 0 &&
+                        MOCK_EVENTS.filter(e => e.id !== event.id).slice(0, 3).map((otherEvent, index) => (
                             <ScrollReveal key={otherEvent.id} delay={index * 0.1}>
-                                <Link to={`/events/${otherEvent.id}`} className="block h-full">
+                                <Link to={`/events/${otherEvent.slug || otherEvent.id}`} className="block h-full">
                                     <div className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-brand-200 hover:shadow-card transition-all duration-300 h-full flex flex-col">
                                         <div className="aspect-video overflow-hidden">
                                             <img

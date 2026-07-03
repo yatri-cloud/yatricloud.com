@@ -17,6 +17,7 @@ import { listPublishedTrainings, listInstructorProfiles } from "@/lib/training-a
 
 interface Course {
     id: string;
+    slug?: string;
     courseName: string;
     description: string;
     instructor: string;
@@ -91,7 +92,8 @@ export default function TrainingDetail() {
             };
 
             const found = structure.find((c) => {
-                if (id) return c.id === id;
+                // Single-segment route param may be a slug (preferred) or an old id.
+                if (id) return c.slug === id || c.id === id;
                 if (courseSlug) {
                     return createSlug(c.courseName) === courseSlug;
                 }
@@ -266,7 +268,7 @@ export default function TrainingDetail() {
                                         className="w-full h-12 text-lg font-bold bg-[#007CFF] hover:bg-[#0066D6] text-white rounded-lg transition-all shadow-lg"
                                         onClick={() => {
                                             if (isEnrolled) {
-                                                navigate(`/training/${course.id}/dashboard`);
+                                                navigate(`/training/${course.slug || course.id}/dashboard`);
                                             } else {
                                                 setIsEnrollModalOpen(true);
                                             }

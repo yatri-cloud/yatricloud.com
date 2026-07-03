@@ -38,7 +38,8 @@ interface TrainingDetails {
 type TabType = 'overview' | 'modules' | 'quizzes' | 'class' | 'resources';
 
 export default function StudentTrainingDashboard() {
-    const { id } = useParams();
+    // Route param is a slug (old id-based links still resolve via getTrainingDetail).
+    const { slug: trainingSlug } = useParams<{ slug?: string }>();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -53,17 +54,17 @@ export default function StudentTrainingDashboard() {
         const stored = getStoredUser();
         if (!stored) {
             toast.error("Please login to access this training");
-            navigate(`/training/${id}`);
+            navigate(`/training/${trainingSlug}`);
             return;
         }
         setUser(stored);
-    }, [navigate, id]);
+    }, [navigate, trainingSlug]);
 
     useEffect(() => {
-        if (user && id) {
+        if (user && trainingSlug) {
             fetchTrainingData();
         }
-    }, [user, id]);
+    }, [user, trainingSlug]);
 
     useEffect(() => {
         const tab = searchParams.get('tab');
@@ -75,8 +76,8 @@ export default function StudentTrainingDashboard() {
     const fetchTrainingData = async () => {
         setIsLoading(true);
         try {
-            // Fetch training details
-            const foundTraining = await getTrainingDetail(id!);
+            // Fetch training details (resolves by slug or id)
+            const foundTraining = await getTrainingDetail(trainingSlug!);
             if (!foundTraining) {
                 toast.error("Training not found");
                 navigate('/training');
@@ -84,11 +85,11 @@ export default function StudentTrainingDashboard() {
             }
             setTraining(foundTraining as unknown as TrainingDetails);
 
-            // Check enrollment
-            const enrolled = await checkEnrollment(id!);
+            // Check enrollment against the resolved training id
+            const enrolled = await checkEnrollment(foundTraining.id);
             if (!enrolled) {
                 toast.error("You are not enrolled in this training");
-                navigate(`/training/${id}`);
+                navigate(`/training/${trainingSlug}`);
                 return;
             }
             setIsEnrolled(true);

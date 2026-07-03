@@ -100,14 +100,15 @@ const App = () => (
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/events" element={<Events />} />
-              <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/events/:slug" element={<EventDetail />} />
               <Route path="/community" element={<Community />} />
               <Route path="/partners" element={<Partners />} />
               <Route path="/udemy" element={<Udemy />} />
               <Route path="/yatristore" element={<YatriStore />} />
               <Route path="/examdumps" element={<ExamDumps />} />
               <Route path="/training" element={<Training />} />
-              <Route path="/training/:id/dashboard" element={<StudentTrainingDashboard />} />
+              <Route path="/training/:slug/dashboard" element={<StudentTrainingDashboard />} />
+              {/* Backward-compatible fallback: resolves by slug or id so old bookmarks keep working */}
               <Route path="/training/:id" element={<TrainingDetail />} />
               <Route path="/training/:certification/:courseSlug" element={<TrainingDetail />} />
               <Route path="/addproduct" element={<AddProduct />} />

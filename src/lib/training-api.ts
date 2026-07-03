@@ -65,6 +65,7 @@ function toProviderEnum(s: string | null | undefined): string {
 
 export interface Course {
   id: string;
+  slug?: string;
   courseName: string;
   description: string;
   instructor: string;
@@ -109,6 +110,7 @@ function rowToCourse(row: any, modulesCount = 0): Course {
   const mode: "Online" | "On-site" = row.mode === "online" ? "Online" : "On-site";
   return {
     id: row.id,
+    slug: row.slug || "",
     courseName: row.course_title || row.name || "",
     description: row.description || "",
     instructor: row.trainer_name || "",
@@ -149,19 +151,22 @@ export async function listPublishedTrainings(): Promise<Course[]> {
   return (data || []).map((r) => rowToCourse(r));
 }
 
-/** A single training with its module count (public detail / dashboard). */
-export async function getTrainingDetail(id: string): Promise<Course | null> {
-  const { data, error } = await supabase
-    .from("trainings")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+/**
+ * A single training with its module count (public detail / dashboard).
+ * Accepts either a slug or an id so slug URLs resolve while old id links still work.
+ */
+export async function getTrainingDetail(idOrSlug: string): Promise<Course | null> {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug || "");
+  const base = supabase.from("trainings").select("*");
+  const { data, error } = await (
+    isUuid ? base.eq("id", idOrSlug) : base.eq("slug", idOrSlug)
+  ).maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const { count } = await supabase
     .from("course_modules")
     .select("id", { count: "exact", head: true })
-    .eq("training_id", id);
+    .eq("training_id", data.id);
   return rowToCourse(data, count || 0);
 }
 

@@ -170,7 +170,7 @@ export default function MyEvents() {
                                         </Button>
                                         <Button
                                             variant="secondary"
-                                            onClick={() => navigate(`/events/${reg.eventSlug}`)}
+                                            onClick={() => navigate(`/events/${reg.eventSlug || reg.eventId}`)}
                                         >
                                             View Event
                                         </Button>
