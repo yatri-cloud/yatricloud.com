@@ -49,6 +49,66 @@ async function revenue(): Promise<{ receipts: number; inr: number; other: Record
     }
 }
 
+export interface RecentReceipt {
+    number: string;
+    label: string; // item or kind
+    amount: number;
+    currency: string;
+    createdAt: string;
+}
+
+export interface RecentYatri {
+    name: string;
+    email: string;
+    createdAt: string;
+}
+
+export interface RecentActivity {
+    receipts: RecentReceipt[];
+    yatris: RecentYatri[];
+}
+
+/** Latest receipts and newest Yatris for the overview. Never throws. */
+export async function getRecentActivity(limit = 6): Promise<RecentActivity> {
+    const receiptsQ = supabase
+        .from("invoices")
+        .select("invoice_number, kind, buyer_name, items, amount, currency, created_at")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+    const yatrisQ = supabase
+        .from("profiles")
+        .select("full_name, email, created_at")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+    const [rRes, yRes] = await Promise.all([receiptsQ, yatrisQ]);
+
+    const receipts: RecentReceipt[] = Array.isArray(rRes.data)
+        ? rRes.data.map((r: any) => {
+              const items = Array.isArray(r.items) ? r.items : [];
+              const first = items[0];
+              const itemName = typeof first === "string" ? first : first?.name || first?.title || "";
+              return {
+                  number: String(r.invoice_number || ""),
+                  label: itemName || String(r.kind || "Purchase"),
+                  amount: Number(r.amount) || 0,
+                  currency: String(r.currency || "INR").toUpperCase(),
+                  createdAt: String(r.created_at || ""),
+              };
+          })
+        : [];
+
+    const yatris: RecentYatri[] = Array.isArray(yRes.data)
+        ? yRes.data.map((p: any) => ({
+              name: String(p.full_name || "").trim() || "Yatri",
+              email: String(p.email || ""),
+              createdAt: String(p.created_at || ""),
+          }))
+        : [];
+
+    return { receipts, yatris };
+}
+
 export async function getAdminOverview(): Promise<AdminOverview> {
     const [
         yatris, events, trainings, enrollments, eventRegistrations, mentorshipBookings, rev,

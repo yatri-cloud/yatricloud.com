@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Users, Calendar, GraduationCap, Handshake, Receipt, IndianRupee, TicketCheck, ArrowRight } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Users, Calendar, GraduationCap, Handshake, Receipt, IndianRupee, TicketCheck, ArrowRight, UserPlus } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCard } from "@/components/admin/StatsCard";
-import { getAdminOverview, type AdminOverview } from "@/lib/admin-overview";
+import { getAdminOverview, getRecentActivity, type AdminOverview, type RecentActivity } from "@/lib/admin-overview";
 import { formatInvoiceMoney } from "@/lib/invoices-api";
+import { format } from "date-fns";
 
 const QUICK_LINKS = [
     { name: "Payments & Revenue", path: "/admin/payments", description: "Receipts and revenue in one place." },
@@ -17,12 +18,15 @@ const QUICK_LINKS = [
 
 export default function AdminOverview() {
     const [data, setData] = useState<AdminOverview | null>(null);
+    const [activity, setActivity] = useState<RecentActivity | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         (async () => {
             try {
-                setData(await getAdminOverview());
+                const [overview, recent] = await Promise.all([getAdminOverview(), getRecentActivity()]);
+                setData(overview);
+                setActivity(recent);
             } finally {
                 setIsLoading(false);
             }
@@ -65,6 +69,65 @@ export default function AdminOverview() {
                             </CardContent>
                         </Card>
                     )}
+
+                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                        {/* Recent receipts */}
+                        <Card>
+                            <CardHeader className="flex-row items-center justify-between space-y-0">
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <Receipt className="h-4 w-4 text-primary" aria-hidden="true" /> Recent receipts
+                                </CardTitle>
+                                <Link to="/admin/payments" className="text-sm font-medium text-primary hover:underline">View all</Link>
+                            </CardHeader>
+                            <CardContent className="space-y-1">
+                                {activity && activity.receipts.length > 0 ? (
+                                    activity.receipts.map((r, i) => (
+                                        <Link
+                                            key={r.number || i}
+                                            to={r.number ? `/receipt/${r.number}` : "/admin/payments"}
+                                            className="flex items-center justify-between gap-3 rounded-lg p-2.5 transition-colors hover:bg-brand-50/50"
+                                        >
+                                            <span className="min-w-0">
+                                                <span className="block truncate font-medium">{r.label}</span>
+                                                <span className="block text-xs text-muted-foreground">
+                                                    {r.createdAt ? format(new Date(r.createdAt), "dd MMM yyyy") : ""}
+                                                </span>
+                                            </span>
+                                            <span className="shrink-0 font-semibold">{formatInvoiceMoney(r.amount, r.currency)}</span>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <p className="py-6 text-center text-sm text-muted-foreground">No receipts yet.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Newest Yatris */}
+                        <Card>
+                            <CardHeader className="space-y-0">
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <UserPlus className="h-4 w-4 text-primary" aria-hidden="true" /> New Yatris
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-1">
+                                {activity && activity.yatris.length > 0 ? (
+                                    activity.yatris.map((y, i) => (
+                                        <div key={i} className="flex items-center justify-between gap-3 rounded-lg p-2.5">
+                                            <span className="min-w-0">
+                                                <span className="block truncate font-medium">{y.name}</span>
+                                                <span className="block truncate text-xs text-muted-foreground">{y.email}</span>
+                                            </span>
+                                            <span className="shrink-0 text-xs text-muted-foreground">
+                                                {y.createdAt ? format(new Date(y.createdAt), "dd MMM yyyy") : ""}
+                                            </span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="py-6 text-center text-sm text-muted-foreground">No sign-ups yet.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
 
                     <div>
                         <h2 className="mb-4 text-lg font-bold">Jump to</h2>
