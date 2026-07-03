@@ -33,7 +33,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
+import { ListPager } from "@/components/ui/list-pager";
 import type { MentorshipService as MentorshipServiceRecord } from "@/lib/mentorship";
+
+const PAGE_SIZE = 12;
 
 /* ------------------------------------------------------------------ */
 /* Types — canonical shapes from @/lib/mentorship, narrowed to the     */
@@ -158,6 +161,9 @@ const AdminMentorshipServices = () => {
     const [typeFilter, setTypeFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
     const [sort, setSort] = useState("default");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, mentorFilter, typeFilter, statusFilter, sort]);
 
     // Add or edit dialog
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -265,6 +271,10 @@ const AdminMentorshipServices = () => {
         return sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [services, mentors, search, mentorFilter, typeFilter, statusFilter, sort]);
+
+    const pageCount = Math.max(1, Math.ceil(filteredServices.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedServices = filteredServices.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     /* --------------------------- dialog --------------------------- */
 
@@ -627,7 +637,7 @@ const AdminMentorshipServices = () => {
                             </p>
                         ) : (
                             <div className="space-y-2">
-                                {filteredServices.map((service) => (
+                                {pagedServices.map((service) => (
                                     <div
                                         key={service.id}
                                         className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 hover:bg-brand-50/50 transition-colors p-3 md:p-4"
@@ -694,6 +704,7 @@ const AdminMentorshipServices = () => {
                                         </div>
                                     </div>
                                 ))}
+                                <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
                             </div>
                         )}
                     </div>

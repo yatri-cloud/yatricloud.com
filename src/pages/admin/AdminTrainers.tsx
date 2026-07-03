@@ -32,6 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ListPager } from "@/components/ui/list-pager";
 import {
     listTrainerApplications,
     listApprovedTrainers,
@@ -112,6 +113,12 @@ export const AdminTrainersNew = () => {
     const [trainerSearch, setTrainerSearch] = useState("");
     const [appSort, setAppSort] = useState("newest");
     const [trainerSort, setTrainerSort] = useState("name");
+    const [appPage, setAppPage] = useState(1);
+    const [trainerPage, setTrainerPage] = useState(1);
+    const PAGE_SIZE = 10;
+
+    useEffect(() => { setAppPage(1); }, [statusFilter, appSearch, appSort]);
+    useEffect(() => { setTrainerPage(1); }, [trainerSearch, trainerSort]);
 
     const [trainers, setTrainers] = useState<Trainer[]>([]);
     const [isLoadingTrainers, setIsLoadingTrainers] = useState(false);
@@ -194,6 +201,13 @@ export const AdminTrainersNew = () => {
         if (trainerSort === "oldest") return ct(a) - ct(b);
         return (a.fullName || "").localeCompare(b.fullName || ""); // name (default)
     });
+
+    const appPageCount = Math.max(1, Math.ceil(filteredApplications.length / PAGE_SIZE));
+    const currentAppPage = Math.min(appPage, appPageCount);
+    const pagedApplications = filteredApplications.slice((currentAppPage - 1) * PAGE_SIZE, currentAppPage * PAGE_SIZE);
+    const trainerPageCount = Math.max(1, Math.ceil(filteredTrainers.length / PAGE_SIZE));
+    const currentTrainerPage = Math.min(trainerPage, trainerPageCount);
+    const pagedTrainers = filteredTrainers.slice((currentTrainerPage - 1) * PAGE_SIZE, currentTrainerPage * PAGE_SIZE);
 
     const fetchApplications = async () => {
         try {
@@ -616,7 +630,7 @@ export const AdminTrainersNew = () => {
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
-                                        ) : filteredApplications.map((application, index) => (
+                                        ) : pagedApplications.map((application, index) => (
                                             <TableRow key={index} className="hover:bg-brand-50">
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
@@ -679,6 +693,7 @@ export const AdminTrainersNew = () => {
                                         ))}
                                     </TableBody>
                                 </Table>
+                                <ListPager page={currentAppPage} pageCount={appPageCount} onPageChange={setAppPage} />
                             </CardContent>
                         </Card>
                     )}
@@ -739,7 +754,7 @@ export const AdminTrainersNew = () => {
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
-                                        ) : filteredTrainers.map((trainer) => (
+                                        ) : pagedTrainers.map((trainer) => (
                                             <TableRow key={trainer.trainerId} className="hover:bg-brand-50">
                                                 <TableCell className="font-mono text-sm">{trainer.trainerId}</TableCell>
                                                 <TableCell className="font-medium">{trainer.fullName}</TableCell>
@@ -773,6 +788,7 @@ export const AdminTrainersNew = () => {
                                     </TableBody>
                                 </Table>
                             )}
+                            {!isLoadingTrainers && <ListPager page={currentTrainerPage} pageCount={trainerPageCount} onPageChange={setTrainerPage} />}
                         </CardContent>
                     </Card>
                 </TabsContent>

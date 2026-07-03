@@ -23,12 +23,15 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
+import { ListPager } from "@/components/ui/list-pager";
 import {
     getAllTrainingReviews,
     setReviewPublic,
     adminDeleteReview,
     type AdminTrainingReview,
 } from "@/lib/training-api";
+
+const PAGE_SIZE = 12;
 
 const formatDate = (iso: string) => {
     const d = new Date(iso);
@@ -60,6 +63,9 @@ const AdminTrainingReviews = () => {
     const [trainingFilter, setTrainingFilter] = useState("all");
     const [visibilityFilter, setVisibilityFilter] = useState("all");
     const [sort, setSort] = useState("newest");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, trainingFilter, visibilityFilter, sort]);
 
     // Delete confirm
     const [reviewToDelete, setReviewToDelete] = useState<AdminTrainingReview | null>(null);
@@ -115,6 +121,10 @@ const AdminTrainingReviews = () => {
         else if (sort === "rating-asc") sorted.sort((a, b) => (a.rating ?? 0) - (b.rating ?? 0));
         return sorted;
     }, [reviews, search, trainingFilter, visibilityFilter, sort]);
+
+    const pageCount = Math.max(1, Math.ceil(filteredReviews.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedReviews = filteredReviews.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     /* -------------------------- moderation ------------------------- */
 
@@ -264,7 +274,7 @@ const AdminTrainingReviews = () => {
                             </p>
                         ) : (
                             <div className="space-y-2">
-                                {filteredReviews.map((review) => (
+                                {pagedReviews.map((review) => (
                                     <div
                                         key={review.id}
                                         className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 hover:bg-brand-50/50 transition-colors p-3 md:p-4"
@@ -323,6 +333,7 @@ const AdminTrainingReviews = () => {
                                         </div>
                                     </div>
                                 ))}
+                                <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
                             </div>
                         )}
                     </div>

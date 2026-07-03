@@ -24,7 +24,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
+import { ListPager } from "@/components/ui/list-pager";
 import type { MentorReview } from "@/lib/mentorship";
+
+const PAGE_SIZE = 12;
 
 interface MentorOption {
     id: string;
@@ -63,6 +66,9 @@ const AdminMentorReviews = () => {
     const [mentorFilter, setMentorFilter] = useState("all");
     const [visibilityFilter, setVisibilityFilter] = useState("all");
     const [sort, setSort] = useState("newest");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, mentorFilter, visibilityFilter, sort]);
 
     // Delete confirm
     const [reviewToDelete, setReviewToDelete] = useState<MentorReview | null>(null);
@@ -142,6 +148,10 @@ const AdminMentorReviews = () => {
         return sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reviews, mentors, search, mentorFilter, visibilityFilter, sort]);
+
+    const pageCount = Math.max(1, Math.ceil(filteredReviews.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedReviews = filteredReviews.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     /* -------------------------- moderation ------------------------- */
 
@@ -294,7 +304,7 @@ const AdminMentorReviews = () => {
                             </p>
                         ) : (
                             <div className="space-y-2">
-                                {filteredReviews.map((review) => (
+                                {pagedReviews.map((review) => (
                                     <div
                                         key={review.id}
                                         className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 hover:bg-brand-50/50 transition-colors p-3 md:p-4"
@@ -356,6 +366,7 @@ const AdminMentorReviews = () => {
                                         </div>
                                     </div>
                                 ))}
+                                <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
                             </div>
                         )}
                     </div>

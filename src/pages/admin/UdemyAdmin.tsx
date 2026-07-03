@@ -12,9 +12,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Upload, X, Search } from "lucide-react";
+import { ListPager } from "@/components/ui/list-pager";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
+
+const PAGE_SIZE = 10;
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -75,6 +78,9 @@ const UdemyAdmin = () => {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [sort, setSort] = useState("newest");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, statusFilter, sort]);
 
     const filteredCourses = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -95,6 +101,10 @@ const UdemyAdmin = () => {
         else sorted.sort((a, b) => t(b) - t(a)); // newest
         return sorted;
     }, [courses, search, statusFilter, sort]);
+
+    const pageCount = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedCourses = filteredCourses.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     const loadCourses = async () => {
         setLoadingCourses(true);
@@ -557,7 +567,7 @@ const UdemyAdmin = () => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredCourses.map((c) => (
+                                    {pagedCourses.map((c) => (
                                         <TableRow key={c.id}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
@@ -583,6 +593,7 @@ const UdemyAdmin = () => {
                                     ))}
                                 </TableBody>
                             </Table>
+                            <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
                         </div>
                     )}
                 </div>

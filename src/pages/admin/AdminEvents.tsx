@@ -5,6 +5,7 @@ import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ListPager } from "@/components/ui/list-pager";
 import { getAllEvents, getEventStatus, Event, deleteEvent } from "@/lib/events-store";
 import { Badge } from "@/components/ui/badge";
 import { deleteEventFolder } from "@/lib/event-automation-api";
@@ -27,6 +28,11 @@ export default function AdminEvents() {
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState("date");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [activeTab, search, sort]);
+
+    const PAGE_SIZE = 10;
 
     useEffect(() => {
         // Fetch events on mount
@@ -51,6 +57,10 @@ export default function AdminEvents() {
         const tb = b.date ? new Date(b.date).getTime() : 0;
         return tb - ta; // date: soonest/most-recent first
     });
+
+    const pageCount = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedEvents = filteredEvents.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     const handleDelete = async (id: string, name: string, driveFolderId?: string) => {
         const confirmMessage = driveFolderId
@@ -213,7 +223,7 @@ export default function AdminEvents() {
             {/* Events List */}
             <div className="space-y-4">
                 {filteredEvents.length > 0 ? (
-                    filteredEvents.map(event => (
+                    pagedEvents.map(event => (
                         <div key={event.id} className="border border-border rounded-2xl bg-card p-5 md:p-6 hover:border-brand-200 hover:shadow-card transition flex flex-col md:flex-row gap-6 items-start md:items-center">
                             <div className="w-full md:w-48 aspect-video rounded-xl overflow-hidden bg-muted flex-shrink-0">
                                 <img src={event.imageUrl} alt={event.name} className="w-full h-full object-cover" />
@@ -342,6 +352,7 @@ export default function AdminEvents() {
                         )}
                     </div>
                 )}
+                <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
             </div>
         </div>
     );

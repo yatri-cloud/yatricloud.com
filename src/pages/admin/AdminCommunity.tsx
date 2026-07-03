@@ -9,7 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
+import { ListPager } from "@/components/ui/list-pager";
 import { toast } from "sonner";
+
+const PAGE_SIZE = 15;
 
 interface Community {
     id: string;
@@ -41,6 +44,9 @@ export default function AdminCommunity() {
     const [search, setSearch] = useState("");
     const [groupFilter, setGroupFilter] = useState("all");
     const [sort, setSort] = useState("default");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, groupFilter, sort]);
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -52,6 +58,10 @@ export default function AdminCommunity() {
         if (sort === "name") return [...list].sort((a, b) => a.name.localeCompare(b.name));
         return list; // default: grp then sort_order from the query
     }, [rows, search, groupFilter, sort]);
+
+    const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     const load = async () => {
         setLoading(true);
@@ -155,7 +165,7 @@ export default function AdminCommunity() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filtered.map((c) => (
+                                    {pagedRows.map((c) => (
                                         <TableRow key={c.id}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
@@ -184,6 +194,7 @@ export default function AdminCommunity() {
                                     ))}
                                 </TableBody>
                             </Table>
+                            <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
                         </div>
                     )}
                 </CardContent>
