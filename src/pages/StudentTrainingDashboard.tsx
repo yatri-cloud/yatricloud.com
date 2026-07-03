@@ -18,8 +18,10 @@ import {
     getLessonProgress, markLessonComplete, unmarkLesson,
     issueCertificate, getMyCertificates,
     getMyTrainingReview, submitTrainingReview, deleteTrainingReview,
-    type TrainingReview,
+    listQuizzes,
+    type TrainingReview, type QuizRecord,
 } from "@/lib/training-api";
+import { QuizFlow } from "@/components/student/QuizFlow";
 import Navbar from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
 import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
@@ -55,7 +57,7 @@ export default function StudentTrainingDashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [isEnrolled, setIsEnrolled] = useState(false);
     const [user, setUser] = useState<any>(null);
-    const [quizzes, setQuizzes] = useState<any[]>([]);
+    const [quizzes, setQuizzes] = useState<QuizRecord[]>([]);
     const [resources, setResources] = useState<any[]>([]);
     const [modules, setModules] = useState<any[]>([]);
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
@@ -106,19 +108,20 @@ export default function StudentTrainingDashboard() {
             }
             setIsEnrolled(true);
 
-            // Real authored curriculum + this user's progress + any issued certificate.
-            const [content, progress, myCerts] = await Promise.all([
+            // Real authored curriculum + this user's progress + any issued
+            // certificate + the training's practice quizzes.
+            const [content, progress, myCerts, quizList] = await Promise.all([
                 getCourseContent(foundTraining.id),
                 getLessonProgress(foundTraining.id),
                 getMyCertificates(),
+                listQuizzes(foundTraining.id),
             ]);
             setModules(Array.isArray(content?.modules) ? content.modules : []);
             setCompletedLessons(new Set(progress));
             const existingCert = myCerts.find((c: any) => c.training_id === foundTraining.id);
             setCertSerial(existingCert?.serial || null);
 
-            // Quizzes have no Supabase table yet; resources come from the training row.
-            setQuizzes(Array.isArray(content?.quizzes) ? content.quizzes : []);
+            setQuizzes(quizList.filter((q) => q.status === "published" && q.questions.length > 0));
             setResources(
                 Array.isArray(content?.resources) && content.resources.length
                     ? content.resources
@@ -890,7 +893,19 @@ function ModulesTab({
 }
 
 // Quizzes Tab Component
-function QuizzesTab({ training, quizzes }: { training: TrainingDetails; quizzes: any[] }) {
+function QuizzesTab({ training, quizzes }: { training: TrainingDetails; quizzes: QuizRecord[] }) {
+    const [activeQuiz, setActiveQuiz] = useState<QuizRecord | null>(null);
+
+    if (activeQuiz) {
+        return (
+            <QuizFlow
+                quiz={activeQuiz}
+                trainingId={training.id}
+                onExit={() => setActiveQuiz(null)}
+            />
+        );
+    }
+
     return (
         <div className="space-y-6">
             <Card>
@@ -909,22 +924,29 @@ function QuizzesTab({ training, quizzes }: { training: TrainingDetails; quizzes:
                         </div>
                     ) : (
                         quizzes.map((quiz) => (
-                            <Card key={quiz.id} className="overflow-hidden">
+                            <Card key={quiz.id} className="overflow-hidden transition-colors hover:border-primary/40">
                                 <CardContent className="p-6">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-lg mb-2">{quiz.question || 'Quiz Question'}</h3>
-                                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                                                <span>{quiz.questionType || 'multiple-choice'}</span>
+                                    <div className="flex flex-wrap items-start justify-between gap-4">
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="font-bold text-lg mb-1">{quiz.title}</h3>
+                                            {quiz.description && (
+                                                <p className="text-sm text-muted-foreground mb-2">{quiz.description}</p>
+                                            )}
+                                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                                                <span>{quiz.questions.length} question{quiz.questions.length === 1 ? "" : "s"}</span>
                                                 <span>•</span>
-                                                <span>{quiz.options?.length || 0} Options</span>
+                                                <span>{quiz.timeLimitMin ? `${quiz.timeLimitMin} min limit` : "No time limit"}</span>
+                                                <span>•</span>
+                                                <span>{quiz.passingScore}% to pass</span>
                                             </div>
                                         </div>
-                                        <div>
-                                            <Button size="sm" className="bg-[#007CFF] hover:bg-[#0066D6]">
-                                                Start Quiz
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            size="sm"
+                                            className="min-h-[40px] bg-primary text-primary-foreground hover:bg-brand-600"
+                                            onClick={() => setActiveQuiz(quiz)}
+                                        >
+                                            Start Quiz
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>

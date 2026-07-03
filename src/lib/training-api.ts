@@ -1656,3 +1656,130 @@ export async function adminDeleteReview(id: string): Promise<void> {
   const { error } = await supabase.from("training_reviews").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ---------------------------------------------------------------------------
+// Practice quizzes (quizzes + quiz_attempts tables, migration 031)
+// ---------------------------------------------------------------------------
+
+import type { QuizQuestion } from "@/types/quiz";
+import type { QuizAnswer, PreviousAttempt } from "@/types/quizAttempt";
+
+export interface QuizRecord {
+  id: string;
+  trainingId: string;
+  title: string;
+  description: string | null;
+  questions: QuizQuestion[];
+  passingScore: number;
+  timeLimitMin: number | null;
+  status: "draft" | "published";
+}
+
+const rowToQuiz = (row: any): QuizRecord => ({
+  id: row.id,
+  trainingId: row.training_id,
+  title: row.title || "Practice Quiz",
+  description: row.description || null,
+  questions: Array.isArray(row.questions) ? row.questions : [],
+  passingScore: row.passing_score ?? 70,
+  timeLimitMin: row.time_limit_min ?? null,
+  status: row.status === "draft" ? "draft" : "published",
+});
+
+/**
+ * Quizzes for a training. RLS limits reads to enrolled students, the
+ * training's trainer, and admins (questions carry the correct answers).
+ * Never throws — the dashboard renders an honest empty state instead.
+ */
+export async function listQuizzes(trainingId: string): Promise<QuizRecord[]> {
+  const { data, error } = await supabase
+    .from("quizzes")
+    .select("*")
+    .eq("training_id", trainingId)
+    .order("sort_order", { ascending: true });
+  if (error) return [];
+  return (data || []).map(rowToQuiz);
+}
+
+/**
+ * Save the training's practice quiz (one default quiz per training for now —
+ * updates the first quiz if present, creates it otherwise). Trainer/admin only
+ * via RLS. Passing an empty question list removes the quiz.
+ */
+export async function saveQuizForTraining(
+  trainingId: string,
+  questions: QuizQuestion[],
+  opts?: { title?: string; passingScore?: number; timeLimitMin?: number | null },
+): Promise<void> {
+  const { data: existing } = await supabase
+    .from("quizzes")
+    .select("id")
+    .eq("training_id", trainingId)
+    .order("sort_order", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!questions.length) {
+    if (existing?.id) await supabase.from("quizzes").delete().eq("id", existing.id);
+    return;
+  }
+
+  const row: Record<string, unknown> = {
+    training_id: trainingId,
+    questions,
+    updated_at: new Date().toISOString(),
+  };
+  if (opts?.title) row.title = opts.title;
+  if (opts?.passingScore !== undefined) row.passing_score = opts.passingScore;
+  if (opts?.timeLimitMin !== undefined) row.time_limit_min = opts.timeLimitMin;
+
+  const { error } = existing?.id
+    ? await supabase.from("quizzes").update(row).eq("id", existing.id)
+    : await supabase.from("quizzes").insert(row);
+  if (error) throw error;
+}
+
+/** Record a completed attempt. RLS requires the signed-in student to own it. */
+export async function submitQuizAttempt(input: {
+  quizId: string;
+  trainingId: string;
+  answers: QuizAnswer[];
+  score: number;
+  isPassed: boolean;
+  timeSpentSec: number;
+}): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Please sign in to submit your quiz.");
+  const { error } = await supabase.from("quiz_attempts").insert({
+    quiz_id: input.quizId,
+    training_id: input.trainingId,
+    user_id: user.id,
+    answers: input.answers,
+    score: Math.round(input.score * 100) / 100,
+    is_passed: input.isPassed,
+    time_spent_sec: Math.max(0, Math.round(input.timeSpentSec)),
+    status: "completed",
+  });
+  if (error) throw error;
+}
+
+/** The signed-in student's past attempts for a quiz, newest first. */
+export async function getMyQuizAttempts(quizId: string): Promise<PreviousAttempt[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data, error } = await supabase
+    .from("quiz_attempts")
+    .select("id, score, is_passed, time_spent_sec, created_at")
+    .eq("quiz_id", quizId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) return [];
+  return (data || []).map((row: any) => ({
+    attemptId: row.id,
+    date: new Date(row.created_at),
+    score: Number(row.score) || 0,
+    timeSpent: row.time_spent_sec || 0,
+    isPassed: row.is_passed === true,
+  }));
+}

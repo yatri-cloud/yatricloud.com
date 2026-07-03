@@ -23,7 +23,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { listProviders, listApprovedTrainers, getTrainingForEdit, createTraining, updateTraining, uploadResource, submitCourseForApproval, getCertificationOptions, type CertificationOption } from "@/lib/training-api";
+import { listProviders, listApprovedTrainers, getTrainingForEdit, createTraining, updateTraining, uploadResource, submitCourseForApproval, getCertificationOptions, listQuizzes, saveQuizForTraining, type CertificationOption } from "@/lib/training-api";
 
 interface Lesson {
     title: string;
@@ -277,6 +277,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
             if (training) {
                 populateForm(training);
+                // Load the saved practice quiz into the builder (best effort).
+                try {
+                    const quizzes = await listQuizzes(trainingId);
+                    if (quizzes[0]?.questions?.length) setQuizQuestions(quizzes[0].questions);
+                } catch { /* builder simply starts empty */ }
                 toast.success("Training loaded successfully");
             } else {
                 toast.error("Failed to load training data");
@@ -342,6 +347,17 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 await updateTraining(editId!, payload);
             } else {
                 trainingId = await createTraining(payload);
+            }
+
+            // Persist the practice quiz alongside the course. A quiz problem
+            // never blocks the course save — the trainer just retries.
+            if (trainingId) {
+                try {
+                    await saveQuizForTraining(trainingId, quizQuestions);
+                } catch (quizError) {
+                    console.error("Quiz save error", quizError);
+                    toast.error("Course saved, but the quiz did not save. Open the course and save again.");
+                }
             }
 
             if (trainerSubmitting && trainingId) {
@@ -997,7 +1013,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
                             </div>
 
-                            <QuizBuilder trainingId={editId || "new"} onSave={setQuizQuestions} />
+                            <QuizBuilder trainingId={editId || "new"} onSave={setQuizQuestions} initialQuestions={quizQuestions} />
 
                             <div className="flex justify-between pt-2">
                                 <Button type="button" variant="outline" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,21 @@ import { useToast } from '@/hooks/use-toast';
 interface QuizBuilderProps {
     trainingId: string;
     onSave?: (questions: QuizQuestion[]) => void;
+    /** Existing questions loaded from the DB when editing a training. */
+    initialQuestions?: QuizQuestion[];
 }
 
-export const QuizBuilder = ({ trainingId, onSave }: QuizBuilderProps) => {
+export const QuizBuilder = ({ trainingId, onSave, initialQuestions }: QuizBuilderProps) => {
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+
+    // Hydrate once when the saved quiz arrives (async on edit). Never clobber
+    // in-progress authoring: only fill while the builder is still empty.
+    useEffect(() => {
+        if (initialQuestions?.length) {
+            setQuestions((prev) => (prev.length ? prev : initialQuestions));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialQuestions]);
     const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
     const [isCSVDialogOpen, setIsCSVDialogOpen] = useState(false);
     const { toast } = useToast();
@@ -87,14 +98,18 @@ export const QuizBuilder = ({ trainingId, onSave }: QuizBuilderProps) => {
         });
     };
 
-    const handleSave = () => {
-        if (onSave) {
-            onSave(questions);
-        }
+    // Lift every change to the parent form so questions are never lost when
+    // the trainer publishes without pressing "Save Quiz" first.
+    useEffect(() => {
+        onSave?.(questions);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [questions]);
 
+    const handleSave = () => {
+        onSave?.(questions);
         toast({
             title: 'Quiz Saved',
-            description: `${questions.length} questions saved successfully`,
+            description: `${questions.length} questions ready — they go live when you save the course.`,
         });
     };
 
