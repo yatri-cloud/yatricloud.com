@@ -36,6 +36,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Certifications", path: "/admin/certifications", icon: Award, description: "Manage the certification catalog and exam details." },
             { name: "Community", path: "/admin/community", icon: Users, description: "Manage the community links shown on the site." },
             { name: "Achievements", path: "/admin/achievements", icon: Award, description: "Moderate the certifications Yatris have shared." },
+            { name: "Inquiries", path: "/admin/inquiries", icon: Inbox, description: "Partner requests and contact messages from the site." },
         ],
     },
     {
