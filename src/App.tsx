@@ -36,6 +36,8 @@ import SponsorSubmissionForm from "./pages/SponsorSubmissionForm";
 import AdminSubmissions from "./pages/admin/AdminSubmissions";
 import EventMediaUpload from "./pages/EventMediaUpload";
 import MyEvents from "./pages/MyEvents";
+import MyPurchases from "./pages/MyPurchases";
+import ReceiptView from "./pages/ReceiptView";
 import AdminAttendees from "./pages/admin/AdminAttendees";
 import EventRegistrationsList from "./pages/admin/EventRegistrationsList";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -149,6 +151,8 @@ const App = () => (
               {/* Profile Routes */}
               <Route path="/profile/my-events" element={<MyEvents />} />
               <Route path="/my-trainings" element={<MyTrainings />} />
+              <Route path="/profile/purchases" element={<MyPurchases />} />
+              <Route path="/receipt/:invoiceNumber" element={<ReceiptView />} />
               <Route path="/profile/guide" element={<GuideView type="user" />} />
               <Route path="/profile/sitemap" element={<GuideView type="user-access" />} />
 
