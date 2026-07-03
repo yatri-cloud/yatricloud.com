@@ -613,7 +613,7 @@ const AdminMentorApplications = () => {
                                                 </p>
                                                 {app.status === "approved" && app.mentor_id && (
                                                     <p className="text-xs text-primary">
-                                                        Open mentor: find them under Mentors, profile id {app.mentor_id}
+                                                        Their mentor profile is ready. Find them on the Mentors page.
                                                     </p>
                                                 )}
                                             </div>
