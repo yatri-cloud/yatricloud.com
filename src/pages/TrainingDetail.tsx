@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Loader2, Clock, User, Award, CheckCircle2, MapPin, Globe, PlayCircle, Lock, ChevronDown, ChevronUp, Share2, Facebook, Twitter, Linkedin } from "lucide-react";
+import { Loader2, Clock, User, Award, CheckCircle2, MapPin, Globe, PlayCircle, Lock, ChevronDown, ChevronUp, Share2, Facebook, Twitter, Linkedin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { EnrollmentModal } from "@/components/EnrollmentModal";
 import { SEO } from "@/components/SEO";
-import { listPublishedTrainings, listInstructorProfiles, getCourseContent } from "@/lib/training-api";
+import { listPublishedTrainings, listInstructorProfiles, getCourseContent, getTrainingReviews, type TrainingReview } from "@/lib/training-api";
 
 interface Course {
     id: string;
@@ -34,7 +34,30 @@ interface Course {
     venue?: string;
     capacity?: string;
     folderUrl?: string;
+    avgRating?: number;
+    reviewCount?: number;
 }
+
+/** A compact row of five stars for a rating between 0 and 5. */
+function StarRow({ rating, className = "" }: { rating: number; className?: string }) {
+    const rounded = Math.round(rating);
+    return (
+        <span className={`inline-flex items-center gap-0.5 ${className}`} aria-hidden="true">
+            {[1, 2, 3, 4, 5].map((n) => (
+                <Star
+                    key={n}
+                    className={`w-4 h-4 ${n <= rounded ? "fill-warning text-warning" : "text-muted-foreground/40"}`}
+                />
+            ))}
+        </span>
+    );
+}
+
+const formatReviewDate = (iso: string) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-IN", { dateStyle: "medium" });
+};
 
 interface InstructorProfile {
     trainerId: string;
@@ -56,6 +79,7 @@ export default function TrainingDetail() {
     const [isEnrolled, setIsEnrolled] = useState(false);
     const [instructorProfile, setInstructorProfile] = useState<InstructorProfile | null>(null);
     const [modules, setModules] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<TrainingReview[]>([]);
 
     useEffect(() => {
         // Fetch course if we have an ID or slugs (certification/courseSlug)
@@ -120,6 +144,17 @@ export default function TrainingDetail() {
             } catch {
                 if (active) setModules([]);
             }
+        })();
+        return () => { active = false; };
+    }, [course?.id]);
+
+    // Load public reviews for this training.
+    useEffect(() => {
+        if (!course?.id) return;
+        let active = true;
+        (async () => {
+            const list = await getTrainingReviews(course.id);
+            if (active) setReviews(list);
         })();
         return () => { active = false; };
     }, [course?.id]);
@@ -233,6 +268,15 @@ export default function TrainingDetail() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm mt-4">
+                            {(course.reviewCount ?? 0) > 0 && (
+                                <span className="flex items-center gap-2 text-white">
+                                    <StarRow rating={course.avgRating ?? 0} />
+                                    <span className="font-semibold text-warning">{(course.avgRating ?? 0).toFixed(1)}</span>
+                                    <span className="text-gray-300">
+                                        ({course.reviewCount} {course.reviewCount === 1 ? "review" : "reviews"})
+                                    </span>
+                                </span>
+                            )}
                             {course.subType.includes("Microsoft") || course.subType.includes("Azure") ? <Badge variant="secondary" className="bg-[#0078d4] text-white border-none">Microsoft Certified</Badge> : null}
                             {course.subType.includes("AWS") ? <Badge variant="secondary" className="bg-[#FF9900] text-black border-none">AWS Certified</Badge> : null}
                             <Badge variant="outline" className="text-yellow-400 border-yellow-400/50 flex items-center gap-1">
@@ -454,6 +498,56 @@ export default function TrainingDetail() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Reviews */}
+                    <div className="space-y-6">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <h2 className="text-2xl font-bold">What learners say</h2>
+                            {(course.reviewCount ?? 0) > 0 && (
+                                <span className="flex items-center gap-2 text-sm">
+                                    <StarRow rating={course.avgRating ?? 0} />
+                                    <span className="font-semibold">{(course.avgRating ?? 0).toFixed(1)}</span>
+                                    <span className="text-muted-foreground">
+                                        · {course.reviewCount} {course.reviewCount === 1 ? "review" : "reviews"}
+                                    </span>
+                                </span>
+                            )}
+                        </div>
+
+                        {reviews.length === 0 ? (
+                            <p className="text-muted-foreground">
+                                No reviews yet. Be the first to share how this training helped you.
+                            </p>
+                        ) : (
+                            <div className="space-y-4">
+                                {reviews.map((review) => (
+                                    <Card key={review.id} className="rounded-xl border-border/50 bg-card">
+                                        <CardContent className="p-6 space-y-3">
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                <span className="font-semibold text-foreground">
+                                                    {review.name || "Yatri"}
+                                                </span>
+                                                {review.enrollment_id && (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">
+                                                        <CheckCircle2 className="w-3 h-3" /> Verified learner
+                                                    </span>
+                                                )}
+                                                {review.created_at && (
+                                                    <span className="ml-auto text-xs text-muted-foreground">
+                                                        {formatReviewDate(review.created_at)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <StarRow rating={review.rating} />
+                                            {review.review && (
+                                                <p className="text-sm text-foreground/80 leading-relaxed">{review.review}</p>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                 </div>
 

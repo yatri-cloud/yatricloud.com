@@ -75,6 +75,7 @@ import AdminMentorApplications from "./pages/admin/AdminMentorApplications";
 import AdminMentorshipServices from "./pages/admin/AdminMentorshipServices";
 import AdminMentorshipBookings from "./pages/admin/AdminMentorshipBookings";
 import AdminMentorReviews from "./pages/admin/AdminMentorReviews";
+import AdminTrainingReviews from "./pages/admin/AdminTrainingReviews";
 import AdminMentorshipOverview from "./pages/admin/AdminMentorshipOverview";
 
 
@@ -170,6 +171,7 @@ const App = () => (
                   <Route index element={<AdminTrainingList />} />
                   <Route path="create" element={<AdminTraining />} />
                   <Route path="edit/:id" element={<AdminEditTraining />} />
+                  <Route path="reviews" element={<AdminTrainingReviews />} />
                 </Route>
                 <Route path="providers" element={<AdminProviders />} />
                 <Route path="enrollments" element={<AdminEnrollments />} />

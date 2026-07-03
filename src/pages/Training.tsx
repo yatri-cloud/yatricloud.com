@@ -39,6 +39,8 @@ interface Course {
     thumbnailUrl: string;
     subType: string;
     mode: "Online" | "On-site";
+    avgRating?: number;
+    reviewCount?: number;
 }
 
 export default function Training() {
@@ -283,9 +285,11 @@ export default function Training() {
                                                 </span>
                                                 {/* Duration removed as it contains long topic list - kept for detail page */}
 
-                                                <span className="ml-auto flex items-center gap-1 font-medium text-warning">
-                                                    <Star className="h-3 w-3 fill-current" aria-hidden="true" /> 4.8
-                                                </span>
+                                                {(course.reviewCount ?? 0) > 0 && (
+                                                    <span className="ml-auto flex items-center gap-1 font-medium text-warning">
+                                                        <Star className="h-3 w-3 fill-current" aria-hidden="true" /> {(course.avgRating ?? 0).toFixed(1)}
+                                                    </span>
+                                                )}
                                             </div>
                                         </CardContent>
 

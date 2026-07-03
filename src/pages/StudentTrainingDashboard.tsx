@@ -3,10 +3,11 @@ import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom"
 import {
     BookOpen, Video, CheckCircle, Award, FileText, BarChart3,
     Clock, Calendar, MapPin, User, ChevronRight, PlayCircle,
-    Lock, Download, ExternalLink, Loader2, ArrowLeft, Home
+    Lock, Download, ExternalLink, Loader2, ArrowLeft, Home, Star, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -16,6 +17,8 @@ import {
     getTrainingDetail, checkEnrollment, getCourseContent,
     getLessonProgress, markLessonComplete, unmarkLesson,
     issueCertificate, getMyCertificates,
+    getMyTrainingReview, submitTrainingReview, deleteTrainingReview,
+    type TrainingReview,
 } from "@/lib/training-api";
 import Navbar from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
@@ -498,7 +501,185 @@ function OverviewTab({ training, outcomes, skills }: { training: TrainingDetails
                     </div>
                 </CardContent>
             </Card>
+
+            <ReviewCard trainingId={training.id} />
         </div>
+    );
+}
+
+// Rate this training — an enrolled student writes, edits, or removes one review.
+function ReviewCard({ trainingId }: { trainingId: string }) {
+    const [existing, setExisting] = useState<TrainingReview | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [editing, setEditing] = useState(false);
+    const [rating, setRating] = useState(0);
+    const [hover, setHover] = useState(0);
+    const [text, setText] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [removing, setRemoving] = useState(false);
+
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            const mine = await getMyTrainingReview(trainingId);
+            if (!active) return;
+            setExisting(mine);
+            if (mine) {
+                setRating(mine.rating);
+                setText(mine.review);
+            }
+            setLoading(false);
+        })();
+        return () => { active = false; };
+    }, [trainingId]);
+
+    const handleSubmit = async () => {
+        if (rating < 1) {
+            toast.error("Please pick a star rating first.");
+            return;
+        }
+        setSaving(true);
+        const res = await submitTrainingReview({ trainingId, rating, review: text });
+        setSaving(false);
+        if (!res.ok) {
+            toast.error(res.error || "Your review could not be saved. Please try again.");
+            return;
+        }
+        const mine = await getMyTrainingReview(trainingId);
+        setExisting(mine);
+        setEditing(false);
+        toast.success("Thank you for your review.");
+    };
+
+    const handleRemove = async () => {
+        if (!existing) return;
+        setRemoving(true);
+        const res = await deleteTrainingReview(existing.id);
+        setRemoving(false);
+        if (!res.ok) {
+            toast.error(res.error || "We could not remove your review. Please try again.");
+            return;
+        }
+        setExisting(null);
+        setRating(0);
+        setText("");
+        setEditing(false);
+        toast.success("Your review was removed.");
+    };
+
+    if (loading) {
+        return (
+            <Card>
+                <CardContent className="flex items-center gap-3 py-6 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span className="text-sm">Loading your review…</span>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    // Saved review, not editing — show it with edit and remove options.
+    if (existing && !editing) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Your review</CardTitle>
+                    <CardDescription>Thank you for helping other Yatris choose.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center gap-0.5" aria-hidden="true">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                            <Star
+                                key={n}
+                                className={`w-5 h-5 ${n <= existing.rating ? "fill-warning text-warning" : "text-muted-foreground/40"}`}
+                            />
+                        ))}
+                    </div>
+                    {existing.review && (
+                        <p className="text-sm text-foreground/80 leading-relaxed">{existing.review}</p>
+                    )}
+                    <div className="flex flex-wrap gap-3">
+                        <Button
+                            variant="outline"
+                            className="min-h-[44px] rounded-xl"
+                            onClick={() => setEditing(true)}
+                        >
+                            Edit review
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="min-h-[44px] rounded-xl text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={handleRemove}
+                            disabled={removing}
+                        >
+                            {removing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                            Remove
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    // Write or edit form.
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Rate this training</CardTitle>
+                <CardDescription>Share how this training helped you. Your name is shown with your review.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-center gap-1" role="radiogroup" aria-label="Star rating">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                            key={n}
+                            type="button"
+                            onClick={() => setRating(n)}
+                            onMouseEnter={() => setHover(n)}
+                            onMouseLeave={() => setHover(0)}
+                            aria-label={`${n} ${n === 1 ? "star" : "stars"}`}
+                            aria-checked={rating === n}
+                            role="radio"
+                            className="flex h-11 w-11 items-center justify-center rounded-lg transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                            <Star
+                                className={`w-6 h-6 ${n <= (hover || rating) ? "fill-warning text-warning" : "text-muted-foreground/40"}`}
+                            />
+                        </button>
+                    ))}
+                </div>
+                <Textarea
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="What did you like? What could be better?"
+                    rows={4}
+                    className="rounded-xl"
+                />
+                <div className="flex flex-wrap gap-3">
+                    <Button
+                        className="min-h-[44px] rounded-xl"
+                        onClick={handleSubmit}
+                        disabled={saving}
+                    >
+                        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {existing ? "Update review" : "Submit review"}
+                    </Button>
+                    {existing && (
+                        <Button
+                            variant="outline"
+                            className="min-h-[44px] rounded-xl"
+                            onClick={() => {
+                                setEditing(false);
+                                setRating(existing.rating);
+                                setText(existing.review);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
     );
 }
 

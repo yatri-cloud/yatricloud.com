@@ -91,6 +91,10 @@ export interface Course {
   startTime?: string;
   meetLink?: string;
   resources?: any[];
+  /** Average public rating (0 when no public reviews yet). */
+  avgRating: number;
+  /** Count of public reviews (0 when none). */
+  reviewCount: number;
 }
 
 const createSlug = (name: string) =>
@@ -141,6 +145,8 @@ function rowToCourse(row: any, modulesCount = 0): Course {
     startTime: row.start_time || undefined,
     meetLink: row.meet_link || undefined,
     resources: Array.isArray(row.resources) ? row.resources : [],
+    avgRating: Number(row.avg_rating) || 0,
+    reviewCount: Number(row.review_count) || 0,
   };
 }
 
@@ -1381,4 +1387,184 @@ export async function getCertificateBySerial(serial: string): Promise<{
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Training reviews & ratings (migration 026)
+// ---------------------------------------------------------------------------
+
+/** A public review shown on the catalog and detail pages. */
+export interface TrainingReview {
+  id: string;
+  name: string;
+  rating: number;
+  review: string;
+  created_at: string;
+  /** Set when the reviewer has an enrollment — powers the Verified badge. */
+  enrollment_id: string | null;
+}
+
+/** Public reviews for a training, newest first. Signed-out safe; never throws. */
+export async function getTrainingReviews(trainingId: string): Promise<TrainingReview[]> {
+  try {
+    const { data, error } = await supabase
+      .from("training_reviews")
+      .select("id, name, rating, review, created_at, enrollment_id")
+      .eq("training_id", trainingId)
+      .eq("is_public", true)
+      .order("created_at", { ascending: false });
+    if (error || !data) return [];
+    return data.map((r: any) => ({
+      id: r.id,
+      name: r.name || "",
+      rating: Number(r.rating) || 0,
+      review: r.review || "",
+      created_at: r.created_at || "",
+      enrollment_id: r.enrollment_id || null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/** The current user's own review for a training, or null. Never throws. */
+export async function getMyTrainingReview(trainingId: string): Promise<TrainingReview | null> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from("training_reviews")
+      .select("id, name, rating, review, created_at, enrollment_id")
+      .eq("training_id", trainingId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return {
+      id: data.id,
+      name: data.name || "",
+      rating: Number(data.rating) || 0,
+      review: data.review || "",
+      created_at: data.created_at || "",
+      enrollment_id: data.enrollment_id || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Upsert the current user's review for a training. The name comes from their
+ * profile, the enrollment_id is looked up from their enrollment, and RLS
+ * enforces that only an enrolled (paid or free) student may write. One review
+ * per (training, user). Never throws — returns { ok, error }.
+ */
+export async function submitTrainingReview(input: {
+  trainingId: string;
+  rating: number;
+  review: string;
+}): Promise<{ ok: boolean; error: string | null }> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "Please sign in to leave a review." };
+
+    // Name from the signed in user (profile first, then email).
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", user.id)
+      .maybeSingle();
+    const name = profile?.full_name || profile?.email || user.email || "Yatri";
+
+    // Enrollment backing this review (RLS still verifies it server-side).
+    const { data: enrollment } = await supabase
+      .from("training_enrollments")
+      .select("id")
+      .eq("training_id", input.trainingId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const rating = Math.max(1, Math.min(5, Math.round(Number(input.rating) || 0)));
+    const { error } = await supabase
+      .from("training_reviews")
+      .upsert(
+        {
+          training_id: input.trainingId,
+          user_id: user.id,
+          enrollment_id: enrollment?.id || null,
+          name,
+          rating,
+          review: input.review?.trim() || null,
+        },
+        { onConflict: "training_id,user_id" },
+      );
+    if (error) {
+      return { ok: false, error: "Your review could not be saved. Please try again." };
+    }
+    return { ok: true, error: null };
+  } catch {
+    return { ok: false, error: "Your review could not be saved. Please try again." };
+  }
+}
+
+/** Owner: remove their own review. Never throws — returns { ok, error }. */
+export async function deleteTrainingReview(id: string): Promise<{ ok: boolean; error: string | null }> {
+  try {
+    const { error } = await supabase.from("training_reviews").delete().eq("id", id);
+    if (error) return { ok: false, error: "We could not remove your review. Please try again." };
+    return { ok: true, error: null };
+  } catch {
+    return { ok: false, error: "We could not remove your review. Please try again." };
+  }
+}
+
+// ── Admin moderation ──
+
+/** An admin view of a review, joined to its training name. */
+export interface AdminTrainingReview {
+  id: string;
+  training_id: string;
+  trainingName: string;
+  name: string;
+  rating: number;
+  review: string;
+  is_public: boolean;
+  enrollment_id: string | null;
+  created_at: string;
+}
+
+/** Admin: every review with its training name, newest first. */
+export async function getAllTrainingReviews(): Promise<AdminTrainingReview[]> {
+  const { data, error } = await supabase
+    .from("training_reviews")
+    .select(
+      "id, training_id, name, rating, review, is_public, enrollment_id, created_at, trainings(name, course_title)",
+    )
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    training_id: r.training_id,
+    trainingName: r.trainings ? (r.trainings.course_title || r.trainings.name) : "",
+    name: r.name || "",
+    rating: Number(r.rating) || 0,
+    review: r.review || "",
+    is_public: r.is_public !== false,
+    enrollment_id: r.enrollment_id || null,
+    created_at: r.created_at || "",
+  }));
+}
+
+/** Admin: show or hide a review (the trigger recalculates the training rating). */
+export async function setReviewPublic(id: string, isPublic: boolean): Promise<void> {
+  const { error } = await supabase
+    .from("training_reviews")
+    .update({ is_public: isPublic })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+/** Admin: delete any review. */
+export async function adminDeleteReview(id: string): Promise<void> {
+  const { error } = await supabase.from("training_reviews").delete().eq("id", id);
+  if (error) throw error;
 }

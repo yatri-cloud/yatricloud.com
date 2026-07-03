@@ -52,6 +52,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                 { name: "Course list", path: "/admin/training", icon: ClipboardList },
                 { name: "Create Course", path: "/admin/training/create", icon: BookOpen },
                 { name: "Enrollments", path: "/admin/enrollments", icon: Users },
+                { name: "Reviews", path: "/admin/training/reviews", icon: Star },
                 { name: "Providers", path: "/admin/providers", icon: Server },
                 { name: "Trainers Hub", path: "/admin/trainers", icon: Users },
             ],
