@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, ArrowLeft, Copy, CheckCircle2, XCircle, Info, Ticket, Edit, Loader2 } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, Copy, CheckCircle2, XCircle, Info, Ticket, Edit, Loader2, CalendarPlus, Download } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { getUserRegistrations, cancelRegistration, updateRegistration, type EventRegistration } from "@/lib/registration-store";
+import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
@@ -77,6 +78,23 @@ export default function MyEvents() {
             setShowEditModal(false);
             toast({ title: "Details Updated", description: "Your registration details have been updated." });
         }
+    };
+
+    // Build add to calendar links when a registration carries a real, upcoming
+    // event date. End is +2 hours since events store no explicit finish time.
+    const getEventCalendar = (reg: EventRegistration) => {
+        const raw = (reg as any).eventDate || (reg as any).date;
+        if (!raw) return null;
+        const start = new Date(raw);
+        if (isNaN(start.getTime()) || start.getTime() <= Date.now()) return null;
+        const startISO = start.toISOString();
+        const endISO = new Date(start.getTime() + 2 * 60 * 60 * 1000).toISOString();
+        const location = reg.userDetails.city || 'Online';
+        const details = `Your spot at ${reg.eventName}, a Yatri Cloud event.`;
+        return {
+            gcal: googleCalendarUrl({ title: reg.eventName, startISO, endISO, details, location }),
+            ics: icsDataUri(buildIcs({ uid: `event-${reg.eventId}@yatricloud.com`, title: reg.eventName, startISO, endISO, details, location })),
+        };
     };
 
     const getStatusBadge = (status: string) => {
@@ -155,6 +173,26 @@ export default function MyEvents() {
                                                 {copiedCode === reg.registrationCode ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                                             </Button>
                                         </div>
+                                        {(() => {
+                                            const cal = getEventCalendar(reg);
+                                            if (!cal) return null;
+                                            return (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    <Button asChild variant="outline" size="sm" className="min-h-[44px] gap-2">
+                                                        <a href={cal.gcal} target="_blank" rel="noopener noreferrer">
+                                                            <CalendarPlus className="w-4 h-4" />
+                                                            Add to Google Calendar
+                                                        </a>
+                                                    </Button>
+                                                    <Button asChild variant="outline" size="sm" className="min-h-[44px] gap-2">
+                                                        <a href={cal.ics} download={`${reg.eventName}.ics`}>
+                                                            <Download className="w-4 h-4" />
+                                                            Download .ics
+                                                        </a>
+                                                    </Button>
+                                                </div>
+                                            );
+                                        })()}
                                     </CardContent>
                                     <CardFooter className="pt-2 gap-2">
                                         <Button

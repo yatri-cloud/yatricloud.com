@@ -260,7 +260,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'event_registrations',
       [
         `select=${eventSelect}`,
-        'status=in.(confirmed,registered)',
+        'status=in.(registered,attended)',
         'reminded_1d=eq.false',
         `events.event_date=gte.${iso(23 * H)}`,
         `events.event_date=lt.${iso(25 * H)}`,
@@ -319,7 +319,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'event_registrations',
       [
         `select=${eventSelect}`,
-        'status=in.(confirmed,registered)',
+        'status=in.(registered,attended)',
         'reminded_soon=eq.false',
         `events.event_date=gte.${now.toISOString()}`,
         `events.event_date=lt.${iso(3 * H)}`,

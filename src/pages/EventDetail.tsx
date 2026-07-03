@@ -16,7 +16,9 @@ import {
     ArrowRight,
     Inbox,
     CalendarX,
-    ImageOff
+    ImageOff,
+    CalendarPlus,
+    Download
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -28,6 +30,7 @@ import { isAuthenticated, getStoredUser, getRegisteredEvents } from "@/lib/yatri
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
 import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
+import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
 
 // Fallback mock events - initially empty
 const MOCK_EVENTS: Event[] = [];
@@ -139,6 +142,24 @@ const EventDetail = () => {
     };
 
     const isPastEvent = event.status === 'past';
+
+    // Add to calendar for events that carry a real start date. End is +2 hours
+    // since events do not store an explicit finish time.
+    const hasEventDate = Boolean(event.date) && !isNaN(new Date(event.date).getTime());
+    const eventEndISO = hasEventDate
+        ? new Date(new Date(event.date).getTime() + 2 * 60 * 60 * 1000).toISOString()
+        : "";
+    const eventCalLocation = event.location?.type === 'online'
+        ? 'Online'
+        : (event.location?.venue || event.location?.city || 'Online');
+    const eventPageUrl = `https://www.yatricloud.com/events/${event.slug || event.id}`;
+    const eventCalDetails = `Your spot at ${event.name}, a Yatri Cloud event. Details and updates at ${eventPageUrl}`;
+    const eventGCalUrl = hasEventDate
+        ? googleCalendarUrl({ title: event.name, startISO: event.date, endISO: eventEndISO, details: eventCalDetails, location: eventCalLocation })
+        : "";
+    const eventIcsUri = hasEventDate
+        ? icsDataUri(buildIcs({ uid: `event-${event.id}@yatricloud.com`, title: event.name, startISO: event.date, endISO: eventEndISO, details: eventCalDetails, location: eventCalLocation }))
+        : "";
 
     const tabs = [
         { id: 'about', label: 'About' },
@@ -346,6 +367,28 @@ const EventDetail = () => {
                                         <p className="text-xs text-muted-foreground text-center mt-2">
                                             Registration open till {formatEventDate(event.registrationDeadline, event.timezone)}
                                         </p>
+                                    )}
+
+                                    {hasEventDate && (
+                                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <a
+                                                href={eventGCalUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-center gap-2 min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-4 py-3 rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                            >
+                                                <CalendarPlus className="w-4 h-4 text-primary" />
+                                                Add to Google Calendar
+                                            </a>
+                                            <a
+                                                href={eventIcsUri}
+                                                download={`${event.name}.ics`}
+                                                className="flex items-center justify-center gap-2 min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-4 py-3 rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                            >
+                                                <Download className="w-4 h-4 text-primary" />
+                                                Download .ics
+                                            </a>
+                                        </div>
                                     )}
                                 </div>
                             </div>

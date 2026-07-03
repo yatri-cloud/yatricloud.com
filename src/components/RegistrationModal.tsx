@@ -18,6 +18,7 @@ import { getCachedUser } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
 import { getRegistrationEmail } from "@/lib/email-templates";
+import { googleCalendarUrl } from "@/lib/calendar";
 import { CurrencySelect } from "@/components/CurrencySelect";
 import {
     DEFAULT_CURRENCY,
@@ -172,7 +173,23 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     const sendConfirmationEmail = async (registrationCode: string) => {
         try {
             const locationStr = event.location.venue || (event.location.type === 'online' ? 'Online' : 'TBD');
-            const emailHtml = getRegistrationEmail(formData.name, event.name, registrationCode, event.date || 'TBD', locationStr);
+            let emailHtml = getRegistrationEmail(formData.name, event.name, registrationCode, event.date || 'TBD', locationStr);
+
+            // Add to calendar link for events with a real start date. End is +2
+            // hours since events do not store an explicit finish time.
+            if (event.date && !isNaN(new Date(event.date).getTime())) {
+                const startISO = new Date(event.date).toISOString();
+                const endISO = new Date(new Date(event.date).getTime() + 2 * 60 * 60 * 1000).toISOString();
+                const calUrl = googleCalendarUrl({
+                    title: event.name,
+                    startISO,
+                    endISO,
+                    details: `Your spot at ${event.name}, a Yatri Cloud event.`,
+                    location: locationStr,
+                });
+                emailHtml += `<p style="text-align:center;margin:24px 0;"><a href="${calUrl}" style="display:inline-block;padding:12px 24px;background:#007CFF;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;">Add to your calendar</a></p>`;
+            }
+
             await sendEmail({
                 to: formData.email,
                 subject: `Registration Confirmed: ${event.name}`,

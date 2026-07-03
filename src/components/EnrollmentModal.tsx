@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
 import { getStoredUser, isProfileComplete } from "@/lib/yatris-api";
 import { enroll, createTrainingOrder } from "@/lib/training-api";
+import { googleCalendarUrl } from "@/lib/calendar";
 import { Country } from "country-state-city";
 import { CurrencySelect } from "@/components/CurrencySelect";
 import {
@@ -34,6 +35,11 @@ interface EnrollmentModalProps {
     currency?: string;
     isPaid: boolean;
     onSuccess: () => void;
+    // Optional live session start, used to add the calendar link to the
+    // enrollment email when the training has a scheduled session.
+    startDate?: string;
+    startTime?: string;
+    meetLink?: string;
 }
 
 interface FormData {
@@ -46,7 +52,7 @@ interface FormData {
     linkedIn: string;
 }
 
-export function EnrollmentModal({ open, onClose, courseId, courseName, price, currency, isPaid, onSuccess }: EnrollmentModalProps) {
+export function EnrollmentModal({ open, onClose, courseId, courseName, price, currency, isPaid, onSuccess, startDate, startTime, meetLink }: EnrollmentModalProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [autoSubmitting, setAutoSubmitting] = useState(false);
@@ -126,15 +132,48 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
         return false;
     };
 
+    // Combine the live session start date and time into a single ISO instant,
+    // running +2 hours by default since no explicit end time is stored.
+    const buildSessionStartISO = (): string => {
+        if (!startDate) return "";
+        const d = new Date(startDate);
+        if (isNaN(d.getTime())) return "";
+        if (startTime) {
+            const hm = /^(\d{1,2}):(\d{2})/.exec(startTime.trim());
+            if (hm) {
+                d.setHours(Number(hm[1]), Number(hm[2]), 0, 0);
+            } else {
+                const t = new Date(startTime);
+                if (!isNaN(t.getTime())) d.setHours(t.getHours(), t.getMinutes(), 0, 0);
+            }
+        }
+        return d.toISOString();
+    };
+
     // Welcome email + success handoff shared by both flows.
     const sendWelcomeAndFinish = async () => {
         try {
+            // Add to calendar link when the training has a scheduled live session.
+            const sessionStartISO = buildSessionStartISO();
+            let calendarBlock = "";
+            if (sessionStartISO) {
+                const endISO = new Date(new Date(sessionStartISO).getTime() + 2 * 60 * 60 * 1000).toISOString();
+                const calUrl = googleCalendarUrl({
+                    title: courseName,
+                    startISO: sessionStartISO,
+                    endISO,
+                    details: `Your live session for ${courseName}, a Yatri Cloud training.${meetLink ? ` Join at ${meetLink}` : ''}`,
+                    location: meetLink || 'Online',
+                });
+                calendarBlock = `<p style="text-align:center;margin:24px 0;"><a href="${calUrl}" style="display:inline-block;padding:12px 24px;background:#007CFF;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;">Add to your calendar</a></p>`;
+            }
             const emailHtml = `
                 <div style="font-family: sans-serif; padding: 20px;">
                     <h1>Welcome to ${courseName}!</h1>
                     <p>Hi ${formData.name},</p>
                     <p>You have successfully enrolled in <strong>${courseName}</strong>.</p>
                     <p>Our team will contact you shortly with the access details.</p>
+                    ${calendarBlock}
                     <br/>
                     <p>Happy Learning,<br/>Yatri Cloud Team</p>
                 </div>

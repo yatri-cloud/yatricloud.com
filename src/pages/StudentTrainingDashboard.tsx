@@ -19,6 +19,7 @@ import {
 } from "@/lib/training-api";
 import Navbar from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
+import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
 
 interface TrainingDetails {
     id: string;
@@ -771,6 +772,37 @@ function JoinClassTab({ training }: { training: TrainingDetails }) {
         return timeStr;
     };
 
+    // Combine the live session start date and time into a single ISO instant.
+    // The class runs +2 hours by default since no explicit end time is stored.
+    const buildSessionStartISO = (): string => {
+        if (!training.startDate) return "";
+        const d = new Date(training.startDate);
+        if (isNaN(d.getTime())) return "";
+        if (training.startTime) {
+            const hm = /^(\d{1,2}):(\d{2})/.exec(training.startTime.trim());
+            if (hm) {
+                d.setHours(Number(hm[1]), Number(hm[2]), 0, 0);
+            } else {
+                const t = new Date(training.startTime);
+                if (!isNaN(t.getTime())) d.setHours(t.getHours(), t.getMinutes(), 0, 0);
+            }
+        }
+        return d.toISOString();
+    };
+
+    const sessionStartISO = buildSessionStartISO();
+    const sessionEndISO = sessionStartISO
+        ? new Date(new Date(sessionStartISO).getTime() + 2 * 60 * 60 * 1000).toISOString()
+        : "";
+    const sessionLocation = training.meetLink || training.venue || 'Online';
+    const sessionDetails = `Your live session for ${training.courseName}, a Yatri Cloud training.${training.meetLink ? ` Join at ${training.meetLink}` : ''}`;
+    const sessionGCalUrl = sessionStartISO
+        ? googleCalendarUrl({ title: training.courseName, startISO: sessionStartISO, endISO: sessionEndISO, details: sessionDetails, location: sessionLocation })
+        : "";
+    const sessionIcsUri = sessionStartISO
+        ? icsDataUri(buildIcs({ uid: `training-${training.id}@yatricloud.com`, title: training.courseName, startISO: sessionStartISO, endISO: sessionEndISO, details: sessionDetails, location: sessionLocation }))
+        : "";
+
     return (
         <div className="space-y-6">
             <Card>
@@ -816,6 +848,23 @@ function JoinClassTab({ training }: { training: TrainingDetails }) {
                                     Join Training
                                 </a>
                             </Button>
+
+                            {sessionStartISO && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <Button asChild variant="outline" className="min-h-[44px] gap-2">
+                                        <a href={sessionGCalUrl} target="_blank" rel="noopener noreferrer">
+                                            <Calendar className="w-4 h-4" />
+                                            Add to Google Calendar
+                                        </a>
+                                    </Button>
+                                    <Button asChild variant="outline" className="min-h-[44px] gap-2">
+                                        <a href={sessionIcsUri} download={`${training.courseName}.ics`}>
+                                            <Download className="w-4 h-4" />
+                                            Download .ics
+                                        </a>
+                                    </Button>
+                                </div>
+                            )}
                         </>
                     ) : (
                         <div className="text-center py-12">
