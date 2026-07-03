@@ -29,10 +29,36 @@ function toSmallestUnit(amountMajor: number, code: string): number {
   return Math.round((Number(amountMajor) || 0) * Math.pow(10, dec));
 }
 
+// RFC 10008 (The HTTP QUERY Method): the list actions are safe, idempotent
+// reads that carry a request body — exactly what QUERY is for. Mutations
+// (create/cancel/refund) stay POST-only; sending them via QUERY is rejected
+// so the method's safety promise holds.
+const QUERY_SAFE_ACTIONS = new Set(['invoices.list', 'payments.list']);
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
+  // Advertise QUERY support per RFC 10008 (Structured Field of media ranges).
+  res.setHeader('Accept-Query', '"application/json"');
+
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Allow', 'POST, QUERY, OPTIONS');
+    return res.status(204).end();
+  }
+
+  const isQuery = req.method === 'QUERY';
+  if (req.method !== 'POST' && !isQuery) {
+    res.setHeader('Allow', 'POST, QUERY, OPTIONS');
     return res.status(405).json({ ok: false, message: 'Method Not Allowed' });
+  }
+
+  // RFC 10008 requires typed request content on QUERY.
+  if (isQuery && !String(req.headers['content-type'] || '').includes('application/json')) {
+    return res.status(415).json({ ok: false, message: 'QUERY requests must send application/json.' });
+  }
+
+  // Safety gate before auth or any side effects: QUERY may only run reads.
+  if (isQuery && !QUERY_SAFE_ACTIONS.has((req.body || {}).action)) {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ ok: false, message: 'This action changes state — send it with POST.' });
   }
 
   const supabaseUrl = process.env.SUPABASE_URL;

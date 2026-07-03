@@ -43,15 +43,48 @@ async function accessToken(): Promise<string> {
   return token;
 }
 
+/**
+ * RFC 10008: list actions are safe, idempotent queries with a request body,
+ * so they go over the HTTP QUERY method (semantically correct, keeps the
+ * token and params out of URLs and logs, and lets caches/retries treat them
+ * as safe). Mutations always use POST. If anything between the browser and
+ * the function rejects QUERY, we learn that once and fall back to POST for
+ * the rest of the session — behavior never breaks.
+ */
+const QUERY_ACTIONS = new Set(["invoices.list", "payments.list"]);
+let queryMethodBroken = false;
+
 async function call<T>(action: string, params: Record<string, unknown> = {}): Promise<T> {
   const access_token = await accessToken();
-  const res = await fetch("/api/razorpay/admin", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action, access_token, ...params }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.message || "Something went wrong.");
+  const body = JSON.stringify({ action, access_token, ...params });
+  const headers = { "Content-Type": "application/json" };
+  const useQuery = QUERY_ACTIONS.has(action) && !queryMethodBroken;
+
+  let res: Response;
+  try {
+    res = await fetch("/api/razorpay/admin", { method: useQuery ? "QUERY" : "POST", headers, body });
+  } catch (err) {
+    // A network-level rejection of the method itself — remember and retry POST.
+    if (!useQuery) throw err;
+    queryMethodBroken = true;
+    res = await fetch("/api/razorpay/admin", { method: "POST", headers, body });
+  }
+
+  let data = await res.json().catch(() => ({} as Record<string, unknown>));
+
+  // Method-level failures (proxy/platform not passing QUERY through, or the
+  // body not reaching the handler) — not auth or action errors.
+  const methodFailure =
+    useQuery &&
+    (res.status === 405 || res.status === 501 || res.status === 415 ||
+      (res.status === 400 && String((data as any)?.message || "").startsWith("Missing action")));
+  if (methodFailure) {
+    queryMethodBroken = true;
+    res = await fetch("/api/razorpay/admin", { method: "POST", headers, body });
+    data = await res.json().catch(() => ({} as Record<string, unknown>));
+  }
+
+  if (!res.ok || !(data as any)?.ok) throw new Error((data as any)?.message || "Something went wrong.");
   return data as T;
 }
 
