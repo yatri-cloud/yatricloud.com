@@ -371,7 +371,9 @@ export const TrainerDashboard = () => {
                                             <TableCell className="font-medium">
                                                 <div className="flex flex-col">
                                                     <span>{course.courseName}</span>
-                                                    <span className="text-xs text-muted-foreground font-normal">ID: {course.id.substring(0, 8)}</span>
+                                                    {course.subType && (
+                                                        <span className="text-xs text-muted-foreground font-normal">{course.subType}</span>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                             <TableCell>{course.subType}</TableCell>

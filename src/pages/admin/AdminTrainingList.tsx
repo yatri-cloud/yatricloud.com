@@ -280,7 +280,9 @@ export default function AdminTrainingList() {
                                         <TableCell className="font-medium px-4 py-3">
                                             <div className="flex flex-col">
                                                 <span>{course.courseName}</span>
-                                                <span className="text-xs text-muted-foreground font-normal">ID: {course.id.substring(0, 8)}...</span>
+                                                {course.slug && (
+                                                    <span className="text-xs text-muted-foreground font-normal">{course.slug}</span>
+                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell className="px-4 py-3">{course.subType}</TableCell>
