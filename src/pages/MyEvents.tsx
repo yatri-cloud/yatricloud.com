@@ -19,6 +19,8 @@ import {
     isAuthenticated,
     getStoredUser,
     getRegisteredEvents,
+    issueEventCertificate,
+    getMyEventCertificate,
     type EventRegistration,
 } from "@/lib/yatris-api";
 import { cancelRegistration } from "@/lib/events-api";
@@ -76,6 +78,10 @@ export default function MyEvents() {
     const [pendingCancel, setPendingCancel] = useState<EventRegistration | null>(null);
     const [cancelling, setCancelling] = useState(false);
 
+    // Certificate serials by event id, plus which events are being claimed.
+    const [certSerials, setCertSerials] = useState<Record<string, string>>({});
+    const [claiming, setClaiming] = useState<Record<string, boolean>>({});
+
     const load = useCallback(async () => {
         setLoading(true);
         const data = await getRegisteredEvents();
@@ -85,7 +91,38 @@ export default function MyEvents() {
         );
         setRegistrations(data);
         setLoading(false);
+
+        // Look up any certificates already issued for attended events.
+        const attended = data.filter((r) => r.rawStatus === "attended" && r.eventId);
+        const found = await Promise.all(
+            attended.map(async (r) => {
+                const cert = await getMyEventCertificate(r.eventId);
+                return cert ? ([r.eventId, cert.serial] as const) : null;
+            })
+        );
+        const map: Record<string, string> = {};
+        for (const entry of found) {
+            if (entry) map[entry[0]] = entry[1];
+        }
+        setCertSerials(map);
     }, []);
+
+    const claimCertificate = async (reg: EventRegistration) => {
+        if (!reg.eventId) return;
+        setClaiming((prev) => ({ ...prev, [reg.eventId]: true }));
+        const result = await issueEventCertificate(reg.eventId);
+        setClaiming((prev) => ({ ...prev, [reg.eventId]: false }));
+        if (result.ok && result.serial) {
+            setCertSerials((prev) => ({ ...prev, [reg.eventId]: result.serial! }));
+            navigate(`/certificate/${result.serial}`);
+            return;
+        }
+        toast({
+            title: "We could not issue your certificate",
+            description: result.message || "Please try again in a moment.",
+            variant: "destructive",
+        });
+    };
 
     useEffect(() => {
         const authed = isAuthenticated() && !!getStoredUser();
@@ -183,6 +220,9 @@ export default function MyEvents() {
                                 const cal = getEventCalendar(reg);
                                 const code = reg.attendees[0]?.ticketId;
                                 const isConfirmed = reg.status === "confirmed";
+                                const isAttended = reg.rawStatus === "attended";
+                                const certSerial = reg.eventId ? certSerials[reg.eventId] : undefined;
+                                const isClaiming = reg.eventId ? !!claiming[reg.eventId] : false;
                                 return (
                                     <Card
                                         key={reg.id}
@@ -265,6 +305,33 @@ export default function MyEvents() {
                                                             Download .ics
                                                         </a>
                                                     </Button>
+                                                </div>
+                                            )}
+                                            {isAttended && (
+                                                <div className="rounded-md border border-brand-200/40 bg-brand-50/70 p-3">
+                                                    <p className="text-xs text-muted-foreground mb-2">
+                                                        Certificate of attendance
+                                                    </p>
+                                                    {certSerial ? (
+                                                        <Button
+                                                            asChild
+                                                            size="sm"
+                                                            className="w-full min-h-[44px]"
+                                                        >
+                                                            <Link to={`/certificate/${certSerial}`}>
+                                                                View certificate
+                                                            </Link>
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            size="sm"
+                                                            className="w-full min-h-[44px]"
+                                                            disabled={isClaiming}
+                                                            onClick={() => claimCertificate(reg)}
+                                                        >
+                                                            {isClaiming ? "Getting your certificate…" : "Get your certificate"}
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             )}
                                         </CardContent>

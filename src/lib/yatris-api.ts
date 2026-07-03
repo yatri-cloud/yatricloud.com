@@ -362,6 +362,8 @@ export interface EventRegistration {
   attendees: Attendee[];
   totalAmount: number;
   status: 'confirmed' | 'cancelled';
+  /** Raw registration status from the database, so the UI can detect 'attended'. */
+  rawStatus: 'registered' | 'attended' | 'cancelled';
 }
 
 /**
@@ -439,7 +441,62 @@ export async function getRegisteredEvents(): Promise<EventRegistration[]> {
     attendees: [{ name: r.name, email: r.email, phone: r.phone || undefined, ticketId: r.registration_code }],
     totalAmount: 0,
     status: r.status === 'cancelled' ? 'cancelled' : 'confirmed',
+    rawStatus: r.status === 'attended' ? 'attended' : r.status === 'cancelled' ? 'cancelled' : 'registered',
   }));
+}
+
+/**
+ * Issue an attendance certificate for an event the current user attended.
+ * The server only issues when the user's registration status is 'attended'.
+ * Never throws; returns a plain result the UI can act on.
+ */
+export async function issueEventCertificate(
+  eventId: string
+): Promise<{ ok: boolean; serial?: string; message?: string }> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    if (!accessToken) return { ok: false, message: 'Please sign in first.' };
+
+    const res = await fetch('/api/events/issue-certificate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_id: eventId, access_token: accessToken }),
+    });
+    const body = await res.json().catch(() => ({}));
+    return {
+      ok: !!body?.ok,
+      serial: body?.serial,
+      message: body?.message,
+    };
+  } catch (err) {
+    console.error('Issue event certificate error:', err);
+    return { ok: false, message: 'Something went wrong. Please try again.' };
+  }
+}
+
+/**
+ * Read the current user's certificate for an event, if one exists.
+ * Returns { serial } or null. Never throws.
+ */
+export async function getMyEventCertificate(
+  eventId: string
+): Promise<{ serial: string } | null> {
+  try {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) return null;
+    const { data, error } = await supabase
+      .from('certificates')
+      .select('serial')
+      .eq('user_id', authUser.id)
+      .eq('event_id', eventId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return { serial: data.serial };
+  } catch (err) {
+    console.error('Get event certificate error:', err);
+    return null;
+  }
 }
 
 /**
