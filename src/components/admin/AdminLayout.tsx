@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Award, Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink, Globe, Handshake, CalendarClock, Star, Inbox, Receipt, CreditCard } from "lucide-react";
+import { LogOut, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight } from "lucide-react";
+import { ADMIN_NAV_GROUPS } from "@/config/admin-nav";
 import { Button } from "@/components/ui/button";
 import {
     Accordion,
@@ -23,69 +24,8 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
         () => typeof window !== "undefined" && localStorage.getItem(COLLAPSE_KEY) === "1"
     );
 
-    // Grouped Menu Items
-    const menuGroups = [
-        {
-            id: "site-content",
-            label: "Site Content",
-            icon: Globe,
-            items: [
-                { name: "Site & Homepage", path: "/admin/site", icon: Globe },
-                { name: "Certifications", path: "/admin/certifications", icon: Award },
-            ],
-        },
-        {
-            id: "events",
-            label: "Events",
-            icon: Calendar,
-            items: [
-                { name: "All Events", path: "/admin/events", icon: Calendar },
-                { name: "Attendees", path: "/admin/attendees", icon: Users },
-                { name: "Submissions", path: "/admin/submissions", icon: ClipboardList },
-            ],
-        },
-        {
-            id: "training",
-            label: "Training",
-            icon: GraduationCap,
-            items: [
-                { name: "Course list", path: "/admin/training", icon: ClipboardList },
-                { name: "Create Course", path: "/admin/training/create", icon: BookOpen },
-                { name: "Enrollments", path: "/admin/enrollments", icon: Users },
-                { name: "Reviews", path: "/admin/training/reviews", icon: Star },
-                { name: "Providers", path: "/admin/providers", icon: Server },
-                { name: "Trainers Hub", path: "/admin/trainers", icon: Users },
-            ],
-        },
-        {
-            id: "mentorship",
-            label: "Mentorship",
-            icon: Handshake,
-            items: [
-                { name: "Overview", path: "/admin/mentorship/overview", icon: LayoutDashboard },
-                { name: "Applications", path: "/admin/mentorship/applications", icon: Inbox },
-                { name: "Mentors", path: "/admin/mentorship/mentors", icon: Users },
-                { name: "Services", path: "/admin/mentorship/services", icon: ClipboardList },
-                { name: "Bookings", path: "/admin/mentorship/bookings", icon: CalendarClock },
-                { name: "Reviews", path: "/admin/mentorship/reviews", icon: Star },
-            ],
-        },
-        {
-            id: "admin-tools",
-            label: "Other Tools",
-            icon: Wrench,
-            items: [
-                { name: "Payments & Revenue", path: "/admin/payments", icon: Receipt },
-                { name: "Razorpay Invoices", path: "/admin/razorpay-invoices", icon: ExternalLink },
-                { name: "Transactions", path: "/admin/transactions", icon: CreditCard },
-                { name: "Udemy Management", path: "/admin/udemy", icon: GraduationCap },
-                { name: "Store Product", path: "/admin/products/add", icon: Plus },
-                { name: "Exam Dumps", path: "/admin/exam-dumps", icon: List },
-                { name: "Admin Guide", path: "/admin/guide", icon: Info },
-                { name: "Admin Sitemap", path: "/admin/sitemap", icon: List },
-            ],
-        },
-    ];
+    // Grouped menu items — shared with the auto generated Admin Sitemap.
+    const menuGroups = ADMIN_NAV_GROUPS;
 
     // Path matcher with a segment boundary so "/admin/site" never matches "/admin/sitemap".
     const isPathActive = (path: string) =>

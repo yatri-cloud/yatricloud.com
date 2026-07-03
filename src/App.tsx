@@ -50,6 +50,7 @@ import AdminEnrollments from "./pages/admin/AdminEnrollments";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminRazorpayInvoices from "./pages/admin/AdminRazorpayInvoices";
 import AdminTransactions from "./pages/admin/AdminTransactions";
+import AdminSitemapView from "./pages/admin/AdminSitemapView";
 import Training from "./pages/Training";
 import TrainingDetail from "./pages/TrainingDetail";
 import AdminTrainingList from "@/pages/admin/AdminTrainingList";
@@ -198,7 +199,7 @@ const App = () => (
                 <Route path="exam-dumps/add" element={<AdminAddExamDump />} />
                 <Route path="exam-dumps/edit/:id" element={<AdminEditExamDump />} />
                 <Route path="guide" element={<GuideView type="admin" />} />
-                <Route path="sitemap" element={<GuideView type="admin-access" />} />
+                <Route path="sitemap" element={<AdminSitemapView />} />
               </Route>
 
               <Route path="/reset-password" element={<ResetPassword />} />
