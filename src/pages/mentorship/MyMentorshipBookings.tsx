@@ -44,6 +44,9 @@ import {
   formatServicePrice,
   formatInstant,
   visitorTimezone,
+  googleCalendarUrl,
+  buildIcs,
+  icsDataUri,
 } from "@/lib/mentorship";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -370,6 +373,39 @@ const MyMentorshipBookings = () => {
               const alreadyReviewed = reviewedBookingIds.has(booking.id);
               const draft = draftFor(booking.id);
 
+              // Calendar actions for confirmed sessions that have a slot.
+              const calendarReady =
+                booking.status === "confirmed" &&
+                !isDigital &&
+                Boolean(booking.slot_start) &&
+                Boolean(booking.slot_end);
+              const calTitle = booking.service?.title || "Mentorship session";
+              const calLocation = meetingLink || "Online";
+              const calDetails = `Mentorship session with ${
+                booking.mentor?.name || "your mentor"
+              }.${meetingLink ? ` Join here: ${meetingLink}` : ""}`;
+              const googleUrl = calendarReady
+                ? googleCalendarUrl({
+                    title: calTitle,
+                    startISO: booking.slot_start as string,
+                    endISO: booking.slot_end as string,
+                    details: calDetails,
+                    location: calLocation,
+                  })
+                : null;
+              const icsUri = calendarReady
+                ? icsDataUri(
+                    buildIcs({
+                      uid: `booking-${booking.id}@yatricloud.com`,
+                      title: calTitle,
+                      startISO: booking.slot_start as string,
+                      endISO: booking.slot_end as string,
+                      description: calDetails,
+                      location: calLocation,
+                    })
+                  )
+                : null;
+
               return (
                 <div
                   key={booking.id}
@@ -467,6 +503,27 @@ const MyMentorshipBookings = () => {
                         className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         Open your product
+                      </a>
+                    )}
+
+                    {googleUrl && (
+                      <a
+                        href={googleUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl border border-border text-sm font-medium hover:border-brand-200 hover:bg-brand-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        Add to Google Calendar
+                      </a>
+                    )}
+
+                    {icsUri && (
+                      <a
+                        href={icsUri}
+                        download="yatri-cloud-session.ics"
+                        className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl border border-border text-sm font-medium hover:border-brand-200 hover:bg-brand-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        Download .ics
                       </a>
                     )}
 

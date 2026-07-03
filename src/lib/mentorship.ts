@@ -1071,6 +1071,78 @@ export function formatInstant(iso: string | Date, timeZone: string): string {
 }
 
 /* ------------------------------------------------------------------ */
+/* Calendar helpers (dependency free so the server can mirror them)    */
+/* ------------------------------------------------------------------ */
+
+/** ISO timestamp to UTC basic format YYYYMMDDTHHMMSSZ used by calendars. */
+function toCalendarUtc(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+}
+
+/** Escapes a value for an ICS text field (commas, semicolons, newlines). */
+function icsEscape(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
+}
+
+/** Builds a Google Calendar "add event" URL (UTC basic format, all encoded). */
+export function googleCalendarUrl(input: {
+  title: string;
+  startISO: string;
+  endISO: string;
+  details?: string;
+  location?: string;
+}): string {
+  const dates = `${toCalendarUtc(input.startISO)}/${toCalendarUtc(input.endISO)}`;
+  const params = [
+    "action=TEMPLATE",
+    `text=${encodeURIComponent(input.title)}`,
+    `dates=${dates}`,
+    `details=${encodeURIComponent(input.details ?? "")}`,
+    `location=${encodeURIComponent(input.location ?? "")}`,
+  ].join("&");
+  return `https://calendar.google.com/calendar/render?${params}`;
+}
+
+/** Builds a valid single event VCALENDAR string with UTC Z times. */
+export function buildIcs(input: {
+  uid: string;
+  title: string;
+  startISO: string;
+  endISO: string;
+  description?: string;
+  location?: string;
+}): string {
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Yatri Cloud//Mentorship//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${input.uid}`,
+    `DTSTAMP:${toCalendarUtc(new Date().toISOString())}`,
+    `DTSTART:${toCalendarUtc(input.startISO)}`,
+    `DTEND:${toCalendarUtc(input.endISO)}`,
+    `SUMMARY:${icsEscape(input.title)}`,
+    `DESCRIPTION:${icsEscape(input.description ?? "")}`,
+    `LOCATION:${icsEscape(input.location ?? "")}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
+/** Wraps an ICS string as a downloadable data URI. */
+export function icsDataUri(ics: string): string {
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+}
+
+/* ------------------------------------------------------------------ */
 /* Buyer confirmation email (sent client side, existing pattern)       */
 /* ------------------------------------------------------------------ */
 

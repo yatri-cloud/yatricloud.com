@@ -98,6 +98,42 @@ const button = (href: string, text: string): string => `
   </div>
 `;
 
+/** ISO to UTC basic format YYYYMMDDTHHMMSSZ (mirrors src/lib/mentorship.ts). */
+const toCalendarUtc = (iso: string): string =>
+  new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+
+/** Google Calendar add event URL, same format as the client helper. */
+const googleCalendarUrl = (input: {
+  title: string;
+  startISO: string;
+  endISO: string;
+  details?: string;
+  location?: string;
+}): string => {
+  const dates = `${toCalendarUtc(input.startISO)}/${toCalendarUtc(input.endISO)}`;
+  const params = [
+    'action=TEMPLATE',
+    `text=${encodeURIComponent(input.title)}`,
+    `dates=${dates}`,
+    `details=${encodeURIComponent(input.details ?? '')}`,
+    `location=${encodeURIComponent(input.location ?? '')}`,
+  ].join('&');
+  return `https://calendar.google.com/calendar/render?${params}`;
+};
+
+/** Calendar button block for a booking, or empty when it has no slot. */
+const calendarBlock = (b: Booking, title: string, name: string): string => {
+  if (!b.slot_start || !b.slot_end) return '';
+  const url = googleCalendarUrl({
+    title,
+    startISO: b.slot_start,
+    endISO: b.slot_end,
+    details: `Mentorship session with ${name}.${b.meeting_link ? ` Join: ${b.meeting_link}` : ''}`,
+    location: b.meeting_link || 'Online',
+  });
+  return button(url, 'Add to your calendar');
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ── Auth: Vercel Cron sends Authorization: Bearer ${CRON_SECRET}
   const cronSecret = process.env.CRON_SECRET;
@@ -233,6 +269,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]);
         const when = renderTime(b.slot_start, b.buyer_timezone);
         const menteeName = b.customer_name || 'there';
+        const calBlock = calendarBlock(b, title, name);
 
         const menteeHtml = shell(
           'Your session is tomorrow',
@@ -244,6 +281,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               row('Mentor', name),
               row('When', when),
             ])}
+            ${calBlock}
             <p>Please be ready a few minutes early. We look forward to seeing you.</p>
             <p>Team Yatri Cloud</p>
           `
@@ -259,6 +297,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               row('Yatri', `${menteeName}${b.customer_email ? ` (${b.customer_email})` : ''}`),
               row('When', when),
             ])}
+            ${calBlock}
             <p>Please add the meeting link from your dashboard if you have not already.</p>
             <p>Team Yatri Cloud</p>
           `
@@ -303,6 +342,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const when = renderTime(b.slot_start, b.buyer_timezone);
         const menteeName = b.customer_name || 'there';
         const linkBlock = b.meeting_link ? button(b.meeting_link, 'Join the session') : '';
+        const calBlock = calendarBlock(b, title, name);
 
         const menteeHtml = shell(
           'Your session is in about an hour',
@@ -315,6 +355,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               row('When', when),
             ])}
             ${linkBlock}
+            ${calBlock}
             <p>Please join a couple of minutes early. See you soon.</p>
             <p>Team Yatri Cloud</p>
           `
@@ -331,6 +372,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               row('When', when),
             ])}
             ${linkBlock}
+            ${calBlock}
             <p>Team Yatri Cloud</p>
           `
         );

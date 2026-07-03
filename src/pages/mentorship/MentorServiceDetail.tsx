@@ -31,6 +31,7 @@ import {
   formatInstant,
   visitorTimezone,
   buildBookingConfirmationEmail,
+  googleCalendarUrl,
 } from "@/lib/mentorship";
 
 const SITE_URL = "https://www.yatricloud.com";
@@ -120,7 +121,7 @@ const MentorServiceDetail = () => {
 
   const sendBuyerEmail = useCallback(
     (booking: MentorshipBooking, svc: MentorshipService, m: Mentor) => {
-      const html = buildBookingConfirmationEmail({
+      let html = buildBookingConfirmationEmail({
         name: booking.customer_name || "Yatri",
         serviceTitle: svc.title,
         mentorName: m.name,
@@ -130,6 +131,24 @@ const MentorServiceDetail = () => {
           : null,
         isDigital: svc.type === "digital",
       });
+
+      // Add a calendar link under the bookings button for scheduled sessions.
+      if (svc.type !== "digital" && booking.slot_start && booking.slot_end) {
+        const calUrl = googleCalendarUrl({
+          title: svc.title,
+          startISO: booking.slot_start,
+          endISO: booking.slot_end,
+          details: `Mentorship session with ${m.name}.${
+            booking.meeting_link ? ` Join here: ${booking.meeting_link}` : ""
+          }`,
+          location: booking.meeting_link || "Online",
+        });
+        html = html.replace(
+          "View my bookings</a>",
+          `View my bookings</a><br><a href="${calUrl}" style="color: #3b82f6; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 16px;">Add to your calendar</a>`
+        );
+      }
+
       void sendEmail({
         to: booking.customer_email,
         subject: `Booking confirmed: ${svc.title} with ${m.name}`,

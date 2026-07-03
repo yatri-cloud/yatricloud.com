@@ -1,6 +1,29 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createHmac } from 'crypto';
 
+/** ISO to UTC basic format YYYYMMDDTHHMMSSZ (mirrors src/lib/mentorship.ts). */
+const toCalendarUtc = (iso: string): string =>
+  new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+
+/** Google Calendar add event URL, same format as the client helper. */
+const googleCalendarUrl = (input: {
+  title: string;
+  startISO: string;
+  endISO: string;
+  details?: string;
+  location?: string;
+}): string => {
+  const dates = `${toCalendarUtc(input.startISO)}/${toCalendarUtc(input.endISO)}`;
+  const params = [
+    'action=TEMPLATE',
+    `text=${encodeURIComponent(input.title)}`,
+    `dates=${dates}`,
+    `details=${encodeURIComponent(input.details ?? '')}`,
+    `location=${encodeURIComponent(input.location ?? '')}`,
+  ].join('&');
+  return `https://calendar.google.com/calendar/render?${params}`;
+};
+
 /**
  * Verify a Razorpay payment signature server-side, then record the payment
  * in Supabase (`payments` table) with the service-role key.
@@ -211,6 +234,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         booking.slot_start
                       ).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</p>`
                     : '';
+                  const calLink =
+                    booking.slot_start && booking.slot_end
+                      ? `<div style="text-align: center; margin: 24px 0;"><a href="${googleCalendarUrl(
+                          {
+                            title: serviceTitle,
+                            startISO: booking.slot_start,
+                            endISO: booking.slot_end,
+                            details: `Mentorship session with ${booking.customer_name || 'your Yatri'}.`,
+                            location: booking.meeting_link || 'Online',
+                          }
+                        )}" style="background-color: #3b82f6; color: #ffffff; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Add to your calendar</a></div>`
+                      : '';
                   await fetch(`${proto}://${host}/api/send-email`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -227,6 +262,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             <p style="margin: 5px 0;"><strong>Yatri:</strong> ${booking.customer_name || ''} (${booking.customer_email || ''})</p>
                             ${slotLine}
                           </div>
+                          ${calLink}
                           <p>Please add the meeting link from your dashboard before the session.</p>
                           <p>Team Yatri Cloud</p>
                         </div>

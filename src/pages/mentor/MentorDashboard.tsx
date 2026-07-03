@@ -63,7 +63,14 @@ import {
 } from "@/components/ui/table";
 
 import BookingCalendar from "@/components/mentorship/BookingCalendar";
-import { getMyMentorApplication, getMentorEarnings, cancelBooking } from "@/lib/mentorship";
+import {
+  getMyMentorApplication,
+  getMentorEarnings,
+  cancelBooking,
+  googleCalendarUrl,
+  buildIcs,
+  icsDataUri,
+} from "@/lib/mentorship";
 import type {
   AvailabilityRule,
   Mentor,
@@ -341,6 +348,7 @@ const MentorDashboard = () => {
               services={services}
               loading={loadingData}
               timezone={mentor.timezone}
+              mentorName={mentor.name}
               onChanged={() => loadData(mentor.id)}
             />
           </TabsContent>
@@ -1511,12 +1519,14 @@ const BookingsTab = ({
   services,
   loading,
   timezone,
+  mentorName,
   onChanged,
 }: {
   bookings: BookingRow[];
   services: ServiceRow[];
   loading: boolean;
   timezone: string;
+  mentorName: string;
   onChanged: () => void;
 }) => {
   const [view, setView] = useState<"list" | "calendar">("list");
@@ -1575,6 +1585,7 @@ const BookingsTab = ({
         bookings={upcoming}
         loading={loading}
         serviceTitle={serviceTitle}
+        mentorName={mentorName}
         emptyText="No upcoming bookings. Share your public profile to get booked."
         onChanged={onChanged}
         editable
@@ -1585,6 +1596,7 @@ const BookingsTab = ({
         bookings={past}
         loading={loading}
         serviceTitle={serviceTitle}
+        mentorName={mentorName}
         emptyText="Nothing here yet."
         onChanged={onChanged}
         editable={false}
@@ -1601,6 +1613,7 @@ const BookingsCard = ({
   bookings,
   loading,
   serviceTitle,
+  mentorName,
   emptyText,
   onChanged,
   editable,
@@ -1610,6 +1623,7 @@ const BookingsCard = ({
   bookings: BookingRow[];
   loading: boolean;
   serviceTitle: (id: string) => string;
+  mentorName: string;
   emptyText: string;
   onChanged: () => void;
   editable: boolean;
@@ -1694,7 +1708,41 @@ const BookingsCard = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {bookings.map((b) => (
+              {bookings.map((b) => {
+                // Calendar actions for confirmed sessions that have a slot.
+                const calReady =
+                  b.status === "confirmed" &&
+                  Boolean(b.slot_start) &&
+                  Boolean(b.slot_end);
+                const calTitle = `${serviceTitle(b.service_id)} with ${
+                  b.customer_name || "Yatri"
+                }`;
+                const calLocation = b.meeting_link || "Online";
+                const calDetails = `Mentorship session by ${mentorName}.${
+                  b.meeting_link ? ` Meeting link: ${b.meeting_link}` : ""
+                }`;
+                const googleUrl = calReady
+                  ? googleCalendarUrl({
+                      title: calTitle,
+                      startISO: b.slot_start as string,
+                      endISO: b.slot_end as string,
+                      details: calDetails,
+                      location: calLocation,
+                    })
+                  : null;
+                const icsUri = calReady
+                  ? icsDataUri(
+                      buildIcs({
+                        uid: `booking-${b.id}@yatricloud.com`,
+                        title: calTitle,
+                        startISO: b.slot_start as string,
+                        endISO: b.slot_end as string,
+                        description: calDetails,
+                        location: calLocation,
+                      })
+                    )
+                  : null;
+                return (
                 <TableRow key={b.id}>
                   <TableCell className="font-medium">
                     <div className="flex flex-col">
@@ -1714,7 +1762,7 @@ const BookingsCard = ({
                   </TableCell>
                   {editable && (
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2 min-w-[320px]">
+                      <div className="flex flex-wrap items-center justify-end gap-2 min-w-[320px]">
                         <Input
                           className="h-8 max-w-[200px]"
                           placeholder="Meeting link"
@@ -1752,11 +1800,41 @@ const BookingsCard = ({
                             Cancel
                           </Button>
                         )}
+                        {googleUrl && (
+                          <a
+                            href={googleUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center min-h-[44px] px-3 rounded-md border border-border text-sm font-medium hover:border-brand-200 hover:bg-brand-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            Add to calendar
+                          </a>
+                        )}
+                        {icsUri && (
+                          <a
+                            href={icsUri}
+                            download="yatri-cloud-session.ics"
+                            className="inline-flex items-center justify-center min-h-[44px] px-3 rounded-md border border-border text-sm font-medium hover:border-brand-200 hover:bg-brand-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            Download .ics
+                          </a>
+                        )}
+                        {calReady && b.meeting_link && (
+                          <a
+                            href={b.meeting_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center min-h-[44px] px-3 rounded-md bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            Join
+                          </a>
+                        )}
                       </div>
                     </TableCell>
                   )}
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         )}
