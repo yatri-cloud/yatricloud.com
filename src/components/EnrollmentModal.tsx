@@ -23,6 +23,8 @@ import {
     convertFromInr,
     formatMoney,
     toSmallestUnit,
+    getInitialCurrency,
+    setPreferredCurrency,
     type CurrencyOption,
 } from "@/lib/currency";
 
@@ -57,6 +59,12 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [autoSubmitting, setAutoSubmitting] = useState(false);
     const [payCurrency, setPayCurrency] = useState<CurrencyOption>(DEFAULT_CURRENCY);
+    // Default to the visitor's local currency (geo detected, or their last choice).
+    useEffect(() => {
+        let active = true;
+        getInitialCurrency().then((c) => { if (active) setPayCurrency(c); });
+        return () => { active = false; };
+    }, []);
     const inrPrice = typeof price === "string" ? parseFloat(String(price).replace(/[^\d.]/g, "")) || 0 : (price || 0);
     const convertedPrice = convertFromInr(inrPrice, payCurrency);
     const priceLabel = formatMoney(convertedPrice, payCurrency);
@@ -396,7 +404,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                             </div>
                             <CurrencySelect
                                 value={payCurrency.code}
-                                onChange={(_code, option) => setPayCurrency(option)}
+                                onChange={(code, option) => { setPayCurrency(option); setPreferredCurrency(code); }}
                                 disabled={isSubmitting}
                             />
                         </div>

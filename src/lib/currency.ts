@@ -1,14 +1,21 @@
 /**
  * Multi currency helpers for direct international checkout.
  *
- * The base currency is INR. site_settings key "currencies" holds the live
- * list where each entry carries a rate expressed as foreign units per one
- * rupee, so INR * rate = foreign amount. The list is cached once per session
- * (mirrors the site-content.ts discipline) and falls back to a hardcoded list
- * matching the seed when the setting is missing. Nothing here ever throws.
+ * INR is the base. Every currency carries a rate expressed as foreign units per
+ * one rupee, so INR * rate = foreign amount. The supported set is the full
+ * catalog (see currency-catalog.ts); live rates come from /api/currency/rates
+ * and are cached once per session, falling back to the catalog's static rates
+ * when the feed is unreachable. Amount maths is decimal aware: each currency's
+ * ISO minor-unit exponent drives both formatting and the integer we give
+ * Razorpay (amount * 10^decimals). Nothing here ever throws.
  */
 
-import { getSiteSettings } from "@/lib/site-content";
+import {
+  CURRENCY_META,
+  FALLBACK_RATES_PER_INR,
+  currencyDecimals,
+  currencyForCountry,
+} from "@/lib/currency-catalog";
 
 export interface CurrencyOption {
   /** ISO 4217 code, e.g. INR, USD. */
@@ -19,56 +26,47 @@ export interface CurrencyOption {
   rate: number;
   /** Human label shown in the dropdown. */
   label: string;
+  /** ISO minor-unit exponent: 0 (JPY), 2 (most), 3 (KWD). */
+  decimals: number;
 }
 
 export const BASE_CURRENCY = "INR";
 
-/** Hardcoded fallback matching the 8 seeded currencies. */
-export const FALLBACK_CURRENCIES: CurrencyOption[] = [
-  { code: "INR", symbol: "₹", rate: 1, label: "Indian Rupee" },
-  { code: "USD", symbol: "$", rate: 0.012, label: "US Dollar" },
-  { code: "EUR", symbol: "€", rate: 0.011, label: "Euro" },
-  { code: "GBP", symbol: "£", rate: 0.0095, label: "British Pound" },
-  { code: "AED", symbol: "د.إ", rate: 0.044, label: "UAE Dirham" },
-  { code: "SGD", symbol: "S$", rate: 0.016, label: "Singapore Dollar" },
-  { code: "AUD", symbol: "A$", rate: 0.018, label: "Australian Dollar" },
-  { code: "CAD", symbol: "C$", rate: 0.016, label: "Canadian Dollar" },
-];
+/** The default currency (INR) shown before geo detection resolves. */
+export const DEFAULT_CURRENCY: CurrencyOption = {
+  code: "INR",
+  symbol: "₹",
+  rate: 1,
+  label: "Indian Rupee",
+  decimals: 2,
+};
 
-/** The default currency (INR) shown before any selection. */
-export const DEFAULT_CURRENCY: CurrencyOption = FALLBACK_CURRENCIES[0];
+/** Build the option list from catalog metadata + a rate lookup. */
+function buildOptions(rates: Record<string, number>): CurrencyOption[] {
+  const list = CURRENCY_META.map((m) => {
+    const rate = m.code === BASE_CURRENCY ? 1 : Number(rates[m.code]) || FALLBACK_RATES_PER_INR[m.code] || 0;
+    return { code: m.code, symbol: m.symbol, label: m.name, decimals: m.decimals, rate };
+  }).filter((c) => c.code === BASE_CURRENCY || c.rate > 0);
+  // Guarantee INR is present and first.
+  const withoutBase = list.filter((c) => c.code !== BASE_CURRENCY);
+  return [DEFAULT_CURRENCY, ...withoutBase];
+}
+
+/** Fallback list from the static catalog rates (used before/without the feed). */
+export const FALLBACK_CURRENCIES: CurrencyOption[] = buildOptions(FALLBACK_RATES_PER_INR);
 
 let currenciesPromise: Promise<CurrencyOption[]> | null = null;
 
-function coerceOption(raw: any): CurrencyOption | null {
-  if (!raw || typeof raw !== "object") return null;
-  const code = String(raw.code || "").toUpperCase();
-  if (!code) return null;
-  const rate = Number(raw.rate);
-  return {
-    code,
-    symbol: String(raw.symbol || code),
-    rate: Number.isFinite(rate) && rate > 0 ? rate : code === BASE_CURRENCY ? 1 : 0,
-    label: String(raw.label || code),
-  };
-}
-
-/** Supported currencies, cached once per session. Never throws. */
+/** Supported currencies with live rates, cached once per session. Never throws. */
 export function getCurrencies(): Promise<CurrencyOption[]> {
   if (!currenciesPromise) {
     currenciesPromise = (async () => {
       try {
-        const settings = await getSiteSettings();
-        const cfg = settings?.currencies;
-        const list = Array.isArray(cfg?.list) ? cfg.list : null;
-        if (!list || list.length === 0) return FALLBACK_CURRENCIES;
-        const mapped = list
-          .map(coerceOption)
-          .filter((c): c is CurrencyOption => !!c && (c.code === BASE_CURRENCY || c.rate > 0));
-        if (mapped.length === 0) return FALLBACK_CURRENCIES;
-        // Always guarantee the base currency is present and first.
-        const hasBase = mapped.some((c) => c.code === BASE_CURRENCY);
-        return hasBase ? mapped : [DEFAULT_CURRENCY, ...mapped];
+        const res = await fetch("/api/currency/rates", { headers: { accept: "application/json" } });
+        if (!res.ok) return FALLBACK_CURRENCIES;
+        const data = (await res.json()) as { rates?: Record<string, number> };
+        if (!data?.rates || typeof data.rates !== "object") return FALLBACK_CURRENCIES;
+        return buildOptions(data.rates);
       } catch {
         return FALLBACK_CURRENCIES;
       }
@@ -82,26 +80,98 @@ export function findCurrency(list: CurrencyOption[], code: string): CurrencyOpti
   return list.find((c) => c.code === code) || list[0] || DEFAULT_CURRENCY;
 }
 
-/** Convert an INR amount to the chosen currency (2 decimals; INR passes through). */
-export function convertFromInr(inr: number, currency: CurrencyOption): number {
-  const value = Number(inr) || 0;
-  if (!currency || currency.code === BASE_CURRENCY) return Math.round(value * 100) / 100;
-  const rate = Number(currency.rate) || 0;
-  return Math.round(value * rate * 100) / 100;
+// ---- Visitor's preferred / detected currency ----
+
+const PREF_KEY = "yc_currency_code";
+
+/** Read a manually chosen currency code from this browser, if any. */
+function readPreferred(): string | null {
+  try {
+    return typeof localStorage !== "undefined" ? localStorage.getItem(PREF_KEY) : null;
+  } catch {
+    return null;
+  }
 }
 
-/** Format an amount with the currency symbol, e.g. "$5.99" or "₹499". */
+/** Remember the visitor's explicit currency choice for next time. */
+export function setPreferredCurrency(code: string): void {
+  try {
+    if (typeof localStorage !== "undefined" && code) localStorage.setItem(PREF_KEY, code);
+  } catch {
+    /* ignore */
+  }
+}
+
+let detectPromise: Promise<string> | null = null;
+
+/** Guess the visitor's currency code from their location (cached per session). */
+function detectCurrencyCode(): Promise<string> {
+  if (!detectPromise) {
+    detectPromise = (async () => {
+      try {
+        const res = await fetch("/api/currency/detect", { headers: { accept: "application/json" } });
+        if (res.ok) {
+          const data = (await res.json()) as { currency?: string; country?: string };
+          if (data?.currency) return data.currency;
+          if (data?.country) return currencyForCountry(data.country);
+        }
+      } catch {
+        /* ignore */
+      }
+      return BASE_CURRENCY;
+    })();
+  }
+  return detectPromise;
+}
+
+/**
+ * The currency to show a visitor by default: their explicit choice if they made
+ * one, otherwise their geo-detected currency, otherwise INR. Resolves against
+ * the live option list so the returned option carries the current rate.
+ */
+export async function getInitialCurrency(): Promise<CurrencyOption> {
+  const list = await getCurrencies();
+  const preferred = readPreferred();
+  if (preferred) return findCurrency(list, preferred);
+  try {
+    const code = await detectCurrencyCode();
+    return findCurrency(list, code);
+  } catch {
+    return findCurrency(list, BASE_CURRENCY);
+  }
+}
+
+// ---- Amount maths (decimal aware) ----
+
+function decimalsOf(currency: CurrencyOption | null | undefined): number {
+  if (!currency) return 2;
+  if (typeof currency.decimals === "number") return currency.decimals;
+  return currencyDecimals(currency.code);
+}
+
+/** Convert an INR amount to the chosen currency, rounded to its minor unit. */
+export function convertFromInr(inr: number, currency: CurrencyOption): number {
+  const value = Number(inr) || 0;
+  const factor = Math.pow(10, decimalsOf(currency));
+  if (!currency || currency.code === BASE_CURRENCY) return Math.round(value * factor) / factor;
+  const rate = Number(currency.rate) || 0;
+  return Math.round(value * rate * factor) / factor;
+}
+
+/** Format an amount with the currency symbol, e.g. "$5.99", "₹499", "¥898". */
 export function formatMoney(amount: number, currency: CurrencyOption): string {
   const value = Number(amount) || 0;
   const symbol = currency?.symbol || currency?.code || "";
   if (!currency || currency.code === BASE_CURRENCY) {
-    // Rupees show without decimals to match the rest of the app.
+    // Rupees show as whole numbers with Indian grouping, to match the app.
     return `${symbol}${Math.round(value).toLocaleString("en-IN")}`;
   }
-  return `${symbol}${value.toFixed(2)}`;
+  const d = decimalsOf(currency);
+  return `${symbol}${value.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
 }
 
-/** Smallest unit integer for Razorpay (amount * 100 for these 2 decimal currencies). */
-export function toSmallestUnit(amount: number, _currency: CurrencyOption): number {
-  return Math.round((Number(amount) || 0) * 100);
+/** Smallest-unit integer for Razorpay: amount * 10^decimals (paise, cents, ...). */
+export function toSmallestUnit(amount: number, currency: CurrencyOption): number {
+  const factor = Math.pow(10, decimalsOf(currency));
+  return Math.round((Number(amount) || 0) * factor);
 }

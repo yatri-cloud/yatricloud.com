@@ -1,4 +1,4 @@
-import { useState, ReactNode } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
@@ -13,7 +13,7 @@ import { getStoredUser } from "@/lib/yatris-api";
 import { sendEmail } from "@/lib/email";
 import { getProductPurchaseEmail } from "@/lib/email-templates";
 import { CurrencySelect } from "@/components/CurrencySelect";
-import { DEFAULT_CURRENCY, convertFromInr, formatMoney, toSmallestUnit, type CurrencyOption } from "@/lib/currency";
+import { DEFAULT_CURRENCY, convertFromInr, formatMoney, toSmallestUnit, getInitialCurrency, setPreferredCurrency, type CurrencyOption } from "@/lib/currency";
 
 interface CartSheetProps {
   trigger?: ReactNode;
@@ -26,6 +26,16 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [purchasedDumps, setPurchasedDumps] = useState<any[]>([]);
   const [currency, setCurrency] = useState<CurrencyOption>(DEFAULT_CURRENCY);
+  // Default to the visitor's local currency (geo detected, or their last choice).
+  useEffect(() => {
+    let active = true;
+    getInitialCurrency().then((c) => {
+      if (active) setCurrency(c);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   const testMode = isTestMode();
   const user = getStoredUser();
   const convertedTotal = convertFromInr(totalPrice, currency);
@@ -306,7 +316,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                     <span className="text-sm text-muted-foreground">Choose your currency</span>
                     <CurrencySelect
                       value={currency.code}
-                      onChange={(_code, option) => setCurrency(option)}
+                      onChange={(code, option) => { setCurrency(option); setPreferredCurrency(code); }}
                       disabled={isProcessing}
                     />
                   </div>

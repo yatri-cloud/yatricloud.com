@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Loader2, CreditCard, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,8 @@ import {
     convertFromInr,
     formatMoney,
     toSmallestUnit,
+    getInitialCurrency,
+    setPreferredCurrency,
     type CurrencyOption,
 } from "@/lib/currency";
 
@@ -62,6 +64,12 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     const userId = getCachedUser()?.id || "";
     const inrPrice = typeof event.price === "string" ? parseFloat(event.price) : (event.price || 0);
     const [currency, setCurrency] = useState<CurrencyOption>(DEFAULT_CURRENCY);
+    // Default to the visitor's local currency (geo detected, or their last choice).
+    useEffect(() => {
+        let active = true;
+        getInitialCurrency().then((c) => { if (active) setCurrency(c); });
+        return () => { active = false; };
+    }, []);
     const convertedPrice = convertFromInr(inrPrice, currency);
     const priceLabel = formatMoney(convertedPrice, currency);
 
@@ -412,7 +420,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 </div>
                                 <CurrencySelect
                                     value={currency.code}
-                                    onChange={(_code, option) => setCurrency(option)}
+                                    onChange={(code, option) => { setCurrency(option); setPreferredCurrency(code); }}
                                     disabled={isSubmitting}
                                 />
                             </div>

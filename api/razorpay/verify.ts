@@ -27,14 +27,38 @@ const googleCalendarUrl = (input: {
 /** Minimal symbol map for the receipt (server has no currency table). */
 const CURRENCY_SYMBOLS: Record<string, string> = {
   INR: '₹', USD: '$', EUR: '€', GBP: '£', AED: 'د.إ', SGD: 'S$', AUD: 'A$', CAD: 'C$',
+  JPY: '¥', CNY: '¥', KRW: '₩', KWD: 'د.ك', BHD: '.د.ب', OMR: 'ر.ع.',
 };
+
+// Currencies whose ISO minor unit is not 2, so the smallest-unit integer
+// Razorpay uses is amount * 10^decimals, not amount * 100.
+const ZERO_DECIMAL = new Set([
+  'BIF', 'CLP', 'DJF', 'GNF', 'ISK', 'JPY', 'KMF', 'KRW',
+  'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF',
+]);
+const THREE_DECIMAL = new Set(['BHD', 'IQD', 'JOD', 'KWD', 'OMR', 'TND']);
+
+/** Minor-unit exponent (0, 2 or 3) for a currency code. */
+function currencyDecimals(code: string): number {
+  const c = (code || 'INR').toUpperCase();
+  if (ZERO_DECIMAL.has(c)) return 0;
+  if (THREE_DECIMAL.has(c)) return 3;
+  return 2;
+}
+
+/** Convert a Razorpay smallest-unit integer back to major units for the code. */
+function toMajorUnits(smallest: number | null | undefined, code: string): number {
+  const factor = Math.pow(10, currencyDecimals(code));
+  return (Number(smallest ?? 0) || 0) / factor;
+}
 
 /** "₹499" for INR, "$5.99" for everything else. */
 function formatReceiptMoney(amount: number, currency: string): string {
   const code = (currency || 'INR').toUpperCase();
   const symbol = CURRENCY_SYMBOLS[code] || `${code} `;
   if (code === 'INR') return `${symbol}${Math.round(amount).toLocaleString('en-IN')}`;
-  return `${symbol}${amount.toFixed(2)}`;
+  const d = currencyDecimals(code);
+  return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })}`;
 }
 
 /** Friendly line item label when none is supplied. */
@@ -203,7 +227,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           provider: 'razorpay',
           provider_order_id: razorpay_order_id,
           provider_payment_id: razorpay_payment_id,
-          amount: Number(amount ?? 0) / 100 || 0, // Razorpay sends paise
+          amount: toMajorUnits(amount, currency || 'INR'), // smallest unit -> major, per currency
           currency: currency || 'INR',
           status: 'completed',
           verified_at: new Date().toISOString(),
@@ -486,7 +510,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
           if (!invoiceKind) invoiceKind = 'other';
 
-          const amountMajor = Number(amount ?? 0) / 100 || 0;
+          const amountMajor = toMajorUnits(amount, currency || 'INR');
           const cur = currency || 'INR';
           const idForNumber = String(paymentRowId || razorpay_payment_id || '').replace(/-/g, '');
           const now = new Date();
