@@ -6,6 +6,7 @@ import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ListPager } from "@/components/ui/list-pager";
 import { LoginModal } from "@/components/LoginModal";
 import SlotPicker from "@/components/mentorship/SlotPicker";
 import BookingCalendar from "@/components/mentorship/BookingCalendar";
@@ -74,6 +75,8 @@ interface ReviewDraft {
   submitting: boolean;
 }
 
+const PAGE_SIZE = 8;
+
 const MyMentorshipBookings = () => {
   const { toast } = useToast();
   const [signedIn, setSignedIn] = useState(hasSession());
@@ -81,6 +84,9 @@ const MyMentorshipBookings = () => {
   const [bookings, setBookings] = useState<MentorshipBookingWithRefs[]>([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("default");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { setPage(1); }, [search, sort]);
   const [secrets, setSecrets] = useState<ServiceSecret[]>([]);
   const [myReviews, setMyReviews] = useState<MentorReview[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -150,6 +156,10 @@ const MyMentorshipBookings = () => {
     }
     return base;
   }, [bookings, search, sort]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredBookings.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pagedBookings = filteredBookings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const secretFor = (serviceId: string): ServiceSecret | undefined =>
     secrets.find((s) => s.service_id === serviceId);
@@ -412,7 +422,7 @@ const MyMentorshipBookings = () => {
             </div>
             {filteredBookings.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">No bookings match your search.</div>
-            ) : filteredBookings.map((booking) => {
+            ) : pagedBookings.map((booking) => {
               const secret = secretFor(booking.service_id);
               const isDigital = booking.service?.type === "digital";
               const canAccess =
@@ -643,6 +653,7 @@ const MyMentorshipBookings = () => {
                 </div>
               );
             })}
+            <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
           </div>
         )}
       </main>

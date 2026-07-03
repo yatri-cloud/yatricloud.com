@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ListPager } from "@/components/ui/list-pager";
+
+const PAGE_SIZE = 10;
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -21,6 +24,9 @@ export default function MyPurchases() {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState("newest");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, sort]);
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -65,6 +71,9 @@ export default function MyPurchases() {
         if (sort === "amount-asc") return a.amount - b.amount;
         return time(b) - time(a); // newest
     });
+    const pageCount = Math.max(1, Math.ceil(filteredInvoices.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedInvoices = filteredInvoices.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -137,7 +146,7 @@ export default function MyPurchases() {
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {filteredInvoices.map((inv, index) => (
+                            {pagedInvoices.map((inv, index) => (
                                 <motion.button
                                     key={inv.number || index}
                                     type="button"
@@ -164,6 +173,7 @@ export default function MyPurchases() {
                                     </div>
                                 </motion.button>
                             ))}
+                            <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
                         </div>
                     )}
                 </div>

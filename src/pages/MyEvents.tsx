@@ -8,6 +8,7 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ListPager } from "@/components/ui/list-pager";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -33,6 +34,7 @@ import { format } from "date-fns";
 
 /** Two hours after a start time, since events store no explicit finish time. */
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+const PAGE_SIZE = 9;
 
 /**
  * Build add to calendar links when a registration is confirmed and carries a
@@ -78,6 +80,9 @@ export default function MyEvents() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState("newest");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, sort]);
 
     // Cancel confirmation state
     const [pendingCancel, setPendingCancel] = useState<EventRegistration | null>(null);
@@ -178,6 +183,9 @@ export default function MyEvents() {
         if (sort === "name") return (a.eventName || "").localeCompare(b.eventName || "");
         return regTime(b) - regTime(a); // newest registration first (default)
     });
+    const pageCount = Math.max(1, Math.ceil(filteredRegistrations.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedRegistrations = filteredRegistrations.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -267,7 +275,7 @@ export default function MyEvents() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredRegistrations.map((reg) => {
+                            {pagedRegistrations.map((reg) => {
                                 const cal = getEventCalendar(reg);
                                 const code = reg.attendees[0]?.ticketId;
                                 const isConfirmed = reg.status === "confirmed";
@@ -413,6 +421,7 @@ export default function MyEvents() {
                             })}
                         </div>
                     )}
+                        <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
                         </>
                     )}
                 </div>

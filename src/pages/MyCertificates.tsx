@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ListPager } from "@/components/ui/list-pager";
+
+const PAGE_SIZE = 9;
 import { getStoredUser } from "@/lib/yatris-api";
 import { getMyCertificates, type MyCertificate } from "@/lib/certificates-api";
 import { format } from "date-fns";
@@ -21,6 +24,9 @@ export default function MyCertificates() {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState("newest");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, sort]);
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -55,6 +61,9 @@ export default function MyCertificates() {
         if (sort === "title") return (a.title || "").localeCompare(b.title || "");
         return issuedTime(b) - issuedTime(a); // newest
     });
+    const pageCount = Math.max(1, Math.ceil(filteredCerts.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedCerts = filteredCerts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -112,8 +121,9 @@ export default function MyCertificates() {
                     ) : filteredCerts.length === 0 ? (
                         <div className="py-12 text-center text-muted-foreground">No certificates match your search.</div>
                     ) : (
+                        <>
                         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                            {filteredCerts.map((c, i) => (
+                            {pagedCerts.map((c, i) => (
                                 <motion.div key={c.serial || i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i * 0.04, 0.3) }}>
                                     <Link to={c.serial ? `/certificate/${c.serial}` : "#"} className="block h-full">
                                         <Card className="group h-full overflow-hidden transition-colors hover:border-primary/40 hover:bg-brand-50/40">
@@ -131,6 +141,8 @@ export default function MyCertificates() {
                                 </motion.div>
                             ))}
                         </div>
+                        <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
+                        </>
                     )}
                 </div>
             </main>

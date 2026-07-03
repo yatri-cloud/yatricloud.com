@@ -23,6 +23,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ListPager } from "@/components/ui/list-pager";
+
+const PAGE_SIZE = 9;
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -58,6 +61,9 @@ export default function MyTrainings() {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState("default");
+    const [page, setPage] = useState(1);
+
+    useEffect(() => { setPage(1); }, [search, sort]);
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -106,6 +112,9 @@ export default function MyTrainings() {
     const filteredEnrollments = sort === "name"
         ? [...matched].sort((a, b) => courseName(a).localeCompare(courseName(b)))
         : matched;
+    const pageCount = Math.max(1, Math.ceil(filteredEnrollments.length / PAGE_SIZE));
+    const currentPage = Math.min(page, pageCount);
+    const pagedEnrollments = filteredEnrollments.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -173,8 +182,9 @@ export default function MyTrainings() {
                     ) : filteredEnrollments.length === 0 ? (
                         <div className="py-12 text-center text-muted-foreground">No trainings match your search.</div>
                     ) : (
+                        <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredEnrollments.map((enrollment, index) => {
+                            {pagedEnrollments.map((enrollment, index) => {
                                 const training = trainings[enrollment.trainingId];
                                 if (!training) return null;
 
@@ -260,6 +270,8 @@ export default function MyTrainings() {
                                 );
                             })}
                         </div>
+                        <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
+                        </>
                     )}
                 </div>
             </main>
