@@ -62,7 +62,7 @@ export function getCurrencies(): Promise<CurrencyOption[]> {
   if (!currenciesPromise) {
     currenciesPromise = (async () => {
       try {
-        const res = await fetch("/api/currency/rates", { headers: { accept: "application/json" } });
+        const res = await fetch("/api/currency?mode=rates", { headers: { accept: "application/json" } });
         if (!res.ok) return FALLBACK_CURRENCIES;
         const data = (await res.json()) as { rates?: Record<string, number> };
         if (!data?.rates || typeof data.rates !== "object") return FALLBACK_CURRENCIES;
@@ -109,7 +109,7 @@ function detectCurrencyCode(): Promise<string> {
   if (!detectPromise) {
     detectPromise = (async () => {
       try {
-        const res = await fetch("/api/currency/detect", { headers: { accept: "application/json" } });
+        const res = await fetch("/api/currency?mode=detect", { headers: { accept: "application/json" } });
         if (res.ok) {
           const data = (await res.json()) as { currency?: string; country?: string };
           if (data?.currency) return data.currency;
