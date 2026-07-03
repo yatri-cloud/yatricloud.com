@@ -24,15 +24,9 @@ export interface AdminNavGroup {
     items: AdminNavItem[];
 }
 
+// Note: the Dashboard / Overview landing (/admin) is rendered as a standalone
+// link at the top of the sidebar, so it is intentionally NOT a group here.
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
-    {
-        id: "overview",
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        items: [
-            { name: "Overview", path: "/admin", icon: LayoutDashboard, description: "A pulse on the platform and quick links." },
-        ],
-    },
     {
         id: "site-content",
         label: "Site Content",
