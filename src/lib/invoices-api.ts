@@ -44,7 +44,7 @@ const KIND_LABELS: Record<string, string> = {
 function coerceItems(raw: unknown): InvoiceItem[] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .map((it) => {
+    .map((it): InvoiceItem | null => {
       if (typeof it === "string") return { name: it };
       if (it && typeof it === "object") {
         const o = it as Record<string, unknown>;

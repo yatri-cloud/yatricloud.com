@@ -19,6 +19,21 @@ import { parsePhoneNumber } from "libphonenumber-js";
 import { sendEmail } from "@/lib/email";
 import { getWelcomeEmail } from "@/lib/email-templates";
 
+/** Google Identity Services script attaches itself to window.google at runtime. */
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: { client_id: string; callback: (response: { credential: string }) => void }) => void;
+          renderButton: (parent: HTMLElement | null, options: Record<string, unknown>) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
+
 interface LoginSignupProps {
   onSuccess: (user: any) => void;
 }

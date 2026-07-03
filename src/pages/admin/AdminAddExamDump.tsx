@@ -46,7 +46,9 @@ const AdminAddExamDump = () => {
   const onSubmit = async (data: DumpFormData) => {
     setIsSubmitting(true);
     try {
-      await submitExamDump(data);
+      // zod validates all required fields at runtime; with strictNullChecks off,
+      // z.infer marks every field optional, so re-assert the validated shape here.
+      await submitExamDump(data as Parameters<typeof submitExamDump>[0]);
       toast.success("Exam dump added successfully!");
       navigate("/admin/exam-dumps");
     } catch (error) {

@@ -47,6 +47,7 @@ import {
     assignTrainerToCourse as apiAssignTrainerToCourse,
     deleteTrainerApplication,
     deleteTrainer,
+    type ProviderData,
 } from "@/lib/training-api";
 
 interface TrainerApplication {
@@ -75,13 +76,6 @@ interface Trainer {
     expertise: string;
     status: string;
     createdDate: string;
-}
-
-interface ProviderData {
-    type: string;
-    name: string;
-    exams: string[];
-    exists: boolean;
 }
 
 interface InstructorProfile {

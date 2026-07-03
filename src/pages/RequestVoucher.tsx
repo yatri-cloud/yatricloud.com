@@ -450,7 +450,7 @@ const RequestVoucher = () => {
         </div>
       </main>
 
-      <Footer simple={true} />
+      <Footer />
     </div>
   );
 };

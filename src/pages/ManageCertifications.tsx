@@ -274,7 +274,7 @@ const ManageCertifications = () => {
                 </Card>
               ) : (
                 <div className="space-y-6">
-                  {Object.entries(groupedCerts).map(([provider, certs]) => {
+                  {Object.entries(groupedCerts).map(([provider, certs]: [string, any[]]) => {
                     const providerLogo = PROVIDER_LOGOS[provider];
                     return (
                       <Card key={provider}>

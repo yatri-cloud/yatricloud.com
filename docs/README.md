@@ -43,5 +43,5 @@ The Sheets/Apps-Script-era folders (`google-sheets/`, `cors-fixes/`, `yatri-ai/`
 ## Conventions
 - Schema changes: numbered `supabase/migrations/*.sql` only — applied to production via psql, committed with the feature.
 - Credentials: git-ignored `.env` only; never hardcoded, never pasted in chat.
-- Before any commit: `npx tsc --noEmit` + `npm run build` + the undefined-JSX static check.
+- Before any commit: `npx tsc --noEmit -p tsconfig.app.json` + `npm run build` + the undefined-JSX static check. ⚠️ Plain `npx tsc --noEmit` checks **nothing** here — the root tsconfig is solution-style (`"files": []`), so you must pass `-p tsconfig.app.json`.
 - After meaningful changes update `DESIGN.md`, root `MEMORY.md`, and the relevant doc here.

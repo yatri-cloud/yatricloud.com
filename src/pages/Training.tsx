@@ -43,6 +43,7 @@ interface Course {
     reviewCount?: number;
     certificationLabel?: string;
     certificationExamCode?: string;
+    visibility?: string;
 }
 
 export default function Training() {

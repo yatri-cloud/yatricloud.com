@@ -89,7 +89,9 @@ const AdminAddProduct = () => {
     const onSubmit = async (data: ProductFormData) => {
         setIsSubmitting(true);
         try {
-            await submitProduct(data);
+            // zod validates all required fields at runtime; with strictNullChecks off,
+            // z.infer marks every field optional, so re-assert the validated shape here.
+            await submitProduct(data as Parameters<typeof submitProduct>[0]);
             toast.success("Product added successfully!");
             // navigate("/admin/products"); // If we had a product list
         } catch (error) {

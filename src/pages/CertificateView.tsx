@@ -135,7 +135,7 @@ export default function CertificateView() {
                         <Link to="/training">Explore trainings</Link>
                     </Button>
                 </main>
-                <Footer simple />
+                <Footer />
             </div>
         );
     }
@@ -235,7 +235,7 @@ export default function CertificateView() {
                 </div>
             </main>
 
-            <Footer simple />
+            <Footer />
         </div>
     );
 }

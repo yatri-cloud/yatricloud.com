@@ -41,6 +41,11 @@ interface Course {
     certificationLabel?: string;
     certificationExamCode?: string;
     certificationProvider?: string;
+    visibility?: string;
+    timestamp?: string;
+    startDate?: string;
+    startTime?: string;
+    resources?: string[];
 }
 
 /** A compact row of five stars for a rating between 0 and 5. */
@@ -617,7 +622,7 @@ export default function TrainingDetail() {
 
             </div>
 
-            <Footer simple={true} />
+            <Footer />
 
             {course && (
                 <EnrollmentModal

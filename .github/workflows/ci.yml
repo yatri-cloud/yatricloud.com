@@ -24,8 +24,14 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Typecheck
-        run: npx tsc --noEmit
+      # NOTE: root tsconfig.json is solution-style ("files": [] + references), so a
+      # plain `npx tsc --noEmit` type-checks ZERO files and exits 0. Always target
+      # the app + node projects explicitly.
+      - name: Typecheck (app)
+        run: npx tsc --noEmit -p tsconfig.app.json
+
+      - name: Typecheck (node)
+        run: npx tsc --noEmit -p tsconfig.node.json
 
       - name: Undefined-JSX guard
         run: node scripts/check-undefined-jsx.mjs

@@ -64,6 +64,7 @@ interface CertificationCredential {
   examCode: string;
   certificationDate: string;
   verifiedCredential: string;
+  additionalNotes?: string;
 }
 
 interface CertificationFormProps {
@@ -73,6 +74,10 @@ interface CertificationFormProps {
     linkedinUrl?: string;
     photoUrl?: string;
     country?: string;
+    stateProvince?: string;
+    city?: string;
+    countryCode?: string;
+    phoneNumber?: string;
   };
 }
 
@@ -290,6 +295,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     watch: watchCredential,
     reset: resetCredential,
   } = useForm<{
+    certificationValue?: string;
     certificationDate: string;
     verifiedCredential: string;
     additionalNotes?: string;
@@ -547,15 +553,6 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       toast({
         title: "Validation Error",
         description: `Please select a certification for all ${missingCerts.length} certification(s).`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (false) {
-      toast({
-        title: "Validation Error",
-        description: `Please enter a valid year (2000 - ${currentYear}) for all certifications.`,
         variant: "destructive",
       });
       return;
@@ -1019,7 +1016,8 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
           city: user?.city || '',
           countryCode: user?.countryCode || '',
           phoneNumber: user?.phoneNumber || '',
-          photo: user?.photoUrl || null,
+          photo: null,
+          photoUrl: user?.photoUrl || '', // reuse the profile photo URL; `photo` is for File uploads only
           additionalNotes: data.additionalNotes,
           sheetName,
           subSheetName,
