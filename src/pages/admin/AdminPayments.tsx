@@ -13,9 +13,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, subMonths, subDays, startOfDay, endOfDay } from "date-fns";
 import { getAllInvoices, formatInvoiceMoney, type Invoice } from "@/lib/invoices-api";
 
 const KIND_ORDER = ["store", "event", "training", "mentorship", "other"] as const;
@@ -27,11 +28,49 @@ const KIND_LABEL: Record<string, string> = {
     other: "Other",
 };
 
+type RangeKey = "all" | "this_month" | "last_month" | "last_30" | "last_7" | "custom";
+const RANGE_LABEL: Record<RangeKey, string> = {
+    all: "All time",
+    this_month: "This month",
+    last_month: "Last month",
+    last_30: "Last 30 days",
+    last_7: "Last 7 days",
+    custom: "Custom range",
+};
+
+/** Resolve a preset (or custom inputs) to a [start, end] window, or null for all time. */
+function resolveRange(key: RangeKey, from: string, to: string): { start: Date; end: Date } | null {
+    const now = new Date();
+    switch (key) {
+        case "this_month":
+            return { start: startOfMonth(now), end: endOfMonth(now) };
+        case "last_month": {
+            const lm = subMonths(now, 1);
+            return { start: startOfMonth(lm), end: endOfMonth(lm) };
+        }
+        case "last_30":
+            return { start: startOfDay(subDays(now, 29)), end: endOfDay(now) };
+        case "last_7":
+            return { start: startOfDay(subDays(now, 6)), end: endOfDay(now) };
+        case "custom": {
+            if (!from && !to) return null;
+            const start = from ? startOfDay(new Date(from)) : new Date(0);
+            const end = to ? endOfDay(new Date(to)) : endOfDay(now);
+            return { start, end };
+        }
+        default:
+            return null;
+    }
+}
+
 export default function AdminPayments() {
     const navigate = useNavigate();
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [rangeKey, setRangeKey] = useState<RangeKey>("all");
+    const [customFrom, setCustomFrom] = useState("");
+    const [customTo, setCustomTo] = useState("");
 
     useEffect(() => {
         (async () => {
@@ -47,29 +86,41 @@ export default function AdminPayments() {
         })();
     }, []);
 
+    // Everything on the page is scoped to the chosen date window first, so the
+    // stats, breakdowns, table and export always describe the same period.
+    const dateFiltered = useMemo(() => {
+        const range = resolveRange(rangeKey, customFrom, customTo);
+        if (!range) return invoices;
+        return invoices.filter((i) => {
+            if (!i.createdAt) return false;
+            const t = new Date(i.createdAt).getTime();
+            return t >= range.start.getTime() && t <= range.end.getTime();
+        });
+    }, [invoices, rangeKey, customFrom, customTo]);
+
     // Revenue grouped by currency (amounts across currencies are never summed together).
     const revenueByCurrency = useMemo(() => {
         const map: Record<string, number> = {};
-        for (const inv of invoices) map[inv.currency] = (map[inv.currency] || 0) + inv.amount;
+        for (const inv of dateFiltered) map[inv.currency] = (map[inv.currency] || 0) + inv.amount;
         return map;
-    }, [invoices]);
+    }, [dateFiltered]);
 
     const inrRevenue = revenueByCurrency.INR || 0;
     const otherCurrencyCount = useMemo(
-        () => invoices.filter((i) => i.currency !== "INR").length,
-        [invoices],
+        () => dateFiltered.filter((i) => i.currency !== "INR").length,
+        [dateFiltered],
     );
 
     const byKind = useMemo(() => {
         const map: Record<string, number> = {};
-        for (const inv of invoices) map[inv.kind] = (map[inv.kind] || 0) + 1;
+        for (const inv of dateFiltered) map[inv.kind] = (map[inv.kind] || 0) + 1;
         return map;
-    }, [invoices]);
+    }, [dateFiltered]);
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
-        if (!q) return invoices;
-        return invoices.filter(
+        if (!q) return dateFiltered;
+        return dateFiltered.filter(
             (i) =>
                 i.buyerName.toLowerCase().includes(q) ||
                 i.buyerEmail.toLowerCase().includes(q) ||
@@ -77,7 +128,7 @@ export default function AdminPayments() {
                 i.kindLabel.toLowerCase().includes(q) ||
                 i.items.some((it) => it.name.toLowerCase().includes(q)),
         );
-    }, [invoices, search]);
+    }, [dateFiltered, search]);
 
     const itemsSummary = (inv: Invoice) => {
         if (inv.items.length === 0) return inv.kindLabel;
@@ -86,7 +137,7 @@ export default function AdminPayments() {
         return more > 0 ? `${first} and ${more} more` : first;
     };
 
-    // Export the receipts currently in view (respects the search filter) as CSV.
+    // Export the receipts currently in view (date range + search) as CSV.
     const exportCsv = () => {
         const esc = (v: string | number) => {
             const s = String(v ?? "");
@@ -121,11 +172,54 @@ export default function AdminPayments() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="font-display text-3xl font-black tracking-tight">Payments and revenue</h1>
-                <p className="mt-1 text-muted-foreground">
-                    Every receipt across the store, events, training and mentorship, in one place.
-                </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h1 className="font-display text-3xl font-black tracking-tight">Payments and revenue</h1>
+                    <p className="mt-1 text-muted-foreground">
+                        Every receipt across the store, events, training and mentorship, in one place.
+                    </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:items-end">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Select value={rangeKey} onValueChange={(v) => setRangeKey(v as RangeKey)}>
+                            <SelectTrigger className="h-10 w-[170px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {(Object.keys(RANGE_LABEL) as RangeKey[]).map((k) => (
+                                    <SelectItem key={k} value={k}>{RANGE_LABEL[k]}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {rangeKey === "custom" && (
+                            <>
+                                <Input
+                                    type="date"
+                                    value={customFrom}
+                                    max={customTo || undefined}
+                                    onChange={(e) => setCustomFrom(e.target.value)}
+                                    className="h-10 w-[150px]"
+                                    aria-label="From date"
+                                />
+                                <span className="text-sm text-muted-foreground">to</span>
+                                <Input
+                                    type="date"
+                                    value={customTo}
+                                    min={customFrom || undefined}
+                                    onChange={(e) => setCustomTo(e.target.value)}
+                                    className="h-10 w-[150px]"
+                                    aria-label="To date"
+                                />
+                            </>
+                        )}
+                    </div>
+                    {!isLoading && (
+                        <p className="text-xs text-muted-foreground">
+                            {dateFiltered.length} {dateFiltered.length === 1 ? "receipt" : "receipts"}
+                            {rangeKey !== "all" ? ` in ${RANGE_LABEL[rangeKey].toLowerCase()}` : ""}
+                        </p>
+                    )}
+                </div>
             </div>
 
             {isLoading ? (
@@ -135,7 +229,7 @@ export default function AdminPayments() {
             ) : (
                 <>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                        <StatsCard title="Total receipts" value={invoices.length} icon={Receipt} color="bg-primary/10 text-primary" />
+                        <StatsCard title="Total receipts" value={dateFiltered.length} icon={Receipt} color="bg-primary/10 text-primary" />
                         <StatsCard title="Revenue in INR" value={formatInvoiceMoney(inrRevenue, "INR")} icon={IndianRupee} color="bg-emerald-500/10 text-emerald-600" />
                         <StatsCard title="Paid in other currencies" value={otherCurrencyCount} icon={Globe} color="bg-blue-500/10 text-blue-600" />
                         <StatsCard title="Categories" value={Object.keys(byKind).length} icon={Layers} color="bg-amber-500/10 text-amber-600" />
@@ -153,7 +247,7 @@ export default function AdminPayments() {
                                         <span className="text-muted-foreground">{byKind[k]} {byKind[k] === 1 ? "receipt" : "receipts"}</span>
                                     </div>
                                 ))}
-                                {invoices.length === 0 && <p className="text-sm text-muted-foreground">No receipts yet.</p>}
+                                {dateFiltered.length === 0 && <p className="text-sm text-muted-foreground">No receipts in this period.</p>}
                             </CardContent>
                         </Card>
 
@@ -206,7 +300,9 @@ export default function AdminPayments() {
                         <CardContent>
                             {filtered.length === 0 ? (
                                 <p className="py-8 text-center text-sm text-muted-foreground">
-                                    {invoices.length === 0 ? "No receipts have been generated yet." : "No receipts match your search."}
+                                    {dateFiltered.length === 0
+                                        ? (invoices.length === 0 ? "No receipts have been generated yet." : "No receipts in this period.")
+                                        : "No receipts match your search."}
                                 </p>
                             ) : (
                                 <div className="overflow-x-auto">
