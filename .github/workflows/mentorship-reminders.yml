@@ -32,3 +32,17 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           REMINDERS_URL: ${{ secrets.REMINDERS_URL }}
+
+      - name: Call the event and training reminders endpoint
+        run: |
+          URL="${EVENT_TRAINING_REMINDERS_URL:-https://www.yatricloud.com/api/cron/event-training-reminders}"
+          echo "Calling event and training reminders endpoint"
+          code=$(curl -s -o /tmp/out-event-training.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" "$URL")
+          echo "HTTP $code"
+          cat /tmp/out-event-training.json || true
+          # Do not fail the workflow on a transient non 200; reminders retry next hour.
+          if [ "$code" != "200" ]; then echo "Non 200 response, will try again next hour"; fi
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          EVENT_TRAINING_REMINDERS_URL: ${{ secrets.EVENT_TRAINING_REMINDERS_URL }}
