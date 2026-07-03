@@ -157,6 +157,7 @@ const AdminMentorshipServices = () => {
     const [mentorFilter, setMentorFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [sort, setSort] = useState("default");
 
     // Add or edit dialog
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -245,7 +246,7 @@ const AdminMentorshipServices = () => {
 
     const filteredServices = useMemo(() => {
         const q = search.trim().toLowerCase();
-        return services.filter(
+        const list = services.filter(
             (s) =>
                 (mentorFilter === "all" || s.mentor_id === mentorFilter) &&
                 (typeFilter === "all" || s.type === typeFilter) &&
@@ -256,8 +257,14 @@ const AdminMentorshipServices = () => {
                     (s.short_description || "").toLowerCase().includes(q) ||
                     mentorName(s.mentor_id).toLowerCase().includes(q))
         );
+        const sorted = [...list];
+        if (sort === "price-desc") sorted.sort((a, b) => b.price - a.price);
+        else if (sort === "price-asc") sorted.sort((a, b) => a.price - b.price);
+        else if (sort === "title") sorted.sort((a, b) => a.title.localeCompare(b.title));
+        // "default" keeps the mentor_id + sort_order order from the query
+        return sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [services, mentors, search, mentorFilter, typeFilter, statusFilter]);
+    }, [services, mentors, search, mentorFilter, typeFilter, statusFilter, sort]);
 
     /* --------------------------- dialog --------------------------- */
 
@@ -539,15 +546,28 @@ const AdminMentorshipServices = () => {
                             </p>
                         </div>
 
-                        {/* Search */}
-                        <div className="mb-3 relative">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search services by title, slug or mentor"
-                                className="min-h-[44px] rounded-xl pl-9"
-                            />
+                        {/* Search + sort */}
+                        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Search services by title, slug or mentor"
+                                    className="min-h-[44px] rounded-xl pl-9"
+                                />
+                            </div>
+                            <Select value={sort} onValueChange={setSort}>
+                                <SelectTrigger className="min-h-[44px] w-full rounded-xl sm:w-[200px]" aria-label="Sort services">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="default">Default order</SelectItem>
+                                    <SelectItem value="price-desc">Price: high to low</SelectItem>
+                                    <SelectItem value="price-asc">Price: low to high</SelectItem>
+                                    <SelectItem value="title">Title: A to Z</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Filters */}

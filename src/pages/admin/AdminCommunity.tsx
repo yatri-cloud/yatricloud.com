@@ -40,15 +40,18 @@ export default function AdminCommunity() {
     const [saving, setSaving] = useState(false);
     const [search, setSearch] = useState("");
     const [groupFilter, setGroupFilter] = useState("all");
+    const [sort, setSort] = useState("default");
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
-        return rows.filter((c) => {
+        const list = rows.filter((c) => {
             if (groupFilter !== "all" && c.grp !== groupFilter) return false;
             if (!q) return true;
             return c.name.toLowerCase().includes(q) || c.url.toLowerCase().includes(q) || (c.tagline || "").toLowerCase().includes(q);
         });
-    }, [rows, search, groupFilter]);
+        if (sort === "name") return [...list].sort((a, b) => a.name.localeCompare(b.name));
+        return list; // default: grp then sort_order from the query
+    }, [rows, search, groupFilter, sort]);
 
     const load = async () => {
         setLoading(true);
@@ -123,6 +126,13 @@ export default function AdminCommunity() {
                             <SelectContent>
                                 <SelectItem value="all">All groups</SelectItem>
                                 {GROUPS.map((g) => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Select value={sort} onValueChange={setSort}>
+                            <SelectTrigger className="h-9 w-full sm:w-[160px]" aria-label="Sort communities"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="default">Default order</SelectItem>
+                                <SelectItem value="name">Name: A to Z</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

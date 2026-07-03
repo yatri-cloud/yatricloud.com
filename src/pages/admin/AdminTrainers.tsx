@@ -110,6 +110,8 @@ export const AdminTrainersNew = () => {
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [appSearch, setAppSearch] = useState("");
     const [trainerSearch, setTrainerSearch] = useState("");
+    const [appSort, setAppSort] = useState("newest");
+    const [trainerSort, setTrainerSort] = useState("name");
 
     const [trainers, setTrainers] = useState<Trainer[]>([]);
     const [isLoadingTrainers, setIsLoadingTrainers] = useState(false);
@@ -163,25 +165,35 @@ export const AdminTrainersNew = () => {
 
     useEffect(() => {
         const q = appSearch.trim().toLowerCase();
-        setFilteredApplications(
-            applications.filter((app) => {
-                if (statusFilter !== "all" && app.status !== statusFilter) return false;
-                if (!q) return true;
-                return (app.fullName || "").toLowerCase().includes(q)
-                    || (app.email || "").toLowerCase().includes(q)
-                    || (app.expertise || "").toLowerCase().includes(q);
-            })
-        );
-    }, [statusFilter, applications, appSearch]);
+        const list = applications.filter((app) => {
+            if (statusFilter !== "all" && app.status !== statusFilter) return false;
+            if (!q) return true;
+            return (app.fullName || "").toLowerCase().includes(q)
+                || (app.email || "").toLowerCase().includes(q)
+                || (app.expertise || "").toLowerCase().includes(q);
+        });
+        const at = (a: TrainerApplication) => (a.timestamp ? new Date(a.timestamp).getTime() : 0);
+        const sorted = [...list];
+        if (appSort === "oldest") sorted.sort((a, b) => at(a) - at(b));
+        else if (appSort === "name") sorted.sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""));
+        else sorted.sort((a, b) => at(b) - at(a)); // newest
+        setFilteredApplications(sorted);
+    }, [statusFilter, applications, appSearch, appSort]);
 
     const trainerQuery = trainerSearch.trim().toLowerCase();
-    const filteredTrainers = trainerQuery
+    const trainerMatched = trainerQuery
         ? trainers.filter((t) =>
             (t.fullName || "").toLowerCase().includes(trainerQuery) ||
             (t.email || "").toLowerCase().includes(trainerQuery) ||
             (t.expertise || "").toLowerCase().includes(trainerQuery) ||
             (t.trainerId || "").toLowerCase().includes(trainerQuery))
         : trainers;
+    const ct = (t: Trainer) => (t.createdDate ? new Date(t.createdDate).getTime() : 0);
+    const filteredTrainers = [...trainerMatched].sort((a, b) => {
+        if (trainerSort === "newest") return ct(b) - ct(a);
+        if (trainerSort === "oldest") return ct(a) - ct(b);
+        return (a.fullName || "").localeCompare(b.fullName || ""); // name (default)
+    });
 
     const fetchApplications = async () => {
         try {
@@ -557,6 +569,16 @@ export const AdminTrainersNew = () => {
                                 <SelectItem value="Rejected">Rejected</SelectItem>
                             </SelectContent>
                         </Select>
+                        <Select value={appSort} onValueChange={setAppSort}>
+                            <SelectTrigger className="w-[170px] rounded-xl" aria-label="Sort applications">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="newest">Newest first</SelectItem>
+                                <SelectItem value="oldest">Oldest first</SelectItem>
+                                <SelectItem value="name">Name: A to Z</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {isLoadingApplications ? (
@@ -670,9 +692,19 @@ export const AdminTrainersNew = () => {
                                 <CardTitle className="text-lg">Active Trainers</CardTitle>
                                 <CardDescription>Trainers with created credentials</CardDescription>
                             </div>
-                            <div className="relative w-full sm:w-64">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input value={trainerSearch} onChange={(e) => setTrainerSearch(e.target.value)} placeholder="Search trainers" className="pl-9 h-9 rounded-xl" />
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                <div className="relative w-full sm:w-64">
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input value={trainerSearch} onChange={(e) => setTrainerSearch(e.target.value)} placeholder="Search trainers" className="pl-9 h-9 rounded-xl" />
+                                </div>
+                                <Select value={trainerSort} onValueChange={setTrainerSort}>
+                                    <SelectTrigger className="h-9 w-full rounded-xl sm:w-[150px]" aria-label="Sort trainers"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="name">Name: A to Z</SelectItem>
+                                        <SelectItem value="newest">Newest first</SelectItem>
+                                        <SelectItem value="oldest">Oldest first</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </CardHeader>
                         <CardContent>

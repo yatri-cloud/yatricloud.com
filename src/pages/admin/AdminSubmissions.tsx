@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CheckCircle, XCircle, Clock, Building2, Mic, Handshake, Eye, Mail, Phone, Pencil, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,7 @@ export default function AdminSubmissions() {
     const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
     const [selectedEventId, setSelectedEventId] = useState<string>("");
     const [search, setSearch] = useState("");
+    const [sort, setSort] = useState("default");
     const [submissions, setSubmissions] = useState<{
         venues: VenueSubmission[];
         speakers: SpeakerSubmission[];
@@ -146,9 +148,11 @@ export default function AdminSubmissions() {
     const q = search.trim().toLowerCase();
     const matches = (...vals: (string | undefined | null)[]) =>
         !q || vals.some((v) => (v || "").toLowerCase().includes(q));
-    const filteredVenues = submissions.venues.filter((v) => matches(v.venueName, v.address, v.contactName, v.contactEmail));
-    const filteredSpeakers = submissions.speakers.filter((s) => matches(s.fullName, s.talkTitle, s.email, s.bio, s.topicCategory));
-    const filteredSponsors = submissions.sponsors.filter((s) => matches(s.companyName, s.contactName, s.contactEmail, s.sponsorshipTier));
+    const byName = <T,>(list: T[], name: (x: T) => string) =>
+        sort === "name" ? [...list].sort((a, b) => (name(a) || "").localeCompare(name(b) || "")) : list;
+    const filteredVenues = byName(submissions.venues.filter((v) => matches(v.venueName, v.address, v.contactName, v.contactEmail)), (v) => v.venueName);
+    const filteredSpeakers = byName(submissions.speakers.filter((s) => matches(s.fullName, s.talkTitle, s.email, s.bio, s.topicCategory)), (s) => s.fullName);
+    const filteredSponsors = byName(submissions.sponsors.filter((s) => matches(s.companyName, s.contactName, s.contactEmail, s.sponsorshipTier)), (s) => s.companyName);
 
     return (
         <div className="px-4 md:px-8 py-8 md:py-10 space-y-6 md:space-y-8">
@@ -195,9 +199,18 @@ export default function AdminSubmissions() {
 
                 {selectedEventId && (
                     <>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search submissions by name, contact or email" className="min-h-[44px] rounded-xl pl-9" />
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search submissions by name, contact or email" className="min-h-[44px] rounded-xl pl-9" />
+                        </div>
+                        <Select value={sort} onValueChange={setSort}>
+                            <SelectTrigger className="min-h-[44px] w-full rounded-xl sm:w-[180px]" aria-label="Sort submissions"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="default">Default order</SelectItem>
+                                <SelectItem value="name">Name: A to Z</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <Tabs defaultValue="venues" className="w-full space-y-6">
                         <TabsList className="grid w-full grid-cols-3 rounded-xl p-1">

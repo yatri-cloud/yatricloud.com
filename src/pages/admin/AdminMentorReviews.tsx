@@ -62,6 +62,7 @@ const AdminMentorReviews = () => {
     const [search, setSearch] = useState("");
     const [mentorFilter, setMentorFilter] = useState("all");
     const [visibilityFilter, setVisibilityFilter] = useState("all");
+    const [sort, setSort] = useState("newest");
 
     // Delete confirm
     const [reviewToDelete, setReviewToDelete] = useState<MentorReview | null>(null);
@@ -124,7 +125,7 @@ const AdminMentorReviews = () => {
 
     const filteredReviews = useMemo(() => {
         const q = search.trim().toLowerCase();
-        return reviews.filter(
+        const list = reviews.filter(
             (r) =>
                 (mentorFilter === "all" || r.mentor_id === mentorFilter) &&
                 (visibilityFilter === "all" ||
@@ -134,8 +135,13 @@ const AdminMentorReviews = () => {
                     (r.review || "").toLowerCase().includes(q) ||
                     mentorName(r.mentor_id).toLowerCase().includes(q))
         );
+        const sorted = [...list];
+        if (sort === "rating-desc") sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+        else if (sort === "rating-asc") sorted.sort((a, b) => (a.rating ?? 0) - (b.rating ?? 0));
+        // "newest" keeps the created_at desc order from the query
+        return sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reviews, mentors, search, mentorFilter, visibilityFilter]);
+    }, [reviews, mentors, search, mentorFilter, visibilityFilter, sort]);
 
     /* -------------------------- moderation ------------------------- */
 
@@ -235,7 +241,7 @@ const AdminMentorReviews = () => {
                         </div>
 
                         {/* Filters */}
-                        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                             <div className="space-y-1.5">
                                 <FieldLabel htmlFor="filter-mentor">Mentor</FieldLabel>
                                 <Select value={mentorFilter} onValueChange={setMentorFilter}>
@@ -262,6 +268,19 @@ const AdminMentorReviews = () => {
                                         <SelectItem value="all">All reviews</SelectItem>
                                         <SelectItem value="public">Public</SelectItem>
                                         <SelectItem value="hidden">Hidden</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <FieldLabel htmlFor="filter-sort">Sort</FieldLabel>
+                                <Select value={sort} onValueChange={setSort}>
+                                    <SelectTrigger id="filter-sort" className="min-h-[44px] rounded-xl">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="newest">Newest first</SelectItem>
+                                        <SelectItem value="rating-desc">Highest rated</SelectItem>
+                                        <SelectItem value="rating-asc">Lowest rated</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

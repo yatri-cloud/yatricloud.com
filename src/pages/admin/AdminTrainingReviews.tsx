@@ -59,6 +59,7 @@ const AdminTrainingReviews = () => {
     const [search, setSearch] = useState("");
     const [trainingFilter, setTrainingFilter] = useState("all");
     const [visibilityFilter, setVisibilityFilter] = useState("all");
+    const [sort, setSort] = useState("newest");
 
     // Delete confirm
     const [reviewToDelete, setReviewToDelete] = useState<AdminTrainingReview | null>(null);
@@ -99,7 +100,7 @@ const AdminTrainingReviews = () => {
 
     const filteredReviews = useMemo(() => {
         const q = search.trim().toLowerCase();
-        return reviews.filter(
+        const list = reviews.filter(
             (r) =>
                 (trainingFilter === "all" || r.training_id === trainingFilter) &&
                 (visibilityFilter === "all" ||
@@ -109,7 +110,11 @@ const AdminTrainingReviews = () => {
                     (r.review || "").toLowerCase().includes(q) ||
                     (r.trainingName || "").toLowerCase().includes(q))
         );
-    }, [reviews, search, trainingFilter, visibilityFilter]);
+        const sorted = [...list];
+        if (sort === "rating-desc") sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+        else if (sort === "rating-asc") sorted.sort((a, b) => (a.rating ?? 0) - (b.rating ?? 0));
+        return sorted;
+    }, [reviews, search, trainingFilter, visibilityFilter, sort]);
 
     /* -------------------------- moderation ------------------------- */
 
@@ -206,7 +211,7 @@ const AdminTrainingReviews = () => {
                         </div>
 
                         {/* Filters */}
-                        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                             <div className="space-y-1.5">
                                 <FieldLabel htmlFor="filter-training">Training</FieldLabel>
                                 <Select value={trainingFilter} onValueChange={setTrainingFilter}>
@@ -233,6 +238,19 @@ const AdminTrainingReviews = () => {
                                         <SelectItem value="all">All reviews</SelectItem>
                                         <SelectItem value="public">Public</SelectItem>
                                         <SelectItem value="hidden">Hidden</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <FieldLabel htmlFor="filter-sort">Sort</FieldLabel>
+                                <Select value={sort} onValueChange={setSort}>
+                                    <SelectTrigger id="filter-sort" className="min-h-[44px] rounded-xl">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="newest">Newest first</SelectItem>
+                                        <SelectItem value="rating-desc">Highest rated</SelectItem>
+                                        <SelectItem value="rating-asc">Lowest rated</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

@@ -74,10 +74,11 @@ const UdemyAdmin = () => {
     const [savingEdit, setSavingEdit] = useState(false);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [sort, setSort] = useState("newest");
 
     const filteredCourses = useMemo(() => {
         const q = search.trim().toLowerCase();
-        return courses.filter((c) => {
+        const list = courses.filter((c) => {
             if (statusFilter !== "all" && c.status !== statusFilter) return false;
             if (!q) return true;
             return (
@@ -87,7 +88,13 @@ const UdemyAdmin = () => {
                 (c.category || "").toLowerCase().includes(q)
             );
         });
-    }, [courses, search, statusFilter]);
+        const t = (c: UdemyCourse) => (c.created_at ? new Date(c.created_at).getTime() : 0);
+        const sorted = [...list];
+        if (sort === "oldest") sorted.sort((a, b) => t(a) - t(b));
+        else if (sort === "title") sorted.sort((a, b) => a.title.localeCompare(b.title));
+        else sorted.sort((a, b) => t(b) - t(a)); // newest
+        return sorted;
+    }, [courses, search, statusFilter, sort]);
 
     const loadCourses = async () => {
         setLoadingCourses(true);
@@ -521,6 +528,14 @@ const UdemyAdmin = () => {
                                     <SelectItem value="all">All status</SelectItem>
                                     <SelectItem value="published">Published</SelectItem>
                                     <SelectItem value="draft">Draft</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Select value={sort} onValueChange={setSort}>
+                                <SelectTrigger className="h-9 w-full sm:w-[150px]" aria-label="Sort courses"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest">Newest first</SelectItem>
+                                    <SelectItem value="oldest">Oldest first</SelectItem>
+                                    <SelectItem value="title">Title: A to Z</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

@@ -4,6 +4,7 @@ import { Calendar, Users, Mic, Layers, Plus, MapPin, Clock, Pencil, Trash2, Load
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAllEvents, getEventStatus, Event, deleteEvent } from "@/lib/events-store";
 import { Badge } from "@/components/ui/badge";
 import { deleteEventFolder } from "@/lib/event-automation-api";
@@ -25,6 +26,7 @@ export default function AdminEvents() {
     const [events, setEvents] = useState<Event[]>([]);
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
     const [search, setSearch] = useState("");
+    const [sort, setSort] = useState("date");
 
     useEffect(() => {
         // Fetch events on mount
@@ -43,6 +45,11 @@ export default function AdminEvents() {
         return event.name.toLowerCase().includes(q)
             || (event.description || '').toLowerCase().includes(q)
             || city.toLowerCase().includes(q);
+    }).sort((a, b) => {
+        if (sort === "name") return a.name.localeCompare(b.name);
+        const ta = a.date ? new Date(a.date).getTime() : 0;
+        const tb = b.date ? new Date(b.date).getTime() : 0;
+        return tb - ta; // date: soonest/most-recent first
     });
 
     const handleDelete = async (id: string, name: string, driveFolderId?: string) => {
@@ -188,9 +195,18 @@ export default function AdminEvents() {
                     );
                 })}
             </div>
-                <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events" className="pl-9 h-9" />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events" className="pl-9 h-9" />
+                    </div>
+                    <Select value={sort} onValueChange={setSort}>
+                        <SelectTrigger className="h-9 w-full sm:w-[150px]" aria-label="Sort events"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="date">Event date</SelectItem>
+                            <SelectItem value="name">Name: A to Z</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
