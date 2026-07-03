@@ -230,6 +230,7 @@ const EventDetail = () => {
                 description={event.description || `Join us for ${event.name}, a friendly cloud community event by Yatri Cloud. Save your spot for free.`}
                 image={event.imageUrl}
                 type="article"
+                noindex={event.visibility === "private"}
                 jsonLd={{
                     "@context": "https://schema.org",
                     "@type": "Event",

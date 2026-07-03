@@ -240,6 +240,7 @@ export default function TrainingDetail() {
                         : `Learn ${course.courseName} with Yatri Cloud. Expert led cloud certification training with lifetime access and a certificate of completion.`
                 }
                 image={course.thumbnailUrl || undefined}
+                noindex={course.visibility === "private"}
                 jsonLd={{
                     "@context": "https://schema.org",
                     "@type": "Course",
