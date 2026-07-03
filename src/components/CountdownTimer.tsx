@@ -14,18 +14,22 @@ interface TimeLeft {
 
 export const CountdownTimer = ({ targetDate, className = "" }: CountdownTimerProps) => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isPast, setIsPast] = useState(() => targetDate.getTime() <= Date.now());
 
   useEffect(() => {
     const calculateTimeLeft = () => {
       const difference = targetDate.getTime() - new Date().getTime();
-      
+
       if (difference > 0) {
+        setIsPast(false);
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
           hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
           minutes: Math.floor((difference / 1000 / 60) % 60),
           seconds: Math.floor((difference / 1000) % 60),
         });
+      } else {
+        setIsPast(true);
       }
     };
 
@@ -35,10 +39,11 @@ export const CountdownTimer = ({ targetDate, className = "" }: CountdownTimerPro
     return () => clearInterval(timer);
   }, [targetDate]);
 
-  const formatNumber = (num: number) => num.toString().padStart(2, "0");
+  // Nothing to count down to — render nothing instead of frozen zeros.
+  if (isPast || Number.isNaN(targetDate.getTime())) return null;
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div aria-live="polite" className={`flex items-center gap-1 ${className}`}>
       <TimeUnit value={timeLeft.days} label="Days" />
       <span className="text-primary text-xl font-bold">:</span>
       <TimeUnit value={timeLeft.hours} label="Hrs" />

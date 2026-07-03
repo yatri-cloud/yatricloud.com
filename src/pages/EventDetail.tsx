@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
 import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
 import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 // Fallback mock events - initially empty
 const MOCK_EVENTS: Event[] = [];
@@ -385,11 +386,41 @@ const EventDetail = () => {
                                 )}
 
                                 <div className="pt-4 border-t border-border">
-                                    {/* Seats left when a cap is set and seats remain */}
+                                    {/* Countdown to the start — a reason to decide now */}
+                                    {!isPastEvent && hasEventDate && (
+                                        <div className="mb-4">
+                                            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">Starts in</p>
+                                            <CountdownTimer targetDate={new Date(event.date)} />
+                                        </div>
+                                    )}
+
+                                    {/* Seats meter when a cap is set and seats remain */}
                                     {capacity?.capacity != null && !isFull && capacity.seatsLeft !== null && (
-                                        <p className={`text-sm mb-4 font-medium ${capacity.seatsLeft <= 10 ? 'text-warning' : 'text-muted-foreground'}`}>
-                                            {capacity.seatsLeft} {capacity.seatsLeft === 1 ? 'seat' : 'seats'} left
-                                        </p>
+                                        <div className="mb-4">
+                                            <div className="flex items-baseline justify-between text-sm font-medium">
+                                                <span className={capacity.seatsLeft <= 10 ? 'text-warning' : 'text-muted-foreground'}>
+                                                    {capacity.seatsLeft <= 10
+                                                        ? `Filling fast — only ${capacity.seatsLeft} ${capacity.seatsLeft === 1 ? 'seat' : 'seats'} left`
+                                                        : `${capacity.seatsLeft} of ${capacity.capacity} seats still open`}
+                                                </span>
+                                                <span className="tabular-nums text-xs text-muted-foreground">
+                                                    {capacity.registered} registered
+                                                </span>
+                                            </div>
+                                            <div
+                                                role="progressbar"
+                                                aria-label="Seats taken"
+                                                aria-valuemin={0}
+                                                aria-valuemax={capacity.capacity}
+                                                aria-valuenow={capacity.registered}
+                                                className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted"
+                                            >
+                                                <div
+                                                    className={`h-full rounded-full transition-[width] duration-500 ${capacity.seatsLeft <= 10 ? 'bg-warning' : 'bg-primary'}`}
+                                                    style={{ width: `${Math.min(100, Math.round((capacity.registered / capacity.capacity) * 100))}%` }}
+                                                />
+                                            </div>
+                                        </div>
                                     )}
                                     {/* Sold out note when full and not already handled */}
                                     {isFull && !isRegistered && !onWaitlist && (

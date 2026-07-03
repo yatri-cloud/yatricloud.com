@@ -12,6 +12,7 @@ import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { EnrollmentModal } from "@/components/EnrollmentModal";
+import { CountdownTimer } from "@/components/CountdownTimer";
 import { SEO } from "@/components/SEO";
 import { listPublishedTrainings, listInstructorProfiles, getCourseContent, getTrainingReviews, type TrainingReview } from "@/lib/training-api";
 
@@ -346,6 +347,16 @@ export default function TrainingDetail() {
                                         {course.paymentType === "Paid" && <span className="text-sm text-muted-foreground line-through">USD 199.99</span>}
                                         {course.paymentType === "Paid" && <span className="text-sm text-amber-600 font-medium">80% off</span>}
                                     </div>
+
+                                    {/* Countdown to the first session — decide before it starts */}
+                                    {!isEnrolled && course.startDate && (
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">Batch starts in</p>
+                                            <CountdownTimer
+                                                targetDate={new Date(`${course.startDate}T${course.startTime || "09:00"}`)}
+                                            />
+                                        </div>
+                                    )}
 
                                     <Button
                                         className="w-full h-12 text-lg font-bold bg-[#007CFF] hover:bg-[#0066D6] text-white rounded-lg transition-all shadow-lg"
