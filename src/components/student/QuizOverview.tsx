@@ -104,10 +104,7 @@ export const QuizOverview = ({
                 >
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <FileText className="w-5 h-5" />
-                                Instructions
-                            </CardTitle>
+                            <CardTitle>Instructions</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-3">

@@ -27,13 +27,21 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
     // Grouped menu items — shared with the auto generated Admin Sitemap.
     const menuGroups = ADMIN_NAV_GROUPS;
 
-    // Path matcher with a segment boundary so "/admin/site" never matches "/admin/sitemap".
-    // The Overview link is the index ("/admin"), so match it exactly — otherwise
-    // it would light up on every admin page.
-    const isPathActive = (path: string) =>
-        path === "/admin"
-            ? location.pathname === "/admin"
-            : location.pathname === path || location.pathname.startsWith(`${path}/`);
+    // Only ONE item should light up. A plain prefix match makes a parent path
+    // (e.g. /admin/training) stay active on a sibling child route
+    // (/admin/training/create), so both highlighted. Instead, pick the single
+    // most specific (longest) item path that matches the current URL, and mark
+    // only that one active.
+    const activeItemPath = (() => {
+        const paths = menuGroups.flatMap((g) => g.items.map((i) => i.path));
+        const matches = paths.filter(
+            (p) => location.pathname === p || location.pathname.startsWith(`${p}/`),
+        );
+        if (matches.length === 0) return null;
+        return matches.reduce((a, b) => (b.length > a.length ? b : a));
+    })();
+
+    const isPathActive = (path: string) => path === activeItemPath;
 
     // Determine current active group to open it by default
     const currentActiveGroup = menuGroups.find(group =>

@@ -509,8 +509,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         <Card className="w-full max-w-6xl mx-auto rounded-2xl border border-border">
             <CardHeader className="pb-6 border-b border-border flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
                 <div>
-                    <CardTitle className="flex items-center gap-2 font-display text-2xl md:text-3xl font-bold tracking-tight">
-                        <FolderPlus className="w-7 h-7 text-primary" />
+                    <CardTitle className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                         {editId ? "Edit Training" : "Curriculum Builder"}
                     </CardTitle>
                     <p className="text-muted-foreground mt-1.5">

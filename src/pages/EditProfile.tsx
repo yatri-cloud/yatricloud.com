@@ -388,10 +388,7 @@ const EditProfile = () => {
             {/* Profile Information */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Profile Information
-                </CardTitle>
+                <CardTitle>Profile Information</CardTitle>
                 <CardDescription>
                   Update your personal details
                 </CardDescription>
@@ -656,10 +653,7 @@ const EditProfile = () => {
             {/* Change Password */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Change Password
-                </CardTitle>
+                <CardTitle>Change Password</CardTitle>
                 <CardDescription>
                   Update your account password
                 </CardDescription>
