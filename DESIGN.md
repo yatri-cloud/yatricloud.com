@@ -380,6 +380,14 @@ Motion is a **first-class deliverable** here (awwwards / motionsites energy) —
 - **Logos:** `LogoMarquee` from `@/components/TechLogos` (white chips, brand SVGs in `public/logos/`) — use for any provider/tech logo strip.
 - **Motion helpers:** count-up (`useInView`+`animate`, reduced-motion → final value); SVG path-draw (`motion.path pathLength`); all wrapped for `useReducedMotion()`.
 
+### List search & filter (REUSE this pattern on every list)
+Every browsable list — admin, public, or personal dashboard — gets a text search. One convention, applied everywhere (admin CRUD tables, catalogs like Store/Exam Dumps/Achievements/Reviews, and personal lists like My Receipts/Certificates/Trainings/Events/Bookings).
+- **Control:** shadcn `Input` with a leading Lucide `Search` glyph — `relative` wrapper, icon `absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground`, input `pl-9` (`h-9`/`h-10`/`min-h-[44px]` per surface density). Place it in the list header/filter row; when other filters exist (status/provider/category), the search sits **alongside or above** them and combines with AND.
+- **Filtering:** case-insensitive substring — `const q = search.trim().toLowerCase()` then `.filter(...)` over the item's human-readable fields (name/title + secondary identifiers like slug, code, email, provider). Wrap in `useMemo` when the list is non-trivial; a plain const is fine for short lists. Empty query → return the list unchanged.
+- **Index-stable lists:** where rows are edited/reordered by array index (e.g. Providers, Mentors), **do not** map over the filtered array — keep mapping the full array and hide non-matches in place (`if (!filtered.includes(item)) return null;`) so index-based handlers stay correct.
+- **Empty state:** always distinguish "no data yet" from "no matches" — show a short "No X match your search." message (not the onboarding empty state) when the source list is non-empty but the filtered result is empty. Only render the search box when there's data to search.
+- **Design-only:** search is a view concern — never change fetching, routing, mutations, or RLS. It filters already-loaded client state.
+
 ### Icons & logos
 - **UI icons: Lucide only** (`lucide-react`) — the single, chosen set (it's #12 on the reference list below; clean, universally recognizable, tree-shakeable, already powering shadcn/ui). **Never mix sets.** Use contextual, meaningful icons; no decorative `Sparkles`/✨/✦; no emoji-as-icons (greeting 👋 / rare 🎉 excepted).
 - **Icon presentation (consistency rule):** don't drop stark, bare, brightly-colored glyphs into the UI (e.g. a lone bright-red trash). Delete/destructive controls = **muted by default, destructive color only on hover** (`text-muted-foreground hover:bg-destructive/10 hover:text-destructive`) inside a proper `size="icon"` button with an `aria-label`. Match stroke width/size across a view; size via a small scale (`h-4 w-4` inline, `h-5 w-5` standalone).
