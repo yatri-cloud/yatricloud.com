@@ -21,6 +21,7 @@ import { listMyEnrollments } from "@/lib/training-api";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -56,6 +57,7 @@ export default function MyTrainings() {
     const [trainings, setTrainings] = useState<Record<string, TrainingDetails>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [sort, setSort] = useState("default");
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -91,7 +93,7 @@ export default function MyTrainings() {
     };
 
     const query = search.trim().toLowerCase();
-    const filteredEnrollments = query
+    const matched = query
         ? enrollments.filter((e) => {
             const t = trainings[e.trainingId];
             if (!t) return false;
@@ -100,6 +102,10 @@ export default function MyTrainings() {
                 (t.venue || "").toLowerCase().includes(query);
         })
         : enrollments;
+    const courseName = (e: Enrollment) => (trainings[e.trainingId]?.courseName || "");
+    const filteredEnrollments = sort === "name"
+        ? [...matched].sort((a, b) => courseName(a).localeCompare(courseName(b)))
+        : matched;
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -128,15 +134,26 @@ export default function MyTrainings() {
                     </motion.div>
 
                     {!isLoading && enrollments.length > 0 && (
-                        <div className="relative mb-6 max-w-md">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                            <Input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search trainings by name or instructor"
-                                aria-label="Search trainings"
-                                className="h-10 pl-9"
-                            />
+                        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <div className="relative w-full max-w-md">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                <Input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Search trainings by name or instructor"
+                                    aria-label="Search trainings"
+                                    className="h-10 pl-9"
+                                />
+                            </div>
+                            <Select value={sort} onValueChange={setSort}>
+                                <SelectTrigger className="h-10 w-full sm:w-[180px]" aria-label="Sort trainings">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="default">Default order</SelectItem>
+                                    <SelectItem value="name">Name: A to Z</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     )}
 

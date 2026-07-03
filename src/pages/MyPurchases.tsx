@@ -9,6 +9,7 @@ import { getStoredUser } from "@/lib/yatris-api";
 import { getMyInvoices, formatInvoiceMoney, type Invoice } from "@/lib/invoices-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -19,6 +20,7 @@ export default function MyPurchases() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [sort, setSort] = useState("newest");
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -49,13 +51,20 @@ export default function MyPurchases() {
     };
 
     const query = search.trim().toLowerCase();
-    const filteredInvoices = query
+    const matched = query
         ? invoices.filter((inv) =>
             (inv.kindLabel || "").toLowerCase().includes(query) ||
             (inv.number || "").toLowerCase().includes(query) ||
             inv.items.some((it) => (it.name || "").toLowerCase().includes(query))
         )
         : invoices;
+    const time = (inv: Invoice) => (inv.createdAt ? new Date(inv.createdAt).getTime() : 0);
+    const filteredInvoices = [...matched].sort((a, b) => {
+        if (sort === "oldest") return time(a) - time(b);
+        if (sort === "amount-desc") return b.amount - a.amount;
+        if (sort === "amount-asc") return a.amount - b.amount;
+        return time(b) - time(a); // newest
+    });
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -84,15 +93,28 @@ export default function MyPurchases() {
                     </motion.div>
 
                     {!isLoading && invoices.length > 0 && (
-                        <div className="relative mb-5 max-w-md">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                            <Input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search receipts by item or number"
-                                aria-label="Search receipts"
-                                className="h-10 pl-9"
-                            />
+                        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <div className="relative w-full max-w-md">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                <Input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Search receipts by item or number"
+                                    aria-label="Search receipts"
+                                    className="h-10 pl-9"
+                                />
+                            </div>
+                            <Select value={sort} onValueChange={setSort}>
+                                <SelectTrigger className="h-10 w-full sm:w-[180px]" aria-label="Sort receipts">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest">Newest first</SelectItem>
+                                    <SelectItem value="oldest">Oldest first</SelectItem>
+                                    <SelectItem value="amount-desc">Amount: high to low</SelectItem>
+                                    <SelectItem value="amount-asc">Amount: low to high</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     )}
 

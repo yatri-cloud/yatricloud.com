@@ -8,6 +8,7 @@ import { SEO } from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { getStoredUser } from "@/lib/yatris-api";
 import { getMyCertificates, type MyCertificate } from "@/lib/certificates-api";
@@ -19,6 +20,7 @@ export default function MyCertificates() {
     const [certs, setCerts] = useState<MyCertificate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [sort, setSort] = useState("newest");
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -39,7 +41,7 @@ export default function MyCertificates() {
     }, [user]);
 
     const query = search.trim().toLowerCase();
-    const filteredCerts = query
+    const matched = query
         ? certs.filter((c) =>
             (c.title || "").toLowerCase().includes(query) ||
             (c.kindLabel || "").toLowerCase().includes(query) ||
@@ -47,6 +49,12 @@ export default function MyCertificates() {
             (c.serial || "").toLowerCase().includes(query)
         )
         : certs;
+    const issuedTime = (c: MyCertificate) => (c.issuedAt ? new Date(c.issuedAt).getTime() : 0);
+    const filteredCerts = [...matched].sort((a, b) => {
+        if (sort === "oldest") return issuedTime(a) - issuedTime(b);
+        if (sort === "title") return (a.title || "").localeCompare(b.title || "");
+        return issuedTime(b) - issuedTime(a); // newest
+    });
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -65,15 +73,27 @@ export default function MyCertificates() {
                     </motion.div>
 
                     {!isLoading && certs.length > 0 && (
-                        <div className="relative mb-6 max-w-md">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                            <Input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search certificates by title or serial"
-                                aria-label="Search certificates"
-                                className="h-10 pl-9"
-                            />
+                        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <div className="relative w-full max-w-md">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                <Input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Search certificates by title or serial"
+                                    aria-label="Search certificates"
+                                    className="h-10 pl-9"
+                                />
+                            </div>
+                            <Select value={sort} onValueChange={setSort}>
+                                <SelectTrigger className="h-10 w-full sm:w-[180px]" aria-label="Sort certificates">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest">Newest first</SelectItem>
+                                    <SelectItem value="oldest">Oldest first</SelectItem>
+                                    <SelectItem value="title">Title: A to Z</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     )}
 

@@ -7,6 +7,7 @@ import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -76,6 +77,7 @@ export default function MyEvents() {
     const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [sort, setSort] = useState("newest");
 
     // Cancel confirmation state
     const [pendingCancel, setPendingCancel] = useState<EventRegistration | null>(null);
@@ -161,13 +163,21 @@ export default function MyEvents() {
     };
 
     const query = search.trim().toLowerCase();
-    const filteredRegistrations = query
+    const matched = query
         ? registrations.filter((reg) =>
             (reg.eventName || "").toLowerCase().includes(query) ||
             (reg.eventLocation || "").toLowerCase().includes(query) ||
             (reg.attendees[0]?.ticketId || "").toLowerCase().includes(query)
         )
         : registrations;
+    const regTime = (r: EventRegistration) => (r.registrationDate ? new Date(r.registrationDate).getTime() : 0);
+    const evtTime = (r: EventRegistration) => (r.eventDate ? new Date(r.eventDate).getTime() : 0);
+    const filteredRegistrations = [...matched].sort((a, b) => {
+        if (sort === "oldest") return regTime(a) - regTime(b);
+        if (sort === "event-date") return evtTime(a) - evtTime(b);
+        if (sort === "name") return (a.eventName || "").localeCompare(b.eventName || "");
+        return regTime(b) - regTime(a); // newest registration first (default)
+    });
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -228,15 +238,28 @@ export default function MyEvents() {
                         </div>
                     ) : (
                         <>
-                        <div className="relative mb-6 max-w-md">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                            <Input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search events by name, location or code"
-                                aria-label="Search registered events"
-                                className="h-10 pl-9"
-                            />
+                        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <div className="relative w-full max-w-md">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                <Input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Search events by name, location or code"
+                                    aria-label="Search registered events"
+                                    className="h-10 pl-9"
+                                />
+                            </div>
+                            <Select value={sort} onValueChange={setSort}>
+                                <SelectTrigger className="h-10 w-full sm:w-[190px]" aria-label="Sort registered events">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest">Recently registered</SelectItem>
+                                    <SelectItem value="oldest">Oldest registered</SelectItem>
+                                    <SelectItem value="event-date">Event date</SelectItem>
+                                    <SelectItem value="name">Name: A to Z</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         {filteredRegistrations.length === 0 ? (
                         <div className="py-12 text-center text-muted-foreground">
