@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ListPager } from "@/components/ui/list-pager";
+import { useSiteContent, getSiteStats, statValue, FALLBACK_STATS } from "@/lib/site-content";
 import { CartProvider, useCart } from "@/contexts/CartContext";
 
 const PAGE_SIZE = 9;
@@ -23,6 +24,12 @@ const YatriStore = () => {
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const rise = prefersReducedMotion ? 0 : 18;
+  /* Marketing claims come from admin-managed site_stats. */
+  const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
+  const learners = statValue(siteStats, "learners", "50K+");
+  const siteRating = statValue(siteStats, "rating", "4.8");
+  const storeDiscount = statValue(siteStats, "store_discount", "50%");
+
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | "All">("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("featured");
@@ -129,7 +136,7 @@ const YatriStore = () => {
                 className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-semibold text-primary mb-6 shadow-sm"
               >
                 <Tag className="w-4 h-4" aria-hidden="true" />
-                Up to 50% OFF · verified vouchers
+                Up to {storeDiscount} OFF · verified vouchers
               </motion.div>
 
               <h1 className="font-display font-bold tracking-tight text-4xl md:text-5xl lg:text-6xl mb-4">
@@ -298,7 +305,7 @@ const YatriStore = () => {
                     <span className="font-semibold text-foreground">{filteredProducts.length}</span>{" "}
                     verified {filteredProducts.length === 1 ? "voucher" : "vouchers"}
                     {selectedCategory !== "All" && <> in <span className="font-semibold text-foreground">{selectedCategory}</span></>}
-                    {" "}— every one 50% OFF, ready to book.
+                    {" "}— every one {storeDiscount} OFF, ready to book.
                   </p>
                 </div>
 
@@ -333,7 +340,7 @@ const YatriStore = () => {
               className="max-w-4xl mx-auto text-center"
             >
               <p className="text-sm font-semibold uppercase tracking-wide text-primary mb-3">
-                Trusted by 50,000+ Yatris
+                Trusted by {learners} Yatris
               </p>
               <h2 className="font-display font-bold tracking-tight text-3xl md:text-4xl mb-4">
                 Why Yatris buy their vouchers here
@@ -346,7 +353,7 @@ const YatriStore = () => {
                   {
                     icon: Tag,
                     title: "Half the price, none of the doubt",
-                    description: "Up to 50% OFF every certification voucher — so you can focus on learning, not the price tag.",
+                    description: `Up to ${storeDiscount} OFF every certification voucher — so you can focus on learning, not the price tag.`,
                   },
                   {
                     icon: Zap,
@@ -378,7 +385,7 @@ const YatriStore = () => {
 
               <div className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-primary">
                 <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-                Verified vouchers · 4.8★ from 50K+ Yatris
+                Verified vouchers · {siteRating}★ from {learners} Yatris
               </div>
             </motion.div>
           </div>

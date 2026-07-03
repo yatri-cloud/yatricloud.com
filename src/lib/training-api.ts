@@ -150,7 +150,7 @@ function rowToCourse(row: any, modulesCount = 0): Course {
     description: row.description || "",
     instructor: row.trainer_name || "",
     instructorId: row.trainer_id || "",
-    level: "All Levels",
+    level: row.level || "All Levels",
     duration: row.duration_hours ? `${row.duration_hours} hours` : "",
     paymentType: isPaid ? "Paid" : "Free",
     price: isPaid ? `₹${priceNum}` : "Free",
@@ -620,9 +620,10 @@ export async function listInstructorProfiles(): Promise<any[]> {
       linkedin_url: a.linkedin_url || "",
       photo: d.photo || "",
       photoUrl: d.photo || "",
-      rating: d.rating || "4.8",
-      studentsCount: d.studentsCount || "0",
-      coursesCount: d.coursesCount || "0",
+      // No invented numbers: an empty rating/count simply renders nothing.
+      rating: d.rating || "",
+      studentsCount: d.studentsCount || "",
+      coursesCount: d.coursesCount || "",
     };
   });
 }
@@ -879,6 +880,7 @@ export interface TrainingInput {
   subType?: string;
   courseName?: string;
   description?: string;
+  level?: string;
   instructorId?: string;
   instructor?: string;
   duration?: string;
@@ -910,6 +912,7 @@ function inputToRow(input: TrainingInput): Record<string, any> {
     course_title: input.courseName || null,
     provider: toProviderEnum(input.subType),
     description: input.description || null,
+    level: input.level || null,
     trainer_id: input.instructorId || null,
     trainer_name: input.instructor || null,
     duration_hours: isNaN(durHours) ? null : durHours,
@@ -1027,7 +1030,7 @@ export async function getTrainingForEdit(id: string): Promise<any | null> {
     courseName: data.course_title || "",
     description: data.description || "",
     instructor: data.trainer_id || "",
-    level: "Beginner",
+    level: data.level || "Beginner",
     duration: data.duration_hours ? `${data.duration_hours}` : "",
     skills: "",
     outcomes: "",

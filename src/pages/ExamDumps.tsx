@@ -9,6 +9,7 @@ import { ExamDumpCard } from "@/components/exam-dumps/ExamDumpCard";
 import { CartSheet } from "@/components/store/CartSheet";
 import { MobileCartBar } from "@/components/store/MobileCartBar";
 import { fetchExamDumps, ExamDump } from "@/lib/exam-dumps";
+import { useSiteContent, getSiteStats, statValue, FALLBACK_STATS } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +22,10 @@ const ExamDumps = () => {
   const navigate = useNavigate();
   const [dumps, setDumps] = useState<ExamDump[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  /* Community-size claim comes from admin-managed site_stats. */
+  const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
+  const learners = statValue(siteStats, "learners", "50K+");
+
   const [selectedProvider, setSelectedProvider] = useState<string>("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("featured");
@@ -107,7 +112,7 @@ const ExamDumps = () => {
                 Pass on your <span className="gradient-text">first attempt</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Verified, high-quality exam dumps and practice materials — trusted by 50,000+ Yatris preparing for AWS, Azure & GCP. No guesswork, just confidence.
+                Verified, high-quality exam dumps and practice materials — trusted by {learners} Yatris preparing for AWS, Azure & GCP. No guesswork, just confidence.
               </p>
             </motion.div>
           </div>

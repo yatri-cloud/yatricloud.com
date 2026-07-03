@@ -609,11 +609,18 @@ const EventDetail = () => {
                                                         className="bg-card border border-border rounded-2xl p-6 hover:border-brand-200 hover:shadow-card transition-all"
                                                     >
                                                         <div className="flex flex-col md:flex-row items-end gap-6">
-                                                            <img
-                                                                src={speaker.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop"}
-                                                                alt={speaker.fullName}
-                                                                className="w-32 h-32 rounded-2xl bg-muted object-cover flex-shrink-0"
-                                                            />
+                                                            {speaker.profileImage ? (
+                                                                <img
+                                                                    src={speaker.profileImage}
+                                                                    alt={speaker.fullName}
+                                                                    className="w-32 h-32 rounded-2xl bg-muted object-cover flex-shrink-0"
+                                                                />
+                                                            ) : (
+                                                                // No stock-photo strangers: an initial avatar until a real photo is set
+                                                                <div aria-hidden="true" className="flex h-32 w-32 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10 font-display text-4xl font-bold text-primary">
+                                                                    {(speaker.fullName || "?").charAt(0).toUpperCase()}
+                                                                </div>
+                                                            )}
                                                             <div className="flex-1 flex flex-col justify-between h-auto md:h-32">
                                                                 <div>
                                                                     <div className="flex justify-between items-start">

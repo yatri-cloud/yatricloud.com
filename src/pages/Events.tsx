@@ -8,7 +8,7 @@ import { Footer } from "@/components/sections/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
 import { getAllEvents, Event } from "@/lib/events-store";
-import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
+import { useSiteContent, getOptionList, getSiteStats, statValue, FALLBACK_OPTION_LISTS, FALLBACK_STATS } from "@/lib/site-content";
 
 const Events = () => {
     const reduceMotion = useReducedMotion();
@@ -113,6 +113,10 @@ const Events = () => {
 
     /* Categories come from Supabase `option_lists` (seeded identical to the
      * fallback, so nothing visibly changes). "All" is prepended locally. */
+    /* Community-size claims come from admin-managed site_stats. */
+    const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
+    const learners = statValue(siteStats, "learners", "50K+");
+
     const eventCategories = useSiteContent(
         () => getOptionList("event_category"),
         FALLBACK_OPTION_LISTS.event_category
@@ -227,13 +231,13 @@ const Events = () => {
                             Where Yatris <span className="gradient-text">meet in real life</span>
                         </h1>
                         <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                            Hackathons, workshops, meetups and conferences — the moments where 50,000+ Yatris stop studying alone and start building together. Find one near you, grab a seat, and bring a friend.
+                            Hackathons, workshops, meetups and conferences — the moments where {learners} Yatris stop studying alone and start building together. Find one near you, grab a seat, and bring a friend.
                         </p>
 
                         {/* Trust cues */}
                         <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
                             <span className="inline-flex items-center gap-2">
-                                <Users className="w-4 h-4 text-primary" /> 50,000+ Yatris in the community
+                                <Users className="w-4 h-4 text-primary" /> {learners} Yatris in the community
                             </span>
                             <span className="inline-flex items-center gap-2">
                                 <MapPin className="w-4 h-4 text-primary" /> Online &amp; in-person, worldwide

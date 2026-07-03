@@ -285,15 +285,20 @@ export default function TrainingDetail() {
                             )}
                             {course.subType.includes("Microsoft") || course.subType.includes("Azure") ? <Badge variant="secondary" className="bg-[#0078d4] text-white border-none">Microsoft Certified</Badge> : null}
                             {course.subType.includes("AWS") ? <Badge variant="secondary" className="bg-[#FF9900] text-black border-none">AWS Certified</Badge> : null}
-                            <Badge variant="outline" className="text-yellow-400 border-yellow-400/50 flex items-center gap-1">
-                                <Award className="w-3 h-3" /> Best Seller
-                            </Badge>
+                            {/* Earned, not claimed: only well-reviewed courses get the badge */}
+                            {(course.reviewCount ?? 0) >= 3 && course.avgRating >= 4.5 && (
+                                <Badge variant="outline" className="text-yellow-400 border-yellow-400/50 flex items-center gap-1">
+                                    <Award className="w-3 h-3" /> Highly rated
+                                </Badge>
+                            )}
                             <span className="flex items-center gap-1 text-gray-300">
                                 <User className="w-3 h-3" /> Created by <span className="text-blue-300 underline underline-offset-4">{displayInstructor}</span>
                             </span>
-                            <span className="flex items-center gap-1 text-gray-300">
-                                <Clock className="w-3 h-3" /> Last updated: {new Date(course.id).toLocaleDateString() === "Invalid Date" ? "Recently" : new Date(course.id).toLocaleDateString()}
-                            </span>
+                            {course.timestamp && !Number.isNaN(new Date(course.timestamp).getTime()) && (
+                                <span className="flex items-center gap-1 text-gray-300">
+                                    <Clock className="w-3 h-3" /> Listed: {new Date(course.timestamp).toLocaleDateString()}
+                                </span>
+                            )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-6 text-sm text-white font-medium pt-4">
@@ -344,8 +349,6 @@ export default function TrainingDetail() {
                                         <span className="text-3xl font-bold">
                                             {course.paymentType === "Paid" ? course.price : "Free"}
                                         </span>
-                                        {course.paymentType === "Paid" && <span className="text-sm text-muted-foreground line-through">USD 199.99</span>}
-                                        {course.paymentType === "Paid" && <span className="text-sm text-amber-600 font-medium">80% off</span>}
                                     </div>
 
                                     {/* Countdown to the first session — decide before it starts */}
@@ -371,12 +374,22 @@ export default function TrainingDetail() {
                                         {isEnrolled ? "Go to Training" : (course.paymentType === "Free" ? "Enroll for Free" : "Buy Now")}
                                     </Button>
 
-                                    <p className="text-xs text-center text-muted-foreground">30-Day Money-Back Guarantee</p>
-
+                                    {/* Honest, data-driven inclusions — nothing invented */}
                                     <div className="space-y-3 text-sm">
                                         <h4 className="font-bold">This course includes:</h4>
-                                        <div className="flex items-center gap-3 text-muted-foreground"><PlayCircle className="w-4 h-4" /> {displayDuration} on-demand video</div>
-                                        <div className="flex items-center gap-3 text-muted-foreground"><Share2 className="w-4 h-4" /> Full lifetime access</div>
+                                        {displayDuration && (
+                                            <div className="flex items-center gap-3 text-muted-foreground"><Clock className="w-4 h-4" /> {displayDuration} of live training</div>
+                                        )}
+                                        <div className="flex items-center gap-3 text-muted-foreground">
+                                            {course.mode === "Online" ? <Globe className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
+                                            {course.mode === "Online" ? "Live online sessions" : `In-person sessions${course.venue ? ` in ${course.venue}` : ""}`}
+                                        </div>
+                                        {modules.length > 0 && (
+                                            <div className="flex items-center gap-3 text-muted-foreground"><PlayCircle className="w-4 h-4" /> {modules.length} module{modules.length === 1 ? "" : "s"} of curriculum</div>
+                                        )}
+                                        {Array.isArray(course.resources) && course.resources.length > 0 && (
+                                            <div className="flex items-center gap-3 text-muted-foreground"><Share2 className="w-4 h-4" /> {course.resources.length} downloadable resource{course.resources.length === 1 ? "" : "s"}</div>
+                                        )}
                                         <div className="flex items-center gap-3 text-muted-foreground"><Award className="w-4 h-4" /> Certificate of completion</div>
                                     </div>
                                 </CardContent>
@@ -501,33 +514,47 @@ export default function TrainingDetail() {
                                 <div className="space-y-4 text-center md:text-left">
                                     <div>
                                         <h3 className="font-bold text-2xl text-primary">{displayInstructor}</h3>
-                                        <p className="text-muted-foreground font-medium text-base">
-                                            {instructorProfile?.role || "Cloud Expert & Senior Architect"}
-                                        </p>
+                                        {instructorProfile?.role && (
+                                            <p className="text-muted-foreground font-medium text-base">
+                                                {instructorProfile.role}
+                                            </p>
+                                        )}
                                     </div>
                                     <p className="text-base text-muted-foreground leading-relaxed max-w-xl">
-                                        {instructorProfile?.bio || (
-                                            <>
-                                                {displayInstructor} is a top-rated instructor with extensive experience in cloud computing.
-                                                They have helped thousands of students achieve their certification goals by simplifying complex concepts and providing hands-on labs.
-                                            </>
-                                        )}
+                                        {instructorProfile?.bio ||
+                                            `${displayInstructor} leads this training for Yatri Cloud.`}
                                     </p>
 
-                                    <div className="flex flex-wrap justify-center md:justify-start gap-6 pt-2">
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-primary text-xl">{instructorProfile?.rating || "4.8"}</span>
-                                            <span className="text-xs text-muted-foreground uppercase tracking-widest">Instructor Rating</span>
+                                    {/* Stats come from the admin-managed instructor profile and real
+                                        course reviews — nothing shows unless the data exists. */}
+                                    {(instructorProfile?.rating || instructorProfile?.studentsCount || instructorProfile?.coursesCount || (course.reviewCount ?? 0) > 0) && (
+                                        <div className="flex flex-wrap justify-center md:justify-start gap-6 pt-2">
+                                            {(course.reviewCount ?? 0) > 0 && (
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-primary text-xl">{course.avgRating.toFixed(1)}</span>
+                                                    <span className="text-xs text-muted-foreground uppercase tracking-widest">Course rating · {course.reviewCount} review{course.reviewCount === 1 ? "" : "s"}</span>
+                                                </div>
+                                            )}
+                                            {instructorProfile?.rating && (
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-primary text-xl">{instructorProfile.rating}</span>
+                                                    <span className="text-xs text-muted-foreground uppercase tracking-widest">Instructor Rating</span>
+                                                </div>
+                                            )}
+                                            {instructorProfile?.studentsCount && (
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-primary text-xl">{instructorProfile.studentsCount}</span>
+                                                    <span className="text-xs text-muted-foreground uppercase tracking-widest">Students</span>
+                                                </div>
+                                            )}
+                                            {instructorProfile?.coursesCount && (
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-primary text-xl">{instructorProfile.coursesCount}</span>
+                                                    <span className="text-xs text-muted-foreground uppercase tracking-widest">Courses</span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-primary text-xl">{instructorProfile?.studentsCount || "12,450+"}</span>
-                                            <span className="text-xs text-muted-foreground uppercase tracking-widest">Students</span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-primary text-xl">{instructorProfile?.coursesCount || "15"}</span>
-                                            <span className="text-xs text-muted-foreground uppercase tracking-widest">Courses</span>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </CardContent>

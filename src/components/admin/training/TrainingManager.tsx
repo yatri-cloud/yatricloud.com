@@ -320,6 +320,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 subType: data.subType,
                 courseName: data.courseName,
                 description: data.description,
+                level: data.level,
                 instructorId: isTrainerMode ? trainerData?.trainerId : data.instructor,
                 instructor: isTrainerMode
                     ? trainerData?.fullName

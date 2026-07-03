@@ -98,9 +98,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </div>
 
           {/* Limited Time Offer Badge */}
-          <div className="inline-flex items-center justify-center text-xs font-semibold bg-red-600 text-white px-3 py-1.5 rounded-md shadow-sm">
-            Limited Time Offer
-          </div>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2 p-5 pt-0">
