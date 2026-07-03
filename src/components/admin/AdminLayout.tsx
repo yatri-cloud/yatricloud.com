@@ -76,6 +76,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
             icon: Wrench,
             items: [
                 { name: "Payments & Revenue", path: "/admin/payments", icon: Receipt },
+                { name: "Razorpay Invoices", path: "/admin/razorpay-invoices", icon: ExternalLink },
                 { name: "Udemy Management", path: "/admin/udemy", icon: GraduationCap },
                 { name: "Store Product", path: "/admin/products/add", icon: Plus },
                 { name: "Exam Dumps", path: "/admin/exam-dumps", icon: List },
