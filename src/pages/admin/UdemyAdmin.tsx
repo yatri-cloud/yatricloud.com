@@ -11,12 +11,31 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, CheckCircle2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
+import {
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 import ScrollReveal from "@/components/ScrollReveal";
+
+interface UdemyCourse {
+    id: string;
+    title: string;
+    course_url: string;
+    image_url: string | null;
+    creator: string | null;
+    tech: string | null;
+    category: string | null;
+    status: string;
+    created_at: string;
+}
 
 interface UdemyCourseFormData {
     courseTitle: string;
@@ -47,6 +66,61 @@ const UdemyAdmin = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    // Existing courses (manage: edit, delete, publish/unpublish).
+    const [courses, setCourses] = useState<UdemyCourse[]>([]);
+    const [loadingCourses, setLoadingCourses] = useState(true);
+    const [editing, setEditing] = useState<UdemyCourse | null>(null);
+    const [savingEdit, setSavingEdit] = useState(false);
+
+    const loadCourses = async () => {
+        setLoadingCourses(true);
+        const { data, error } = await supabase
+            .from("udemy_courses")
+            .select("id, title, course_url, image_url, creator, tech, category, status, created_at")
+            .order("created_at", { ascending: false });
+        if (!error && Array.isArray(data)) setCourses(data as UdemyCourse[]);
+        setLoadingCourses(false);
+    };
+
+    useEffect(() => { loadCourses(); }, []);
+
+    const toggleStatus = async (c: UdemyCourse) => {
+        const next = c.status === "published" ? "draft" : "published";
+        const { error } = await supabase.from("udemy_courses").update({ status: next }).eq("id", c.id);
+        if (error) { toast({ title: "Could not update", description: error.message, variant: "destructive" }); return; }
+        setCourses((prev) => prev.map((x) => (x.id === c.id ? { ...x, status: next } : x)));
+        toast({ title: next === "published" ? "Published" : "Unpublished", description: next === "published" ? "Course is live on the site." : "Course is hidden from the site." });
+    };
+
+    const deleteCourse = async (c: UdemyCourse) => {
+        if (!window.confirm(`Delete "${c.title}"? This cannot be undone.`)) return;
+        const { error } = await supabase.from("udemy_courses").delete().eq("id", c.id);
+        if (error) { toast({ title: "Could not delete", description: error.message, variant: "destructive" }); return; }
+        setCourses((prev) => prev.filter((x) => x.id !== c.id));
+        toast({ title: "Deleted", description: "The course has been removed." });
+    };
+
+    const saveEdit = async () => {
+        if (!editing) return;
+        if (!editing.title.trim() || !editing.course_url.trim()) {
+            toast({ title: "Missing details", description: "Title and course link are required.", variant: "destructive" });
+            return;
+        }
+        setSavingEdit(true);
+        const { error } = await supabase.from("udemy_courses").update({
+            title: editing.title.trim(),
+            course_url: editing.course_url.trim(),
+            creator: editing.creator || null,
+            tech: editing.tech || null,
+            category: editing.category || null,
+        }).eq("id", editing.id);
+        setSavingEdit(false);
+        if (error) { toast({ title: "Could not save", description: error.message, variant: "destructive" }); return; }
+        setCourses((prev) => prev.map((x) => (x.id === editing.id ? { ...editing } : x)));
+        setEditing(null);
+        toast({ title: "Saved", description: "The course has been updated." });
+    };
 
     const {
         register,
@@ -176,6 +250,7 @@ const UdemyAdmin = () => {
             reset();
             setSelectedImage(null);
             setImagePreview(null);
+            loadCourses();
         } catch (error: any) {
             console.error("Error submitting course:", error);
             toast({
@@ -189,7 +264,7 @@ const UdemyAdmin = () => {
     };
 
     return (
-
+        <>
         <div className="px-4 md:px-8 py-8 md:py-10">
           <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
             <ScrollReveal>
@@ -406,25 +481,114 @@ const UdemyAdmin = () => {
                                 disabled={isSubmitting}
                                 className="w-full min-h-[44px] rounded-xl bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn py-6 text-lg"
                             >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        Submitting...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 className="mr-2 h-5 w-5" />
-                                        Submit Course
-                                    </>
-                                )}
+                                {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                                {isSubmitting ? "Adding..." : "Add course"}
                             </Button>
                         </div>
                     </form>
                 </motion.div>
             </ScrollReveal>
+
+            {/* Manage existing courses */}
+            <ScrollReveal delay={0.15}>
+                <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h2 className="font-display text-lg font-bold tracking-tight">Manage courses</h2>
+                        <span className="text-sm text-muted-foreground">{courses.length} {courses.length === 1 ? "course" : "courses"}</span>
+                    </div>
+                    {loadingCourses ? (
+                        <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+                    ) : courses.length === 0 ? (
+                        <p className="py-8 text-center text-sm text-muted-foreground">No courses yet. Add your first course above.</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Course</TableHead>
+                                        <TableHead>Creator</TableHead>
+                                        <TableHead>Tech</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {courses.map((c) => (
+                                        <TableRow key={c.id}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    {c.image_url && <img src={c.image_url} alt="" className="h-9 w-16 shrink-0 rounded object-cover" />}
+                                                    <a href={c.course_url} target="_blank" rel="noreferrer" className="line-clamp-2 max-w-[280px] font-medium hover:text-primary hover:underline">{c.title}</a>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">{c.creator || "—"}</TableCell>
+                                            <TableCell className="text-muted-foreground">{c.tech || "—"}</TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline" className={c.status === "published" ? "border-emerald-500/30 text-emerald-600" : "border-border text-muted-foreground"}>
+                                                    {c.status === "published" ? "Published" : "Draft"}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <Button variant="ghost" size="sm" onClick={() => toggleStatus(c)}>{c.status === "published" ? "Unpublish" : "Publish"}</Button>
+                                                    <Button variant="ghost" size="sm" onClick={() => setEditing({ ...c })}>Edit</Button>
+                                                    <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => deleteCourse(c)}>Delete</Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
+                </div>
+            </ScrollReveal>
           </div>
         </div>
 
+        {/* Edit dialog */}
+        <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
+            <DialogContent className="sm:max-w-[480px]">
+                <DialogHeader>
+                    <DialogTitle>Edit course</DialogTitle>
+                    <DialogDescription>Update the course details. Changes are live immediately.</DialogDescription>
+                </DialogHeader>
+                {editing && (
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-title">Course title</Label>
+                            <Input id="edit-title" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-url">Course link</Label>
+                            <Input id="edit-url" value={editing.course_url} onChange={(e) => setEditing({ ...editing, course_url: e.target.value })} />
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="edit-creator">Creator</Label>
+                                <Input id="edit-creator" value={editing.creator || ""} onChange={(e) => setEditing({ ...editing, creator: e.target.value })} />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="edit-tech">Tech</Label>
+                                <Input id="edit-tech" value={editing.tech || ""} onChange={(e) => setEditing({ ...editing, tech: e.target.value })} />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="edit-category">Category</Label>
+                                <Input id="edit-category" value={editing.category || ""} onChange={(e) => setEditing({ ...editing, category: e.target.value })} />
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setEditing(null)} disabled={savingEdit}>Cancel</Button>
+                    <Button onClick={saveEdit} disabled={savingEdit} className="gap-2">
+                        {savingEdit && <Loader2 className="h-4 w-4 animate-spin" />}
+                        Save
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        </>
     );
 };
 
