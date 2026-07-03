@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Mail, Pencil, Save, Search } from "lucide-react";
+import { Download, Loader2, Mail, Pencil, Save, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +76,10 @@ const formatAmount = (amount: number, currency: string) =>
 
 const escapeHtml = (text: string) =>
     text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** Escape a single CSV cell: wrap in quotes when it holds a comma, quote, or newline. */
+const escapeCsv = (value: string) =>
+    /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 
 const FieldLabel = ({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) => (
     <Label htmlFor={htmlFor} className="text-sm font-medium">
@@ -194,6 +198,48 @@ const AdminMentorshipBookings = () => {
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [bookings, statusFilter, mentorFilter, search, services]);
+
+    /* ---------------------------- export --------------------------- */
+
+    const exportCsv = () => {
+        if (filteredBookings.length === 0) {
+            toast({ title: "No bookings to export yet." });
+            return;
+        }
+        // Only columns the row objects actually carry are included; platform fee,
+        // mentor payout, and refund id are not selected on this page, so they are skipped.
+        const columns: { header: string; value: (b: MentorshipBooking) => string }[] = [
+            { header: "Booking ID", value: (b) => b.id },
+            { header: "Created", value: (b) => b.created_at },
+            { header: "Status", value: (b) => b.status },
+            { header: "Mentor", value: (b) => mentorName(b.mentor_id) },
+            { header: "Service", value: (b) => serviceTitle(b.service_id) },
+            { header: "Customer name", value: (b) => b.customer_name },
+            { header: "Customer email", value: (b) => b.customer_email },
+            { header: "Customer phone", value: (b) => b.customer_phone ?? "" },
+            { header: "Slot start", value: (b) => b.slot_start ?? "" },
+            { header: "Amount", value: (b) => String(b.amount) },
+            { header: "Currency", value: (b) => b.currency },
+            { header: "Payment ID", value: (b) => b.payment_id ?? "" },
+        ];
+
+        const rows = [
+            columns.map((c) => escapeCsv(c.header)).join(","),
+            ...filteredBookings.map((b) => columns.map((c) => escapeCsv(c.value(b))).join(",")),
+        ];
+        const csv = rows.join("\r\n");
+
+        const today = new Date().toISOString().slice(0, 10);
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `mentorship-bookings-${today}.csv`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    };
 
     /* --------------------------- manage ---------------------------- */
 
@@ -321,12 +367,24 @@ const AdminMentorshipBookings = () => {
 
                 <ScrollReveal delay={0.05}>
                     <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
-                        <div className="-mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 rounded-t-2xl border-b border-brand-100 bg-gradient-to-r from-brand-50 to-transparent px-5 md:px-6 py-4">
-                            <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Orders</p>
-                            <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">Bookings</h2>
-                            <p className="text-sm text-muted-foreground">
-                                {filteredBookings.length} of {bookings.length} bookings shown, newest first.
-                            </p>
+                        <div className="-mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 flex flex-wrap items-start justify-between gap-3 rounded-t-2xl border-b border-brand-100 bg-gradient-to-r from-brand-50 to-transparent px-5 md:px-6 py-4">
+                            <div>
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Orders</p>
+                                <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">Bookings</h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {filteredBookings.length} of {bookings.length} bookings shown, newest first.
+                                </p>
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={exportCsv}
+                                disabled={filteredBookings.length === 0}
+                                className="min-h-[44px] rounded-xl border-brand-200 bg-card text-brand-700 hover:bg-brand-50 hover:text-brand-800"
+                                aria-label="Export the filtered bookings as a CSV file"
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Export CSV
+                            </Button>
                         </div>
 
                         {/* Filters */}
