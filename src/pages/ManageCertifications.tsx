@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Edit, Trash2, Loader2, Plus, Upload, RefreshCw, Calendar } from "lucide-react";
+import { Trash2, Loader2, Plus, RefreshCw, Calendar } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -248,7 +248,6 @@ const ManageCertifications = () => {
                     onClick={() => navigate("/certifiedyatris?addNew=true")}
                     className="gap-2"
                   >
-                    <Upload className="w-4 h-4" />
                     Add More Certifications
                   </Button>
                 </div>
@@ -380,7 +379,6 @@ const ManageCertifications = () => {
                                       size="sm"
                                       onClick={() => handleEditCertification(cert)}
                                     >
-                                      <Edit className="w-4 h-4 mr-2" />
                                       Edit
                                     </Button>
                                   </div>

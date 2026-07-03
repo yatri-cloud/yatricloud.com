@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, Download, Loader2, Mail, Phone, MapPin, Linkedin, User, Calendar, CheckCircle2, CreditCard, Banknote, Edit, Trash2 } from "lucide-react";
+import { Search, Loader2, Mail, Phone, MapPin, Linkedin, User, Calendar, CheckCircle2, CreditCard, Banknote, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -238,7 +238,6 @@ export default function EventRegistrationsList() {
                         className="-ml-2 min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
                         onClick={() => navigate('/admin/events')}
                     >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Events
                     </Button>
                     <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
@@ -345,7 +344,6 @@ export default function EventRegistrationsList() {
                             </SelectContent>
                         </Select>
                         <Button onClick={handleExportCSV} variant="outline" className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring">
-                            <Download className="w-4 h-4 mr-2" />
                             Export CSV
                         </Button>
                     </div>
@@ -523,10 +521,8 @@ export default function EventRegistrationsList() {
                                                     disabled={notifyingId === entry.id}
                                                     className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
                                                 >
-                                                    {notifyingId === entry.id ? (
+                                                    {notifyingId === entry.id && (
                                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                    ) : (
-                                                        <Mail className="w-4 h-4 mr-2" />
                                                     )}
                                                     Notify
                                                 </Button>

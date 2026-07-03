@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, Mic, Layers, Plus, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon } from "lucide-react";
+import { Calendar, Users, Mic, Layers, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon } from "lucide-react";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -147,7 +147,6 @@ export default function AdminEvents() {
                         onClick={() => navigate('/createevent')}
                         size="lg"
                     >
-                        <Plus className="w-5 h-5" />
                         Create Event
                     </Button>
                 </div>
@@ -364,7 +363,6 @@ export default function AdminEvents() {
                                 onClick={() => navigate('/createevent')}
                                 className="bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
                             >
-                                <Plus className="w-4 h-4 mr-2" />
                                 Create your first event
                             </Button>
                         )}

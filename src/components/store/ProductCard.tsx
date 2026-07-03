@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ShoppingCart, Tag, ExternalLink } from "lucide-react";
+import { Tag } from "lucide-react";
 import { Product } from "@/data/store-products";
 import { StoreProduct } from "@/lib/store-products";
 import { Button } from "@/components/ui/button";
@@ -107,7 +107,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full text-sm" size="sm">
-                <ExternalLink className="h-4 w-4 mr-2" />
                 View Details
               </Button>
             </DialogTrigger>
@@ -158,7 +157,6 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             className="w-full group/btn font-semibold"
             size="lg"
           >
-            <ShoppingCart className="h-4 w-4 mr-2 group-hover/btn:scale-110 transition-transform" />
             Add to Cart
           </Button>
         </CardFooter>

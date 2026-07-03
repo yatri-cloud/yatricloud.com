@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Send, ArrowLeft, Loader2, ThumbsUp, MessageSquare } from "lucide-react";
+import { Star, Loader2, ThumbsUp, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -114,7 +114,6 @@ export default function EventFeedback() {
                     className="mb-8 pl-0 hover:pl-2 transition-all"
                     onClick={() => navigate(-1)}
                 >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                 </Button>
 
@@ -223,10 +222,7 @@ export default function EventFeedback() {
                                             Submitting...
                                         </>
                                     ) : (
-                                        <>
-                                            <Send className="w-5 h-5 mr-2" />
-                                            Submit Feedback
-                                        </>
+                                        <>Submit Feedback</>
                                     )}
                                 </Button>
                             </form>

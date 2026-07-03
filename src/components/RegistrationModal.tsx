@@ -448,10 +448,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 ) : (
                                     <>
                                         {isPaid ? (
-                                            <>
-                                                <CreditCard className="w-4 h-4 mr-2" />
-                                                Pay {priceLabel}
-                                            </>
+                                            <>Pay {priceLabel}</>
                                         ) : (
                                             'Complete Registration'
                                         )}

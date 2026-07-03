@@ -432,10 +432,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                             ) : (
                                 <>
                                     {isPaid ? (
-                                        <>
-                                            <CreditCard className="w-4 h-4 mr-2" />
-                                            Pay {priceLabel}
-                                        </>
+                                        <>Pay {priceLabel}</>
                                     ) : (
                                         'Confirm Enrollment'
                                     )}

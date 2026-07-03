@@ -3,9 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Clock,
     Flag,
-    ChevronLeft,
     ChevronRight,
-    CheckCircle,
     AlertTriangle,
     Menu,
 } from 'lucide-react';
@@ -210,7 +208,6 @@ export const QuizTaking = ({
                         className="bg-[#007CFF] hover:bg-[#0066D6] text-white"
                         onClick={handleSubmitClick}
                     >
-                        <CheckCircle className="w-4 h-4 mr-2" />
                         Finish Test
                     </Button>
 
@@ -368,7 +365,6 @@ export const QuizTaking = ({
                                         onClick={() => handleNavigate('prev')}
                                         disabled={currentQuestionIndex === 0}
                                     >
-                                        <ChevronLeft className="w-4 h-4 mr-2" />
                                         Previous
                                     </Button>
 

@@ -8,7 +8,6 @@ import {
     Edit,
     Trash2,
     ExternalLink,
-    Plus,
     Loader2,
     FileText,
     CheckCircle2,
@@ -218,7 +217,7 @@ export default function AdminTrainingList() {
                     </div>
                     <Link to="/admin/training/create" className="self-start md:self-auto">
                         <Button className="gap-2 rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
-                            <Plus className="w-4 h-4" /> Create New
+                            Create New
                         </Button>
                     </Link>
                 </div>
@@ -251,7 +250,7 @@ export default function AdminTrainingList() {
                                 onClick={() => setStatusFilter("Published")}
                                 className={cn("gap-2 rounded-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring", statusFilter === "Published" && "bg-primary text-primary-foreground hover:bg-brand-600")}
                             >
-                                <CheckCircle2 className="w-3 h-3" /> Published
+                                Published
                             </Button>
                             <Button
                                 variant={statusFilter === "Draft" ? "default" : "outline"}
@@ -259,7 +258,7 @@ export default function AdminTrainingList() {
                                 onClick={() => setStatusFilter("Draft")}
                                 className={cn("gap-2 rounded-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring", statusFilter === "Draft" && "bg-primary text-primary-foreground hover:bg-brand-600")}
                             >
-                                <Clock className="w-3 h-3" /> Drafts
+                                Drafts
                             </Button>
                             <Button
                                 variant={statusFilter === "Review" ? "default" : "outline"}
@@ -267,7 +266,7 @@ export default function AdminTrainingList() {
                                 onClick={() => setStatusFilter("Review")}
                                 className={cn("gap-2 rounded-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring", statusFilter === "Review" && "bg-primary text-primary-foreground hover:bg-brand-600")}
                             >
-                                <AlertCircle className="w-3 h-3" /> In review
+                                In review
                             </Button>
                         </div>
                     </div>
@@ -290,7 +289,7 @@ export default function AdminTrainingList() {
                             {!searchTerm && (
                                 <Link to="/admin/training/create" className="mt-5">
                                     <Button className="rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring gap-2">
-                                        <Plus className="w-4 h-4" /> Create Training
+                                        Create Training
                                     </Button>
                                 </Link>
                             )}
@@ -496,7 +495,6 @@ export default function AdminTrainingList() {
                                                                 !scheduleDate && "text-muted-foreground"
                                                             )}
                                                         >
-                                                            <Calendar className="mr-2 h-4 w-4" />
                                                             {scheduleDate ? format(scheduleDate, "PPP") : <span>Date</span>}
                                                         </Button>
                                                     </PopoverTrigger>
@@ -524,7 +522,7 @@ export default function AdminTrainingList() {
                                                 </Select>
                                             </div>
                                             <Button size="sm" onClick={handleUpdateSchedule} disabled={isUpdating} className="w-full rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
-                                                {isUpdating ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Video className="w-3 h-3 mr-2" />}
+                                                {isUpdating && <Loader2 className="w-3 h-3 animate-spin mr-2" />}
                                                 Generate Link
                                             </Button>
                                         </div>

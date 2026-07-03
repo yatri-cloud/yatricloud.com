@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, Download, FileText, AlertCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle } from 'lucide-react';
 import { QuizQuestion, CSVQuizRow } from '@/types/quiz';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
@@ -215,7 +215,6 @@ Which of the following are woodwind instruments?,multi-select,Oboe,,Trumpet,,Flu
                         className="w-full"
                         onClick={downloadTemplate}
                     >
-                        <Download className="w-4 h-4 mr-2" />
                         Download CSV Template
                     </Button>
 

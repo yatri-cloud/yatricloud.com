@@ -2,11 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-    BookOpen,
     Calendar,
-    Video,
     MapPin,
-    ArrowLeft,
     Loader2,
     User,
     Clock,
@@ -128,7 +125,7 @@ export default function MyTrainings() {
                         className="gap-2 mb-6 pl-0 hover:pl-2 transition-all"
                         onClick={() => navigate('/manage-certifications')}
                     >
-                        <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+                        Back to Dashboard
                     </Button>
 
                     <motion.div
@@ -251,7 +248,6 @@ export default function MyTrainings() {
                                                 asChild
                                             >
                                                 <a href={`/training/${training.slug || training.id}/dashboard`}>
-                                                    <BookOpen className="w-4 h-4 mr-2" />
                                                     Go to Training
                                                 </a>
                                             </Button>
@@ -261,7 +257,7 @@ export default function MyTrainings() {
                                                     asChild
                                                 >
                                                     <a href={`/training/${training.slug || training.id}/dashboard?tab=class`}>
-                                                        <Video className="w-4 h-4" /> Join Class
+                                                        Join Class
                                                     </a>
                                                 </Button>
                                             )}

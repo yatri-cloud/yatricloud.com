@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Loader2, Star, PackageOpen, BadgeCheck, Zap, LifeBuoy, Tag, Search } from "lucide-react";
+import { Loader2, PackageOpen, BadgeCheck, Zap, LifeBuoy, Tag, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -154,7 +154,6 @@ const YatriStore = () => {
                   onClick={() => navigate("/reviews")}
                   className="rounded-full px-5 h-11 text-sm font-medium"
                 >
-                  <Star className="w-4 h-4 mr-1.5 fill-primary text-primary" aria-hidden="true" />
                   Read Yatri reviews
                 </Button>
               </div>

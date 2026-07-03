@@ -4,13 +4,10 @@ import {
     BookOpen,
     LogOut,
     Plus,
-    Save,
-    ArrowLeft,
     Video,
     FileText,
     Play,
     Trash2,
-    CheckCircle,
     LayoutGrid,
     MessageSquare,
     Link2,
@@ -18,8 +15,7 @@ import {
     Settings,
     ChevronRight,
     HelpCircle,
-    Download,
-    Eye
+    Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -262,7 +258,7 @@ export const TrainerCourseEditor = () => {
                 <aside className="w-64 bg-card border-r flex flex-col pt-4">
                     <div className="px-4 mb-6">
                         <Button variant="ghost" size="sm" onClick={() => navigate("/trainer/dashboard")} className="mb-4 text-xs">
-                            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                            Back
                         </Button>
                         <h2 className="font-bold text-lg leading-tight truncate px-1">{courseName}</h2>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider px-1">Course Editor</p>
@@ -288,10 +284,10 @@ export const TrainerCourseEditor = () => {
 
                     <div className="p-4 border-t space-y-2 bg-accent/5">
                         <Button className="w-full justify-start text-xs h-9" variant="outline" onClick={saveCourseContent} disabled={isSaving}>
-                            <Save className="w-3.5 h-3.5 mr-2" /> {isSaving ? "Saving..." : "Save Draft"}
+                            {isSaving ? "Saving..." : "Save Draft"}
                         </Button>
                         <Button className="w-full justify-start text-xs h-9" variant="secondary" onClick={() => navigate(`/training/${courseId}`)}>
-                            <Eye className="w-3.5 h-3.5 mr-2" /> Preview Page
+                            Preview Page
                         </Button>
                     </div>
                 </aside>
@@ -304,7 +300,7 @@ export const TrainerCourseEditor = () => {
                             <p className="text-[11px] text-muted-foreground uppercase font-semibold">Organize and manage your content types.</p>
                         </div>
                         <Button onClick={submitForApproval} disabled={isSubmitting} variant="default" className="shadow-lg shadow-primary/20 font-bold">
-                            <CheckCircle className="w-4 h-4 mr-2" /> {isSubmitting ? "Submitting..." : "Submit for Approval"}
+                            {isSubmitting ? "Submitting..." : "Submit for Approval"}
                         </Button>
                     </header>
 
@@ -470,7 +466,7 @@ const CurriculumEditor = ({ modules, selectedModuleIndex, setSelectedModuleIndex
                                     <Label className="text-xs font-bold uppercase text-muted-foreground">Learning Description</Label>
                                     <Textarea rows={3} value={newLesson.description} onChange={(e) => setNewLesson({...newLesson, description: e.target.value})} placeholder="Short summary of the lesson..." />
                                 </div>
-                                <Button className="w-full h-11 font-bold text-base shadow-lg shadow-primary/20" onClick={addLesson}><Plus className="w-5 h-5 mr-2" /> Add Lesson to Module</Button>
+                                <Button className="w-full h-11 font-bold text-base shadow-lg shadow-primary/20" onClick={addLesson}>Add Lesson to Module</Button>
                             </TabsContent>
                         </Tabs>
                     )}
@@ -498,7 +494,7 @@ const QuizEditor = ({ quizzes, setQuizzes }: any) => {
                 </div>
                 <div className="flex gap-2">
                     <Input placeholder="Quiz Name" value={newQuizTitle} onChange={(e) => setNewQuizTitle(e.target.value)} className="w-64 bg-white" />
-                    <Button onClick={addQuiz} className="font-bold shadow-lg shadow-primary/10"><Plus className="w-4 h-4 mr-2" /> New Quiz</Button>
+                    <Button onClick={addQuiz} className="font-bold shadow-lg shadow-primary/10">New Quiz</Button>
                 </div>
             </CardHeader>
             <CardContent className="bg-white/40 backdrop-blur-sm rounded-b-3xl mt-4 px-0">
@@ -536,7 +532,7 @@ const QuizEditor = ({ quizzes, setQuizzes }: any) => {
                                             });
                                             setQuizzes(updated);
                                         }}>
-                                            <Plus className="w-4 h-4 mr-2" /> Design New Question
+                                            Design New Question
                                         </Button>
                                     </div>
                                 </CardContent>
@@ -585,7 +581,7 @@ const ResourceEditor = ({ resources, setResources }: any) => {
                         <Label className="text-xs font-black uppercase text-muted-foreground">Access URL / Path</Label>
                         <Input placeholder="https://drive..." className="bg-white h-11 font-medium" value={newResource.url} onChange={(e) => setNewResource({...newResource, url: e.target.value})} />
                     </div>
-                    <Button className="w-full h-11 font-bold shadow-lg shadow-primary/10" onClick={addResource}><Plus className="w-5 h-5 mr-1" /> ADD ITEM</Button>
+                    <Button className="w-full h-11 font-bold shadow-lg shadow-primary/10" onClick={addResource}>ADD ITEM</Button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-10">

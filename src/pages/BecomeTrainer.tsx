@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { UserPlus, GraduationCap, Users, Award, Send, Upload, LogIn, CheckCircle, Link2, Plus, Trash2 } from "lucide-react";
+import { UserPlus, GraduationCap, Users, Award, Upload, LogIn, CheckCircle, Link2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -495,7 +495,6 @@ export const BecomeTrainer = () => {
                                                         }));
                                                     }}
                                                 >
-                                                    <Plus className="w-4 h-4 mr-1" />
                                                     Add Another Credential
                                                 </Button>
                                             </div>
@@ -576,10 +575,7 @@ export const BecomeTrainer = () => {
                                             {isSubmitting ? (
                                                 "Submitting..."
                                             ) : (
-                                                <>
-                                                    <Send className="w-4 h-4 mr-2" />
-                                                    Submit Application
-                                                </>
+                                                <>Submit Application</>
                                             )}
                                         </Button>
                                     </form>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2, Video, FileText, ExternalLink, Pencil, Star, Users, Search } from "lucide-react";
+import { UserCheck, Calendar, Key, BookOpen, Trash2, ExternalLink, Star, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -650,7 +650,6 @@ export const AdminTrainersNew = () => {
                                                             size="sm"
                                                             onClick={() => viewDetails(application)}
                                                         >
-                                                            <Eye className="w-4 h-4 mr-1" />
                                                             View
                                                         </Button>
                                                         {/* Approve Button */}
@@ -662,7 +661,6 @@ export const AdminTrainersNew = () => {
                                                                 onClick={() => handleApproveTrainer(application)}
                                                                 disabled={isProcessing}
                                                             >
-                                                                <CheckCircle className="w-4 h-4 mr-1" />
                                                                 Approve
                                                             </Button>
                                                         )}
@@ -675,7 +673,6 @@ export const AdminTrainersNew = () => {
                                                                 onClick={() => handleRejectApplication(application)}
                                                                 disabled={isProcessing}
                                                             >
-                                                                <XCircle className="w-4 h-4 mr-1" />
                                                                 Reject
                                                             </Button>
                                                         )}
@@ -769,7 +766,6 @@ export const AdminTrainersNew = () => {
                                                             size="sm"
                                                             onClick={() => openMeetDialog(trainer.email, trainer.fullName)}
                                                         >
-                                                            <Video className="w-4 h-4 mr-1" />
                                                             Grant Meet Access
                                                         </Button>
                                                         {/* No Reset Password Needed for Google Auth */}
@@ -832,7 +828,6 @@ export const AdminTrainersNew = () => {
                                                 </CardContent>
                                                 <div className="p-4 bg-muted/40 border-t border-border flex justify-end">
                                                     <Button size="sm" variant="outline" className="rounded-xl" onClick={() => startEditingProfile(trainer)}>
-                                                        <Pencil className="w-4 h-4 mr-2" />
                                                         Edit Profile
                                                     </Button>
                                                 </div>
@@ -1008,7 +1003,6 @@ export const AdminTrainersNew = () => {
                                 disabled={isAssigning || !selectedTrainer || !selectedTraining}
                                 className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
                             >
-                                <UserCog className="w-4 h-4 mr-2" />
                                 {isAssigning ? "Assigning..." : "Assign Trainer"}
                             </Button>
                         </CardContent>
@@ -1145,7 +1139,6 @@ export const AdminTrainersNew = () => {
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors text-primary"
                                         >
-                                            <FileText className="w-4 h-4" />
                                             View Uploaded Resume
                                             <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
                                         </a>
@@ -1166,7 +1159,6 @@ export const AdminTrainersNew = () => {
                                         onClick={() => handleApproveTrainer(selectedApplication)}
                                         disabled={isProcessing}
                                     >
-                                        <CheckCircle className="w-4 h-4 mr-2" />
                                         {isProcessing ? " Processing..." : "Approve & Grant Access"}
                                     </Button>
                                     <Button
@@ -1175,7 +1167,6 @@ export const AdminTrainersNew = () => {
                                         onClick={() => handleRejectApplication(selectedApplication)}
                                         disabled={isProcessing}
                                     >
-                                        <XCircle className="w-4 h-4 mr-2" />
                                         {isProcessing ? "Processing..." : "Reject Application"}
                                     </Button>
                                 </div>
@@ -1219,7 +1210,6 @@ export const AdminTrainersNew = () => {
                             disabled={isGrantingMeet || !meetTrainingId}
                             className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
                         >
-                            <Video className="w-4 h-4 mr-2" />
                             {isGrantingMeet ? "Saving..." : "Set Meeting Link"}
                         </Button>
                         <p className="text-xs text-muted-foreground text-center">

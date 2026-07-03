@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, CheckCircle2, Ticket, Users, Calendar as CalendarIcon, Plus, MapPin, Upload, Save, Clock, Handshake, Trash2, Image as ImageIcon, Link as LinkIcon, Search } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Ticket, Users, Calendar as CalendarIcon, MapPin, Upload, Save, Clock, Handshake, Trash2, Image as ImageIcon, Link as LinkIcon, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -449,7 +449,7 @@ export default function CreateEvent() {
                             className="gap-2 mb-8"
                             onClick={() => navigate('/admin/events')}
                         >
-                            <ArrowLeft className="w-4 h-4" /> Back to Admin Dashboard
+                            Back to Admin Dashboard
                         </Button>
 
                         <div className="text-center mb-12">
@@ -584,7 +584,7 @@ export default function CreateEvent() {
                                             variant="outline"
                                             className="gap-2 border border-primary bg-transparent text-primary rounded-xl hover:bg-brand-50 hover:text-primary min-h-[44px]"
                                         >
-                                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+                                            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                                             <span className="hidden sm:inline">Publish as Upcoming</span><span className="sm:hidden">Upcoming</span>
                                         </Button>
                                     )}
@@ -593,7 +593,7 @@ export default function CreateEvent() {
                                         disabled={isSubmitting}
                                         className="bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 hover:text-primary-foreground min-h-[44px] font-semibold focus-visible:ring-2 focus-visible:ring-ring gap-2"
                                     >
-                                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                        {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                                         {isEditMode ? 'Save' : 'Publish Event'}
                                     </Button>
                                 </div>
@@ -962,7 +962,7 @@ export default function CreateEvent() {
                                                     <div className="flex justify-between items-start">
                                                         <h3 className="font-semibold text-base">Ticket Tier #{index + 1}</h3>
                                                         <Button variant="ghost" size="sm" onClick={() => handleRemoveTicket(index)} className="text-destructive hover:bg-destructive/10">
-                                                            <Trash2 className="w-4 h-4 mr-2" /> Remove
+                                                            Remove
                                                         </Button>
                                                     </div>
 
@@ -1019,7 +1019,7 @@ export default function CreateEvent() {
                                                 </div>
                                             ))}
 
-                                            <Button onClick={handleAddTicket} variant="outline" className="w-full border-dashed"><Plus className="w-4 h-4 mr-2" /> Add Ticket Tier</Button>
+                                            <Button onClick={handleAddTicket} variant="outline" className="w-full border-dashed">Add Ticket Tier</Button>
                                         </div>
 
                                         <div className="mt-8 pt-6 border-t md:w-1/2">
@@ -1130,7 +1130,7 @@ export default function CreateEvent() {
                                         {/* Add Speaker Dialog */}
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <Button variant="outline" className="w-full border-dashed py-8"><Plus className="w-4 h-4 mr-2" /> Add Speaker Manually</Button>
+                                                <Button variant="outline" className="w-full border-dashed py-8">Add Speaker Manually</Button>
                                             </DialogTrigger>
                                             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                                                 <DialogHeader>
@@ -1314,7 +1314,7 @@ export default function CreateEvent() {
                                                         <div className="flex justify-between items-start">
                                                             <h3 className="font-semibold text-base">Sponsor #{index + 1}</h3>
                                                             <Button variant="ghost" size="sm" onClick={() => handleRemoveSponsor(index)} className="text-destructive hover:bg-destructive/10">
-                                                                <Trash2 className="w-4 h-4 mr-2" /> Remove
+                                                                Remove
                                                             </Button>
                                                         </div>
 
@@ -1362,7 +1362,7 @@ export default function CreateEvent() {
                                                                     <div className="flex items-center gap-2">
                                                                         <div className="relative overflow-hidden shrink-0">
                                                                             <Button variant="outline" type="button" className="gap-2 pointer-events-none">
-                                                                                <Upload className="w-4 h-4" /> Upload Logo
+                                                                                Upload Logo
                                                                             </Button>
                                                                             <input
                                                                                 type="file"
@@ -1385,7 +1385,7 @@ export default function CreateEvent() {
                                                     </div>
                                                 ))}
 
-                                                <Button onClick={handleAddSponsor} variant="outline" className="w-full border-dashed"><Plus className="w-4 h-4 mr-2" /> Add Sponsor</Button>
+                                                <Button onClick={handleAddSponsor} variant="outline" className="w-full border-dashed">Add Sponsor</Button>
                                             </div>
                                         )}
                                     </div>
@@ -1461,7 +1461,7 @@ export default function CreateEvent() {
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <Button className="gap-2">
-                                                        <Plus className="w-4 h-4" /> Create Album
+                                                        Create Album
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-2xl">

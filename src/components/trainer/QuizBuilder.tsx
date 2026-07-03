@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Upload, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { QuizQuestion } from '@/types/quiz';
 import { QuestionList } from './QuestionList';
@@ -109,7 +109,6 @@ export const QuizBuilder = ({ trainingId, onSave }: QuizBuilderProps) => {
                         variant="default"
                         type="button"
                     >
-                        <Plus className="w-4 h-4 mr-2" />
                         Add Question
                     </Button>
                     <Button
@@ -118,7 +117,6 @@ export const QuizBuilder = ({ trainingId, onSave }: QuizBuilderProps) => {
                         variant="outline"
                         type="button"
                     >
-                        <Upload className="w-4 h-4 mr-2" />
                         Import CSV
                     </Button>
                 </div>

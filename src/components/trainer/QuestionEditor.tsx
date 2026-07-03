@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -139,7 +139,6 @@ export const QuestionEditor = ({ question, onUpdate }: QuestionEditorProps) => {
                             size="sm"
                             onClick={handleAddOption}
                         >
-                            <Plus className="w-4 h-4 mr-1" />
                             Add Option
                         </Button>
                     )}

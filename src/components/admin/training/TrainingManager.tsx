@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray, Control } from "react-hook-form";
-import { Loader2, FolderPlus, User, Clock, BookOpen, Layers, CheckCircle, ChevronRight, ChevronLeft, Trash2, Plus, FileText, Video, ClipboardList, Save, Upload, Download, MapPin, Users, Ticket, CreditCard, Wand2 } from "lucide-react";
+import { Loader2, FolderPlus, User, Clock, BookOpen, Layers, CheckCircle, ChevronRight, Trash2, Plus, FileText, Video, ClipboardList, Save, Upload, MapPin, Users, Ticket, CreditCard } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QuizBuilder } from "@/components/trainer/QuizBuilder";
 import { QuizQuestion } from "@/types/quiz";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -825,7 +824,6 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                             !watch("startDate") && "text-muted-foreground"
                                                         )}
                                                     >
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />
                                                         {watch("startDate") ? format(watch("startDate")!, "PPP") : <span>Pick a date</span>}
                                                     </Button>
                                                 </PopoverTrigger>
@@ -929,7 +927,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             <div className="flex gap-2">
                                                 <Input {...register("couponCode")} placeholder="CERT-AZURE-YATRI-001" className="h-11 rounded-xl border border-input bg-background font-mono uppercase focus:ring-2 focus:ring-ring focus:border-primary" />
                                                 <Button type="button" variant="secondary" onClick={generateCoupon} className="min-h-[44px] rounded-xl">
-                                                    <Wand2 className="w-4 h-4 mr-2" /> Auto-Generate
+                                                    Auto-Generate
                                                 </Button>
                                             </div>
                                             <p className="text-xs text-muted-foreground mt-2">
@@ -955,7 +953,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
                                 <div className="flex gap-2">
                                     <Button type="button" variant="outline" size="sm" onClick={downloadTemplate} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
-                                        <Download className="w-4 h-4 mr-2" /> Template
+                                        Template
                                     </Button>
                                     <div className="relative">
                                         <Button type="button" variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="min-h-[44px] rounded-xl">
@@ -1003,7 +1001,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                             <div className="flex justify-between pt-2">
                                 <Button type="button" variant="outline" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
-                                    <ChevronLeft className="mr-2 w-4 h-4" /> Back
+                                    Back
                                 </Button>
                                 <Button type="button" onClick={() => setActiveTab("Resources")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                     Next <ChevronRight className="ml-2 w-4 h-4" />
@@ -1150,7 +1148,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                             <div className="flex justify-between pt-2">
                                 <Button type="button" variant="outline" onClick={() => setActiveTab("Quiz")} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
-                                    <ChevronLeft className="mr-2 w-4 h-4" /> Back
+                                    Back
                                 </Button>
                                 <Button type="button" onClick={() => setActiveTab("Review")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                     Next <ChevronRight className="ml-2 w-4 h-4" />

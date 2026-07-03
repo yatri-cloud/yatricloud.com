@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Save, X, User, Mail, Linkedin, Globe, Upload, Lock, Loader2, AlertTriangle } from "lucide-react";
+import { Save, User, Mail, Linkedin, Globe, Upload, Loader2, AlertTriangle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -642,7 +642,6 @@ const EditProfile = () => {
                     variant="outline"
                     className="flex-1"
                   >
-                    <X className="w-4 h-4 mr-2" />
                     Cancel
                   </Button>
                 </div>
@@ -703,10 +702,7 @@ const EditProfile = () => {
                       Changing...
                     </>
                   ) : (
-                    <>
-                      <Lock className="w-4 h-4 mr-2" />
-                      Change Password
-                    </>
+                    <>Change Password</>
                   )}
                 </Button>
               </CardContent>

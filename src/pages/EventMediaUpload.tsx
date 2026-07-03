@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload, X, CheckCircle2, AlertCircle, Loader2, Image as ImageIcon, Video } from "lucide-react";
+import { Upload, X, CheckCircle2, AlertCircle, Loader2, Image as ImageIcon, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getEventBySlug } from "@/lib/events-store";
 import { uploadEventMedia } from "@/lib/event-automation-api";
@@ -221,7 +221,7 @@ export default function EventMediaUpload() {
                     className="gap-2 mb-6"
                     onClick={() => navigate(`/events/${slug}`)}
                 >
-                    <ArrowLeft className="w-4 h-4" /> Back to Event
+                    Back to Event
                 </Button>
 
                 <div className="mb-8">
@@ -348,10 +348,7 @@ export default function EventMediaUpload() {
                                 Uploading {successCount}/{files.length}...
                             </>
                         ) : (
-                            <>
-                                <Upload className="w-5 h-5 mr-2" />
-                                Upload {pendingCount} File{pendingCount !== 1 ? 's' : ''}
-                            </>
+                            <>Upload {pendingCount} File{pendingCount !== 1 ? 's' : ''}</>
                         )}
                     </Button>
                 )}

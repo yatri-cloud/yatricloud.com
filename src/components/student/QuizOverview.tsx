@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Clock, FileText, CheckCircle, History, AlertCircle } from 'lucide-react';
+import { Clock, FileText, CheckCircle, History, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -140,7 +140,6 @@ export const QuizOverview = ({
                                     size="lg"
                                     className="w-full md:w-auto"
                                 >
-                                    <Play className="w-5 h-5 mr-2" />
                                     {hasIncompleteAttempt ? 'Resume Test' : 'Begin Test'}
                                 </Button>
                             </div>

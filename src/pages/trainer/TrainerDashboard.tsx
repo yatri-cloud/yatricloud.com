@@ -7,7 +7,6 @@ import {
     Edit,
     Trash2,
     ExternalLink,
-    Plus,
     Loader2,
     CheckCircle2,
     Clock,
@@ -16,8 +15,6 @@ import {
     Video,
     MapPin,
     Calendar,
-    LogOut,
-    User,
     LayoutDashboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -222,13 +219,13 @@ export const TrainerDashboard = () => {
                     <div className="flex gap-3">
                         <Link to="/trainer/course/create">
                             <Button className="gap-2 shadow-sm font-semibold">
-                                <Plus className="w-4 h-4" /> Create New Course
+                                Create New Course
                             </Button>
                         </Link>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" className="gap-2">
-                                    <User className="w-4 h-4" /> Profile Details
+                                    Profile Details
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-64 p-4">
@@ -248,7 +245,7 @@ export const TrainerDashboard = () => {
                                         <p className="font-mono text-xs p-1 bg-muted rounded inline-block mt-1">{trainerData.trainerId}</p>
                                     </div>
                                     <Button variant="destructive" className="w-full mt-2" onClick={handleLogout}>
-                                        <LogOut className="w-4 h-4 mr-2" /> Logout
+                                        Logout
                                     </Button>
                                 </div>
                             </DropdownMenuContent>
@@ -314,7 +311,7 @@ export const TrainerDashboard = () => {
                                     onClick={() => setStatusFilter("Published")}
                                     className="gap-2"
                                 >
-                                    <CheckCircle2 className="w-3 h-3" /> Live
+                                    Live
                                 </Button>
                                 <Button
                                     variant={statusFilter === "Review" ? "default" : "outline"}
@@ -322,7 +319,7 @@ export const TrainerDashboard = () => {
                                     onClick={() => setStatusFilter("Review")}
                                     className="gap-2"
                                 >
-                                    <Clock className="w-3 h-3" /> Review
+                                    Review
                                 </Button>
                                 <Button
                                     variant={statusFilter === "Draft" ? "default" : "outline"}
@@ -330,7 +327,7 @@ export const TrainerDashboard = () => {
                                     onClick={() => setStatusFilter("Draft")}
                                     className="gap-2"
                                 >
-                                    <AlertCircle className="w-3 h-3" /> Drafts
+                                    Drafts
                                 </Button>
                             </div>
                         </div>
@@ -525,7 +522,6 @@ export const TrainerDashboard = () => {
                                                                 !scheduleDate && "text-muted-foreground"
                                                             )}
                                                         >
-                                                            <Calendar className="mr-2 h-4 w-4" />
                                                             {scheduleDate ? format(scheduleDate, "PPP") : <span>Date</span>}
                                                         </Button>
                                                     </PopoverTrigger>
@@ -553,7 +549,7 @@ export const TrainerDashboard = () => {
                                                 </Select>
                                             </div>
                                             <Button size="sm" onClick={handleUpdateSchedule} disabled={isUpdating} className="w-full">
-                                                {isUpdating ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Video className="w-3 h-3 mr-2" />}
+                                                {isUpdating && <Loader2 className="w-3 h-3 animate-spin mr-2" />}
                                                 Save Schedule & Generate Link
                                             </Button>
                                         </div>

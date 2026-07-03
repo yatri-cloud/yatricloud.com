@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Building2, Send } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,7 +98,6 @@ export default function VenueSubmissionForm() {
             <div className="border-b bg-card">
                 <div className="container mx-auto px-4 py-4">
                     <Button variant="ghost" className="gap-2" onClick={() => navigate(`/upcoming-event/${slug}`)}>
-                        <ArrowLeft className="w-4 h-4" />
                         Back to Event
                     </Button>
                 </div>
@@ -232,10 +231,7 @@ export default function VenueSubmissionForm() {
                             {isSubmitting ? (
                                 <>Submitting...</>
                             ) : (
-                                <>
-                                    <Send className="w-4 h-4 mr-2" />
-                                    Submit Venue Proposal
-                                </>
+                                <>Submit Venue Proposal</>
                             )}
                         </Button>
                     </form>

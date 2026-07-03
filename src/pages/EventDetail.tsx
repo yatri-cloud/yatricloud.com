@@ -10,15 +10,12 @@ import {
     ExternalLink,
     Users,
     Tag,
-    Share2,
     Linkedin,
     Check,
     ArrowRight,
     Inbox,
     CalendarX,
-    ImageOff,
-    CalendarPlus,
-    Download
+    ImageOff
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -457,7 +454,6 @@ const EventDetail = () => {
                                                 rel="noopener noreferrer"
                                                 className="flex items-center justify-center gap-2 min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-4 py-3 rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                             >
-                                                <CalendarPlus className="w-4 h-4 text-primary" />
                                                 Add to Google Calendar
                                             </a>
                                             <a
@@ -465,7 +461,6 @@ const EventDetail = () => {
                                                 download={`${event.name}.ics`}
                                                 className="flex items-center justify-center gap-2 min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-4 py-3 rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                             >
-                                                <Download className="w-4 h-4 text-primary" />
                                                 Download .ics
                                             </a>
                                         </div>
@@ -684,7 +679,6 @@ const EventDetail = () => {
                                                 rel="noopener noreferrer"
                                                 className="inline-flex items-center gap-3 min-h-[44px] bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:bg-brand-600 transition-colors shadow-inset-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                             >
-                                                <ExternalLink className="w-5 h-5" />
                                                 Join the Yatris on Discord
                                             </a>
                                         )}
@@ -781,7 +775,6 @@ const EventDetail = () => {
                                     }}
                                     className="flex items-center justify-center gap-2 w-full min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-6 py-3 rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                 >
-                                    <Share2 className="w-4 h-4" />
                                     Share with a friend
                                 </button>
                             </ScrollReveal>

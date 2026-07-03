@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import {
-    BookOpen, Video, CheckCircle, Award, FileText, BarChart3,
+    BookOpen, Video, CheckCircle, FileText, BarChart3,
     Clock, Calendar, MapPin, User, ChevronRight, PlayCircle,
-    Lock, Download, ExternalLink, Loader2, ArrowLeft, Home, Star, Trash2
+    Lock, ExternalLink, Loader2, Home, Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -208,7 +208,7 @@ export default function StudentTrainingDashboard() {
                             className="gap-2 mb-4 pl-0 hover:pl-2 transition-all"
                             onClick={() => navigate('/my-trainings')}
                         >
-                            <ArrowLeft className="w-4 h-4" /> Back to My Trainings
+                            Back to My Trainings
                         </Button>
                         <div className="flex items-start gap-4">
                             {training.thumbnailUrl && (
@@ -612,7 +612,7 @@ function ReviewCard({ trainingId }: { trainingId: string }) {
                             onClick={handleRemove}
                             disabled={removing}
                         >
-                            {removing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                            {removing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Remove
                         </Button>
                     </div>
@@ -768,14 +768,12 @@ function ModulesTab({
                     <div className="flex flex-wrap gap-3">
                         {firstIncomplete && (
                             <Button onClick={handleResume} className="min-h-[44px] gap-2">
-                                <PlayCircle className="w-4 h-4" />
                                 Resume
                             </Button>
                         )}
                         {certSerial ? (
                             <Button asChild variant="outline" className="min-h-[44px] gap-2">
                                 <Link to={`/certificate/${certSerial}`}>
-                                    <Award className="w-4 h-4" />
                                     View certificate
                                 </Link>
                             </Button>
@@ -785,7 +783,7 @@ function ModulesTab({
                                 disabled={isIssuing}
                                 className="min-h-[44px] gap-2"
                             >
-                                {isIssuing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
+                                {isIssuing && <Loader2 className="w-4 h-4 animate-spin" />}
                                 Get your certificate
                             </Button>
                         ) : null}
@@ -863,7 +861,6 @@ function ModulesTab({
                                                             {lesson.contentUrl && (
                                                                 <Button asChild size="sm" variant="outline" className="min-h-[44px]">
                                                                     <a href={lesson.contentUrl} target="_blank" rel="noopener noreferrer">
-                                                                        <ExternalLink className="w-4 h-4 mr-1.5" />
                                                                         Open
                                                                     </a>
                                                                 </Button>
@@ -1025,7 +1022,6 @@ function JoinClassTab({ training }: { training: TrainingDetails }) {
                                 asChild
                             >
                                 <a href={training.meetLink} target="_blank" rel="noopener noreferrer">
-                                    <Video className="w-5 h-5" />
                                     Join Training
                                 </a>
                             </Button>
@@ -1034,13 +1030,11 @@ function JoinClassTab({ training }: { training: TrainingDetails }) {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <Button asChild variant="outline" className="min-h-[44px] gap-2">
                                         <a href={sessionGCalUrl} target="_blank" rel="noopener noreferrer">
-                                            <Calendar className="w-4 h-4" />
                                             Add to Google Calendar
                                         </a>
                                     </Button>
                                     <Button asChild variant="outline" className="min-h-[44px] gap-2">
                                         <a href={sessionIcsUri} download={`${training.courseName}.ics`}>
-                                            <Download className="w-4 h-4" />
                                             Download .ics
                                         </a>
                                     </Button>
@@ -1141,7 +1135,6 @@ function ResourcesTab({ training, resources }: { training: TrainingDetails; reso
                                                 )}
                                                 <Button asChild size="sm" variant="outline">
                                                     <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                                                        <ExternalLink className="w-4 h-4 mr-2" />
                                                         View
                                                     </a>
                                                 </Button>

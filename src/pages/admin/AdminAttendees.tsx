@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Loader2, CheckCircle2, AlertCircle, User, Mail, Phone, MapPin, Linkedin } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, User, Mail, Phone, MapPin, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -165,10 +165,7 @@ export default function AdminAttendees() {
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
-                                <>
-                                    <Search className="w-5 h-5 mr-2" />
-                                    Verify
-                                </>
+                                <>Verify</>
                             )}
                         </Button>
                     </div>
@@ -266,10 +263,7 @@ export default function AdminAttendees() {
                                         Confirming...
                                     </>
                                 ) : (
-                                    <>
-                                        <CheckCircle2 className="w-5 h-5 mr-2" />
-                                        Confirm Attendance
-                                    </>
+                                    <>Confirm Attendance</>
                                 )}
                             </Button>
                         ) : (

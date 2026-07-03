@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Handshake, Send } from "lucide-react";
+import { Handshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,7 +114,6 @@ export default function SponsorSubmissionForm() {
             <div className="border-b bg-card">
                 <div className="container mx-auto px-4 py-4">
                     <Button variant="ghost" className="gap-2" onClick={() => navigate(`/upcoming-event/${slug}`)}>
-                        <ArrowLeft className="w-4 h-4" />
                         Back to Event
                     </Button>
                 </div>
@@ -239,10 +238,7 @@ export default function SponsorSubmissionForm() {
                             {isSubmitting ? (
                                 <>Submitting...</>
                             ) : (
-                                <>
-                                    <Send className="w-4 h-4 mr-2" />
-                                    Submit Sponsorship Proposal
-                                </>
+                                <>Submit Sponsorship Proposal</>
                             )}
                         </Button>
                     </form>

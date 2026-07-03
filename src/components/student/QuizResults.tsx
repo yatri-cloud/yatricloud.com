@@ -4,7 +4,6 @@ import {
     XCircle,
     Clock,
     BarChart3,
-    RotateCcw,
     ChevronDown,
     ChevronUp,
 } from 'lucide-react';
@@ -196,7 +195,6 @@ export const QuizResults = ({
                 className="flex flex-wrap gap-4 justify-center"
             >
                 <Button onClick={onRetakeQuiz} size="lg">
-                    <RotateCcw className="w-5 h-5 mr-2" />
                     Retake Quiz
                 </Button>
                 <Button onClick={onBackToOverview} variant="outline" size="lg">

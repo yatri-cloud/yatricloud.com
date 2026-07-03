@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, XCircle, Clock, Building2, Mic, Handshake, Eye, Mail, Phone, Pencil, Search } from "lucide-react";
+import { Clock, Building2, Mic, Handshake, Eye, Mail, Phone, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -287,16 +287,13 @@ export default function AdminSubmissions() {
                                             <div className="flex flex-col gap-2 pt-1">
                                                 <div className="flex flex-col sm:flex-row gap-2">
                                                     <Button onClick={() => handleApprove('venue', venue.id)} className="flex-1 min-h-[44px] rounded-xl bg-success hover:bg-success/90">
-                                                        <CheckCircle className="w-4 h-4 mr-2" />
                                                         Approve Only
                                                     </Button>
                                                     <Button onClick={() => handleApproveAndEdit('venue', venue)} className="flex-1 min-h-[44px] rounded-xl" variant="default">
-                                                        <Pencil className="w-4 h-4 mr-2" />
                                                         Approve & Fill Form
                                                     </Button>
                                                 </div>
                                                 <Button onClick={() => handleReject('venue', venue.id)} variant="destructive" className="w-full min-h-[44px] rounded-xl">
-                                                    <XCircle className="w-4 h-4 mr-2" />
                                                     Reject
                                                 </Button>
                                             </div>
@@ -365,16 +362,13 @@ export default function AdminSubmissions() {
                                             <div className="flex flex-col gap-2 pt-1">
                                                 <div className="flex flex-col sm:flex-row gap-2">
                                                     <Button onClick={() => handleApprove('speaker', speaker.id)} className="flex-1 min-h-[44px] rounded-xl bg-success hover:bg-success/90">
-                                                        <CheckCircle className="w-4 h-4 mr-2" />
                                                         Approve Only
                                                     </Button>
                                                     <Button onClick={() => handleApproveAndEdit('speaker', speaker)} className="flex-1 min-h-[44px] rounded-xl" variant="default">
-                                                        <Pencil className="w-4 h-4 mr-2" />
                                                         Approve & Add Speaker
                                                     </Button>
                                                 </div>
                                                 <Button onClick={() => handleReject('speaker', speaker.id)} variant="destructive" className="w-full min-h-[44px] rounded-xl">
-                                                    <XCircle className="w-4 h-4 mr-2" />
                                                     Reject
                                                 </Button>
                                             </div>
@@ -453,16 +447,13 @@ export default function AdminSubmissions() {
                                             <div className="flex flex-col gap-2 pt-1">
                                                 <div className="flex flex-col sm:flex-row gap-2">
                                                     <Button onClick={() => handleApprove('sponsor', sponsor.id)} className="flex-1 min-h-[44px] rounded-xl bg-success hover:bg-success/90">
-                                                        <CheckCircle className="w-4 h-4 mr-2" />
                                                         Approve Only
                                                     </Button>
                                                     <Button onClick={() => handleApproveAndEdit('sponsor', sponsor)} className="flex-1 min-h-[44px] rounded-xl" variant="default">
-                                                        <Pencil className="w-4 h-4 mr-2" />
                                                         Approve & Add Sponsor
                                                     </Button>
                                                 </div>
                                                 <Button onClick={() => handleReject('sponsor', sponsor.id)} variant="destructive" className="w-full min-h-[44px] rounded-xl">
-                                                    <XCircle className="w-4 h-4 mr-2" />
                                                     Reject
                                                 </Button>
                                             </div>

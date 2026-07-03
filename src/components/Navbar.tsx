@@ -141,7 +141,6 @@ export const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="gap-2">
-                      <User className="w-4 h-4" />
                       {user.fullName || user.email}
                     </Button>
                   </DropdownMenuTrigger>
@@ -291,7 +290,6 @@ export const Navbar = () => {
                       }}
                       className="w-full"
                     >
-                      <User className="w-4 h-4 mr-2" />
                       Profile
                     </Button>
                     <Button
@@ -302,7 +300,6 @@ export const Navbar = () => {
                       }}
                       className="w-full"
                     >
-                      <List className="w-4 h-4 mr-2" />
                       User Sitemap
                     </Button>
                     <Button
@@ -315,7 +312,6 @@ export const Navbar = () => {
                       }}
                       className="w-full"
                     >
-                      <LogOut className="w-4 h-4 mr-2" />
                       Logout
                     </Button>
                   </div>

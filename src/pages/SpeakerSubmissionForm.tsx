@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Mic, Send } from "lucide-react";
+import { Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,7 +98,6 @@ export default function SpeakerSubmissionForm() {
             <div className="border-b bg-card">
                 <div className="container mx-auto px-4 py-4">
                     <Button variant="ghost" className="gap-2" onClick={() => navigate(`/upcoming-event/${slug}`)}>
-                        <ArrowLeft className="w-4 h-4" />
                         Back to Event
                     </Button>
                 </div>
@@ -229,10 +228,7 @@ export default function SpeakerSubmissionForm() {
                             {isSubmitting ? (
                                 <>Submitting...</>
                             ) : (
-                                <>
-                                    <Send className="w-4 h-4 mr-2" />
-                                    Submit Speaker Application
-                                </>
+                                <>Submit Speaker Application</>
                             )}
                         </Button>
                     </form>
