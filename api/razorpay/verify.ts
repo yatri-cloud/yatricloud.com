@@ -60,28 +60,54 @@ function buildInvoiceEmail(input: {
   return `
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Payment receipt</title></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Payment receipt from Yatri Cloud</title></head>
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
   <div style="max-width:600px;margin:0 auto;color:#1f2937;line-height:1.6;">
-    <div style="background-color:#1e3a8a;padding:30px;text-align:center;border-radius:0 0 20px 20px;">
-      <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:bold;">Yatri Cloud</h1>
+    <div style="background-color:#0a1f44;padding:28px 32px;border-radius:0 0 16px 16px;">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td style="color:#ffffff;font-size:20px;font-weight:700;">Yatri Cloud</td>
+        <td align="right" style="color:#c7d2fe;font-size:13px;">Payment receipt</td>
+      </tr></table>
     </div>
-    <div style="background-color:#ffffff;padding:40px;margin:20px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-      <h2 style="color:#1e3a8a;margin-top:0;">Payment receipt</h2>
-      <p>Hello ${input.buyerName},</p>
-      <p>Thank you for your payment. This email is your receipt.</p>
-      <div style="background-color:#eff6ff;border-left:4px solid #3b82f6;padding:15px;margin:25px 0;border-radius:4px;">
-        <p style="margin:5px 0;"><strong>Invoice number:</strong> ${input.invoiceNumber}</p>
-        <p style="margin:5px 0;"><strong>Date:</strong> ${input.dateLabel}</p>
-        <p style="margin:5px 0;"><strong>Billed to:</strong> ${input.buyerEmail}</p>
-        <p style="margin:5px 0;"><strong>Item:</strong> ${input.item}</p>
-        <p style="margin:5px 0;"><strong>Amount paid:</strong> ${input.amountLabel}</p>
-      </div>
-      <p style="font-size:13px;color:#6b7280;">Seller: Yatri Cloud. This is a payment receipt for your records.</p>
-      <p>Best regards,<br>Team Yatri Cloud</p>
+
+    <div style="background-color:#ffffff;padding:36px 32px;margin:20px;border-radius:14px;box-shadow:0 4px 10px rgba(0,0,0,0.06);">
+      <p style="margin:0 0 6px;">Hello ${input.buyerName},</p>
+      <p style="margin:0 0 24px;color:#4b5563;">Thank you for your payment. Here is your receipt for your records.</p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+        <tr>
+          <td style="color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;padding-bottom:2px;">Receipt number</td>
+          <td align="right" style="color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;padding-bottom:2px;">Date</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;font-size:15px;">${input.invoiceNumber}</td>
+          <td align="right" style="font-weight:600;font-size:15px;">${input.dateLabel}</td>
+        </tr>
+      </table>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e5e7eb;">
+        <tr>
+          <td style="padding:14px 0;color:#4b5563;">${input.item}</td>
+          <td align="right" style="padding:14px 0;font-weight:600;">${input.amountLabel}</td>
+        </tr>
+      </table>
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #0a1f44;">
+        <tr>
+          <td style="padding:14px 0;font-weight:700;font-size:16px;">Total paid</td>
+          <td align="right" style="padding:14px 0;font-weight:700;font-size:16px;color:#0a1f44;">${input.amountLabel}</td>
+        </tr>
+      </table>
+
+      <p style="margin:22px 0 4px;color:#6b7280;font-size:13px;">Billed to</p>
+      <p style="margin:0;font-size:14px;">${input.buyerName} · ${input.buyerEmail}</p>
+
+      <p style="margin:28px 0 0;color:#4b5563;">If you have any question about this receipt, reply to this email or write to us at info@yatricloud.com.</p>
+      <p style="margin:16px 0 0;">Warm regards,<br><strong>Team Yatri Cloud</strong></p>
     </div>
-    <div style="text-align:center;padding:20px;color:#6b7280;font-size:12px;">
-      <p style="margin:5px 0;">&copy; ${new Date().getFullYear()} Yatri Cloud. All rights reserved.</p>
+
+    <div style="text-align:center;padding:8px 20px 28px;color:#9ca3af;font-size:12px;">
+      <p style="margin:4px 0;">Yatri Cloud · Bengaluru, India · info@yatricloud.com</p>
+      <p style="margin:4px 0;">&copy; ${new Date().getFullYear()} Yatri Cloud. All rights reserved.</p>
     </div>
   </div>
 </body>
