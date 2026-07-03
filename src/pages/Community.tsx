@@ -100,14 +100,13 @@ const Community = () => {
   const CHANNEL_URL =
     communityEntries.find((c) => c.grp === "channel")?.url || FALLBACK_CHANNEL_URL;
 
-  /* Stat card values come from Supabase site_stats (seeded identical).
-   * "24/7 Always active" stays hardcoded — no site_stats key fits it. */
+  /* Stat card values come from Supabase site_stats (seeded identical). */
   const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
   const STATS = [
     { value: statValue(siteStats, "communities", "17"), label: "Communities" },
     { value: statValue(siteStats, "learners", "50K+"), label: "Yatris" },
     { value: statValue(siteStats, "tracks", "6"), label: "Cloud tracks" },
-    { value: "24/7", label: "Always active" },
+    { value: statValue(siteStats, "always_active", "24/7"), label: "Always active" },
   ];
 
   useEffect(() => {
