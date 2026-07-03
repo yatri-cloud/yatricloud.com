@@ -986,3 +986,138 @@ export async function uploadResource(file: File): Promise<string> {
   if (error) throw error;
   return supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
 }
+
+// ---------------------------------------------------------------------------
+// Lesson progress + completion certificates (migration 021)
+// ---------------------------------------------------------------------------
+
+/**
+ * The lesson ids the current user has completed for a training.
+ * Returns an empty array when signed out or on any error (never throws).
+ */
+export async function getLessonProgress(trainingId: string): Promise<string[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from("lesson_progress")
+      .select("lesson_id")
+      .eq("user_id", user.id)
+      .eq("training_id", trainingId);
+    if (error || !data) return [];
+    return data.map((r: any) => r.lesson_id);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Mark a lesson complete for the current user. Idempotent: a duplicate
+ * (already-completed) lesson resolves quietly. Returns whether it stuck.
+ */
+export async function markLessonComplete(
+  trainingId: string,
+  lessonId: string,
+): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { error } = await supabase
+      .from("lesson_progress")
+      .upsert(
+        { user_id: user.id, training_id: trainingId, lesson_id: lessonId },
+        { onConflict: "user_id,lesson_id", ignoreDuplicates: true },
+      );
+    // A unique-violation just means it was already there — treat as success.
+    if (error && (error as any).code !== "23505") return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Remove the current user's completion of a lesson. Never throws. */
+export async function unmarkLesson(lessonId: string): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { error } = await supabase
+      .from("lesson_progress")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("lesson_id", lessonId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Ask the server to issue a completion certificate (it re-verifies enrollment
+ * and that every lesson is done). Returns the serial on success.
+ */
+export async function issueCertificate(
+  trainingId: string,
+): Promise<{ ok: boolean; serial?: string; message?: string }> {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) {
+      return { ok: false, message: "Please sign in again to get your certificate." };
+    }
+    const res = await fetch("/api/training/issue-certificate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ training_id: trainingId, access_token: accessToken }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok || !data.serial) {
+      return {
+        ok: false,
+        message: data.message || "We could not issue your certificate just now. Please try again.",
+      };
+    }
+    return { ok: true, serial: data.serial };
+  } catch {
+    return { ok: false, message: "We could not issue your certificate just now. Please try again." };
+  }
+}
+
+/** The current user's certificates, newest first. Empty on signed-out/error. */
+export async function getMyCertificates(): Promise<any[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from("certificates")
+      .select("serial, kind, recipient_name, title, issued_at, training_id")
+      .eq("user_id", user.id)
+      .order("issued_at", { ascending: false });
+    if (error || !data) return [];
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+/** Public: read one certificate by its serial (share/verify link). */
+export async function getCertificateBySerial(serial: string): Promise<{
+  serial: string;
+  kind: string;
+  recipient_name: string;
+  title: string;
+  issued_at: string;
+  training_id: string | null;
+} | null> {
+  try {
+    const { data, error } = await supabase
+      .from("certificates")
+      .select("serial, kind, recipient_name, title, issued_at, training_id")
+      .eq("serial", serial)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data as any;
+  } catch {
+    return null;
+  }
+}

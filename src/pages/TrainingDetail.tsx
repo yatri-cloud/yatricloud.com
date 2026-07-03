@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { EnrollmentModal } from "@/components/EnrollmentModal";
 import { SEO } from "@/components/SEO";
-import { listPublishedTrainings, listInstructorProfiles } from "@/lib/training-api";
+import { listPublishedTrainings, listInstructorProfiles, getCourseContent } from "@/lib/training-api";
 
 interface Course {
     id: string;
@@ -55,6 +55,7 @@ export default function TrainingDetail() {
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
     const [isEnrolled, setIsEnrolled] = useState(false);
     const [instructorProfile, setInstructorProfile] = useState<InstructorProfile | null>(null);
+    const [modules, setModules] = useState<any[]>([]);
 
     useEffect(() => {
         // Fetch course if we have an ID or slugs (certification/courseSlug)
@@ -107,6 +108,21 @@ export default function TrainingDetail() {
             setIsLoading(false);
         }
     };
+
+    // Load the real authored curriculum (module + lesson titles) for the preview.
+    useEffect(() => {
+        if (!course?.id) return;
+        let active = true;
+        (async () => {
+            try {
+                const content = await getCourseContent(course.id);
+                if (active) setModules(Array.isArray(content?.modules) ? content.modules : []);
+            } catch {
+                if (active) setModules([]);
+            }
+        })();
+        return () => { active = false; };
+    }, [course?.id]);
 
     const fetchInstructorProfile = async (instructorName: string) => {
         if (!instructorName) return;
@@ -332,47 +348,66 @@ export default function TrainingDetail() {
                         <h2 className="text-2xl font-bold">Course Content</h2>
                         <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
                             <div className="flex items-center gap-4">
-                                <span>{course.modulesCount} Modules</span>
-                                <span>•</span>
-                                <span>{course.duration} Total Duration</span>
+                                <span>{modules.length || course.modulesCount} Modules</span>
+                                {(() => {
+                                    const totalLessons = modules.reduce((n, m) => n + (m.lessons?.length || 0), 0);
+                                    return totalLessons > 0 ? (
+                                        <>
+                                            <span>•</span>
+                                            <span>{totalLessons} Lessons</span>
+                                        </>
+                                    ) : null;
+                                })()}
+                                {course.duration && (
+                                    <>
+                                        <span>•</span>
+                                        <span>{course.duration} Total Duration</span>
+                                    </>
+                                )}
                             </div>
                         </div>
 
-                        <Accordion type="single" collapsible className="w-full space-y-3">
-                            {[...Array(Number(course.modulesCount) || 1)].map((_, i) => (
-                                <AccordionItem key={i} value={`item-${i}`} className="border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border-border/50">
-                                    <AccordionTrigger className="px-6 py-5 hover:no-underline transition-colors data-[state=open]:bg-muted/20">
-                                        <div className="flex items-center gap-4 text-left">
-                                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
-                                                {i + 1}
-                                            </div>
-                                            <div className="text-left">
-                                                <div className="font-bold text-base">Module {i + 1}: {i === 0 ? "Course Introduction" : `Core Concepts Part ${i}`}</div>
-                                                <div className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-wider">3 Lessons • 45m</div>
-                                            </div>
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="px-6 pb-6 pt-2 bg-muted/5 border-t border-border/10">
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between text-sm py-2 group cursor-pointer hover:text-primary transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                    <PlayCircle className="w-4 h-4 text-primary/60 group-hover:text-primary" />
-                                                    <span className="font-medium">Welcome to the module</span>
+                        {modules.length > 0 ? (
+                            <Accordion type="single" collapsible className="w-full space-y-3">
+                                {modules.map((mod, i) => (
+                                    <AccordionItem key={mod.moduleId || i} value={`item-${i}`} className="border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border-border/50">
+                                        <AccordionTrigger className="px-6 py-5 hover:no-underline transition-colors data-[state=open]:bg-muted/20">
+                                            <div className="flex items-center gap-4 text-left">
+                                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
+                                                    {i + 1}
                                                 </div>
-                                                <span className="text-xs text-muted-foreground tabular-nums">05:00</span>
-                                            </div>
-                                            <div className="flex items-center justify-between text-sm py-2 group cursor-pointer hover:text-primary transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                    <PlayCircle className="w-4 h-4 text-primary/60 group-hover:text-primary" />
-                                                    <span className="font-medium">Deep Dive into topic</span>
+                                                <div className="text-left">
+                                                    <div className="font-bold text-base">{mod.moduleName || `Module ${i + 1}`}</div>
+                                                    <div className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-wider">
+                                                        {(mod.lessons?.length || 0)} {(mod.lessons?.length === 1) ? "Lesson" : "Lessons"}
+                                                    </div>
                                                 </div>
-                                                <span className="text-xs text-muted-foreground tabular-nums">15:00</span>
                                             </div>
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            ))}
-                        </Accordion>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 pt-2 bg-muted/5 border-t border-border/10">
+                                            <div className="space-y-1">
+                                                {(mod.lessons || []).length > 0 ? (mod.lessons || []).map((lesson: any, li: number) => (
+                                                    <div key={lesson.lessonId || li} className="flex items-center justify-between text-sm py-2.5">
+                                                        <div className="flex items-center gap-3">
+                                                            <Lock className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
+                                                            <span className="font-medium">{lesson.lessonTitle || `Lesson ${li + 1}`}</span>
+                                                        </div>
+                                                        {lesson.duration && (
+                                                            <span className="text-xs text-muted-foreground tabular-nums">{lesson.duration}</span>
+                                                        )}
+                                                    </div>
+                                                )) : (
+                                                    <p className="text-sm text-muted-foreground py-2">Lessons for this module are coming soon.</p>
+                                                )}
+                                                <p className="pt-3 text-xs text-muted-foreground">Enroll to unlock every lesson.</p>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">The full curriculum will be published shortly.</p>
+                        )}
                     </div>
 
                     {/* Instructor Card */}

@@ -49,6 +49,7 @@ import TrainingDetail from "./pages/TrainingDetail";
 import AdminTrainingList from "@/pages/admin/AdminTrainingList";
 import MyTrainings from "@/pages/MyTrainings";
 import StudentTrainingDashboard from "@/pages/StudentTrainingDashboard";
+import CertificateView from "@/pages/CertificateView";
 import BecomeTrainer from "@/pages/BecomeTrainer";
 import AdminTrainers from "@/pages/admin/AdminTrainers";
 import TrainerLogin from "@/pages/trainer/TrainerLogin";
@@ -111,6 +112,7 @@ const App = () => (
               {/* Backward-compatible fallback: resolves by slug or id so old bookmarks keep working */}
               <Route path="/training/:id" element={<TrainingDetail />} />
               <Route path="/training/:certification/:courseSlug" element={<TrainingDetail />} />
+              <Route path="/certificate/:serial" element={<CertificateView />} />
               <Route path="/addproduct" element={<AddProduct />} />
               <Route path="/feedback" element={<Review />} />
               <Route path="/reviews" element={<Reviews />} />

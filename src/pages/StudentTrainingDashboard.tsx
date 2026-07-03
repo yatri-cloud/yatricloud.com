@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import {
     BookOpen, Video, CheckCircle, Award, FileText, BarChart3,
     Clock, Calendar, MapPin, User, ChevronRight, PlayCircle,
@@ -12,7 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import { getStoredUser } from "@/lib/yatris-api";
-import { getTrainingDetail, checkEnrollment } from "@/lib/training-api";
+import {
+    getTrainingDetail, checkEnrollment, getCourseContent,
+    getLessonProgress, markLessonComplete, unmarkLesson,
+    issueCertificate, getMyCertificates,
+} from "@/lib/training-api";
 import Navbar from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
 
@@ -49,6 +53,10 @@ export default function StudentTrainingDashboard() {
     const [user, setUser] = useState<any>(null);
     const [quizzes, setQuizzes] = useState<any[]>([]);
     const [resources, setResources] = useState<any[]>([]);
+    const [modules, setModules] = useState<any[]>([]);
+    const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+    const [certSerial, setCertSerial] = useState<string | null>(null);
+    const [isIssuing, setIsIssuing] = useState(false);
 
     useEffect(() => {
         const stored = getStoredUser();
@@ -94,15 +102,65 @@ export default function StudentTrainingDashboard() {
             }
             setIsEnrolled(true);
 
+            // Real authored curriculum + this user's progress + any issued certificate.
+            const [content, progress, myCerts] = await Promise.all([
+                getCourseContent(foundTraining.id),
+                getLessonProgress(foundTraining.id),
+                getMyCertificates(),
+            ]);
+            setModules(Array.isArray(content?.modules) ? content.modules : []);
+            setCompletedLessons(new Set(progress));
+            const existingCert = myCerts.find((c: any) => c.training_id === foundTraining.id);
+            setCertSerial(existingCert?.serial || null);
+
             // Quizzes have no Supabase table yet; resources come from the training row.
-            setQuizzes([]);
-            setResources(Array.isArray(foundTraining.resources) ? foundTraining.resources : []);
+            setQuizzes(Array.isArray(content?.quizzes) ? content.quizzes : []);
+            setResources(
+                Array.isArray(content?.resources) && content.resources.length
+                    ? content.resources
+                    : (Array.isArray(foundTraining.resources) ? foundTraining.resources : [])
+            );
 
         } catch (e) {
             console.error(e);
             toast.error("Failed to load training data");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Optimistic toggle: flip the UI first, reconcile with the server, revert on failure.
+    const toggleLesson = async (lessonId: string) => {
+        if (!training) return;
+        const wasDone = completedLessons.has(lessonId);
+        setCompletedLessons((prev) => {
+            const next = new Set(prev);
+            if (wasDone) next.delete(lessonId); else next.add(lessonId);
+            return next;
+        });
+        const ok = wasDone
+            ? await unmarkLesson(lessonId)
+            : await markLessonComplete(training.id, lessonId);
+        if (!ok) {
+            setCompletedLessons((prev) => {
+                const next = new Set(prev);
+                if (wasDone) next.add(lessonId); else next.delete(lessonId);
+                return next;
+            });
+            toast.error("We could not update your progress. Please try again.");
+        }
+    };
+
+    const handleGetCertificate = async () => {
+        if (!training) return;
+        setIsIssuing(true);
+        const res = await issueCertificate(training.id);
+        setIsIssuing(false);
+        if (res.ok && res.serial) {
+            setCertSerial(res.serial);
+            toast.success("Your certificate is ready.");
+        } else {
+            toast.error(res.message || "We could not issue your certificate just now.");
         }
     };
 
@@ -214,7 +272,17 @@ export default function StudentTrainingDashboard() {
                         {/* Content Area */}
                         <main className="lg:col-span-3">
                             {activeTab === 'overview' && <OverviewTab training={training} outcomes={outcomes} skills={skills} />}
-                            {activeTab === 'modules' && <ModulesTab training={training} />}
+                            {activeTab === 'modules' && (
+                                <ModulesTab
+                                    training={training}
+                                    modules={modules}
+                                    completedLessons={completedLessons}
+                                    onToggleLesson={toggleLesson}
+                                    certSerial={certSerial}
+                                    isIssuing={isIssuing}
+                                    onGetCertificate={handleGetCertificate}
+                                />
+                            )}
                             {activeTab === 'quizzes' && <QuizzesTab training={training} quizzes={quizzes} />}
                             {activeTab === 'class' && <JoinClassTab training={training} />}
                             {activeTab === 'resources' && <ResourcesTab training={training} resources={resources} />}
@@ -433,60 +501,208 @@ function OverviewTab({ training, outcomes, skills }: { training: TrainingDetails
     );
 }
 
-// Modules Tab Component
-function ModulesTab({ training }: { training: TrainingDetails }) {
-    const modulesCount = Number(training.modulesCount) || 0;
+// Modules Tab Component — real curriculum, per-lesson progress, and certificate.
+function ModulesTab({
+    training, modules, completedLessons, onToggleLesson,
+    certSerial, isIssuing, onGetCertificate,
+}: {
+    training: TrainingDetails;
+    modules: any[];
+    completedLessons: Set<string>;
+    onToggleLesson: (lessonId: string) => void;
+    certSerial: string | null;
+    isIssuing: boolean;
+    onGetCertificate: () => void;
+}) {
+    const allLessons = modules.flatMap((m: any) =>
+        (m.lessons || []).map((l: any) => ({ ...l, moduleId: m.moduleId }))
+    );
+    const total = allLessons.length;
+    const done = allLessons.filter((l: any) => completedLessons.has(l.lessonId)).length;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const firstIncomplete = allLessons.find((l: any) => !completedLessons.has(l.lessonId));
+
+    const [openModule, setOpenModule] = useState<string | undefined>(
+        modules[0]?.moduleId ? `module-${modules[0].moduleId}` : undefined
+    );
+
+    const handleResume = () => {
+        if (!firstIncomplete) return;
+        setOpenModule(`module-${firstIncomplete.moduleId}`);
+        const reduce = typeof window !== 'undefined'
+            && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        setTimeout(() => {
+            document.getElementById(`lesson-${firstIncomplete.lessonId}`)?.scrollIntoView({
+                behavior: reduce ? 'auto' : 'smooth',
+                block: 'center',
+            });
+        }, 150);
+    };
+
+    if (total === 0) {
+        return (
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Course Modules</CardTitle>
+                        <CardDescription>Your curriculum</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-center py-12">
+                            <BookOpen className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
+                            <h3 className="text-xl font-semibold mb-2">Curriculum coming soon</h3>
+                            <p className="text-muted-foreground">
+                                Your instructor is still adding lessons. Check back shortly.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
+            {/* Progress + certificate */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Course Modules</CardTitle>
-                    <CardDescription>{modulesCount} modules • {training.duration}</CardDescription>
+                    <CardTitle className="font-display">Your Progress</CardTitle>
+                    <CardDescription>{done} of {total} lessons complete</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                        <div className="flex items-center justify-between mb-2 text-sm font-medium">
+                            <span>{pct}% complete</span>
+                            {firstIncomplete && <span className="text-muted-foreground">{total - done} left</span>}
+                        </div>
+                        <div className="h-2.5 w-full rounded-full bg-brand-100 overflow-hidden">
+                            <div
+                                className="h-full rounded-full bg-primary transition-[width] duration-500 motion-reduce:transition-none"
+                                style={{ width: `${pct}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+                        {firstIncomplete && (
+                            <Button onClick={handleResume} className="min-h-[44px] gap-2">
+                                <PlayCircle className="w-4 h-4" />
+                                Resume
+                            </Button>
+                        )}
+                        {certSerial ? (
+                            <Button asChild variant="outline" className="min-h-[44px] gap-2">
+                                <Link to={`/certificate/${certSerial}`}>
+                                    <Award className="w-4 h-4" />
+                                    View certificate
+                                </Link>
+                            </Button>
+                        ) : pct === 100 ? (
+                            <Button
+                                onClick={onGetCertificate}
+                                disabled={isIssuing}
+                                className="min-h-[44px] gap-2"
+                            >
+                                {isIssuing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
+                                Get your certificate
+                            </Button>
+                        ) : null}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Modules */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-display">Course Modules</CardTitle>
+                    <CardDescription>{modules.length} modules • {total} lessons</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Accordion type="single" collapsible className="w-full space-y-3">
-                        {[...Array(modulesCount)].map((_, i) => (
-                            <AccordionItem
-                                key={i}
-                                value={`module-${i}`}
-                                className="border rounded-xl bg-card shadow-sm overflow-hidden"
-                            >
-                                <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/20">
-                                    <div className="flex items-center gap-4 text-left w-full">
-                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
-                                            {i + 1}
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-bold text-base">
-                                                Module {i + 1}: {i === 0 ? "Introduction" : `Core Concepts Part ${i}`}
+                    <Accordion
+                        type="single"
+                        collapsible
+                        className="w-full space-y-3"
+                        value={openModule}
+                        onValueChange={setOpenModule}
+                    >
+                        {modules.map((mod: any, i: number) => {
+                            const lessons = mod.lessons || [];
+                            const modDone = lessons.filter((l: any) => completedLessons.has(l.lessonId)).length;
+                            return (
+                                <AccordionItem
+                                    key={mod.moduleId || i}
+                                    value={`module-${mod.moduleId}`}
+                                    className="border rounded-xl bg-card shadow-sm overflow-hidden"
+                                >
+                                    <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/20">
+                                        <div className="flex items-center gap-4 text-left w-full">
+                                            <div className="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center font-bold text-primary">
+                                                {i + 1}
                                             </div>
-                                            <div className="text-xs text-muted-foreground mt-1">
-                                                3 Lessons • 45 minutes
-                                            </div>
-                                        </div>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="px-6 pb-4 bg-muted/5 border-t">
-                                    <div className="space-y-3 pt-3">
-                                        {[1, 2, 3].map((lesson) => (
-                                            <div
-                                                key={lesson}
-                                                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer group transition-all"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <PlayCircle className="w-5 h-5 text-primary/70 group-hover:text-primary" />
-                                                    <span className="font-medium text-sm">
-                                                        Lesson {lesson}: {lesson === 1 ? 'Introduction' : `Topic ${lesson}`}
-                                                    </span>
+                                            <div className="flex-1">
+                                                <div className="font-bold text-base">
+                                                    {mod.moduleName || `Module ${i + 1}`}
                                                 </div>
-                                                <span className="text-xs text-muted-foreground">15:00</span>
+                                                <div className="text-xs text-muted-foreground mt-1">
+                                                    {modDone} of {lessons.length} {lessons.length === 1 ? 'lesson' : 'lessons'} complete
+                                                </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="px-6 pb-4 bg-muted/5 border-t">
+                                        <div className="space-y-2 pt-3">
+                                            {lessons.length === 0 ? (
+                                                <p className="text-sm text-muted-foreground py-2">
+                                                    Lessons for this module are coming soon.
+                                                </p>
+                                            ) : lessons.map((lesson: any, li: number) => {
+                                                const isDone = completedLessons.has(lesson.lessonId);
+                                                return (
+                                                    <div
+                                                        key={lesson.lessonId || li}
+                                                        id={`lesson-${lesson.lessonId}`}
+                                                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg hover:bg-muted/40 transition-colors"
+                                                    >
+                                                        <div className="flex items-start gap-3 min-w-0">
+                                                            {isDone
+                                                                ? <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                                : <PlayCircle className="w-5 h-5 text-primary/70 flex-shrink-0 mt-0.5" />}
+                                                            <div className="min-w-0">
+                                                                <span className="font-medium text-sm block">
+                                                                    {lesson.lessonTitle || `Lesson ${li + 1}`}
+                                                                </span>
+                                                                <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground mt-0.5">
+                                                                    {lesson.contentType && <span className="capitalize">{lesson.contentType}</span>}
+                                                                    {lesson.duration && <span className="tabular-nums">{lesson.duration}</span>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                                            {lesson.contentUrl && (
+                                                                <Button asChild size="sm" variant="outline" className="min-h-[44px]">
+                                                                    <a href={lesson.contentUrl} target="_blank" rel="noopener noreferrer">
+                                                                        <ExternalLink className="w-4 h-4 mr-1.5" />
+                                                                        Open
+                                                                    </a>
+                                                                </Button>
+                                                            )}
+                                                            <Button
+                                                                size="sm"
+                                                                variant={isDone ? "secondary" : "default"}
+                                                                onClick={() => onToggleLesson(lesson.lessonId)}
+                                                                className="min-h-[44px]"
+                                                            >
+                                                                {isDone ? "Completed" : "Mark complete"}
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            );
+                        })}
                     </Accordion>
                 </CardContent>
             </Card>
