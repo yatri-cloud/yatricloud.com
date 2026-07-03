@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const SITE_URL = "https://www.yatricloud.com";
 
@@ -38,7 +39,60 @@ const MentorProfile = () => {
   const [loaded, setLoaded] = useState(false);
   const [filter, setFilter] = useState<TypeFilter>("all");
   const [isOwner, setIsOwner] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const shareUrl = mentor ? `${SITE_URL}/mentorship/${mentor.slug}` : "";
+  const shareTitle = mentor ? `${mentor.name} on Yatri Cloud` : "Yatri Cloud";
+  const shareText = mentor
+    ? `Book a 1 on 1 session with ${mentor.name} on Yatri Cloud`
+    : "Book a 1 on 1 mentorship session on Yatri Cloud";
+  const hasNativeShare =
+    typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+  const copyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({ title: "Link copied" });
+    } catch {
+      toast({ title: "Could not copy the link", variant: "destructive" });
+    }
+    setShareOpen(false);
+  };
+
+  const openShareWindow = (url: string) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+    setShareOpen(false);
+  };
+
+  const shareWhatsApp = () =>
+    openShareWindow(
+      `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`
+    );
+
+  const shareLinkedIn = () =>
+    openShareWindow(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+        shareUrl
+      )}`
+    );
+
+  const shareX = () =>
+    openShareWindow(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+        shareText
+      )}&url=${encodeURIComponent(shareUrl)}`
+    );
+
+  const shareNative = async () => {
+    try {
+      await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+    } catch {
+      // Visitor dismissed the native sheet. Nothing to do.
+    }
+    setShareOpen(false);
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -219,14 +273,92 @@ const MentorProfile = () => {
                   {isOwner && (
                     <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-100 bg-brand-50/50 p-3">
                       <p className="text-sm text-muted-foreground">This is your public page.</p>
-                      <Button size="sm" onClick={() => navigate("/mentor/dashboard")} className="ml-auto font-semibold">
-                        Manage my page
-                      </Button>
+                      <div className="ml-auto flex flex-wrap items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={copyShareLink}
+                          className="min-h-[44px] font-semibold border-brand-200 text-brand-700 hover:bg-brand-50"
+                        >
+                          Share your page
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => navigate("/mentor/dashboard")}
+                          className="min-h-[44px] font-semibold"
+                        >
+                          Manage my page
+                        </Button>
+                      </div>
                     </div>
                   )}
-                  <h1 className="font-display text-3xl md:text-5xl font-bold tracking-[-0.02em]">
-                    {mentor.name}
-                  </h1>
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <h1 className="font-display text-3xl md:text-5xl font-bold tracking-[-0.02em]">
+                      {mentor.name}
+                    </h1>
+                    <div className="relative">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShareOpen((v) => !v)}
+                        aria-expanded={shareOpen}
+                        aria-haspopup="true"
+                        className="min-h-[44px] font-semibold border-brand-200 text-brand-700 hover:bg-brand-50"
+                      >
+                        Share
+                      </Button>
+                      {shareOpen && (
+                        <div
+                          className="absolute right-0 z-20 mt-2 w-56 rounded-xl border border-border bg-card p-2 shadow-lg"
+                          role="menu"
+                          aria-label="Share this profile"
+                        >
+                          {hasNativeShare && (
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={shareNative}
+                              className="flex w-full min-h-[44px] items-center rounded-lg px-3 text-sm font-medium text-foreground hover:bg-brand-50"
+                            >
+                              Share
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={copyShareLink}
+                            className="flex w-full min-h-[44px] items-center rounded-lg px-3 text-sm font-medium text-foreground hover:bg-brand-50"
+                          >
+                            Copy link
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={shareWhatsApp}
+                            className="flex w-full min-h-[44px] items-center rounded-lg px-3 text-sm font-medium text-foreground hover:bg-brand-50"
+                          >
+                            Share on WhatsApp
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={shareLinkedIn}
+                            className="flex w-full min-h-[44px] items-center rounded-lg px-3 text-sm font-medium text-foreground hover:bg-brand-50"
+                          >
+                            Share on LinkedIn
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={shareX}
+                            className="flex w-full min-h-[44px] items-center rounded-lg px-3 text-sm font-medium text-foreground hover:bg-brand-50"
+                          >
+                            Share on X
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <p className="mt-3 text-lg text-muted-foreground leading-relaxed max-w-2xl">
                     {mentor.headline}
                   </p>
