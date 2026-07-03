@@ -4,6 +4,7 @@ import { Menu, X, User, Settings, LogOut, Calendar, BookOpen, Info, List, Layout
 import { useNavigate, useLocation } from "react-router-dom";
 import { isAuthenticated, getStoredUser, logout } from "@/lib/yatris-api";
 import { useSiteContent, getNavLinks, FALLBACK_NAV_LINKS } from "@/lib/site-content";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { supabase } from "@/lib/supabase";
 import {
   DropdownMenu,
@@ -137,6 +138,7 @@ export const Navbar = () => {
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-4">
+              <GlobalSearch />
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
