@@ -36,6 +36,10 @@ interface Course {
     folderUrl?: string;
     avgRating?: number;
     reviewCount?: number;
+    certificationId?: string | null;
+    certificationLabel?: string;
+    certificationExamCode?: string;
+    certificationProvider?: string;
 }
 
 /** A compact row of five stars for a rating between 0 and 5. */
@@ -295,6 +299,24 @@ export default function TrainingDetail() {
                             {course.mode === "On-site" && <span className="flex items-center gap-2 text-amber-400"><MapPin className="w-4 h-4" /> {course.venue}</span>}
                             <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {displayLevel} Level</span>
                         </div>
+
+                        {course.certificationLabel && (
+                            <div className="mt-4 rounded-xl border border-primary/40 bg-primary/10 p-4">
+                                <p className="text-sm text-gray-200">
+                                    Prepares you for{" "}
+                                    <span className="font-semibold text-white">
+                                        {course.certificationLabel}
+                                        {course.certificationExamCode ? ` (${course.certificationExamCode})` : ""}
+                                    </span>
+                                </p>
+                                <Link
+                                    to="/examdumps"
+                                    className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-blue-300 underline underline-offset-4 hover:text-blue-200"
+                                >
+                                    Get practice exam dumps
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
 

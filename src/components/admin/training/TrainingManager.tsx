@@ -24,7 +24,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { listProviders, listApprovedTrainers, getTrainingForEdit, createTraining, updateTraining, uploadResource, submitCourseForApproval } from "@/lib/training-api";
+import { listProviders, listApprovedTrainers, getTrainingForEdit, createTraining, updateTraining, uploadResource, submitCourseForApproval, getCertificationOptions, type CertificationOption } from "@/lib/training-api";
 
 interface Lesson {
     title: string;
@@ -61,6 +61,7 @@ interface TrainingForm {
     couponCode?: string;
     startDate?: Date;
     startTime?: string;
+    certificationId?: string; // provider_certifications.id this course prepares you for
 }
 
 // Time slots for dropdown
@@ -106,6 +107,9 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     const [isUploading, setIsUploading] = useState(false);
     const [approvedTrainers, setApprovedTrainers] = useState<{ fullName: string; email: string; trainerId: string }[]>([]);
     const [trainerData, setTrainerData] = useState<{ fullName: string; trainerId: string } | null>(null);
+    const [certOptions, setCertOptions] = useState<CertificationOption[]>([]);
+    const [certProviderFilter, setCertProviderFilter] = useState<string>("all");
+    const [certSearch, setCertSearch] = useState<string>("");
 
     const { register, control, handleSubmit, setValue, watch, reset, trigger } = useForm<TrainingForm>({
         defaultValues: {
@@ -149,6 +153,27 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     const selectedType = watch("type");
     const selectedProvider = watch("subType"); // Provider
     const curriculum = watch("curriculum");
+    const selectedCertId = watch("certificationId");
+    const selectedCert = certOptions.find(o => o.id === selectedCertId) || null;
+
+    // When editing a course with a saved certification, preselect its provider
+    // group so the picker opens on the right list.
+    useEffect(() => {
+        if (selectedCert) setCertProviderFilter(selectedCert.provider);
+    }, [selectedCert]);
+
+    // Distinct provider slugs present in the certification catalog, sorted.
+    const certProviders = Array.from(new Set(certOptions.map(o => o.provider))).sort();
+
+    // Certifications narrowed by the provider filter and the search box.
+    const filteredCerts = certOptions.filter(o => {
+        if (certProviderFilter !== "all" && o.provider !== certProviderFilter) return false;
+        if (certSearch) {
+            const q = certSearch.toLowerCase();
+            return o.label.toLowerCase().includes(q) || o.examCode.toLowerCase().includes(q);
+        }
+        return true;
+    });
 
     // Fetch Providers and Trainers on Mount
     useEffect(() => {
@@ -161,6 +186,16 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
             }
         };
         fetchProviders();
+
+        const fetchCertOptions = async () => {
+            try {
+                const options = await getCertificationOptions();
+                setCertOptions(options);
+            } catch (e) {
+                console.error("Failed to fetch certifications", e);
+            }
+        };
+        fetchCertOptions();
 
         if (isTrainerMode) {
             const storedTrainer = localStorage.getItem("trainerData");
@@ -212,6 +247,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         setValue("price", training.price || "");
         setValue("currency", training.currency || "USD");
         setValue("couponCode", training.couponCode || "");
+        setValue("certificationId", training.certificationId || "");
         if (training.startDate) {
             setValue("startDate", new Date(training.startDate));
         }
@@ -296,6 +332,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 curriculum: data.curriculum,
                 resources: resources,
                 status: effectiveStatus,
+                certificationId: data.certificationId || null,
             };
 
             let trainingId = editId;
@@ -566,6 +603,68 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Prepares you for — optional certification link */}
+                                <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
+                                    <div>
+                                        <Label className="block text-sm font-medium">Prepares you for</Label>
+                                        <p className="text-sm text-muted-foreground mt-0.5">Link the certification this training gets learners ready for. This is optional. Leave it empty for no certification.</p>
+                                    </div>
+
+                                    {selectedCert && (
+                                        <p className="text-sm">
+                                            <span className="text-muted-foreground">Selected: </span>
+                                            <span className="font-medium">{selectedCert.label}{selectedCert.examCode ? ` (${selectedCert.examCode})` : ""}</span>
+                                        </p>
+                                    )}
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Label className="block text-sm font-medium mb-1.5">Provider</Label>
+                                            <Select value={certProviderFilter} onValueChange={setCertProviderFilter}>
+                                                <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                                    <SelectValue placeholder="All providers" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All providers</SelectItem>
+                                                    {certProviders.map(p => (
+                                                        <SelectItem key={p} value={p}>{p.toUpperCase()}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div>
+                                            <Label className="block text-sm font-medium mb-1.5">Search</Label>
+                                            <Input
+                                                value={certSearch}
+                                                onChange={(e) => setCertSearch(e.target.value)}
+                                                placeholder="Search by name or exam code"
+                                                className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <Label className="block text-sm font-medium mb-1.5">Certification</Label>
+                                        <Select
+                                            value={watch("certificationId") || "none"}
+                                            onValueChange={(val) => setValue("certificationId", val === "none" ? "" : val)}
+                                        >
+                                            <SelectTrigger className="min-h-[44px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                                <SelectValue placeholder="Select a certification" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-72">
+                                                <SelectItem value="none">No certification</SelectItem>
+                                                {filteredCerts.map(o => (
+                                                    <SelectItem key={o.id} value={o.id}>
+                                                        {o.label}{o.examCode ? ` (${o.examCode})` : ""}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <Label className="block text-sm font-medium mb-1.5">Brief Description</Label>
                                     <Textarea {...register("description")} placeholder="Course overview..." rows={3} className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />

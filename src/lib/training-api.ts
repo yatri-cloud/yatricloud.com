@@ -95,6 +95,14 @@ export interface Course {
   avgRating: number;
   /** Count of public reviews (0 when none). */
   reviewCount: number;
+  /** Linked certification this training prepares you for (provider_certifications.id). */
+  certificationId?: string | null;
+  /** Full label of the linked certification, e.g. "AWS Certified Solutions Architect - Associate". */
+  certificationLabel?: string;
+  /** Exam code of the linked certification, e.g. "SAA-C03". */
+  certificationExamCode?: string;
+  /** Provider slug of the linked certification, e.g. "aws". */
+  certificationProvider?: string;
 }
 
 const createSlug = (name: string) =>
@@ -119,6 +127,10 @@ function rowToCourse(row: any, modulesCount = 0): Course {
   // tell it apart from an untouched draft. A published course stays published.
   let status: "Draft" | "Published" | "Review" = statusFromDb(row.status);
   if (status !== "Published" && reviewStatus === "pending") status = "Review";
+  // PostgREST embeds a to-one relation as an object (or null when unlinked).
+  const cert = Array.isArray(row.provider_certifications)
+    ? row.provider_certifications[0]
+    : row.provider_certifications;
   return {
     id: row.id,
     slug: row.slug || "",
@@ -147,6 +159,10 @@ function rowToCourse(row: any, modulesCount = 0): Course {
     resources: Array.isArray(row.resources) ? row.resources : [],
     avgRating: Number(row.avg_rating) || 0,
     reviewCount: Number(row.review_count) || 0,
+    certificationId: row.certification_id || null,
+    certificationLabel: cert?.label || undefined,
+    certificationExamCode: cert?.exam_code || undefined,
+    certificationProvider: cert?.provider_slug || undefined,
   };
 }
 
@@ -158,7 +174,7 @@ function rowToCourse(row: any, modulesCount = 0): Course {
 export async function listPublishedTrainings(): Promise<Course[]> {
   const { data, error } = await supabase
     .from("trainings")
-    .select("*")
+    .select("*, provider_certifications(label, exam_code, provider_slug)")
     .in("status", ["published", "archived"])
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -171,7 +187,9 @@ export async function listPublishedTrainings(): Promise<Course[]> {
  */
 export async function getTrainingDetail(idOrSlug: string): Promise<Course | null> {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug || "");
-  const base = supabase.from("trainings").select("*");
+  const base = supabase
+    .from("trainings")
+    .select("*, provider_certifications(label, exam_code, provider_slug)");
   const { data, error } = await (
     isUuid ? base.eq("id", idOrSlug) : base.eq("slug", idOrSlug)
   ).maybeSingle();
@@ -864,6 +882,8 @@ export interface TrainingInput {
   curriculum?: { title: string; lessons: { title: string; type: string; duration: string }[] }[];
   resources?: any[];
   status?: "Draft" | "Published";
+  /** Certification this training prepares you for (provider_certifications.id). Empty = none. */
+  certificationId?: string | null;
 }
 
 function inputToRow(input: TrainingInput): Record<string, any> {
@@ -886,6 +906,8 @@ function inputToRow(input: TrainingInput): Record<string, any> {
     start_time: input.startTime || null,
     resources: Array.isArray(input.resources) ? input.resources : [],
     status: statusToDb(input.status),
+    // Optional certification link. An empty choice clears it (nullable column).
+    certification_id: input.certificationId ? input.certificationId : null,
   };
   return row;
 }
@@ -994,14 +1016,49 @@ export async function getTrainingForEdit(id: string): Promise<any | null> {
     startTime: data.start_time || "",
     thumbnail: data.image_url || "",
     resources: Array.isArray(data.resources) ? data.resources : [],
+    certificationId: data.certification_id || "",
   };
+}
+
+/** A certification option for the "Prepares you for" picker in the course form. */
+export interface CertificationOption {
+  id: string;
+  label: string;
+  examCode: string;
+  provider: string;
+}
+
+/**
+ * The certification catalog for the training picker, flat and in provider order.
+ * Reads provider_certifications directly so each option carries its real id
+ * (the value stored on trainings.certification_id). Never throws — returns an
+ * empty list on any error so the form still renders.
+ */
+export async function getCertificationOptions(): Promise<CertificationOption[]> {
+  try {
+    const { data, error } = await supabase
+      .from("provider_certifications")
+      .select("id, label, exam_code, provider_slug")
+      .eq("active", true)
+      .order("provider_slug", { ascending: true })
+      .order("sort_order", { ascending: true });
+    if (error || !data) return [];
+    return data.map((r: any) => ({
+      id: String(r.id),
+      label: String(r.label || ""),
+      examCode: String(r.exam_code || ""),
+      provider: String(r.provider_slug || ""),
+    }));
+  } catch {
+    return [];
+  }
 }
 
 /** Admin: every training (drafts + published), list shape. */
 export async function listAllTrainings(): Promise<Course[]> {
   const { data, error } = await supabase
     .from("trainings")
-    .select("*")
+    .select("*, provider_certifications(label, exam_code, provider_slug)")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data || []).map((r) => rowToCourse(r));

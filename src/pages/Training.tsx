@@ -41,6 +41,8 @@ interface Course {
     mode: "Online" | "On-site";
     avgRating?: number;
     reviewCount?: number;
+    certificationLabel?: string;
+    certificationExamCode?: string;
 }
 
 export default function Training() {
@@ -270,8 +272,15 @@ export default function Training() {
                                         </div>
 
                                         <CardContent className="flex flex-1 flex-col gap-2 p-4">
-                                            <div className="flex items-center gap-1 text-xs font-medium text-primary">
-                                                <Tag className="h-3 w-3" aria-hidden="true" /> {course.subType}
+                                            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-primary">
+                                                <span className="flex items-center gap-1">
+                                                    <Tag className="h-3 w-3" aria-hidden="true" /> {course.subType}
+                                                </span>
+                                                {(course.certificationExamCode || course.certificationLabel) && (
+                                                    <Badge variant="outline" className="border-primary/30 bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                                        {course.certificationExamCode || course.certificationLabel}
+                                                    </Badge>
+                                                )}
                                             </div>
                                             <h3 className="line-clamp-2 text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
                                                 {course.courseName}
