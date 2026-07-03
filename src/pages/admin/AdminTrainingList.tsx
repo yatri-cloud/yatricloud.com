@@ -17,7 +17,9 @@ import {
     Eye,
     Video,
     MapPin,
-    Calendar
+    Calendar,
+    Lock,
+    Link as LinkIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,6 +73,7 @@ interface Course {
     courseName: string;
     subType: string;
     instructor: string;
+    visibility?: "public" | "private";
     status: "Draft" | "Published" | "Review";
     reviewStatus?: string;
     timestamp: string;
@@ -309,7 +312,14 @@ export default function AdminTrainingList() {
                                     <TableRow key={course.id} className="text-sm hover:bg-brand-50">
                                         <TableCell className="font-medium px-4 py-3">
                                             <div className="flex flex-col">
-                                                <span>{course.courseName}</span>
+                                                <span className="flex items-center gap-2">
+                                                    {course.courseName}
+                                                    {course.visibility === 'private' && (
+                                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                                            <Lock className="h-3 w-3" /> Private
+                                                        </span>
+                                                    )}
+                                                </span>
                                                 {course.slug && (
                                                     <span className="text-xs text-muted-foreground font-normal">{course.slug}</span>
                                                 )}
@@ -345,6 +355,13 @@ export default function AdminTrainingList() {
                                                         setIsDetailsOpen(true);
                                                     }}>
                                                         <Eye className="w-4 h-4 mr-2" /> View Details
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => {
+                                                        const url = `${window.location.origin}/training/${course.slug || course.id}`;
+                                                        navigator.clipboard.writeText(url);
+                                                        toast.success(course.visibility === 'private' ? "Private link copied — share it to take enrollments." : "Training link copied.");
+                                                    }}>
+                                                        <LinkIcon className="w-4 h-4 mr-2" /> {course.visibility === 'private' ? 'Copy private link' : 'Copy link'}
                                                     </DropdownMenuItem>
                                                     {course.status === "Review" && (
                                                         <>

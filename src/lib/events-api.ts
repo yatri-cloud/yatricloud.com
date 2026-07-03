@@ -76,6 +76,7 @@ function eventToRow(event: Event): EventRow {
         image_url: event.imageUrl || null,
         meet_link: event.communityLink || event.location?.mapLink || null,
         status: event.status === "draft" ? "draft" : "published",
+        visibility: event.visibility === "private" ? "private" : "public",
     };
     // Preserve the app-generated UUID so upserts by id keep working.
     if (event.id && UUID_RE.test(event.id)) row.id = event.id;
@@ -142,6 +143,7 @@ function rowToEvent(row: EventRow): Event {
         },
         category: ext.category || "",
         status: computedStatus,
+        visibility: row.visibility === "private" ? "private" : "public",
         isUpcoming: ext.isUpcoming,
         lookingForVenue: ext.lookingForVenue,
         lookingForSpeakers: ext.lookingForSpeakers,

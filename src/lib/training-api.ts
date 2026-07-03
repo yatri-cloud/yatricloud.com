@@ -81,6 +81,8 @@ export interface Course {
   outcomes: string;
   modulesCount: number;
   status: "Draft" | "Published" | "Review";
+  /** 'public' = listed on /training; 'private' = unlisted, reachable only via its direct link. */
+  visibility: "public" | "private";
   /** Review gate: 'none' | 'pending' | 'approved' | 'rejected'. */
   reviewStatus: string;
   timestamp: string;
@@ -149,6 +151,7 @@ function rowToCourse(row: any, modulesCount = 0): Course {
     outcomes: "",
     modulesCount,
     status,
+    visibility: row.visibility === "private" ? "private" : "public",
     reviewStatus,
     timestamp: row.created_at || "",
     folderUrl: "",
@@ -882,6 +885,8 @@ export interface TrainingInput {
   curriculum?: { title: string; lessons: { title: string; type: string; duration: string }[] }[];
   resources?: any[];
   status?: "Draft" | "Published";
+  /** 'public' = listed on /training; 'private' = unlisted, reachable only via its direct link. */
+  visibility?: "public" | "private";
   /** Certification this training prepares you for (provider_certifications.id). Empty = none. */
   certificationId?: string | null;
 }
@@ -906,6 +911,7 @@ function inputToRow(input: TrainingInput): Record<string, any> {
     start_time: input.startTime || null,
     resources: Array.isArray(input.resources) ? input.resources : [],
     status: statusToDb(input.status),
+    visibility: input.visibility === "private" ? "private" : "public",
     // Optional certification link. An empty choice clears it (nullable column).
     certification_id: input.certificationId ? input.certificationId : null,
   };
@@ -1017,6 +1023,7 @@ export async function getTrainingForEdit(id: string): Promise<any | null> {
     thumbnail: data.image_url || "",
     resources: Array.isArray(data.resources) ? data.resources : [],
     certificationId: data.certification_id || "",
+    visibility: data.visibility === "private" ? "private" : "public",
   };
 }
 

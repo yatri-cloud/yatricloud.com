@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, Mic, Layers, Plus, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search } from "lucide-react";
+import { Calendar, Users, Mic, Layers, Plus, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon } from "lucide-react";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -230,8 +230,13 @@ export default function AdminEvents() {
                             </div>
 
                             <div className="flex-1 space-y-2 min-w-0">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between gap-2">
                                     <h3 className="text-lg md:text-xl font-bold tracking-tight">{event.name}</h3>
+                                    {event.visibility === 'private' && (
+                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                                            <Lock className="h-3 w-3" /> Private
+                                        </span>
+                                    )}
                                 </div>
                                 <p className="text-muted-foreground line-clamp-2 text-sm">{event.description}</p>
 
@@ -285,6 +290,19 @@ export default function AdminEvents() {
                                         >
                                             <UserCheck className="w-4 h-4 mr-2" />
                                             View Attendees
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuItem
+                                            onClick={() => {
+                                                const path = (event.isUpcoming || getEventStatus(event) === 'upcoming')
+                                                    ? `/upcoming-event/${event.slug || event.id}`
+                                                    : `/events/${event.slug || event.id}`;
+                                                navigator.clipboard.writeText(`${window.location.origin}${path}`);
+                                                toast({ title: "Link copied", description: event.visibility === 'private' ? "Private link copied — share it to take registrations." : "Event link copied to clipboard." });
+                                            }}
+                                        >
+                                            <LinkIcon className="w-4 h-4 mr-2" />
+                                            {event.visibility === 'private' ? 'Copy private link' : 'Copy link'}
                                         </DropdownMenuItem>
 
                                         {(event.isUpcoming || getEventStatus(event) === 'upcoming') && (

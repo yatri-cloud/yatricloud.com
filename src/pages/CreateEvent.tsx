@@ -70,6 +70,7 @@ export default function CreateEvent() {
     const locationState = useLocation();
     const [eventId, setEventId] = useState<string>(() => crypto.randomUUID());
     const [isEditMode, setIsEditMode] = useState(false);
+    const [visibility, setVisibility] = useState<'public' | 'private'>('public');
 
 
     useEffect(() => {
@@ -86,6 +87,8 @@ export default function CreateEvent() {
 
             // If it's a past event, default to the Gallery step (5) for easier management
             if (isPast) setStep(5);
+
+            setVisibility(editEvent.visibility === 'private' ? 'private' : 'public');
 
             const startDateObj = new Date(editEvent.date);
             const endDateObj = editEvent.endDate ? new Date(editEvent.endDate) : null;
@@ -224,6 +227,7 @@ export default function CreateEvent() {
             category: formData.category,
             techStack: formData.techStack.split(',').map(s => s.trim()).filter(s => s !== ""),
             status: status,
+            visibility: visibility,
             price: formData.pricingType === 'paid' ? formData.price : 'Free',
             // Ticket Info
             seatsAvailable: formData.capacity ? parseInt(formData.capacity) : undefined,
@@ -637,6 +641,28 @@ export default function CreateEvent() {
                                                     onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
                                                     className="h-11"
                                                 />
+                                            </div>
+
+                                            {/* VISIBILITY */}
+                                            <div className="space-y-2 md:col-span-2">
+                                                <Label>Visibility</Label>
+                                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                                    {([
+                                                        { value: 'public' as const, title: 'Public', desc: 'Listed on the events page for everyone.' },
+                                                        { value: 'private' as const, title: 'Private (unlisted)', desc: 'Hidden from the site. Share the link to take registrations.' },
+                                                    ]).map((opt) => (
+                                                        <button
+                                                            key={opt.value}
+                                                            type="button"
+                                                            onClick={() => setVisibility(opt.value)}
+                                                            aria-pressed={visibility === opt.value}
+                                                            className={`rounded-xl border p-3 text-left transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${visibility === opt.value ? 'border-primary bg-brand-50/60 ring-1 ring-primary' : 'border-border hover:border-brand-200 hover:bg-brand-50/40'}`}
+                                                        >
+                                                            <div className="text-sm font-semibold">{opt.title}</div>
+                                                            <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             {/* POSTER UPLOADER */}

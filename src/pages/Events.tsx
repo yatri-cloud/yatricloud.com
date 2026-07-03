@@ -73,6 +73,9 @@ const Events = () => {
     // Filter events
     const filterEvents = (events: Event[]) => {
         return events.filter(event => {
+            // Private events are unlisted — reachable only via their direct link.
+            if (event.visibility === "private") return false;
+
             // Category filter
             if (selectedCategory !== "All" && event.category !== selectedCategory) return false;
 

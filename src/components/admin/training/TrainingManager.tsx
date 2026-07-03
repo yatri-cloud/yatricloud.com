@@ -110,6 +110,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     const [certOptions, setCertOptions] = useState<CertificationOption[]>([]);
     const [certProviderFilter, setCertProviderFilter] = useState<string>("all");
     const [certSearch, setCertSearch] = useState<string>("");
+    const [visibility, setVisibility] = useState<'public' | 'private'>('public');
 
     const { register, control, handleSubmit, setValue, watch, reset, trigger } = useForm<TrainingForm>({
         defaultValues: {
@@ -248,6 +249,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         setValue("currency", training.currency || "USD");
         setValue("couponCode", training.couponCode || "");
         setValue("certificationId", training.certificationId || "");
+        setVisibility(training.visibility === "private" ? "private" : "public");
         if (training.startDate) {
             setValue("startDate", new Date(training.startDate));
         }
@@ -332,6 +334,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 curriculum: data.curriculum,
                 resources: resources,
                 status: effectiveStatus,
+                visibility: visibility,
                 certificationId: data.certificationId || null,
             };
 
@@ -601,6 +604,31 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             )}
                                         </div>
                                     )}
+                                </div>
+
+                                {/* Visibility — public (listed) vs private (unlisted link) */}
+                                <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-3">
+                                    <div>
+                                        <Label className="block text-sm font-medium">Visibility</Label>
+                                        <p className="text-sm text-muted-foreground mt-0.5">Public trainings appear on the /training page. Private trainings stay off the site — you share their link to take enrollments.</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                        {([
+                                            { value: 'public' as const, title: 'Public', desc: 'Listed on the trainings page for everyone.' },
+                                            { value: 'private' as const, title: 'Private (unlisted)', desc: 'Hidden from the site. Share the link to enroll.' },
+                                        ]).map((opt) => (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() => setVisibility(opt.value)}
+                                                aria-pressed={visibility === opt.value}
+                                                className={`rounded-xl border p-3 text-left transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${visibility === opt.value ? 'border-primary bg-brand-50/60 ring-1 ring-primary' : 'border-border hover:border-brand-200 hover:bg-brand-50/40'}`}
+                                            >
+                                                <div className="text-sm font-semibold">{opt.title}</div>
+                                                <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
 
                                 {/* Prepares you for — optional certification link */}

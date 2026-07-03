@@ -78,7 +78,9 @@ export default function Training() {
     const fetchCourses = async () => {
         try {
             const structure = await listPublishedTrainings();
-            setCourses(structure as unknown as Course[]);
+            // Private trainings are unlisted — reachable only via their direct link.
+            const listed = (structure as unknown as Course[]).filter((c) => c.visibility !== "private");
+            setCourses(listed);
         } catch (e) {
             console.error(e);
         } finally {
