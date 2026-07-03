@@ -1821,6 +1821,12 @@ const Achievements = () => {
                         </svg>
                         <span className="text-sm font-semibold">LinkedIn</span>
                       </a>
+                      <a
+                        href={`/yatri/${selectedPerson.fullName.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary hover:bg-brand-600 text-primary-foreground transition-all"
+                      >
+                        <span className="text-sm font-semibold">View full profile</span>
+                      </a>
                       {/* Download button - commented out
                       <button
                         onClick={downloadPersonImage}

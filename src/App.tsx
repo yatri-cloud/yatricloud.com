@@ -14,6 +14,7 @@ import TermsOfService from "./pages/TermsOfService";
 import CertifiedYatris from "./pages/CertifiedYatris";
 import Achievements from "./pages/Achievements";
 import CertificationPaths from "./pages/CertificationPaths";
+import YatriProfile from "./pages/YatriProfile";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
 import Community from "./pages/Community";
@@ -120,6 +121,7 @@ const App = () => (
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/paths" element={<CertificationPaths />} />
+              <Route path="/yatri/:slug" element={<YatriProfile />} />
               <Route path="/events" element={<Events />} />
               <Route path="/events/:slug" element={<EventDetail />} />
               <Route path="/community" element={<Community />} />
