@@ -1,5 +1,4 @@
-import Review from "./pages/Review";
-import Reviews from "./pages/Reviews";
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,97 +8,106 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { CalendlyPopup } from "@/components/CalendlyPopup";
 import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import CertifiedYatris from "./pages/CertifiedYatris";
-import Achievements from "./pages/Achievements";
-import CertificationPaths from "./pages/CertificationPaths";
-import YatriProfile from "./pages/YatriProfile";
-import Events from "./pages/Events";
-import EventDetail from "./pages/EventDetail";
-import Community from "./pages/Community";
-import Partners from "./pages/Partners";
-import PartnerApply from "./pages/PartnerApply";
-import Udemy from "./pages/Udemy";
-import YatriStore from "./pages/YatriStore";
-import AddProduct from "./pages/AddProduct";
-import ManageCertifications from "./pages/ManageCertifications";
-import EditProfile from "./pages/EditProfile";
-import NotFound from "./pages/NotFound";
-import ResetPassword from "./pages/ResetPassword";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminEvents from "./pages/admin/AdminEvents";
-import UdemyAdmin from "./pages/admin/UdemyAdmin";
-import AdminAddProduct from "./pages/admin/AdminAddProduct";
-import CreateEvent from "./pages/CreateEvent";
-import UpcomingEventDetail from "./pages/UpcomingEventDetail";
-import VenueSubmissionForm from "./pages/VenueSubmissionForm";
-import SpeakerSubmissionForm from "./pages/SpeakerSubmissionForm";
-import SponsorSubmissionForm from "./pages/SponsorSubmissionForm";
-import AdminSubmissions from "./pages/admin/AdminSubmissions";
-import EventMediaUpload from "./pages/EventMediaUpload";
-import MyEvents from "./pages/MyEvents";
-import MyPurchases from "./pages/MyPurchases";
-import ReceiptView from "./pages/ReceiptView";
-import AdminAttendees from "./pages/admin/AdminAttendees";
-import EventRegistrationsList from "./pages/admin/EventRegistrationsList";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
-import EventFeedback from "./pages/EventFeedback";
-import AdminTraining from "./pages/admin/AdminTraining";
-import AdminEditTraining from "./pages/admin/AdminEditTraining";
-import AdminProviders from "./pages/admin/AdminProviders";
-import AdminEnrollments from "./pages/admin/AdminEnrollments";
-import AdminPayments from "./pages/admin/AdminPayments";
-import AdminRazorpayInvoices from "./pages/admin/AdminRazorpayInvoices";
-import AdminTransactions from "./pages/admin/AdminTransactions";
-import AdminSitemapView from "./pages/admin/AdminSitemapView";
-import AdminOverview from "./pages/admin/AdminOverview";
-import UserSitemapView from "./pages/UserSitemapView";
-import YatriDashboard from "./pages/YatriDashboard";
-import MyCertificates from "./pages/MyCertificates";
-import Training from "./pages/Training";
-import TrainingDetail from "./pages/TrainingDetail";
-import AdminTrainingList from "@/pages/admin/AdminTrainingList";
-import MyTrainings from "@/pages/MyTrainings";
-import StudentTrainingDashboard from "@/pages/StudentTrainingDashboard";
-import CertificateView from "@/pages/CertificateView";
-import BecomeTrainer from "@/pages/BecomeTrainer";
-import AdminTrainers from "@/pages/admin/AdminTrainers";
-import TrainerLogin from "@/pages/trainer/TrainerLogin";
-import TrainerDashboard from "@/pages/trainer/TrainerDashboard";
-import TrainerCourseEditor from "@/pages/trainer/TrainerCourseEditor";
-import GuideView from "@/pages/GuideView";
-import ExamDumps from "./pages/ExamDumps";
-import AdminExamDumps from "./pages/admin/AdminExamDumps";
-import AdminAddExamDump from "./pages/admin/AdminAddExamDump";
-import AdminEditExamDump from "./pages/admin/AdminEditExamDump";
-import AdminSiteContent from "./pages/admin/AdminSiteContent";
-import AdminCommunity from "./pages/admin/AdminCommunity";
-import AdminInquiries from "./pages/admin/AdminInquiries";
-import AdminCoupons from "./pages/admin/AdminCoupons";
-import AdminAchievements from "./pages/admin/AdminAchievements";
-import AdminCertCatalog from "./pages/admin/AdminCertCatalog";
-import RequestVoucher from "./pages/RequestVoucher";
-import MentorshipDirectory from "./pages/mentorship/MentorshipDirectory";
-import BecomeMentor from "./pages/mentorship/BecomeMentor";
-import MentorProfile from "./pages/mentorship/MentorProfile";
-import MentorServiceDetail from "./pages/mentorship/MentorServiceDetail";
-import MyMentorshipBookings from "./pages/mentorship/MyMentorshipBookings";
-import MentorDashboard from "./pages/mentor/MentorDashboard";
-import MentorLogin from "./pages/mentor/MentorLogin";
-import AdminMentors from "./pages/admin/AdminMentors";
-import AdminMentorApplications from "./pages/admin/AdminMentorApplications";
-import AdminMentorshipServices from "./pages/admin/AdminMentorshipServices";
-import AdminMentorshipBookings from "./pages/admin/AdminMentorshipBookings";
-import AdminMentorReviews from "./pages/admin/AdminMentorReviews";
-import AdminTrainingReviews from "./pages/admin/AdminTrainingReviews";
-import AdminMentorshipOverview from "./pages/admin/AdminMentorshipOverview";
 
-
-import TrainerCreateCourse from "@/pages/trainer/TrainerCreateCourse";
-
+// Route-level code splitting: every page below loads on demand, so the
+// initial bundle carries only the homepage and the shared shell.
+const Review = lazy(() => import("./pages/Review"));
+const Reviews = lazy(() => import("./pages/Reviews"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const CertifiedYatris = lazy(() => import("./pages/CertifiedYatris"));
+const Achievements = lazy(() => import("./pages/Achievements"));
+const CertificationPaths = lazy(() => import("./pages/CertificationPaths"));
+const YatriProfile = lazy(() => import("./pages/YatriProfile"));
+const Events = lazy(() => import("./pages/Events"));
+const EventDetail = lazy(() => import("./pages/EventDetail"));
+const Community = lazy(() => import("./pages/Community"));
+const Partners = lazy(() => import("./pages/Partners"));
+const PartnerApply = lazy(() => import("./pages/PartnerApply"));
+const Udemy = lazy(() => import("./pages/Udemy"));
+const YatriStore = lazy(() => import("./pages/YatriStore"));
+const AddProduct = lazy(() => import("./pages/AddProduct"));
+const ManageCertifications = lazy(() => import("./pages/ManageCertifications"));
+const EditProfile = lazy(() => import("./pages/EditProfile"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
+const UdemyAdmin = lazy(() => import("./pages/admin/UdemyAdmin"));
+const AdminAddProduct = lazy(() => import("./pages/admin/AdminAddProduct"));
+const CreateEvent = lazy(() => import("./pages/CreateEvent"));
+const UpcomingEventDetail = lazy(() => import("./pages/UpcomingEventDetail"));
+const VenueSubmissionForm = lazy(() => import("./pages/VenueSubmissionForm"));
+const SpeakerSubmissionForm = lazy(() => import("./pages/SpeakerSubmissionForm"));
+const SponsorSubmissionForm = lazy(() => import("./pages/SponsorSubmissionForm"));
+const AdminSubmissions = lazy(() => import("./pages/admin/AdminSubmissions"));
+const EventMediaUpload = lazy(() => import("./pages/EventMediaUpload"));
+const MyEvents = lazy(() => import("./pages/MyEvents"));
+const MyPurchases = lazy(() => import("./pages/MyPurchases"));
+const ReceiptView = lazy(() => import("./pages/ReceiptView"));
+const AdminAttendees = lazy(() => import("./pages/admin/AdminAttendees"));
+const EventRegistrationsList = lazy(() => import("./pages/admin/EventRegistrationsList"));
+const EventFeedback = lazy(() => import("./pages/EventFeedback"));
+const AdminTraining = lazy(() => import("./pages/admin/AdminTraining"));
+const AdminEditTraining = lazy(() => import("./pages/admin/AdminEditTraining"));
+const AdminProviders = lazy(() => import("./pages/admin/AdminProviders"));
+const AdminEnrollments = lazy(() => import("./pages/admin/AdminEnrollments"));
+const AdminPayments = lazy(() => import("./pages/admin/AdminPayments"));
+const AdminRazorpayInvoices = lazy(() => import("./pages/admin/AdminRazorpayInvoices"));
+const AdminTransactions = lazy(() => import("./pages/admin/AdminTransactions"));
+const AdminSitemapView = lazy(() => import("./pages/admin/AdminSitemapView"));
+const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
+const UserSitemapView = lazy(() => import("./pages/UserSitemapView"));
+const YatriDashboard = lazy(() => import("./pages/YatriDashboard"));
+const MyCertificates = lazy(() => import("./pages/MyCertificates"));
+const Training = lazy(() => import("./pages/Training"));
+const TrainingDetail = lazy(() => import("./pages/TrainingDetail"));
+const AdminTrainingList = lazy(() => import("@/pages/admin/AdminTrainingList"));
+const MyTrainings = lazy(() => import("@/pages/MyTrainings"));
+const StudentTrainingDashboard = lazy(() => import("@/pages/StudentTrainingDashboard"));
+const CertificateView = lazy(() => import("@/pages/CertificateView"));
+const BecomeTrainer = lazy(() => import("@/pages/BecomeTrainer"));
+const AdminTrainers = lazy(() => import("@/pages/admin/AdminTrainers"));
+const TrainerLogin = lazy(() => import("@/pages/trainer/TrainerLogin"));
+const TrainerDashboard = lazy(() => import("@/pages/trainer/TrainerDashboard"));
+const TrainerCourseEditor = lazy(() => import("@/pages/trainer/TrainerCourseEditor"));
+const GuideView = lazy(() => import("@/pages/GuideView"));
+const ExamDumps = lazy(() => import("./pages/ExamDumps"));
+const AdminExamDumps = lazy(() => import("./pages/admin/AdminExamDumps"));
+const AdminAddExamDump = lazy(() => import("./pages/admin/AdminAddExamDump"));
+const AdminEditExamDump = lazy(() => import("./pages/admin/AdminEditExamDump"));
+const AdminSiteContent = lazy(() => import("./pages/admin/AdminSiteContent"));
+const AdminCommunity = lazy(() => import("./pages/admin/AdminCommunity"));
+const AdminInquiries = lazy(() => import("./pages/admin/AdminInquiries"));
+const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
+const AdminAchievements = lazy(() => import("./pages/admin/AdminAchievements"));
+const AdminCertCatalog = lazy(() => import("./pages/admin/AdminCertCatalog"));
+const RequestVoucher = lazy(() => import("./pages/RequestVoucher"));
+const MentorshipDirectory = lazy(() => import("./pages/mentorship/MentorshipDirectory"));
+const BecomeMentor = lazy(() => import("./pages/mentorship/BecomeMentor"));
+const MentorProfile = lazy(() => import("./pages/mentorship/MentorProfile"));
+const MentorServiceDetail = lazy(() => import("./pages/mentorship/MentorServiceDetail"));
+const MyMentorshipBookings = lazy(() => import("./pages/mentorship/MyMentorshipBookings"));
+const MentorDashboard = lazy(() => import("./pages/mentor/MentorDashboard"));
+const MentorLogin = lazy(() => import("./pages/mentor/MentorLogin"));
+const AdminMentors = lazy(() => import("./pages/admin/AdminMentors"));
+const AdminMentorApplications = lazy(() => import("./pages/admin/AdminMentorApplications"));
+const AdminMentorshipServices = lazy(() => import("./pages/admin/AdminMentorshipServices"));
+const AdminMentorshipBookings = lazy(() => import("./pages/admin/AdminMentorshipBookings"));
+const AdminMentorReviews = lazy(() => import("./pages/admin/AdminMentorReviews"));
+const AdminTrainingReviews = lazy(() => import("./pages/admin/AdminTrainingReviews"));
+const AdminMentorshipOverview = lazy(() => import("./pages/admin/AdminMentorshipOverview"));
+const TrainerCreateCourse = lazy(() => import("@/pages/trainer/TrainerCreateCourse"));
 const queryClient = new QueryClient();
+
+/** Shown for the instant a lazy route chunk is fetched. */
+const PageLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <div aria-label="Loading page" role="status" className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent motion-reduce:animate-none" />
+  </div>
+);
 
 const App = () => (
   <ThemeProvider defaultTheme="light">
@@ -111,6 +119,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* ... all routes ... */}
               <Route path="/" element={<Index />} />
@@ -226,6 +235,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
             <CalendlyPopup />
           </BrowserRouter>
         </CartProvider>

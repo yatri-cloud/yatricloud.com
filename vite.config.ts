@@ -40,6 +40,21 @@ export default defineConfig(({ mode }) => ({
   },
   // Clear cache on build
   clearScreen: false,
+  build: {
+    rollupOptions: {
+      output: {
+        // Long-lived shared vendors get their own chunks so route updates
+        // don't invalidate them in users' caches. Route-specific heavies
+        // (html2canvas, maps, country data) fall into their route chunks
+        // automatically via the lazy routes in App.tsx.
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "supabase": ["@supabase/supabase-js"],
+          "motion": ["framer-motion"],
+        },
+      },
+    },
+  },
   plugins: [react()],
   resolve: {
     alias: {
