@@ -12,7 +12,7 @@ export default function AdminSitemapView() {
     const pageCount = ADMIN_NAV_GROUPS.reduce((n, g) => n + g.items.length, 0);
 
     return (
-        <div className="space-y-8">
+        <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-8">
             <div>
                 <h1 className="font-display text-3xl font-black tracking-tight">Admin sitemap</h1>
                 <p className="mt-1 text-muted-foreground">

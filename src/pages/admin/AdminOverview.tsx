@@ -61,7 +61,7 @@ export default function AdminOverview() {
     const otherRevenue = data ? Object.entries(data.otherRevenue) : [];
 
     return (
-        <div className="space-y-8">
+        <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-8">
             <div>
                 <h1 className="font-display text-3xl font-black tracking-tight">Overview</h1>
                 <p className="mt-1 text-muted-foreground">
