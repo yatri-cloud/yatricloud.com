@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Search, Receipt, IndianRupee, Globe, Layers } from "lucide-react";
+import { Loader2, Search, Receipt, IndianRupee, Globe, Layers, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
     Table,
@@ -85,6 +86,37 @@ export default function AdminPayments() {
         return more > 0 ? `${first} and ${more} more` : first;
     };
 
+    // Export the receipts currently in view (respects the search filter) as CSV.
+    const exportCsv = () => {
+        const esc = (v: string | number) => {
+            const s = String(v ?? "");
+            // Quote when the value contains a comma, quote or newline; double inner quotes.
+            return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        };
+        const header = ["Date", "Receipt number", "Buyer name", "Buyer email", "Category", "Items", "Amount", "Currency"];
+        const rows = filtered.map((inv) => [
+            inv.createdAt ? format(new Date(inv.createdAt), "yyyy-MM-dd") : "",
+            inv.number,
+            inv.buyerName,
+            inv.buyerEmail,
+            inv.kindLabel,
+            inv.items.map((it) => (it.quantity && it.quantity > 1 ? `${it.name} x${it.quantity}` : it.name)).join("; "),
+            inv.amount,
+            inv.currency,
+        ]);
+        // Prepend a BOM so Excel reads UTF-8 currency symbols correctly.
+        const csv = "﻿" + [header, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `yatri-cloud-receipts-${format(new Date(), "yyyy-MM-dd")}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     const otherCurrencies = Object.entries(revenueByCurrency).filter(([c]) => c !== "INR");
 
     return (
@@ -150,14 +182,25 @@ export default function AdminPayments() {
                     <Card>
                         <CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <CardTitle className="text-base">All receipts</CardTitle>
-                            <div className="relative w-full sm:w-72">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Search buyer, item or receipt number"
-                                    className="pl-9"
-                                />
+                            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                                <div className="relative w-full sm:w-72">
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        placeholder="Search buyer, item or receipt number"
+                                        className="pl-9"
+                                    />
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    className="gap-2"
+                                    onClick={exportCsv}
+                                    disabled={filtered.length === 0}
+                                    title={search ? "Export the receipts matching your search" : "Export all receipts"}
+                                >
+                                    <Download className="h-4 w-4" /> Export CSV
+                                </Button>
                             </div>
                         </CardHeader>
                         <CardContent>
