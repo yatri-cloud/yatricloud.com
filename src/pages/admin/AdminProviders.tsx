@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import AdminLayout from "@/components/admin/AdminLayout"; // Re-using layout for this independent page
 
 import { listProviders, addProvider, updateProvider, deleteProvider } from "@/lib/training-api";
+import { getCertificationLogoUrl } from "@/lib/certification-logos";
 
 interface ProviderData {
     id?: string;
@@ -19,6 +20,27 @@ interface ProviderData {
     logoUrl?: string;
     exams: string[];
     exists?: boolean;
+}
+
+const KNOWN_LOGO_KEYS = ["aws", "azure", "gcp", "kubernetes", "terraform", "hashicorp", "docker", "github", "salesforce", "oracle", "servicenow", "openai"];
+
+/** Map a provider name/slug to a known logo key (handles common aliases). */
+function providerLogoKey(name?: string, slug?: string): string | undefined {
+    const t = `${(name || "").toLowerCase()} ${(slug || "").toLowerCase()}`;
+    if (/google\s*cloud|gcp/.test(t)) return "gcp";
+    if (/microsoft|azure/.test(t)) return "azure";
+    if (/amazon|aws/.test(t)) return "aws";
+    if (/service\s*now/.test(t)) return "servicenow";
+    if (/open\s*ai/.test(t)) return "openai";
+    if (/k8s|kubernetes/.test(t)) return "kubernetes";
+    return KNOWN_LOGO_KEYS.find((k) => t.includes(k));
+}
+
+/** A provider's brand logo: explicit logo_url, else a known certification logo. */
+function resolveProviderLogo(p: ProviderData): string | undefined {
+    if (p.logoUrl) return p.logoUrl;
+    const key = providerLogoKey(p.name, p.slug);
+    return key ? getCertificationLogoUrl(key, "light") : undefined;
 }
 
 export default function AdminProviders() {
@@ -183,12 +205,7 @@ export default function AdminProviders() {
                                     ) : (
                                         providers.map((p: ProviderData, i) => (
                                             <TableRow key={p.id || i} className="hover:bg-brand-50">
-                                                <TableCell className="font-semibold flex items-center gap-2">
-                                                    {p.logoUrl ? (
-                                                        <img src={p.logoUrl} alt="" className="w-4 h-4 object-contain" />
-                                                    ) : (
-                                                        <Server className="w-4 h-4 text-primary" />
-                                                    )}
+                                                <TableCell className="font-semibold">
                                                     {editingRow === i ? (
                                                         <Input
                                                             value={editName}
@@ -196,9 +213,15 @@ export default function AdminProviders() {
                                                             className="h-7 py-0 text-sm"
                                                             autoFocus
                                                         />
-                                                    ) : (
-                                                        <span>{p.name}</span>
-                                                    )}
+                                                    ) : (() => {
+                                                        const logo = resolveProviderLogo(p);
+                                                        // Show the brand logo on its own; fall back to the name only when no logo exists.
+                                                        return logo ? (
+                                                            <img src={logo} alt={p.name} title={p.name} className="h-7 max-w-[130px] object-contain object-left" />
+                                                        ) : (
+                                                            <span className="flex items-center gap-2"><Server className="w-4 h-4 text-primary" /> {p.name}</span>
+                                                        );
+                                                    })()}
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-wrap gap-2">
