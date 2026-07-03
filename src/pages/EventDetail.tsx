@@ -26,6 +26,14 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
 import { LoginModal } from "@/components/LoginModal";
 import { RegistrationModal } from "@/components/RegistrationModal";
+import { WaitlistModal } from "@/components/WaitlistModal";
+import {
+    getEventCapacity,
+    getMyWaitlistEntry,
+    leaveWaitlist,
+    type EventCapacity,
+    type WaitlistEntry,
+} from "@/lib/events-api";
 import { isAuthenticated, getStoredUser, getRegisteredEvents } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
@@ -49,8 +57,11 @@ const EventDetail = () => {
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+    const [showWaitlistModal, setShowWaitlistModal] = useState(false);
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const [isRegistered, setIsRegistered] = useState(false);
+    const [capacity, setCapacity] = useState<EventCapacity | null>(null);
+    const [waitlistEntry, setWaitlistEntry] = useState<WaitlistEntry | null>(null);
 
     // Check if user is logged in
     useEffect(() => {
@@ -84,6 +95,14 @@ const EventDetail = () => {
                     setIsRegistered(isReg);
                 });
             }
+
+            // Load seat capacity and the Yatri's waitlist entry (if any).
+            if (resolvedId) {
+                getEventCapacity(resolvedId).then(setCapacity);
+                if (isAuthenticated()) {
+                    getMyWaitlistEntry(resolvedId).then(setWaitlistEntry);
+                }
+            }
         });
 
         // Load related events for the "more events" section
@@ -93,6 +112,11 @@ const EventDetail = () => {
         window.scrollTo(0, 0);
     }, [eventParam, navigate]);
 
+    // Seats are full only when a real cap is set and every seat is taken.
+    const isFull = capacity?.isFull ?? false;
+    // Treat any non-cancelled entry as being on the waitlist.
+    const onWaitlist = Boolean(waitlistEntry && waitlistEntry.status !== 'cancelled');
+
     const handleRegister = () => {
         if (!isUserLoggedIn) {
             // Show login modal if not logged in
@@ -100,6 +124,34 @@ const EventDetail = () => {
             return;
         }
         setShowRegistrationModal(true);
+    };
+
+    const handleJoinWaitlist = () => {
+        if (!isUserLoggedIn) {
+            setShowLoginModal(true);
+            return;
+        }
+        setShowWaitlistModal(true);
+    };
+
+    const handleWaitlistSuccess = () => {
+        setShowWaitlistModal(false);
+        if (event) getMyWaitlistEntry(event.id).then(setWaitlistEntry);
+    };
+
+    const handleLeaveWaitlist = async () => {
+        if (!waitlistEntry) return;
+        const { ok } = await leaveWaitlist(waitlistEntry.id);
+        if (ok) {
+            setWaitlistEntry(null);
+            toast({
+                title: "You left the waitlist",
+                description: "You can join again any time seats are full.",
+            });
+            if (event) getEventCapacity(event.id).then(setCapacity);
+        } else {
+            toast({ title: "Something went wrong", description: "Please try again.", variant: "destructive" });
+        }
     };
 
     const handleRegistrationSuccess = () => {
@@ -112,9 +164,10 @@ const EventDetail = () => {
             title: "Welcome!",
             description: `Logged in as ${user.fullName}`,
         });
-        // After login, automatically proceed with registration
+        // After login, open the right flow for the current seat state.
         setTimeout(() => {
-            handleRegister();
+            if (isFull) setShowWaitlistModal(true);
+            else setShowRegistrationModal(true);
         }, 500);
     };
 
@@ -334,10 +387,16 @@ const EventDetail = () => {
                                 )}
 
                                 <div className="pt-4 border-t border-border">
-                                    {event.seatsAvailable && event.seatsAvailable < 20 && (
-                                        <p className="text-sm text-warning mb-4 flex items-center gap-2 font-medium">
-                                            <Users className="w-4 h-4" />
-                                            Almost full — only {event.seatsAvailable} seats left!
+                                    {/* Seats left when a cap is set and seats remain */}
+                                    {capacity?.capacity != null && !isFull && capacity.seatsLeft !== null && (
+                                        <p className={`text-sm mb-4 font-medium ${capacity.seatsLeft <= 10 ? 'text-warning' : 'text-muted-foreground'}`}>
+                                            {capacity.seatsLeft} {capacity.seatsLeft === 1 ? 'seat' : 'seats'} left
+                                        </p>
+                                    )}
+                                    {/* Sold out note when full and not already handled */}
+                                    {isFull && !isRegistered && !onWaitlist && (
+                                        <p className="text-sm mb-4 font-medium text-muted-foreground">
+                                            Sold out. Join the waitlist and we will email you if a seat opens.
                                         </p>
                                     )}
 
@@ -347,6 +406,26 @@ const EventDetail = () => {
                                             <CheckCircle2 className="w-5 h-5" />
                                             <span>You're in, Yatri — see you there!</span>
                                         </div>
+                                    ) : onWaitlist ? (
+                                        <div className="space-y-2">
+                                            <div className="w-full bg-primary/10 text-primary border border-primary/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
+                                                <Check className="w-5 h-5" />
+                                                <span>You are on the waitlist</span>
+                                            </div>
+                                            <button
+                                                onClick={handleLeaveWaitlist}
+                                                className="w-full min-h-[44px] text-sm text-muted-foreground hover:text-foreground transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                            >
+                                                Leave the waitlist
+                                            </button>
+                                        </div>
+                                    ) : isFull ? (
+                                        <button
+                                            onClick={handleJoinWaitlist}
+                                            className="w-full min-h-[44px] bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold shadow-inset-btn hover:bg-brand-600 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                        >
+                                            Join the waitlist
+                                        </button>
                                     ) : event.requiresLogin && !isUserLoggedIn ? (
                                         <button
                                             onClick={() => setShowLoginModal(true)}
@@ -727,6 +806,15 @@ const EventDetail = () => {
                         // Reuse existing success logic or adapt if needed
                         handleRegistrationSuccess();
                     }}
+                />
+            )}
+
+            {event && (
+                <WaitlistModal
+                    open={showWaitlistModal}
+                    onClose={() => setShowWaitlistModal(false)}
+                    event={event}
+                    onSuccess={handleWaitlistSuccess}
                 />
             )}
 

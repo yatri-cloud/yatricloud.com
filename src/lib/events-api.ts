@@ -9,6 +9,7 @@
 // is JSON-encoded into the `description` column and rebuilt on read.
 
 import { supabase } from "@/lib/supabase";
+import { sendEmail } from "@/lib/email";
 import type { Event } from "@/lib/events-store";
 import type { EventRegistration } from "@/lib/registration-store";
 
@@ -443,6 +444,233 @@ export async function updateRegistrationDetails(
         return false;
     }
     return true;
+}
+
+// ---------- capacity ----------
+export interface EventCapacity {
+    /** Configured seat cap, or null when the event is unlimited. */
+    capacity: number | null;
+    /** Non-cancelled registrations that already took a seat. */
+    registered: number;
+    /** Seats still open, or null when unlimited. */
+    seatsLeft: number | null;
+    /** True only when a real cap is set and every seat is taken. */
+    isFull: boolean;
+}
+
+/**
+ * Reads the event's seat cap and counts the non-cancelled registrations.
+ * A null or 0 capacity means unlimited (never full, no seats-left number).
+ */
+export async function getEventCapacity(eventId: string): Promise<EventCapacity> {
+    const unlimited: EventCapacity = { capacity: null, registered: 0, seatsLeft: null, isFull: false };
+    if (!eventId) return unlimited;
+
+    const { data: eventRow } = await supabase
+        .from("events")
+        .select("capacity")
+        .eq("id", eventId)
+        .maybeSingle();
+    const rawCapacity = eventRow?.capacity;
+    const capacity =
+        typeof rawCapacity === "number" && rawCapacity > 0 ? rawCapacity : null;
+
+    const { count } = await supabase
+        .from("event_registrations")
+        .select("id", { count: "exact", head: true })
+        .eq("event_id", eventId)
+        .neq("status", "cancelled");
+    const registered = count ?? 0;
+
+    if (capacity === null) {
+        return { capacity: null, registered, seatsLeft: null, isFull: false };
+    }
+    const seatsLeft = Math.max(0, capacity - registered);
+    return { capacity, registered, seatsLeft, isFull: seatsLeft <= 0 };
+}
+
+// ---------- waitlist ----------
+export type WaitlistStatus = "waiting" | "notified" | "converted" | "cancelled";
+
+export interface WaitlistEntry {
+    id: string;
+    eventId: string;
+    userId: string | null;
+    name: string;
+    email: string;
+    phone: string | null;
+    status: WaitlistStatus;
+    notifiedAt: string | null;
+    createdAt: string;
+}
+
+function waitlistRowToEntry(row: EventRow): WaitlistEntry {
+    return {
+        id: row.id,
+        eventId: row.event_id,
+        userId: row.user_id || null,
+        name: row.name || "",
+        email: row.email || "",
+        phone: row.phone || null,
+        status: row.status,
+        notifiedAt: row.notified_at || null,
+        createdAt: row.created_at,
+    };
+}
+
+/**
+ * Adds the Yatri to an event's waitlist. The (event_id, email) pair is unique,
+ * so an existing row is reused: a previously cancelled entry is re-opened, and
+ * a live entry is treated as success without a duplicate insert.
+ */
+export async function joinWaitlist(input: {
+    eventId: string;
+    userId?: string | null;
+    name: string;
+    email: string;
+    phone?: string;
+}): Promise<{ ok: boolean; error: string | null }> {
+    const email = input.email.trim().toLowerCase();
+
+    const { data: existing } = await supabase
+        .from("event_waitlist")
+        .select("id, status")
+        .eq("event_id", input.eventId)
+        .eq("email", email)
+        .maybeSingle();
+
+    if (existing?.id) {
+        if (existing.status === "cancelled") {
+            const { error } = await supabase
+                .from("event_waitlist")
+                .update({ status: "waiting", name: input.name, phone: input.phone || null })
+                .eq("id", existing.id);
+            if (error) {
+                console.error("[events-api] joinWaitlist(reopen)", error.message);
+                return { ok: false, error: "We could not add you to the waitlist. Please try again." };
+            }
+        }
+        return { ok: true, error: null };
+    }
+
+    const { error } = await supabase.from("event_waitlist").insert({
+        event_id: input.eventId,
+        user_id: input.userId || null,
+        name: input.name,
+        email,
+        phone: input.phone || null,
+        status: "waiting",
+    });
+
+    if (error) {
+        // Raced into the unique constraint — already on the list, treat as done.
+        if ((error as any).code === "23505") return { ok: true, error: null };
+        console.error("[events-api] joinWaitlist", error.message);
+        return { ok: false, error: "We could not add you to the waitlist. Please try again." };
+    }
+    return { ok: true, error: null };
+}
+
+/** The signed-in Yatri's waitlist row for an event, or null. */
+export async function getMyWaitlistEntry(eventId: string): Promise<WaitlistEntry | null> {
+    if (!eventId) return null;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data, error } = await supabase
+        .from("event_waitlist")
+        .select("*")
+        .eq("event_id", eventId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+    if (error || !data) return null;
+    return waitlistRowToEntry(data);
+}
+
+/** Admin read of every waitlist row for an event, oldest first. */
+export async function getEventWaitlist(eventId: string): Promise<WaitlistEntry[]> {
+    if (!eventId) return [];
+    const { data, error } = await supabase
+        .from("event_waitlist")
+        .select("*")
+        .eq("event_id", eventId)
+        .order("created_at", { ascending: true });
+    if (error) {
+        console.error("[events-api] getEventWaitlist", error.message);
+        return [];
+    }
+    return (data || []).map(waitlistRowToEntry);
+}
+
+/**
+ * Admin action: mark a waitlist entry as notified and email the Yatri that a
+ * seat has opened, with a direct link to register. The status is updated first
+ * so a mail failure still records the notification for the admin.
+ */
+export async function notifyWaitlistEntry(entryId: string): Promise<{ ok: boolean; error?: string }> {
+    const { data: entry, error: entryErr } = await supabase
+        .from("event_waitlist")
+        .select("*")
+        .eq("id", entryId)
+        .maybeSingle();
+    if (entryErr || !entry) {
+        console.error("[events-api] notifyWaitlistEntry(load)", entryErr?.message);
+        return { ok: false, error: "We could not find that waitlist entry." };
+    }
+
+    const { error: updErr } = await supabase
+        .from("event_waitlist")
+        .update({ status: "notified", notified_at: new Date().toISOString() })
+        .eq("id", entryId);
+    if (updErr) {
+        console.error("[events-api] notifyWaitlistEntry(update)", updErr.message);
+        return { ok: false, error: "We could not update the waitlist entry." };
+    }
+
+    const { data: eventRow } = await supabase
+        .from("events")
+        .select("slug, name")
+        .eq("id", entry.event_id)
+        .maybeSingle();
+    const eventSlug = eventRow?.slug || entry.event_id;
+    const eventName = eventRow?.name || "the event";
+    const link = `https://www.yatricloud.com/events/${eventSlug}`;
+    const firstName = (entry.name || "Yatri").split(" ")[0] || "Yatri";
+
+    try {
+        await sendEmail({
+            to: entry.email,
+            subject: `A seat opened for ${eventName}`,
+            html: `
+                <div style="font-family:'Inter Tight',Arial,sans-serif;max-width:560px;margin:0 auto;color:#0f172a;">
+                    <h2 style="font-size:22px;margin:0 0 16px;">Good news, ${firstName}</h2>
+                    <p style="font-size:16px;line-height:1.6;margin:0 0 12px;">A seat just opened for <strong>${eventName}</strong>. You are next on the waitlist, so this spot is yours to claim.</p>
+                    <p style="font-size:16px;line-height:1.6;margin:0 0 24px;">Please register now to lock it in. Seats are given on a first come basis.</p>
+                    <p style="text-align:center;margin:24px 0;">
+                        <a href="${link}" style="display:inline-block;padding:14px 28px;background:#007CFF;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:16px;">Register now</a>
+                    </p>
+                    <p style="font-size:14px;line-height:1.6;color:#64748b;margin:24px 0 0;">If the button does not work, open this link: <a href="${link}" style="color:#007CFF;">${link}</a></p>
+                    <p style="font-size:14px;line-height:1.6;color:#64748b;margin:16px 0 0;">See you there, from the Yatri Cloud team.</p>
+                </div>
+            `,
+        });
+    } catch (mailErr) {
+        // The notified state is already saved; surface success so the admin sees it.
+        console.error("[events-api] notifyWaitlistEntry(email)", mailErr);
+    }
+    return { ok: true };
+}
+
+/** Owner action: leave the waitlist (sets the row to cancelled). */
+export async function leaveWaitlist(entryId: string): Promise<{ ok: boolean; error?: string }> {
+    const { error } = await supabase
+        .from("event_waitlist")
+        .update({ status: "cancelled" })
+        .eq("id", entryId);
+    if (error) {
+        console.error("[events-api] leaveWaitlist", error.message);
+        return { ok: false, error: "We could not update your waitlist entry." };
+    }
+    return { ok: true };
 }
 
 // ---------- media upload (Supabase Storage) ----------

@@ -30,7 +30,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import type { EventRegistration } from "@/lib/registration-store";
-import { getEventRegistrations, cancelRegistration, updateRegistrationDetails } from "@/lib/events-api";
+import {
+    getEventRegistrations,
+    cancelRegistration,
+    updateRegistrationDetails,
+    getEventWaitlist,
+    notifyWaitlistEntry,
+    type WaitlistEntry,
+} from "@/lib/events-api";
 import { getEventById } from "@/lib/events-store";
 
 export default function EventRegistrationsList() {
@@ -44,6 +51,8 @@ export default function EventRegistrationsList() {
     const [ticketFilter, setTicketFilter] = useState<"all" | "free" | "paid">("all");
     const [selectedRegistration, setSelectedRegistration] = useState<EventRegistration | null>(null);
     const [event, setEvent] = useState<any>(null);
+    const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+    const [notifyingId, setNotifyingId] = useState<string | null>(null);
 
     // Edit State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -74,6 +83,29 @@ export default function EventRegistrationsList() {
         const regs = await getEventRegistrations(eventId);
         setRegistrations(regs);
         setFilteredRegistrations(regs);
+
+        // Get waitlist
+        const wl = await getEventWaitlist(eventId);
+        setWaitlist(wl);
+    };
+
+    const handleNotify = async (entry: WaitlistEntry) => {
+        setNotifyingId(entry.id);
+        const { ok } = await notifyWaitlistEntry(entry.id);
+        setNotifyingId(null);
+        if (ok) {
+            toast({
+                title: "Waitlist guest notified",
+                description: `We emailed ${entry.email} that a seat opened.`,
+            });
+            loadData();
+        } else {
+            toast({
+                title: "Could not notify",
+                description: "Please try again in a moment.",
+                variant: "destructive",
+            });
+        }
     };
 
     useEffect(() => {
@@ -430,6 +462,87 @@ export default function EventRegistrationsList() {
                             )}
                         </TableBody>
                     </Table>
+                </div>
+
+                {/* Waitlist */}
+                <div className="border border-border rounded-2xl bg-card overflow-hidden">
+                    <div className="flex items-center justify-between gap-3 p-5 md:p-6 border-b border-border">
+                        <div>
+                            <h2 className="font-display text-lg font-semibold">Waitlist</h2>
+                            <p className="text-sm text-muted-foreground mt-0.5">People waiting for a seat to open.</p>
+                        </div>
+                        <Badge variant="outline" className="rounded-full text-xs font-medium">
+                            {waitlist.filter(w => w.status === 'waiting').length} waiting
+                        </Badge>
+                    </div>
+                    {waitlist.length === 0 ? (
+                        <div className="text-center py-12 text-sm text-muted-foreground">
+                            No one is on the waitlist yet.
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="hover:bg-transparent">
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Name</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Email</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Phone</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Status</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3">Joined</TableHead>
+                                    <TableHead className="text-xs uppercase tracking-wide text-muted-foreground px-4 py-3 text-right">Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="divide-y divide-border">
+                                {waitlist.map((entry) => (
+                                    <TableRow key={entry.id} className="text-sm hover:bg-brand-50">
+                                        <TableCell className="font-medium px-4 py-3">{entry.name}</TableCell>
+                                        <TableCell className="px-4 py-3">{entry.email}</TableCell>
+                                        <TableCell className="px-4 py-3 tabular-nums">{entry.phone || '-'}</TableCell>
+                                        <TableCell className="px-4 py-3">
+                                            <Badge className={`rounded-full text-xs font-medium ${
+                                                entry.status === 'converted'
+                                                    ? 'bg-success/10 text-success'
+                                                    : entry.status === 'notified'
+                                                        ? 'bg-primary/10 text-primary'
+                                                        : entry.status === 'cancelled'
+                                                            ? 'bg-destructive/10 text-destructive'
+                                                            : 'bg-warning/10 text-warning'
+                                            }`}>
+                                                {entry.status === 'waiting' ? 'Waiting'
+                                                    : entry.status === 'notified' ? 'Notified'
+                                                    : entry.status === 'converted' ? 'Converted'
+                                                    : 'Left'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="px-4 py-3">{new Date(entry.createdAt).toLocaleDateString()}</TableCell>
+                                        <TableCell className="px-4 py-3 text-right">
+                                            {entry.status === 'waiting' ? (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleNotify(entry)}
+                                                    disabled={notifyingId === entry.id}
+                                                    className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
+                                                >
+                                                    {notifyingId === entry.id ? (
+                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    ) : (
+                                                        <Mail className="w-4 h-4 mr-2" />
+                                                    )}
+                                                    Notify
+                                                </Button>
+                                            ) : entry.status === 'notified' ? (
+                                                <span className="text-sm text-muted-foreground">
+                                                    Notified{entry.notifiedAt ? ` ${new Date(entry.notifiedAt).toLocaleDateString()}` : ''}
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground">-</span>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
                 </div>
             </div>
 
