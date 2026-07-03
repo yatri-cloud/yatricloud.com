@@ -26,6 +26,7 @@ One file per shipped feature — what it does, the end-to-end flow, data model &
 | Feature | Doc | Migration |
 |---|---|---|
 | Global ⌘K search | [global-search.md](global-search.md) | — |
+| HTTP QUERY method (RFC 10008) on the admin gateway | [http-query-method.md](http-query-method.md) | — |
 | List search, sort & pagination (site-wide convention) | [list-search-sort-pagination.md](list-search-sort-pagination.md) | — |
 | Public/private visibility + unlisted links (events & trainings) | [events-training-visibility.md](events-training-visibility.md) | 029 |
 | Admin inquiries inbox (partner + contact forms) | [admin-inquiries.md](admin-inquiries.md) | 004/006 |
