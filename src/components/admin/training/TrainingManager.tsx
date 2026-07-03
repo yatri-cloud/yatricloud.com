@@ -615,7 +615,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                         {([
                                             { value: 'public' as const, title: 'Public', desc: 'Listed on the trainings page for everyone.' },
-                                            { value: 'private' as const, title: 'Private (unlisted)', desc: 'Hidden from the site. Share the link to enroll.' },
+                                            { value: 'private' as const, title: 'Private (unlisted)', desc: 'Hidden from the site. You get an unguessable link to share for enrollments.' },
                                         ]).map((opt) => (
                                             <button
                                                 key={opt.value}

@@ -71,6 +71,8 @@ export default function CreateEvent() {
     const [eventId, setEventId] = useState<string>(() => crypto.randomUUID());
     const [isEditMode, setIsEditMode] = useState(false);
     const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+    /** Slug of an already-private event being edited — kept stable so links already shared keep working. */
+    const [existingPrivateSlug, setExistingPrivateSlug] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -89,6 +91,7 @@ export default function CreateEvent() {
             if (isPast) setStep(5);
 
             setVisibility(editEvent.visibility === 'private' ? 'private' : 'public');
+            setExistingPrivateSlug(editEvent.visibility === 'private' ? (editEvent.slug || null) : null);
 
             const startDateObj = new Date(editEvent.date);
             const endDateObj = editEvent.endDate ? new Date(editEvent.endDate) : null;
@@ -201,10 +204,26 @@ export default function CreateEvent() {
 
     const constructEventObject = (status: 'draft' | 'upcoming' | 'past'): Event => {
         // Generate slug from name
-        const slug = (formData.eventName || "untitled-event")
+        let slug = (formData.eventName || "untitled-event")
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric chars with hyphens
             .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+
+        if (visibility === 'private') {
+            if (existingPrivateSlug) {
+                // Already private: keep the slug stable so shared links keep working.
+                slug = existingPrivateSlug;
+            } else {
+                // New private link (or public → private switch): the URL never
+                // carries the word "private" and ends in an unguessable token.
+                const base = (formData.eventName || "untitled-event")
+                    .replace(/\bprivate\b/gi, ' ')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '') || 'event';
+                slug = `${base}-${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
+            }
+        }
 
         return {
             id: eventId,
@@ -649,7 +668,7 @@ export default function CreateEvent() {
                                                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                                     {([
                                                         { value: 'public' as const, title: 'Public', desc: 'Listed on the events page for everyone.' },
-                                                        { value: 'private' as const, title: 'Private (unlisted)', desc: 'Hidden from the site. Share the link to take registrations.' },
+                                                        { value: 'private' as const, title: 'Private (unlisted)', desc: 'Hidden from the site. You get an unguessable link to share for registrations.' },
                                                     ]).map((opt) => (
                                                         <button
                                                             key={opt.value}

@@ -115,6 +115,16 @@ const createSlug = (name: string) =>
     .replace(/[\s_]+/g, "-")
     .replace(/-+/g, "-");
 
+/**
+ * Unguessable suffix for private (unlisted) URLs — the YouTube-unlisted
+ * pattern. The URL itself never says "private"; it is simply not enumerable.
+ */
+const unlistedToken = () => crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+
+/** Slug base for a private item: the word "private" never reaches the URL. */
+const privateSlugBase = (name: string) =>
+  createSlug(String(name || "").replace(/\bprivate\b/gi, " ")) || "training";
+
 const statusToDb = (s?: string) => (s === "Published" ? "published" : "draft");
 const statusFromDb = (s?: string): "Draft" | "Published" =>
   s === "published" ? "Published" : "Draft";
@@ -951,7 +961,11 @@ export async function createTraining(input: TrainingInput): Promise<string> {
     try { row.image_url = await uploadThumbnail(input.thumbnailBase64, input.thumbnailMimeType); }
     catch { /* image optional */ }
   }
-  row.slug = `${createSlug(input.courseName || input.subType || "training") || "training"}-${Date.now().toString(36)}`;
+  // Private trainings get an unguessable token suffix and never carry the
+  // word "private" in the URL; public ones keep the readable dated slug.
+  row.slug = input.visibility === "private"
+    ? `${privateSlugBase(input.courseName || input.subType || "training")}-${unlistedToken()}`
+    : `${createSlug(input.courseName || input.subType || "training") || "training"}-${Date.now().toString(36)}`;
 
   const { data, error } = await supabase.from("trainings").insert(row).select("id").single();
   if (error || !data) throw error || new Error("Create failed");
@@ -965,6 +979,16 @@ export async function updateTraining(id: string, input: TrainingInput): Promise<
   if (input.thumbnailBase64 && input.thumbnailMimeType) {
     try { row.image_url = await uploadThumbnail(input.thumbnailBase64, input.thumbnailMimeType); }
     catch { /* image optional */ }
+  }
+  // Switching public → private regenerates the link: the old URL was public
+  // knowledge, so it must not remain the private one. An already-private slug
+  // is kept stable so links already shared keep working.
+  if (input.visibility === "private") {
+    const { data: cur } = await supabase
+      .from("trainings").select("visibility").eq("id", id).maybeSingle();
+    if (cur && cur.visibility !== "private") {
+      row.slug = `${privateSlugBase(input.courseName || input.subType || "training")}-${unlistedToken()}`;
+    }
   }
   const { error } = await supabase.from("trainings").update(row).eq("id", id);
   if (error) throw error;
