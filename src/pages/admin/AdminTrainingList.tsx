@@ -63,14 +63,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listAllTrainings, deleteTraining, updateTrainingSchedule } from "@/lib/training-api";
+import { listAllTrainings, deleteTraining, updateTrainingSchedule, approveCourse, rejectCourse } from "@/lib/training-api";
 
 interface Course {
     id: string;
+    slug?: string;
     courseName: string;
     subType: string;
     instructor: string;
-    status: "Draft" | "Published";
+    status: "Draft" | "Published" | "Review";
+    reviewStatus?: string;
     timestamp: string;
     folderUrl: string;
     startDate?: string;
@@ -92,7 +94,7 @@ export default function AdminTrainingList() {
     const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState<"All" | "Published" | "Draft">("All");
+    const [statusFilter, setStatusFilter] = useState<"All" | "Published" | "Draft" | "Review">("All");
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -138,16 +140,36 @@ export default function AdminTrainingList() {
     };
 
     const handleDelete = async (courseId: string) => {
-        if (!confirm("Are you sure you want to delete this training? This will also move the Drive folder to trash.")) return;
+        if (!confirm("Are you sure you want to delete this training? This cannot be undone.")) return;
 
         toast.loading("Deleting training...");
         try {
             await deleteTraining(courseId);
             toast.dismiss();
-            toast.success("Training deleted successfully");
+            toast.success("Training deleted");
             fetchCourses();
         } catch (e: any) {
             toast.error("Delete failed: " + (e?.message || "Network error during deletion"));
+        }
+    };
+
+    const handleApprove = async (courseId: string) => {
+        try {
+            await approveCourse(courseId);
+            toast.success("Course approved and published");
+            fetchCourses();
+        } catch (e: any) {
+            toast.error("Approve failed: " + (e?.message || "Network error"));
+        }
+    };
+
+    const handleReject = async (courseId: string) => {
+        try {
+            await rejectCourse(courseId);
+            toast.success("Course rejected. It stays a draft for the trainer to fix.");
+            fetchCourses();
+        } catch (e: any) {
+            toast.error("Reject failed: " + (e?.message || "Network error"));
         }
     };
 
@@ -160,8 +182,8 @@ export default function AdminTrainingList() {
         setIsUpdating(true);
         try {
             const formattedDate = format(scheduleDate, "yyyy-MM-dd");
-            const result = await updateTrainingSchedule(selectedCourse.id, formattedDate, scheduleTime);
-            toast.success("Schedule updated & Meet link generated!");
+            const result = await updateTrainingSchedule(selectedCourse.id, { startDate: formattedDate, startTime: scheduleTime });
+            toast.success("Schedule saved. The meeting link is set for enrolled students.");
             // Update local state
             setSelectedCourse(prev => prev ? ({ ...prev, meetLink: result.meetLink, startDate: formattedDate, startTime: scheduleTime }) : null);
             // Refresh list
@@ -235,6 +257,14 @@ export default function AdminTrainingList() {
                                 className={cn("gap-2 rounded-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring", statusFilter === "Draft" && "bg-primary text-primary-foreground hover:bg-brand-600")}
                             >
                                 <Clock className="w-3 h-3" /> Drafts
+                            </Button>
+                            <Button
+                                variant={statusFilter === "Review" ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setStatusFilter("Review")}
+                                className={cn("gap-2 rounded-full min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring", statusFilter === "Review" && "bg-primary text-primary-foreground hover:bg-brand-600")}
+                            >
+                                <AlertCircle className="w-3 h-3" /> In review
                             </Button>
                         </div>
                     </div>
@@ -316,6 +346,16 @@ export default function AdminTrainingList() {
                                                     }}>
                                                         <Eye className="w-4 h-4 mr-2" /> View Details
                                                     </DropdownMenuItem>
+                                                    {course.status === "Review" && (
+                                                        <>
+                                                            <DropdownMenuItem onClick={() => handleApprove(course.id)}>
+                                                                <CheckCircle2 className="w-4 h-4 mr-2 text-success" /> Approve and Publish
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleReject(course.id)}>
+                                                                <AlertCircle className="w-4 h-4 mr-2 text-warning" /> Reject
+                                                            </DropdownMenuItem>
+                                                        </>
+                                                    )}
                                                     <DropdownMenuItem
                                                         className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
                                                         onClick={() => handleDelete(course.id)}
@@ -408,7 +448,7 @@ export default function AdminTrainingList() {
                             {selectedCourse.mode === "Online" && (
                                 <div className="bg-muted/30 p-4 rounded-2xl border border-primary/20">
                                     <Label className="text-primary font-semibold flex items-center gap-2">
-                                        <Video className="w-4 h-4" /> Google Meet Link
+                                        <Video className="w-4 h-4" /> Meeting Link
                                     </Label>
                                     {selectedCourse.meetLink ? (
                                         <>

@@ -80,7 +80,9 @@ export interface Course {
   skills: string;
   outcomes: string;
   modulesCount: number;
-  status: "Draft" | "Published";
+  status: "Draft" | "Published" | "Review";
+  /** Review gate: 'none' | 'pending' | 'approved' | 'rejected'. */
+  reviewStatus: string;
   timestamp: string;
   folderUrl: string;
   venue?: string;
@@ -108,6 +110,11 @@ function rowToCourse(row: any, modulesCount = 0): Course {
   const priceNum = Number(row.price_inr) || 0;
   const isPaid = priceNum > 0;
   const mode: "Online" | "On-site" = row.mode === "online" ? "Online" : "On-site";
+  const reviewStatus = row.review_status || "none";
+  // A draft awaiting admin approval reads as "Review" so both dashboards can
+  // tell it apart from an untouched draft. A published course stays published.
+  let status: "Draft" | "Published" | "Review" = statusFromDb(row.status);
+  if (status !== "Published" && reviewStatus === "pending") status = "Review";
   return {
     id: row.id,
     slug: row.slug || "",
@@ -125,7 +132,8 @@ function rowToCourse(row: any, modulesCount = 0): Course {
     skills: "",
     outcomes: "",
     modulesCount,
-    status: statusFromDb(row.status),
+    status,
+    reviewStatus,
     timestamp: row.created_at || "",
     folderUrl: "",
     venue: row.city || "",
@@ -537,20 +545,140 @@ export async function deleteTrainer(trainerId: string): Promise<void> {
   if (error) throw error;
 }
 
-// Instructor profiles, Google-Meet access and course assignments were
-// Sheets/Drive/Calendar-only features with no Supabase table. They resolve as
-// no-ops so the existing admin UI keeps working without behavioural surprises.
+/**
+ * Build a working Jitsi meeting link for a training. Jitsi rooms are created on
+ * first visit, so this URL is live the moment it is shared — no external API.
+ */
+export function generateMeetLink(
+  training: { id?: string; slug?: string; courseName?: string; course_title?: string; name?: string } = {},
+): string {
+  const label =
+    createSlug(training.slug || training.courseName || training.course_title || training.name || "");
+  const idPart = String(training.id || "").replace(/-/g, "").slice(0, 6);
+  const base = (label || idPart || "session").slice(0, 40);
+  const random6 = Math.random().toString(36).slice(2, 8);
+  return `https://meet.jit.si/YatriCloud-${base}-${random6}`;
+}
+
+/** Approved trainers as public instructor profiles (backed by trainer_applications). */
 export async function listInstructorProfiles(): Promise<any[]> {
-  return [];
+  const { data, error } = await supabase
+    .from("trainer_applications")
+    .select("id, user_id, name, email, expertise, linkedin_url, details")
+    .eq("status", "approved");
+  if (error) throw error;
+  return (data || []).map((a: any) => {
+    const d = a.details || {};
+    return {
+      id: a.id,
+      userId: a.user_id || "",
+      trainerId: a.user_id || "",
+      name: a.name || "",
+      fullName: a.name || "",
+      email: a.email || "",
+      role: d.role || "",
+      bio: d.bio || "",
+      expertise: a.expertise || "",
+      linkedin: a.linkedin_url || "",
+      linkedin_url: a.linkedin_url || "",
+      photo: d.photo || "",
+      photoUrl: d.photo || "",
+      rating: d.rating || "4.8",
+      studentsCount: d.studentsCount || "0",
+      coursesCount: d.coursesCount || "0",
+    };
+  });
 }
-export async function updateInstructorProfile(_profile: any): Promise<void> {
-  return;
+
+/** Update an approved trainer's instructor profile (columns + details jsonb). */
+export async function updateInstructorProfile(profile: any): Promise<void> {
+  const email = String(profile?.email || "").trim().toLowerCase();
+  let row: { id: string; details: any } | null = null;
+  if (profile?.id) {
+    const { data } = await supabase
+      .from("trainer_applications")
+      .select("id, details")
+      .eq("id", profile.id)
+      .maybeSingle();
+    row = data as any;
+  } else if (email) {
+    const { data } = await supabase
+      .from("trainer_applications")
+      .select("id, details")
+      .eq("email", email)
+      .eq("status", "approved")
+      .maybeSingle();
+    row = data as any;
+  }
+  if (!row) throw new Error("We could not find this trainer's application.");
+
+  const details = { ...(row.details || {}) };
+  if (profile.bio !== undefined) details.bio = profile.bio;
+  const photo = profile.photo_url ?? profile.photoUrl;
+  if (photo !== undefined) details.photo = photo;
+  if (profile.role !== undefined) details.role = profile.role;
+  if (profile.rating !== undefined) details.rating = profile.rating;
+  if (profile.studentsCount !== undefined) details.studentsCount = profile.studentsCount;
+  if (profile.coursesCount !== undefined) details.coursesCount = profile.coursesCount;
+
+  const patch: Record<string, any> = { details };
+  if (profile.expertise !== undefined) patch.expertise = profile.expertise;
+  const linkedin = profile.linkedin_url ?? profile.linkedIn ?? profile.linkedin;
+  if (linkedin !== undefined) patch.linkedin_url = linkedin;
+
+  const { error } = await supabase
+    .from("trainer_applications")
+    .update(patch)
+    .eq("id", row.id);
+  if (error) throw error;
 }
-export async function grantMeetAccess(_input: { trainerEmail: string; trainingId: string }): Promise<{ meetLink?: string }> {
-  return {};
+
+/**
+ * Ensure a training has a live meeting link (generate + save a Jitsi one if
+ * missing) so the trainer can host. Returns the link.
+ */
+export async function grantMeetAccess(input: { trainerEmail: string; trainingId: string }): Promise<{ meetLink?: string }> {
+  const { data: current, error: readErr } = await supabase
+    .from("trainings")
+    .select("id, slug, course_title, name, meet_link")
+    .eq("id", input.trainingId)
+    .maybeSingle();
+  if (readErr) throw readErr;
+  if (!current) throw new Error("We could not find that training.");
+
+  let meetLink = current.meet_link || "";
+  if (!meetLink) {
+    meetLink = generateMeetLink({
+      id: current.id,
+      slug: current.slug,
+      courseName: current.course_title || current.name,
+    });
+    const { error } = await supabase
+      .from("trainings")
+      .update({ meet_link: meetLink })
+      .eq("id", input.trainingId);
+    if (error) throw error;
+  }
+  return { meetLink };
 }
-export async function assignTrainerToCourse(_input: any): Promise<void> {
-  return;
+
+/** Assign a trainer to a real training (sets trainer_id, trainer_name, trainer_email). */
+export async function assignTrainerToCourse(input: {
+  trainingId: string;
+  trainerId?: string;
+  trainerName?: string;
+  trainerEmail?: string;
+}): Promise<void> {
+  if (!input.trainingId) throw new Error("Please choose a training to assign.");
+  const patch: Record<string, any> = {};
+  if (input.trainerId !== undefined) patch.trainer_id = input.trainerId || null;
+  if (input.trainerName !== undefined) patch.trainer_name = input.trainerName || null;
+  if (input.trainerEmail !== undefined) patch.trainer_email = input.trainerEmail || null;
+  const { error } = await supabase
+    .from("trainings")
+    .update(patch)
+    .eq("id", input.trainingId);
+  if (error) throw error;
 }
 
 // ---------------------------------------------------------------------------
@@ -558,35 +686,71 @@ export async function assignTrainerToCourse(_input: any): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export interface ProviderData {
+  id?: string;
   type: string;
   name: string;
+  slug?: string;
+  logoUrl?: string;
   exams: string[];
   exists?: boolean;
 }
 
-/** Provider list = catalog labels, each with the exams (course titles) seen in trainings. */
+/**
+ * Provider list from the training_providers table (public read of active rows;
+ * admins see all). Each provider is enriched with the exams (course titles)
+ * seen in trainings. Falls back to the certification catalog labels when the
+ * table is empty so dropdowns are never blank.
+ */
 export async function listProviders(): Promise<ProviderData[]> {
-  const labels = await providerDisplayLabels();
-  const { data } = await supabase
+  const { data: providerRows } = await supabase
+    .from("training_providers")
+    .select("id, name, slug, logo_url, sort_order, active")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  const { data: trainingRows } = await supabase
     .from("trainings")
     .select("name, course_title, provider");
 
-  const examsByProvider: Record<string, Set<string>> = {};
-  for (const label of labels) examsByProvider[label] = new Set();
+  // Real, managed providers.
+  if (providerRows && providerRows.length) {
+    const examsByProvider: Record<string, Set<string>> = {};
+    for (const p of providerRows) examsByProvider[p.name] = new Set();
 
-  for (const row of data || []) {
-    // Prefer the human track label stored in `name`; fall back to enum display.
+    for (const row of trainingRows || []) {
+      const match = providerRows.find(
+        (p) => toProviderEnum(p.name) === toProviderEnum(row.name || row.provider),
+      );
+      const exam = row.course_title || row.name;
+      if (match && exam) examsByProvider[match.name]?.add(exam);
+    }
+
+    return providerRows.map((p) => ({
+      id: p.id,
+      type: "Certification",
+      name: p.name,
+      slug: p.slug || "",
+      logoUrl: p.logo_url || "",
+      exams: Array.from(examsByProvider[p.name] || []),
+      exists: true,
+    }));
+  }
+
+  // Fallback: catalog labels with exams derived from trainings.
+  const labels = await providerDisplayLabels();
+  const examsByLabel: Record<string, Set<string>> = {};
+  for (const label of labels) examsByLabel[label] = new Set();
+  for (const row of trainingRows || []) {
     const label = labels.find(
       (p) => toProviderEnum(p) === toProviderEnum(row.name || row.provider),
     ) || "Other";
     const exam = row.course_title || row.name;
-    if (exam) examsByProvider[label]?.add(exam);
+    if (exam) examsByLabel[label]?.add(exam);
   }
-
   return labels.map((label) => ({
     type: "Certification",
     name: label,
-    exams: Array.from(examsByProvider[label] || []),
+    exams: Array.from(examsByLabel[label] || []),
     exists: true,
   }));
 }
@@ -598,11 +762,63 @@ export async function getFoldersInPath(_type: string, provider?: string): Promis
   return providers.find((p) => p.name === provider)?.exams || [];
 }
 
-// Provider add/update/delete have no backing table (provider is an enum column,
-// not a managed entity). They resolve as no-ops to preserve the admin UI.
-export async function addProvider(_input: any): Promise<void> { return; }
-export async function updateProvider(_input: any): Promise<void> { return; }
-export async function deleteProvider(_input: any): Promise<void> { return; }
+/** Admin: add a training provider. */
+export async function addProvider(input: {
+  name?: string;
+  provider?: string;
+  logo_url?: string;
+  slug?: string;
+  sort_order?: number;
+}): Promise<void> {
+  const name = String(input.name || input.provider || "").trim();
+  if (!name) throw new Error("Please enter a provider name.");
+  const { error } = await supabase.from("training_providers").insert({
+    name,
+    slug: input.slug || createSlug(name),
+    logo_url: input.logo_url || null,
+    sort_order: input.sort_order ?? 0,
+    active: true,
+  });
+  if (error) throw error;
+}
+
+/** Admin: update a training provider (by id, or by current name). */
+export async function updateProvider(input: {
+  id?: string;
+  name?: string;
+  provider?: string;
+  oldProvider?: string;
+  logo_url?: string;
+  slug?: string;
+  sort_order?: number;
+  active?: boolean;
+}): Promise<void> {
+  const patch: Record<string, any> = {};
+  const newName = input.name ?? input.provider;
+  if (newName !== undefined) patch.name = newName;
+  if (input.logo_url !== undefined) patch.logo_url = input.logo_url;
+  if (input.slug !== undefined) patch.slug = input.slug;
+  if (input.sort_order !== undefined) patch.sort_order = input.sort_order;
+  if (input.active !== undefined) patch.active = input.active;
+  if (Object.keys(patch).length === 0) return;
+
+  let query = supabase.from("training_providers").update(patch);
+  if (input.id) query = query.eq("id", input.id);
+  else if (input.oldProvider) query = query.eq("name", input.oldProvider);
+  else throw new Error("We could not tell which provider to update.");
+  const { error } = await query;
+  if (error) throw error;
+}
+
+/** Admin: delete a training provider (by id, or by name). */
+export async function deleteProvider(input: { id?: string; provider?: string; name?: string }): Promise<void> {
+  let query = supabase.from("training_providers").delete();
+  if (input.id) query = query.eq("id", input.id);
+  else if (input.provider || input.name) query = query.eq("name", input.provider || input.name);
+  else throw new Error("We could not tell which provider to delete.");
+  const { error } = await query;
+  if (error) throw error;
+}
 
 // ---------------------------------------------------------------------------
 // Training CRUD (admin + trainer)
@@ -802,18 +1018,56 @@ export async function deleteTraining(id: string): Promise<void> {
   if (error) throw error;
 }
 
-/** Update a training's schedule. Returns the (existing) meet link, if any. */
+/**
+ * Save a training's schedule and ensure it has a meeting link. Uses the
+ * provided link when given, otherwise keeps the existing one, otherwise
+ * generates a working Jitsi link. Returns the saved link.
+ */
 export async function updateTrainingSchedule(
-  id: string, startDate: string, startTime: string,
+  id: string,
+  schedule: { startDate: string; startTime: string; meetLink?: string },
 ): Promise<{ meetLink?: string }> {
+  const { data: current } = await supabase
+    .from("trainings")
+    .select("id, slug, course_title, name, meet_link")
+    .eq("id", id)
+    .maybeSingle();
+
+  let meetLink = (schedule.meetLink || current?.meet_link || "").trim();
+  if (!meetLink) {
+    meetLink = generateMeetLink({
+      id,
+      slug: current?.slug,
+      courseName: current?.course_title || current?.name,
+    });
+  }
+
   const { data, error } = await supabase
     .from("trainings")
-    .update({ start_date: startDate, start_time: startTime })
+    .update({ start_date: schedule.startDate, start_time: schedule.startTime, meet_link: meetLink })
     .eq("id", id)
     .select("meet_link")
     .single();
   if (error) throw error;
-  return { meetLink: data?.meet_link || undefined };
+  return { meetLink: data?.meet_link || meetLink };
+}
+
+/** Admin: approve a pending course — publish it and mark the review approved. */
+export async function approveCourse(courseId: string): Promise<void> {
+  const { error } = await supabase
+    .from("trainings")
+    .update({ status: "published", review_status: "approved" })
+    .eq("id", courseId);
+  if (error) throw error;
+}
+
+/** Admin: reject a pending course — mark the review rejected (stays a draft). */
+export async function rejectCourse(courseId: string): Promise<void> {
+  const { error } = await supabase
+    .from("trainings")
+    .update({ review_status: "rejected" })
+    .eq("id", courseId);
+  if (error) throw error;
 }
 
 // ---------------------------------------------------------------------------
@@ -972,9 +1226,16 @@ export async function saveCourseContent(input: {
   }).eq("id", input.courseId);
 }
 
-/** Submit a course for approval — no review status in the schema, so a no-op. */
-export async function submitCourseForApproval(_input: { courseId: string }): Promise<void> {
-  return;
+/**
+ * Submit a course for admin approval. The course stays a draft and its
+ * review_status flips to 'pending' so an admin can approve it to publish.
+ */
+export async function submitCourseForApproval(input: { courseId: string }): Promise<void> {
+  const { error } = await supabase
+    .from("trainings")
+    .update({ status: "draft", review_status: "pending" })
+    .eq("id", input.courseId);
+  if (error) throw error;
 }
 
 /** Upload a resource file to the public product-images bucket; returns its URL. */

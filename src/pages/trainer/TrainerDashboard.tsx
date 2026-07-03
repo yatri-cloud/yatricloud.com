@@ -189,8 +189,8 @@ export const TrainerDashboard = () => {
         setIsUpdating(true);
         try {
             const formattedDate = format(scheduleDate, "yyyy-MM-dd");
-            const result = await updateTrainingSchedule(selectedCourse.id, formattedDate, scheduleTime);
-            toast.success("Schedule updated & Meet link generated!");
+            const result = await updateTrainingSchedule(selectedCourse.id, { startDate: formattedDate, startTime: scheduleTime });
+            toast.success("Schedule saved. The meeting link is set for your students.");
             setSelectedCourse(prev => prev ? ({ ...prev, meetLink: result.meetLink, startDate: formattedDate, startTime: scheduleTime }) : null);
             fetchCourses(trainerData!.trainerId);
         } catch (e: any) {
@@ -497,7 +497,7 @@ export const TrainerDashboard = () => {
                             {selectedCourse.mode === "Online" && (
                                 <div className="bg-muted/30 p-4 rounded-lg border border-primary/20">
                                     <Label className="text-primary font-semibold flex items-center gap-2">
-                                        <Video className="w-4 h-4" /> Google Meet Link
+                                        <Video className="w-4 h-4" /> Meeting Link
                                     </Label>
                                     {selectedCourse.meetLink ? (
                                         <>

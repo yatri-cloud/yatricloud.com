@@ -201,7 +201,7 @@ export const TrainerCourseEditor = () => {
         try {
             setIsSaving(true);
             await apiSaveCourseContent({ courseId, modules, resources, liveSession });
-            toast({ title: "✅ Progress Saved", description: "All content has been saved to draft." });
+            toast({ title: "Progress saved", description: "Your content has been saved as a draft." });
         } catch (error: any) {
             toast({
                 title: "Save Failed",
@@ -222,7 +222,7 @@ export const TrainerCourseEditor = () => {
         try {
             setIsSubmitting(true);
             await apiSubmitCourseForApproval({ courseId: courseId! });
-            toast({ title: "🎉 Submitted for Review", description: "Admin will review your course shortly." });
+            toast({ title: "Sent for review", description: "An admin will approve it to publish." });
             navigate("/trainer/dashboard");
         } catch {
             toast({ title: "Submission Failed", variant: "destructive" });
@@ -646,7 +646,7 @@ const LiveSessionEditor = ({ liveSession, setLiveSession }: any) => {
                                 <Link2 className="absolute left-4 top-3.5 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                 <Input 
                                     className="pl-11 h-12 bg-white font-medium text-base rounded-xl focus:ring-primary/20" 
-                                    placeholder={liveSession.mode === "Online" ? "https://meet.google.com/..." : "Enter full venue address"} 
+                                    placeholder={liveSession.mode === "Online" ? "https://meet.jit.si/..." : "Enter full venue address"}
                                     value={liveSession.meetLink}
                                     onChange={(e) => setLiveSession({...liveSession, meetLink: e.target.value})}
                                 />

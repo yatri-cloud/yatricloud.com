@@ -24,7 +24,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { listProviders, listApprovedTrainers, getTrainingForEdit, createTraining, updateTraining, uploadResource } from "@/lib/training-api";
+import { listProviders, listApprovedTrainers, getTrainingForEdit, createTraining, updateTraining, uploadResource, submitCourseForApproval } from "@/lib/training-api";
 
 interface Lesson {
     title: string;
@@ -269,6 +269,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         try {
             const isEditing = !!editId;
 
+            // Trainers cannot publish directly. A trainer's "publish" saves the
+            // course as a draft and sends it for admin review; admins publish.
+            const trainerSubmitting = isTrainerMode && status === 'Published';
+            const effectiveStatus: 'Draft' | 'Published' = trainerSubmitting ? 'Draft' : status;
+
             const payload = {
                 subType: data.subType,
                 courseName: data.courseName,
@@ -290,16 +295,25 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 thumbnailMimeType: thumbnailMimeType,
                 curriculum: data.curriculum,
                 resources: resources,
-                status: status,
+                status: effectiveStatus,
             };
 
+            let trainingId = editId;
             if (isEditing) {
                 await updateTraining(editId!, payload);
             } else {
-                await createTraining(payload);
+                trainingId = await createTraining(payload);
             }
 
-            toast.success(isEditing ? "Training updated" : "Training saved");
+            if (trainerSubmitting && trainingId) {
+                await submitCourseForApproval({ courseId: trainingId });
+                toast.success("Sent for review. An admin will approve it to publish.");
+            } else if (status === 'Published') {
+                toast.success(isEditing ? "Training updated and published" : "Training published");
+            } else {
+                toast.success(isEditing ? "Draft updated" : "Draft saved");
+            }
+
             if (!isEditing && status === 'Published') {
                 reset();
                 setThumbnailBase64("");
@@ -675,7 +689,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 {watch("mode") === "Online" && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2 animate-in fade-in slide-in-from-top-2 border border-border p-5 rounded-xl bg-muted/30">
                                         <div>
-                                            <Label className="block text-sm font-medium mb-1.5">Start Date (for Google Meet)</Label>
+                                            <Label className="block text-sm font-medium mb-1.5">Start Date (for the live session)</Label>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <Button
@@ -716,7 +730,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             </Select>
                                         </div>
                                         <div className="col-span-2 text-xs text-muted-foreground flex items-center gap-1">
-                                            <Video className="w-3 h-3" /> A Google Meet link will be automatically generated and sent to enrolled users.
+                                            <Video className="w-3 h-3" /> A meeting link is created automatically for online trainings so enrolled students can join.
                                         </div>
                                     </div>
                                 )}
@@ -1077,12 +1091,12 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     {isLoading ? (
                                         <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Publishing...
+                                            {isTrainerMode ? "Sending for review..." : "Publishing..."}
                                         </>
                                     ) : (
                                         <>
                                             <CheckCircle className="w-4 h-4 mr-2" />
-                                            Publish Live
+                                            {isTrainerMode ? "Submit for Review" : "Publish Live"}
                                         </>
                                     )}
                                 </Button>

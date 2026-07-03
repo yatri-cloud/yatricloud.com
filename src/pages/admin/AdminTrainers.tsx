@@ -84,10 +84,14 @@ interface ProviderData {
 }
 
 interface InstructorProfile {
+    id?: string;
+    email?: string;
     trainerId: string;
     fullName: string;
     role: string;
     bio: string;
+    expertise: string;
+    linkedin: string;
     rating: string;
     studentsCount: string;
     coursesCount: string;
@@ -116,6 +120,7 @@ export const AdminTrainersNew = () => {
     const [selectedTrainer, setSelectedTrainer] = useState("");
     const [selectedProvider, setSelectedProvider] = useState("");
     const [selectedExam, setSelectedExam] = useState("");
+    const [selectedTraining, setSelectedTraining] = useState("");
     const [isAssigning, setIsAssigning] = useState(false);
 
     // Meet Access states
@@ -248,15 +253,18 @@ export const AdminTrainersNew = () => {
     };
 
     const startEditingProfile = (trainer: Trainer) => {
-        const existing = instructorProfiles.find(p => p.trainerId === trainer.trainerId);
+        const existing = instructorProfiles.find(p => p.email === trainer.email);
         if (existing) {
             setEditingProfile({ ...existing });
         } else {
             setEditingProfile({
+                email: trainer.email,
                 trainerId: trainer.trainerId,
                 fullName: trainer.fullName,
                 role: "",
                 bio: "",
+                expertise: trainer.expertise || "",
+                linkedin: trainer.linkedIn || "",
                 rating: "4.8",
                 studentsCount: "1,000+",
                 coursesCount: "1",
@@ -282,11 +290,14 @@ export const AdminTrainersNew = () => {
                 trainingId: meetTrainingId,
             });
             toast({
-                title: "Meet Access Granted! ✅",
-                description: `${meetTrainerName} now has host access. ${result.meetLink ? "Meet link: " + result.meetLink : ""}`,
+                title: "Meeting link ready",
+                description: result.meetLink
+                    ? `${meetTrainerName} can host at ${result.meetLink}`
+                    : `${meetTrainerName} can host this training.`,
             });
             setMeetDialogOpen(false);
             setMeetTrainingId("");
+            await fetchTrainings();
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -373,10 +384,10 @@ export const AdminTrainersNew = () => {
     };
 
     const assignTrainerToCourse = async () => {
-        if (!selectedTrainer || !selectedProvider || !selectedExam) {
+        if (!selectedTrainer || !selectedTraining) {
             toast({
                 title: "Validation Error",
-                description: "Please select trainer, certification provider, and exam",
+                description: "Please select a trainer and a training",
                 variant: "destructive",
             });
             return;
@@ -386,24 +397,19 @@ export const AdminTrainersNew = () => {
             setIsAssigning(true);
             const trainer = trainers.find(t => t.trainerId === selectedTrainer);
 
-            // Construct a Course ID since we are using Provider/Exam structure
-            const courseId = `${selectedProvider}_${selectedExam}`.replace(/\s+/g, '_').toUpperCase();
-
             await apiAssignTrainerToCourse({
+                trainingId: selectedTraining,
                 trainerId: selectedTrainer,
                 trainerName: trainer?.fullName || "",
-                courseId: courseId,
-                courseName: selectedExam,
-                provider: selectedProvider,
-                examName: selectedExam,
+                trainerEmail: trainer?.email || "",
             });
             toast({
                 title: "Success",
-                description: "Trainer assigned to course successfully",
+                description: "Trainer assigned to the training",
             });
             setSelectedTrainer("");
-            setSelectedProvider("");
-            setSelectedExam("");
+            setSelectedTraining("");
+            await fetchTrainings();
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -724,7 +730,7 @@ export const AdminTrainersNew = () => {
                             <div className="space-y-6">
                                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {trainers.map((trainer) => {
-                                        const profile = instructorProfiles.find(p => p.trainerId === trainer.trainerId);
+                                        const profile = instructorProfiles.find(p => p.email === trainer.email);
                                         return (
                                             <Card key={trainer.trainerId} className="overflow-hidden border border-border rounded-2xl shadow-none hover:border-brand-200 hover:shadow-card transition">
                                                 <CardHeader className="pb-4">
@@ -807,6 +813,27 @@ export const AdminTrainersNew = () => {
                                         </div>
                                     </div>
 
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="expertise">Expertise</Label>
+                                            <Input
+                                                id="expertise"
+                                                value={editingProfile.expertise}
+                                                onChange={(e) => setEditingProfile({ ...editingProfile, expertise: e.target.value })}
+                                                placeholder="e.g. AWS, Kubernetes, DevOps"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="linkedin">LinkedIn URL</Label>
+                                            <Input
+                                                id="linkedin"
+                                                value={editingProfile.linkedin}
+                                                onChange={(e) => setEditingProfile({ ...editingProfile, linkedin: e.target.value })}
+                                                placeholder="https://linkedin.com/in/..."
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-2">
                                         <Label htmlFor="bio">Biography</Label>
                                         <Textarea
@@ -864,8 +891,8 @@ export const AdminTrainersNew = () => {
                 <TabsContent value="assignments" className="space-y-4">
                     <Card className="border border-border rounded-2xl shadow-none max-w-3xl">
                         <CardHeader>
-                            <CardTitle className="text-lg">Assign Trainer to Certification Provider</CardTitle>
-                            <CardDescription>Link trainers with specific certification providers and exams</CardDescription>
+                            <CardTitle className="text-lg">Assign Trainer to a Training</CardTitle>
+                            <CardDescription>Pick an approved trainer and a training to set them as the instructor</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid md:grid-cols-2 gap-4">
@@ -886,31 +913,15 @@ export const AdminTrainersNew = () => {
                                 </div>
 
                                 <div>
-                                    <Label>Certification Provider</Label>
-                                    <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                                    <Label>Select Training</Label>
+                                    <Select value={selectedTraining} onValueChange={setSelectedTraining}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select provider" />
+                                            <SelectValue placeholder="Choose a training" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {allProviders.map((provider) => (
-                                                <SelectItem key={provider.name} value={provider.name}>
-                                                    {provider.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div>
-                                    <Label>Exam Name</Label>
-                                    <Select value={selectedExam} onValueChange={setSelectedExam} disabled={!selectedProvider}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select exam" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableExams.map((exam) => (
-                                                <SelectItem key={exam} value={exam}>
-                                                    {exam}
+                                            {allTrainings.map((training: any) => (
+                                                <SelectItem key={training.id} value={training.id}>
+                                                    {training.courseName}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -920,7 +931,7 @@ export const AdminTrainersNew = () => {
 
                             <Button
                                 onClick={assignTrainerToCourse}
-                                disabled={isAssigning || !selectedTrainer || !selectedProvider || !selectedExam}
+                                disabled={isAssigning || !selectedTrainer || !selectedTraining}
                                 className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
                             >
                                 <UserCog className="w-4 h-4 mr-2" />
@@ -1104,12 +1115,9 @@ export const AdminTrainersNew = () => {
             <Dialog open={meetDialogOpen} onOpenChange={setMeetDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <Video className="w-5 h-5 text-primary" />
-                            Grant Google Meet Host Access
-                        </DialogTitle>
+                        <DialogTitle>Set the meeting link</DialogTitle>
                         <DialogDescription>
-                            Select a training to grant Meet host privileges to <strong>{meetTrainerName}</strong>
+                            Pick a training to set a working meeting link for <strong>{meetTrainerName}</strong> to host.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -1138,11 +1146,10 @@ export const AdminTrainersNew = () => {
                             className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
                         >
                             <Video className="w-4 h-4 mr-2" />
-                            {isGrantingMeet ? "Granting Access..." : "Grant Meet Host Access"}
+                            {isGrantingMeet ? "Saving..." : "Set Meeting Link"}
                         </Button>
                         <p className="text-xs text-muted-foreground text-center">
-                            This will create a Calendar event with Google Meet and add the trainer as co-host.
-                            They will receive an email with the meeting details.
+                            This sets a working meeting link on the training that the trainer and enrolled students can join.
                         </p>
                     </div>
                 </DialogContent>

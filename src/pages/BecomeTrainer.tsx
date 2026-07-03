@@ -18,6 +18,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import Navbar from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
 import { listProviders, submitTrainerApplication } from "@/lib/training-api";
+import { sendEmail } from "@/lib/email";
 
 interface GoogleUser {
     name: string;
@@ -149,6 +150,20 @@ export const BecomeTrainer = () => {
             });
 
             setIsSubmitted(true);
+
+            // Confirmation email to the applicant, matching the on screen promise.
+            sendEmail({
+                to: formData.email,
+                subject: "Thanks for applying to mentor with Yatri Cloud",
+                html: `
+                    <div style="font-family: 'Inter Tight', Arial, sans-serif; color: #0f172a; line-height: 1.6;">
+                        <h2 style="margin: 0 0 12px;">Thanks for applying, ${formData.fullName || "Yatri"}</h2>
+                        <p>We have received your application to mentor with Yatri Cloud.</p>
+                        <p>Our team will review it and get back to you soon. Once you are approved, you can start creating trainings.</p>
+                        <p style="margin-top: 24px;">Warmly,<br/>The Yatri Cloud Team</p>
+                    </div>
+                `,
+            }).catch(() => { /* email is best effort; the application is already saved */ });
         } catch (error: any) {
             toast({
                 title: "Submission Failed",

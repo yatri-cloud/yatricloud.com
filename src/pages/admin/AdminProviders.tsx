@@ -9,12 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import AdminLayout from "@/components/admin/AdminLayout"; // Re-using layout for this independent page
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { listProviders, getFoldersInPath, addProvider, updateProvider, deleteProvider } from "@/lib/training-api";
+import { listProviders, addProvider, updateProvider, deleteProvider } from "@/lib/training-api";
 
 interface ProviderData {
+    id?: string;
     type: string;
     name: string;
+    slug?: string;
+    logoUrl?: string;
     exams: string[];
     exists?: boolean;
 }
@@ -27,48 +29,11 @@ export default function AdminProviders() {
     const [editName, setEditName] = useState("");
 
     const [newProvider, setNewProvider] = useState("");
-    const [newExam, setNewExam] = useState("");
-    const [type, setType] = useState("Certification"); // Type Selection
-
-    const [availableProviders, setAvailableProviders] = useState<string[]>([]);
-    const [availableExams, setAvailableExams] = useState<string[]>([]);
-    const [isFetchingFolders, setIsFetchingFolders] = useState(false);
-    const [isCustomProvider, setIsCustomProvider] = useState(false);
-    const [isCustomExam, setIsCustomExam] = useState(false);
+    const [newLogo, setNewLogo] = useState("");
 
     useEffect(() => {
         fetchProviders();
     }, []);
-
-    // Fetch Providers when Type changes
-    useEffect(() => {
-        if (type) {
-            fetchFolders(type);
-        }
-    }, [type]);
-
-    // Fetch Exams when Provider changes
-    useEffect(() => {
-        if (type && newProvider && !isCustomProvider) {
-            fetchFolders(type, newProvider);
-        }
-    }, [newProvider, isCustomProvider]);
-
-    const fetchFolders = async (typ: string, prov?: string) => {
-        setIsFetchingFolders(true);
-        try {
-            const folders = await getFoldersInPath(typ, prov);
-            if (prov) {
-                setAvailableExams(folders || []);
-            } else {
-                setAvailableProviders(folders || []);
-            }
-        } catch (e) {
-            console.error("Folder fetch error:", e);
-        } finally {
-            setIsFetchingFolders(false);
-        }
-    };
 
     const fetchProviders = async () => {
         setIsLoading(true);
@@ -77,19 +42,19 @@ export default function AdminProviders() {
             setProviders(result || []);
         } catch (e) {
             console.error("Fetch error:", e);
-            // Don't show toast on load error, just leave list empty as requested
+            // Leave the list empty on a load error rather than surprise the admin.
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleDelete = async (p: ProviderData) => {
-        if (!confirm(`Are you sure you want to delete ${p.name}? This will move the folder to trash in Google Drive.`)) return;
+        if (!confirm(`Are you sure you want to delete ${p.name}?`)) return;
 
         setIsLoading(true);
         try {
-            await deleteProvider({ type: p.type, provider: p.name, exams: p.exams });
-            toast.success("Deleted from Sheet and Drive");
+            await deleteProvider({ id: p.id, name: p.name });
+            toast.success("Provider deleted");
             fetchProviders();
         } catch (e) {
             toast.error("Deletion failed");
@@ -102,14 +67,8 @@ export default function AdminProviders() {
         if (!editName) return;
         setIsSubmitting(true);
         try {
-            await updateProvider({
-                type: p.type,
-                oldProvider: p.name,
-                oldExam: p.exams[0],
-                provider: editName,
-                exam: p.exams[0],
-            });
-            toast.success("Renamed!");
+            await updateProvider({ id: p.id, name: editName });
+            toast.success("Provider updated");
             setEditingRow(null);
             fetchProviders();
         } catch (e) {
@@ -121,18 +80,18 @@ export default function AdminProviders() {
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newProvider || !newExam) return;
+        if (!newProvider) return;
 
         setIsSubmitting(true);
         try {
-            await addProvider({ provider: newProvider, exam: newExam, type: type });
-            toast.success("Provider/Exam added!");
+            await addProvider({ name: newProvider, logo_url: newLogo || undefined });
+            toast.success("Provider added");
             setNewProvider("");
-            setNewExam("");
+            setNewLogo("");
             fetchProviders(); // Refresh list
-        } catch (e) {
+        } catch (e: any) {
             console.error("Add Provider Error:", e);
-            toast.error("Failed to add provider.");
+            toast.error(e?.message || "Failed to add provider.");
         } finally {
             setIsSubmitting(false);
         }
@@ -151,7 +110,7 @@ export default function AdminProviders() {
                             <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Course providers
                         </p>
                         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Providers Management</h1>
-                        <p className="text-muted-foreground">Manage certification providers and role-based tracks.</p>
+                        <p className="text-muted-foreground">Manage the training providers shown across the platform.</p>
                     </div>
                 </div>
             </div>
@@ -160,106 +119,30 @@ export default function AdminProviders() {
                 {/* Form Section */}
                 <Card className="md:col-span-1 h-fit border border-border rounded-2xl shadow-none">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Plus className="w-5 h-5 text-primary" /> Add New
-                        </CardTitle>
+                        <CardTitle className="text-lg">Add New</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleAdd} className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Training Type</Label>
-                                    <Select value={type} onValueChange={setType}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Certification">Certification</SelectItem>
-                                            <SelectItem value="Role-based">Role-based</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                            <div className="space-y-2">
+                                <Label>Provider Name</Label>
+                                <Input
+                                    placeholder="e.g. AWS, Microsoft, Kubernetes"
+                                    value={newProvider}
+                                    onChange={e => setNewProvider(e.target.value)}
+                                />
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <Label>{type === "Certification" ? "Certification Provider" : "Role Name"}</Label>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 text-[10px] px-2 hover:bg-primary/10"
-                                        onClick={() => {
-                                            setIsCustomProvider(!isCustomProvider);
-                                            setNewProvider("");
-                                        }}
-                                    >
-                                        {isCustomProvider ? "Select Existing" : "+ New"}
-                                    </Button>
-                                </div>
-                                {isCustomProvider ? (
-                                    <Input
-                                        placeholder={type === "Certification" ? "e.g. Microsoft / AWS" : "e.g. DevOps Engineer"}
-                                        value={newProvider}
-                                        onChange={e => setNewProvider(e.target.value)}
-                                    />
-                                ) : (
-                                    <Select value={newProvider} onValueChange={setNewProvider}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={isFetchingFolders ? "Loading..." : "Select Provider"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableProviders.map(p => (
-                                                <SelectItem key={p} value={p}>{p}</SelectItem>
-                                            ))}
-                                            {availableProviders.length === 0 && !isFetchingFolders && (
-                                                <SelectItem value="none" disabled>No existing folders</SelectItem>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                )}
+                                <Label>Logo URL (optional)</Label>
+                                <Input
+                                    placeholder="https://..."
+                                    value={newLogo}
+                                    onChange={e => setNewLogo(e.target.value)}
+                                />
                             </div>
 
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <Label>{type === "Certification" ? "Exam Name" : "Course Name"}</Label>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 text-[10px] px-2 hover:bg-primary/10"
-                                        onClick={() => {
-                                            setIsCustomExam(!isCustomExam);
-                                            setNewExam("");
-                                        }}
-                                    >
-                                        {isCustomExam ? "Select Existing" : "+ New"}
-                                    </Button>
-                                </div>
-                                {isCustomExam ? (
-                                    <Input
-                                        placeholder={type === "Certification" ? "e.g. AZ-900 / AWS-SAA" : "e.g. Cloud Foundations"}
-                                        value={newExam}
-                                        onChange={e => setNewExam(e.target.value)}
-                                    />
-                                ) : (
-                                    <Select value={newExam} onValueChange={setNewExam}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={isFetchingFolders ? "Loading..." : "Select Exam/Course"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableExams.map(e => (
-                                                <SelectItem key={e} value={e}>{e}</SelectItem>
-                                            ))}
-                                            {availableExams.length === 0 && !isFetchingFolders && (
-                                                <SelectItem value="none" disabled>No existing folders</SelectItem>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            </div>
-                            <Button type="submit" className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]" disabled={isSubmitting || !newProvider || !newExam || !type}>
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add to Database"}
+                            <Button type="submit" className="w-full bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]" disabled={isSubmitting || !newProvider}>
+                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add Provider"}
                             </Button>
                         </form>
                     </CardContent>
@@ -268,9 +151,7 @@ export default function AdminProviders() {
                 {/* List Section */}
                 <Card className="md:col-span-2 border border-border rounded-2xl shadow-none">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Database className="w-5 h-5 text-primary" /> Existing Providers
-                        </CardTitle>
+                        <CardTitle className="text-lg">Existing Providers</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {isLoading ? (
@@ -279,8 +160,7 @@ export default function AdminProviders() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Type</TableHead>
-                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Provider/Role</TableHead>
+                                        <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Provider</TableHead>
                                         <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Exams / Courses</TableHead>
                                         <TableHead className="text-right text-xs uppercase tracking-wide text-muted-foreground">Actions</TableHead>
                                     </TableRow>
@@ -288,7 +168,7 @@ export default function AdminProviders() {
                                 <TableBody>
                                     {!providers || providers.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center py-16">
+                                            <TableCell colSpan={3} className="text-center py-16">
                                                 <div className="flex flex-col items-center gap-4">
                                                     <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
                                                         <Database className="w-7 h-7" />
@@ -301,11 +181,14 @@ export default function AdminProviders() {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        providers.map((p: any, i) => (
-                                            <TableRow key={i} className="hover:bg-brand-50">
-                                                <TableCell className="text-xs text-muted-foreground">{p.type || "N/A"}</TableCell>
+                                        providers.map((p: ProviderData, i) => (
+                                            <TableRow key={p.id || i} className="hover:bg-brand-50">
                                                 <TableCell className="font-semibold flex items-center gap-2">
-                                                    <Server className={`w-4 h-4 ${p.exists === false ? 'text-destructive' : 'text-primary'}`} />
+                                                    {p.logoUrl ? (
+                                                        <img src={p.logoUrl} alt="" className="w-4 h-4 object-contain" />
+                                                    ) : (
+                                                        <Server className="w-4 h-4 text-primary" />
+                                                    )}
                                                     {editingRow === i ? (
                                                         <Input
                                                             value={editName}
@@ -314,19 +197,14 @@ export default function AdminProviders() {
                                                             autoFocus
                                                         />
                                                     ) : (
-                                                        <span className={p.exists === false ? 'text-destructive/80' : ''}>
-                                                            {p.name}
-                                                        </span>
-                                                    )}
-                                                    {p.exists === false && !editingRow && (
-                                                        <span className="text-xs font-medium bg-destructive/10 text-destructive px-2 py-0.5 rounded-full ml-2">
-                                                            Missing from Drive
-                                                        </span>
+                                                        <span>{p.name}</span>
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-wrap gap-2">
-                                                        {p.exams.map((exam: string, j: number) => (
+                                                        {p.exams.length === 0 ? (
+                                                            <span className="text-xs text-muted-foreground">No courses yet</span>
+                                                        ) : p.exams.map((exam: string, j: number) => (
                                                             <span key={j} className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-medium">
                                                                 {exam}
                                                             </span>
