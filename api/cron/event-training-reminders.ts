@@ -199,6 +199,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const summary = {
     events: { day: 0, soon: 0 },
     training: { day: 0, soon: 0 },
+    priceAlerts: 0,
     errors: [] as string[],
   };
 
@@ -483,6 +484,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (err: any) {
     summary.errors.push(`training query: ${err?.message || String(err)}`);
+  }
+
+  // ── 4. Store price-drop alerts (product_alerts, migration 036) ──────────
+  // Lives in this cron because the project sits at Vercel Hobby's 12-function
+  // cap — a separate api/cron file would fail the deploy.
+  try {
+    const alerts = await select<{
+      id: string;
+      email: string;
+      last_price_inr: string | number;
+      products: { id: string; title: string; discounted_price_inr: string | number; status: string } | null;
+    }>(
+      'product_alerts',
+      'select=id,email,last_price_inr,products(id,title,discounted_price_inr,status)'
+    );
+
+    for (const alert of alerts) {
+      const product = alert.products;
+      if (!product || product.status === 'archived') continue;
+      const seen = Number(alert.last_price_inr) || 0;
+      const current = Number(product.discounted_price_inr) || 0;
+      if (!(current > 0 && seen > 0 && current < seen)) continue;
+
+      const html = `
+        <div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">
+          <h2 style="color:#007CFF;margin:0 0 12px;">Good news — the price dropped</h2>
+          <p style="margin:0 0 8px;"><strong>${product.title}</strong> is now
+            <strong>&#8377;${current.toLocaleString('en-IN')}</strong>
+            <s style="color:#888;">&#8377;${seen.toLocaleString('en-IN')}</s>
+            — the drop you asked us to watch for.</p>
+          <p style="margin:0 0 20px;">Prices move often, so grab it while it lasts.</p>
+          <a href="https://www.yatricloud.com/yatristore"
+             style="display:inline-block;background:#007CFF;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:600;">
+            Open the Yatri Store
+          </a>
+          <p style="margin:20px 0 0;color:#888;font-size:12px;">You get this because you watched this product on Yatri Cloud.</p>
+        </div>`;
+
+      try {
+        await sendEmail(alert.email, `Price drop: ${product.title}`, html);
+        // Reset the baseline so a further drop notifies again, once per drop.
+        await patch('product_alerts', alert.id, {
+          last_price_inr: current,
+          notified_at: new Date().toISOString(),
+        });
+        summary.priceAlerts += 1;
+      } catch (err: any) {
+        summary.errors.push(`price alert ${alert.id}: ${err?.message || String(err)}`);
+      }
+    }
+  } catch (err: any) {
+    summary.errors.push(`price alerts query: ${err?.message || String(err)}`);
   }
 
   return res.status(200).json(summary);

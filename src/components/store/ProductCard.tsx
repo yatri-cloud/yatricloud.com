@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/lib/supabase";
+import { getStoredUser } from "@/lib/yatris-api";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +27,46 @@ interface ProductCardProps {
 export const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart } = useCart();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Price-drop watch: signed-in Yatris subscribe in one click; guests give
+  // an email. The daily cron emails when discounted_price_inr goes below
+  // the price they saw.
+  const [watchState, setWatchState] = useState<"idle" | "asking" | "saved">("idle");
+  const [watchEmail, setWatchEmail] = useState("");
+  const [watchSaving, setWatchSaving] = useState(false);
+
+  const saveWatchFor = async (email: string) => {
+    setWatchSaving(true);
+    const { error } = await supabase.from("product_alerts").insert({
+      email: email.trim().toLowerCase(),
+      product_id: product.id,
+      last_price_inr: product.discountedPrice,
+    });
+    setWatchSaving(false);
+    if (error && !error.message.includes("duplicate")) {
+      toast.error("That did not save. Please try again.");
+      return;
+    }
+    setWatchState("saved");
+  };
+
+  const startWatch = () => {
+    const user = getStoredUser();
+    if (user?.email) {
+      void saveWatchFor(user.email);
+    } else {
+      setWatchState("asking");
+    }
+  };
+
+  const saveWatch = () => {
+    const email = watchEmail.trim();
+    if (!email.includes("@")) {
+      toast.error("Add a valid email so we can reach you.");
+      return;
+    }
+    void saveWatchFor(email);
+  };
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -156,6 +200,35 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           >
             Add to Cart
           </Button>
+
+          {/* Price-drop alert capture (product_alerts, checked by the daily cron) */}
+          {watchState === "saved" ? (
+            <p className="w-full text-center text-xs font-medium text-success">
+              Watching — we will email you if the price drops.
+            </p>
+          ) : watchState === "asking" ? (
+            <div className="flex w-full gap-2">
+              <Input
+                type="email"
+                value={watchEmail}
+                onChange={(e) => setWatchEmail(e.target.value)}
+                placeholder="you@email.com"
+                className="h-9 text-sm"
+                aria-label="Email for price alerts"
+              />
+              <Button type="button" variant="outline" size="sm" className="h-9" onClick={saveWatch} disabled={watchSaving}>
+                {watchSaving ? "Saving…" : "Watch"}
+              </Button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={startWatch}
+              className="w-full text-center text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+            >
+              Watch price — get an email if it drops
+            </button>
+          )}
         </CardFooter>
       </Card>
     </motion.div>
