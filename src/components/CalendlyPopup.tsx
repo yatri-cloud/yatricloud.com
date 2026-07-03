@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -9,7 +10,13 @@ declare global {
 }
 
 export const CalendlyPopup = () => {
+    // This is a public-site call to action. Keep it off the admin console, where
+    // its fixed bottom-left button would sit on top of the sidebar Sign Out.
+    const { pathname } = useLocation();
+    const isAdmin = pathname.startsWith("/admin");
+
     useEffect(() => {
+        if (isAdmin) return;
         // Add Calendly CSS
         const link = document.createElement("link");
         link.href = "https://assets.calendly.com/assets/external/widget.css";
@@ -32,7 +39,7 @@ export const CalendlyPopup = () => {
                 document.body.removeChild(script);
             }
         };
-    }, []);
+    }, [isAdmin]);
 
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -42,6 +49,8 @@ export const CalendlyPopup = () => {
             window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
         }
     };
+
+    if (isAdmin) return null;
 
     return (
         <div className="fixed bottom-6 left-6 z-40 group flex flex-col items-start">

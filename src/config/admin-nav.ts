@@ -1,7 +1,7 @@
 import {
-    Award, Calendar, BookOpen, Wrench, Plus, GraduationCap, ClipboardList, Users,
+    Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
-    CalendarClock, Star, Inbox, Receipt, CreditCard, type LucideIcon,
+    CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, type LucideIcon,
 } from "lucide-react";
 
 /**
@@ -73,18 +73,32 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         ],
     },
     {
-        id: "admin-tools",
-        label: "Other Tools",
-        icon: Wrench,
+        id: "payments",
+        label: "Payments",
+        icon: CreditCard,
         items: [
-            { name: "Payments & Revenue", path: "/admin/payments", icon: Receipt, description: "Every receipt and revenue in one place." },
-            { name: "Razorpay Invoices", path: "/admin/razorpay-invoices", icon: ExternalLink, description: "Raise invoices and view dashboard ones." },
+            { name: "Revenue", path: "/admin/payments", icon: Receipt, description: "Every receipt and revenue in one place." },
+            { name: "Invoices", path: "/admin/razorpay-invoices", icon: ExternalLink, description: "Raise Razorpay invoices and view dashboard ones." },
             { name: "Transactions", path: "/admin/transactions", icon: CreditCard, description: "All payments, with refunds." },
-            { name: "Udemy Management", path: "/admin/udemy", icon: GraduationCap, description: "Manage Udemy course listings." },
-            { name: "Store Product", path: "/admin/products/add", icon: Plus, description: "Add a product to the store." },
-            { name: "Exam Dumps", path: "/admin/exam-dumps", icon: List, description: "Manage exam dump listings." },
-            { name: "Admin Guide", path: "/admin/guide", icon: Info, description: "How to run the platform, step by step." },
-            { name: "Admin Sitemap", path: "/admin/sitemap", icon: List, description: "This page: a map of every admin area." },
+        ],
+    },
+    {
+        id: "catalog",
+        label: "Store & Catalog",
+        icon: ShoppingBag,
+        items: [
+            { name: "Store products", path: "/admin/products/add", icon: Plus, description: "Add a product to the store." },
+            { name: "Exam dumps", path: "/admin/exam-dumps", icon: List, description: "Manage exam dump listings." },
+            { name: "Udemy courses", path: "/admin/udemy", icon: GraduationCap, description: "Manage Udemy course listings." },
+        ],
+    },
+    {
+        id: "help",
+        label: "Help",
+        icon: Info,
+        items: [
+            { name: "Admin guide", path: "/admin/guide", icon: Info, description: "How to run the platform, step by step." },
+            { name: "Sitemap", path: "/admin/sitemap", icon: List, description: "A map of every admin area." },
         ],
     },
 ];
