@@ -518,7 +518,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={handleSubmit((d) => onSubmit(d, 'Draft'))} disabled={isSavingDraft || isLoading} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
-                        {isSavingDraft ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                        {isSavingDraft && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Save Draft
                     </Button>
                 </div>
@@ -931,7 +931,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     </Button>
                                     <div className="relative">
                                         <Button type="button" variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} className="min-h-[44px] rounded-xl">
-                                            <Upload className="w-4 h-4 mr-2" /> Upload MD
+                                            Upload MD
                                         </Button>
                                         <input
                                             type="file"
@@ -1056,7 +1056,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                     toast.error('Please provide name and URL');
                                                 }
                                             }}>
-                                                <Plus className="w-4 h-4 mr-2" /> Add Link Resource
+                                                Add Link Resource
                                             </Button>
                                         </TabsContent>
 
@@ -1083,7 +1083,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             </div>
 
                                             <Button type="button" disabled={isUploading} onClick={handleResourceUpload} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
-                                                {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                                                {isUploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                                                 {isUploading ? "Uploading..." : "Upload & Add Resource"}
                                             </Button>
                                         </TabsContent>
@@ -1105,11 +1105,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                             <Button
                                                                 type="button"
                                                                 variant="ghost"
-                                                                size="icon"
-                                                                aria-label="Remove resource"
+                                                                size="sm"
                                                                 onClick={() => setResources(resources.filter((_, i) => i !== idx))}
+                                                                className="text-destructive hover:text-destructive"
                                                             >
-                                                                <Trash2 className="w-4 h-4 text-destructive" />
+                                                                Remove
                                                             </Button>
                                                         </div>
                                                     ))}
@@ -1193,7 +1193,6 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                         </>
                                     ) : (
                                         <>
-                                            <CheckCircle className="w-4 h-4 mr-2" />
                                             {isTrainerMode ? "Submit for Review" : "Publish Live"}
                                         </>
                                     )}
@@ -1219,7 +1218,7 @@ function CurriculumEditor({ control, register }: { control: Control<TrainingForm
             <div className="flex justify-between items-center">
                 <h3 className="font-display text-lg font-semibold">Modules & Lessons</h3>
                 <Button type="button" size="sm" onClick={() => appendModule({ title: "New Module", lessons: [] })} variant="secondary" className="min-h-[44px] rounded-xl">
-                    <Plus className="w-4 h-4 mr-2" /> Add Module
+                    Add Module
                 </Button>
             </div>
 
@@ -1253,8 +1252,8 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                         className="font-semibold text-lg border-none shadow-none focus-visible:ring-0 px-0 h-auto rounded-none border-b focus-visible:border-primary"
                     />
                 </div>
-                <Button type="button" variant="ghost" size="icon" onClick={() => removeModule(moduleIndex)} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
-                    <Trash2 className="w-4 h-4" />
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeModule(moduleIndex)} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                    Remove
                 </Button>
             </div>
 
@@ -1274,8 +1273,8 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                                 <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.duration`)} placeholder="Dur." className="h-8 text-sm" />
                             </div>
                             <div className="col-span-1 flex justify-end">
-                                <Button type="button" variant="ghost" size="icon" onClick={() => removeLesson(lessonIndex)} className="h-8 w-8 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground">
-                                    <Trash2 className="w-3 h-3" />
+                                <Button type="button" variant="ghost" size="sm" onClick={() => removeLesson(lessonIndex)} className="h-8 px-2 text-xs text-muted-foreground hover:bg-destructive hover:text-destructive-foreground">
+                                    Remove
                                 </Button>
                             </div>
                         </div>
@@ -1283,7 +1282,7 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                 ))}
                 <div className="pt-2">
                     <Button type="button" variant="ghost" size="sm" onClick={() => appendLesson({ title: "", type: "Video", duration: "" })} className="text-primary hover:text-primary/80 hover:bg-primary/5">
-                        <Plus className="w-3 h-3 mr-1" /> Add Lesson
+                        Add Lesson
                     </Button>
                 </div>
             </div>
