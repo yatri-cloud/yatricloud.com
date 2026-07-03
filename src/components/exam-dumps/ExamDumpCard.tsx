@@ -61,12 +61,12 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
           </Badge>
         </div>
 
-        {/* Dump Image */}
-        <div className="relative overflow-hidden bg-muted/30 aspect-[4/3]">
+        {/* Dump Image — square tile, logo shown in full */}
+        <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-muted/20 p-6">
           <motion.img
             src={dump.image}
             alt={dump.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         </div>
@@ -88,17 +88,13 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs text-green-600 font-semibold bg-green-50 dark:bg-green-950/20 px-2 py-1 rounded w-fit">
-            <Download className="w-3 h-3" />
-            Instant Delivery via Email
-          </div>
+          <div className="text-xs font-medium text-emerald-700">Instant delivery via email</div>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2 p-5 pt-0">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full text-sm" size="sm">
-                <ExternalLink className="h-4 w-4 mr-2" />
                 View Details
               </Button>
             </DialogTrigger>
@@ -144,7 +140,6 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
             className="w-full group/btn font-semibold"
             size="lg"
           >
-            <ShoppingCart className="h-4 w-4 mr-2 group-hover/btn:scale-110 transition-transform" />
             Buy Now
           </Button>
         </CardFooter>
