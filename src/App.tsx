@@ -47,6 +47,7 @@ import AdminTraining from "./pages/admin/AdminTraining";
 import AdminEditTraining from "./pages/admin/AdminEditTraining";
 import AdminProviders from "./pages/admin/AdminProviders";
 import AdminEnrollments from "./pages/admin/AdminEnrollments";
+import AdminPayments from "./pages/admin/AdminPayments";
 import Training from "./pages/Training";
 import TrainingDetail from "./pages/TrainingDetail";
 import AdminTrainingList from "@/pages/admin/AdminTrainingList";
@@ -188,6 +189,7 @@ const App = () => (
                 <Route path="mentorship/services" element={<AdminMentorshipServices />} />
                 <Route path="mentorship/bookings" element={<AdminMentorshipBookings />} />
                 <Route path="mentorship/reviews" element={<AdminMentorReviews />} />
+                <Route path="payments" element={<AdminPayments />} />
                 <Route path="exam-dumps" element={<AdminExamDumps />} />
                 <Route path="exam-dumps/add" element={<AdminAddExamDump />} />
                 <Route path="exam-dumps/edit/:id" element={<AdminEditExamDump />} />

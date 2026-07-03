@@ -83,6 +83,21 @@ export async function getMyInvoices(): Promise<Invoice[]> {
   return data.map(rowToInvoice);
 }
 
+/**
+ * All invoices across the platform, newest first. Admin only — RLS returns rows
+ * to admins (is_admin()) and to owners; call this from admin surfaces. Capped to
+ * keep the payload sane; raise the limit when a real paging need appears.
+ */
+export async function getAllInvoices(limit = 1000): Promise<Invoice[]> {
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("invoice_number, kind, buyer_name, buyer_email, amount, currency, items, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error || !Array.isArray(data)) return [];
+  return data.map(rowToInvoice);
+}
+
 /** A single receipt by its number. Null if not found or not the caller's. */
 export async function getInvoiceByNumber(number: string): Promise<Invoice | null> {
   if (!number) return null;
