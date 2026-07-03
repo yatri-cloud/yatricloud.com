@@ -22,13 +22,9 @@ export default function AdminSitemapView() {
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {ADMIN_NAV_GROUPS.map((group) => {
-                    const GroupIcon = group.icon;
                     return (
                         <Card key={group.id}>
-                            <CardHeader className="flex-row items-center gap-3 space-y-0">
-                                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                    <GroupIcon className="h-5 w-5" aria-hidden="true" />
-                                </span>
+                            <CardHeader>
                                 <CardTitle className="text-base">{group.label}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-1">

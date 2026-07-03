@@ -44,7 +44,6 @@ export default function UserSitemapView() {
 
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         {USER_NAV_GROUPS.map((group, gi) => {
-                            const GroupIcon = group.icon;
                             return (
                                 <motion.div
                                     key={group.id}
@@ -53,10 +52,7 @@ export default function UserSitemapView() {
                                     transition={{ delay: Math.min(gi * 0.05, 0.3) }}
                                 >
                                     <Card className="h-full">
-                                        <CardHeader className="flex-row items-center gap-3 space-y-0">
-                                            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                <GroupIcon className="h-5 w-5" aria-hidden="true" />
-                                            </span>
+                                        <CardHeader>
                                             <CardTitle className="text-base">{group.label}</CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-1">

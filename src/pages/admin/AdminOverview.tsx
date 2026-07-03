@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Users, Calendar, GraduationCap, Handshake, Receipt, IndianRupee, TicketCheck, ArrowRight, UserPlus, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Loader2, Users, Calendar, GraduationCap, Handshake, Receipt, IndianRupee, TicketCheck, ArrowRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { getAdminOverview, getRecentActivity, getGrowthTrends, type AdminOverview, type RecentActivity, type GrowthTrends, type Trend } from "@/lib/admin-overview";
@@ -110,9 +110,7 @@ export default function AdminOverview() {
                         {/* Recent receipts */}
                         <Card>
                             <CardHeader className="flex-row items-center justify-between space-y-0">
-                                <CardTitle className="flex items-center gap-2 text-base">
-                                    <Receipt className="h-4 w-4 text-primary" aria-hidden="true" /> Recent receipts
-                                </CardTitle>
+                                <CardTitle className="text-base">Recent receipts</CardTitle>
                                 <Link to="/admin/payments" className="text-sm font-medium text-primary hover:underline">View all</Link>
                             </CardHeader>
                             <CardContent className="space-y-1">
@@ -140,10 +138,8 @@ export default function AdminOverview() {
 
                         {/* Newest Yatris */}
                         <Card>
-                            <CardHeader className="space-y-0">
-                                <CardTitle className="flex items-center gap-2 text-base">
-                                    <UserPlus className="h-4 w-4 text-primary" aria-hidden="true" /> New Yatris
-                                </CardTitle>
+                            <CardHeader>
+                                <CardTitle className="text-base">New Yatris</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-1">
                                 {activity && activity.yatris.length > 0 ? (
