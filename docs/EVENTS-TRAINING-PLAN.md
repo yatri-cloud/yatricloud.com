@@ -20,6 +20,11 @@
 - Sweep: no raw id or uuid or database value rendered to users anywhere in events/training pages.
 - App.tsx owns all route changes (single owner to avoid conflicts).
 
+## CRITICAL (audit found, now top priority): PAID PAYMENTS BROKEN
+- Event + training PAID registration/enrollment NEVER records: initiateRazorpayPayment builds checkout with NO order_id, so verify always 400s. Only free works. Also payment_id (razorpay pay_xxx string) written to uuid FK = type error; verify.ts had no event/training branch.
+- FIX (in progress): order-based flow + verify branches, mirror mentorship. Migration 020 added amount/currency/payment_status/order_id to registrations+enrollments, invoices table, site_settings.currencies (8).
+- NEW (user, 2026-07-03): DIRECT international multi-currency checkout on the site (store+events+training) — user picks currency, pays directly; INVOICE emailed (domestic + international) on every payment. Built into the same unified payment layer (currency.ts convert from INR via site_settings rates, CurrencySelect, verify.ts generates+emails invoice for all kinds).
+
 ## Batch 2 — Events production features
 Common necessary:
 - Capacity and seats left; Sold out state; waitlist join when full (new event_waitlist table).
