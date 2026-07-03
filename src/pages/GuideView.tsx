@@ -44,6 +44,14 @@ const GuideView: React.FC<GuideViewProps> = ({ type }) => {
       ? "Admin Sitemap"
       : "User Sitemap";
 
+  // The banner is what made the guide and the sitemap look identical, so make
+  // it speak to what each page actually is.
+  const isSitemap = type === "admin-access" || type === "user-access";
+  const bannerHeading = isSitemap ? "Site map" : "Standard Operations Guide";
+  const bannerText = isSitemap
+    ? "A complete map of every page on this side of Yatri Cloud, so you always know where to find things."
+    : "A step by step guide to how Yatri Cloud works, from day to day tasks to how the platform is run.";
+
   // Unified ID generation to ensure TOC and Content match exactly
   const generateSlug = (text: string) => {
     return text
@@ -146,12 +154,12 @@ const GuideView: React.FC<GuideViewProps> = ({ type }) => {
             {/* Banner */}
             <div className="mb-10 p-6 rounded-2xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row items-center gap-6">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Info className="w-6 h-6 text-primary" />
+                {isSitemap ? <List className="w-6 h-6 text-primary" /> : <Info className="w-6 h-6 text-primary" />}
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-xl font-bold mb-1">Standard Operations Guide</h2>
+                <h2 className="text-xl font-bold mb-1">{bannerHeading}</h2>
                 <p className="text-muted-foreground text-sm">
-                  This definitive professional guide covers system architecture, lifecycle management, and platform governance.
+                  {bannerText}
                 </p>
               </div>
             </div>
