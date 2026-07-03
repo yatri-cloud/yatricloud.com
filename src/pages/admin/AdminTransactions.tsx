@@ -17,13 +17,26 @@ import { listRazorpayPayments, refundPayment, type RazorpayPayment } from "@/lib
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-const STATUS_STYLE: Record<string, string> = {
-    captured: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
-    authorized: "bg-blue-500/10 text-blue-600 border-blue-500/30",
-    refunded: "bg-muted text-muted-foreground border-border",
-    failed: "bg-rose-500/10 text-rose-600 border-rose-500/30",
-    created: "bg-amber-500/10 text-amber-600 border-amber-500/30",
+// Each status gets a soft pill and a matching status dot, so the state reads at
+// a glance without looking like a stray coloured chip.
+const STATUS_STYLE: Record<string, { pill: string; dot: string; label: string }> = {
+    captured: { pill: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20", dot: "bg-emerald-500", label: "Captured" },
+    authorized: { pill: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20", dot: "bg-blue-500", label: "Authorized" },
+    refunded: { pill: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20", dot: "bg-slate-400", label: "Refunded" },
+    failed: { pill: "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20", dot: "bg-rose-500", label: "Failed" },
+    created: { pill: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20", dot: "bg-amber-500", label: "Pending" },
 };
+
+function StatusPill({ status }: { status: string }) {
+    const s = STATUS_STYLE[status] || { pill: "", dot: "bg-slate-400", label: status };
+    // Minimal enterprise style: a small status dot + plain text, no coloured chip.
+    return (
+        <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+            <span className={`h-2 w-2 shrink-0 rounded-full ${s.dot}`} aria-hidden="true" />
+            {s.label}
+        </span>
+    );
+}
 
 function major(smallest: number, currency: string): number {
     return (Number(smallest) || 0) / Math.pow(10, currencyDecimals((currency || "INR").toUpperCase()));
@@ -159,13 +172,11 @@ export default function AdminTransactions() {
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant="outline" className={STATUS_STYLE[p.status] || "border-border"}>
-                                                        {p.status}
-                                                    </Badge>
+                                                    <StatusPill status={p.status} />
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     {isRefundable(p) ? (
-                                                        <Button variant="ghost" size="sm" className="text-rose-600 hover:bg-rose-500/10 hover:text-rose-700" onClick={() => openRefund(p)}>
+                                                        <Button variant="outline" size="sm" onClick={() => openRefund(p)} className="h-8 border-rose-200 text-rose-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">
                                                             Refund
                                                         </Button>
                                                     ) : (

@@ -880,7 +880,7 @@ export const AdminTrainersNew = () => {
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setEditingProfile(null)}>Cancel</Button>
                                 <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
-                                    {isSavingProfile ? "Saving..." : "Save Changes"}
+                                    {isSavingProfile ? "Saving..." : "Save"}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>

@@ -1010,9 +1010,7 @@ const AdminMentorshipServices = () => {
                         <Button onClick={saveService} disabled={saving} className={saveButtonClass}>
                             {saving ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-2 h-4 w-4" />
-                            )}
+                            ) : null}
                             {editingId ? "Save service" : "Add service"}
                         </Button>
                     </DialogFooter>

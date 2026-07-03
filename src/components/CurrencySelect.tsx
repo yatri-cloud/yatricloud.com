@@ -77,7 +77,10 @@ export function CurrencySelect({ value, onChange, disabled, className }: Currenc
             }}
           >
             <CommandInput placeholder="Search currency or code" className="h-11" />
-            <CommandList>
+            <CommandList
+              className="max-h-[260px] overflow-y-auto"
+              onWheel={(e) => e.stopPropagation()}
+            >
               <CommandEmpty>No currency found.</CommandEmpty>
               <CommandGroup>
                 {options.map((o) => (

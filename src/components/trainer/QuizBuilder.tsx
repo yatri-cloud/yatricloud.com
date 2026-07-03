@@ -144,7 +144,6 @@ export const QuizBuilder = ({ trainingId, onSave }: QuizBuilderProps) => {
                         </div>
                         <div className="p-4 border-t bg-card flex justify-end">
                             <Button onClick={handleSave} className="bg-primary" type="button">
-                                <Save className="w-4 h-4 mr-2" />
                                 Save Quiz
                             </Button>
                         </div>

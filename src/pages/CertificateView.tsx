@@ -33,6 +33,12 @@ export default function CertificateView() {
         return () => { active = false; };
     }, [serial]);
 
+    const isEvent = certificate?.kind === "event";
+    const certificateLabel = isEvent
+        ? "Certificate of attendance"
+        : "Certificate of completion";
+    const achievementLine = isEvent ? "has attended" : "has successfully completed";
+
     const issuedDate = certificate?.issued_at
         ? new Date(certificate.issued_at).toLocaleDateString("en-US", {
             year: "numeric", month: "long", day: "numeric",
@@ -89,7 +95,7 @@ export default function CertificateView() {
                                 Yatri Cloud
                             </p>
                             <p className="mt-8 text-sm uppercase tracking-widest text-muted-foreground">
-                                Certificate of Completion
+                                {certificateLabel}
                             </p>
 
                             <p className="mt-8 text-base text-muted-foreground">This certifies that</p>
@@ -97,7 +103,7 @@ export default function CertificateView() {
                                 {certificate.recipient_name}
                             </h1>
 
-                            <p className="mt-8 text-base text-muted-foreground">has successfully completed</p>
+                            <p className="mt-8 text-base text-muted-foreground">{achievementLine}</p>
                             <h2 className="mt-3 font-display text-xl font-semibold text-foreground md:text-2xl">
                                 {certificate.title}
                             </h2>

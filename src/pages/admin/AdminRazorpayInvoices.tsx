@@ -21,14 +21,25 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-const STATUS_STYLE: Record<string, string> = {
-    paid: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
-    partially_paid: "bg-amber-500/10 text-amber-600 border-amber-500/30",
-    issued: "bg-blue-500/10 text-blue-600 border-blue-500/30",
-    draft: "bg-muted text-muted-foreground border-border",
-    cancelled: "bg-rose-500/10 text-rose-600 border-rose-500/30",
-    expired: "bg-muted text-muted-foreground border-border",
+const STATUS_STYLE: Record<string, { pill: string; dot: string; label: string }> = {
+    paid: { pill: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20", dot: "bg-emerald-500", label: "Paid" },
+    partially_paid: { pill: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20", dot: "bg-amber-500", label: "Partly paid" },
+    issued: { pill: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20", dot: "bg-blue-500", label: "Issued" },
+    draft: { pill: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20", dot: "bg-slate-400", label: "Draft" },
+    cancelled: { pill: "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20", dot: "bg-rose-500", label: "Cancelled" },
+    expired: { pill: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20", dot: "bg-slate-400", label: "Expired" },
 };
+
+function StatusPill({ status }: { status: string }) {
+    const s = STATUS_STYLE[status] || { pill: "", dot: "bg-slate-400", label: status.replace("_", " ") };
+    // Minimal enterprise style: a small status dot + plain text, no coloured chip.
+    return (
+        <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+            <span className={`h-2 w-2 shrink-0 rounded-full ${s.dot}`} aria-hidden="true" />
+            {s.label}
+        </span>
+    );
+}
 
 /** Razorpay amounts are in the smallest unit; convert to major for display. */
 function majorAmount(smallest: number, currency: string): number {
@@ -187,9 +198,7 @@ export default function AdminRazorpayInvoices() {
                                                     {formatInvoiceMoney(majorAmount(inv.amount, inv.currency), inv.currency)}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant="outline" className={STATUS_STYLE[inv.status] || "border-border"}>
-                                                        {inv.status.replace("_", " ")}
-                                                    </Badge>
+                                                    <StatusPill status={inv.status} />
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center justify-end gap-1">

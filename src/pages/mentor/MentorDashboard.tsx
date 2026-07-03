@@ -1287,7 +1287,7 @@ const ServicesTab = ({
             </Button>
             <Button className="bg-brand-500 hover:bg-brand-600 text-white" onClick={save} disabled={saving}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {mode === "edit" ? "Save changes" : "Create service"}
+              {mode === "edit" ? "Save" : "Create service"}
             </Button>
           </DialogFooter>
         </DialogContent>

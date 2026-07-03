@@ -788,12 +788,8 @@ const AdminCertCatalog = () => {
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <Button onClick={saveCertEdit} disabled={savingCert} className={saveButtonClass}>
-                                                                {savingCert ? (
-                                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                                ) : (
-                                                                    <Save className="mr-2 h-4 w-4" />
-                                                                )}
-                                                                Save changes
+                                                                {savingCert && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                                Save
                                                             </Button>
                                                             <Button
                                                                 variant="outline"
@@ -1008,9 +1004,7 @@ const AdminCertCatalog = () => {
                         <Button onClick={saveProvider} disabled={savingProvider} className={saveButtonClass}>
                             {savingProvider ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Save className="mr-2 h-4 w-4" />
-                            )}
+                            ) : null}
                             {editingProviderId ? "Save provider" : "Add provider"}
                         </Button>
                     </DialogFooter>

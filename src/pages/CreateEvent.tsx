@@ -571,7 +571,7 @@ export default function CreateEvent() {
                                         className="bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 hover:text-primary-foreground min-h-[44px] font-semibold focus-visible:ring-2 focus-visible:ring-ring gap-2"
                                     >
                                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                                        {isEditMode ? 'Save Changes' : 'Publish Event'}
+                                        {isEditMode ? 'Save' : 'Publish Event'}
                                     </Button>
                                 </div>
                             </div>
@@ -897,7 +897,7 @@ export default function CreateEvent() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveDetail} size="lg" className="min-w-[150px]"><Save className="mr-2 h-4 w-4" /> Save Draft</Button></div>
+                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveDetail} size="lg" className="min-w-[150px]">Save Draft</Button></div>
                                 </div>
                             )}
 
@@ -1025,7 +1025,7 @@ export default function CreateEvent() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveTickets} size="lg"><Save className="mr-2 h-4 w-4" /> Save Draft</Button></div>
+                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveTickets} size="lg">Save Draft</Button></div>
                                 </div>
                             )}
 
@@ -1236,7 +1236,7 @@ export default function CreateEvent() {
                                         </Dialog>
 
                                     </div>
-                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveSpeakers} size="lg"><Save className="mr-2 h-4 w-4" /> Save Draft</Button></div>
+                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveSpeakers} size="lg">Save Draft</Button></div>
                                 </div>
                             )}
 
@@ -1398,7 +1398,7 @@ export default function CreateEvent() {
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveSponsors} size="lg"><Save className="mr-2 h-4 w-4" /> Save Draft</Button></div>
+                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveSponsors} size="lg">Save Draft</Button></div>
                                 </div>
                             )}
 
@@ -1548,7 +1548,7 @@ export default function CreateEvent() {
                                         <Button onClick={() => {
                                             toast({ title: "Gallery Saved", description: "Gallery albums saved successfully." });
                                         }} size="lg">
-                                            <Save className="mr-2 h-4 w-4" /> Save Gallery
+                                            Save Gallery
                                         </Button>
                                     </div>
                                 </div>

@@ -210,7 +210,7 @@ const AdminEditExamDump = () => {
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
-            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</> : <><Save className="mr-2 h-4 w-4" /> Save Changes</>}
+            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</> : <>Save</>}
           </Button>
         </div>
       </form>

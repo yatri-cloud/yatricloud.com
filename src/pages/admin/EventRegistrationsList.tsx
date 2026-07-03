@@ -724,7 +724,7 @@ export default function EventRegistrationsList() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
-                        <Button className="rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring" onClick={handleSaveEdit}>Save Changes</Button>
+                        <Button className="rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring" onClick={handleSaveEdit}>Save</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

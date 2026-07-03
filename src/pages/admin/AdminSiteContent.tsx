@@ -496,9 +496,7 @@ const ContentListSection = ({
                                     >
                                         {savingKey === key ? (
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Save className="mr-2 h-4 w-4" />
-                                        )}
+                                        ) : null}
                                         Save {itemLabel}
                                     </Button>
                                 </div>
@@ -968,9 +966,7 @@ const FixedDocsSection = ({
                                     >
                                         {savingKey === pk ? (
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Save className="mr-2 h-4 w-4" />
-                                        )}
+                                        ) : null}
                                         Save {itemLabel}
                                     </Button>
                                 </div>
@@ -1494,7 +1490,7 @@ const AdminSiteContent = () => {
                             </div>
 
                             <Button onClick={saveSettings} disabled={savingSettings} className={saveButtonClass}>
-                                {savingSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                {savingSettings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save site settings
                             </Button>
                         </div>
@@ -1554,7 +1550,7 @@ const AdminSiteContent = () => {
                             )}
 
                             <Button onClick={saveStats} disabled={savingStats || stats.length === 0} className={saveButtonClass}>
-                                {savingStats ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                {savingStats && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save stats
                             </Button>
                         </div>
@@ -1602,7 +1598,7 @@ const AdminSiteContent = () => {
                             </div>
 
                             <Button onClick={savePromo} disabled={savingPromo} className={saveButtonClass}>
-                                {savingPromo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                {savingPromo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save promotion
                             </Button>
                         </div>
@@ -1705,9 +1701,7 @@ const AdminSiteContent = () => {
                                         >
                                             {savingFaqId === (faq.id ?? `new-${index}`) ? (
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Save className="mr-2 h-4 w-4" />
-                                            )}
+                                            ) : null}
                                             Save question
                                         </Button>
                                     </div>
