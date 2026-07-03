@@ -13,6 +13,7 @@ import { getRegisteredEvents, type EventRegistration } from "@/lib/yatris-api";
 import { listMyEnrollments } from "@/lib/training-api";
 import { getMyInvoices, formatInvoiceMoney, type Invoice } from "@/lib/invoices-api";
 import { getMyCertificates, type MyCertificate } from "@/lib/certificates-api";
+import { StudyPlanCard } from "@/components/StudyPlanCard";
 import { format } from "date-fns";
 
 const BROWSE_LINKS = [
@@ -133,6 +134,9 @@ export default function YatriDashboard() {
                                     </Card>
                                 </Link>
                             </div>
+
+                            {/* Study planner — exam countdown */}
+                            <StudyPlanCard />
 
                             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                                 {/* Upcoming events */}
