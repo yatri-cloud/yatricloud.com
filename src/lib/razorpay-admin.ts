@@ -19,6 +19,7 @@ export interface RazorpayInvoice {
   short_url: string | null;
   description: string | null;
   date: number | null; // unix seconds (created)
+  paid_at?: number | null; // unix seconds (when marked paid), if paid
   customer_details?: { name?: string; email?: string; contact?: string } | null;
 }
 

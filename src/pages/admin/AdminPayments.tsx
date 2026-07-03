@@ -18,6 +18,43 @@ import { StatsCard } from "@/components/admin/StatsCard";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths, subDays, startOfDay, endOfDay } from "date-fns";
 import { getAllInvoices, formatInvoiceMoney, type Invoice } from "@/lib/invoices-api";
+import { listRazorpayInvoices } from "@/lib/razorpay-admin";
+import { currencyDecimals } from "@/lib/currency-catalog";
+
+/**
+ * Paid Razorpay invoices (raised in the dashboard or from Yatri Cloud) are settled
+ * on Razorpay's hosted page and never pass through our checkout, so they are not
+ * in our invoices table. Pull the paid ones and fold them into revenue so the
+ * numbers are complete. No overlap with internal receipts (those use orders, not
+ * invoices), so nothing is double counted.
+ */
+async function getRazorpayPaidReceipts(): Promise<Invoice[]> {
+    try {
+        const list = await listRazorpayInvoices(100);
+        return list
+            .filter((i) => i.status === "paid" || i.status === "partially_paid")
+            .map((i) => {
+                const cur = (i.currency || "INR").toUpperCase();
+                const smallest = i.status === "partially_paid" ? (i.amount_paid || 0) : i.amount;
+                const amountMajor = (Number(smallest) || 0) / Math.pow(10, currencyDecimals(cur));
+                const ts = (i.paid_at || i.date || 0) * 1000;
+                return {
+                    number: i.invoice_number || i.id,
+                    kind: "other" as const,
+                    kindLabel: "Razorpay invoice",
+                    buyerName: i.customer_details?.name || "",
+                    buyerEmail: i.customer_details?.email || "",
+                    amount: amountMajor,
+                    currency: cur,
+                    items: [{ name: i.description || "Invoice" }],
+                    createdAt: ts ? new Date(ts).toISOString() : "",
+                };
+            });
+    } catch {
+        // Gateway unavailable (e.g. local dev without serverless) — just skip.
+        return [];
+    }
+}
 
 const KIND_ORDER = ["store", "event", "training", "mentorship", "other"] as const;
 const KIND_LABEL: Record<string, string> = {
@@ -76,7 +113,11 @@ export default function AdminPayments() {
         (async () => {
             setIsLoading(true);
             try {
-                setInvoices(await getAllInvoices());
+                const [internal, razorpay] = await Promise.all([
+                    getAllInvoices(),
+                    getRazorpayPaidReceipts(),
+                ]);
+                setInvoices([...internal, ...razorpay]);
             } catch (e) {
                 console.error(e);
                 toast.error("We could not load payments just now. Please try again.");
