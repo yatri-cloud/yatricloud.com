@@ -53,6 +53,7 @@ import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminSitemapView from "./pages/admin/AdminSitemapView";
 import AdminOverview from "./pages/admin/AdminOverview";
 import UserSitemapView from "./pages/UserSitemapView";
+import YatriDashboard from "./pages/YatriDashboard";
 import Training from "./pages/Training";
 import TrainingDetail from "./pages/TrainingDetail";
 import AdminTrainingList from "@/pages/admin/AdminTrainingList";
@@ -155,6 +156,7 @@ const App = () => (
               <Route path="/event/:slug/media" element={<EventMediaUpload />} />
 
               {/* Profile Routes */}
+              <Route path="/dashboard" element={<YatriDashboard />} />
               <Route path="/profile/my-events" element={<MyEvents />} />
               <Route path="/my-trainings" element={<MyTrainings />} />
               <Route path="/profile/purchases" element={<MyPurchases />} />
