@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Award, Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink, Globe, Handshake, CalendarClock, Star, Inbox, Receipt } from "lucide-react";
+import { Award, Calendar, BookOpen, LogOut, Wrench, Plus, GraduationCap, ClipboardList, Users, Server, Info, LayoutDashboard, List, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, ExternalLink, Globe, Handshake, CalendarClock, Star, Inbox, Receipt, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Accordion,
@@ -77,6 +77,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
             items: [
                 { name: "Payments & Revenue", path: "/admin/payments", icon: Receipt },
                 { name: "Razorpay Invoices", path: "/admin/razorpay-invoices", icon: ExternalLink },
+                { name: "Transactions", path: "/admin/transactions", icon: CreditCard },
                 { name: "Udemy Management", path: "/admin/udemy", icon: GraduationCap },
                 { name: "Store Product", path: "/admin/products/add", icon: Plus },
                 { name: "Exam Dumps", path: "/admin/exam-dumps", icon: List },

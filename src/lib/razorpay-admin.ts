@@ -24,12 +24,14 @@ export interface RazorpayInvoice {
 
 export interface RazorpayPayment {
   id: string;
-  amount: number;
+  amount: number; // smallest unit
+  amount_refunded: number; // smallest unit
   currency: string;
-  status: string;
+  status: string; // created | authorized | captured | refunded | failed
   method: string | null;
   email: string | null;
   contact: string | null;
+  description?: string | null;
   created_at: number | null;
 }
 
@@ -80,4 +82,17 @@ export async function cancelRazorpayInvoice(invoice_id: string): Promise<string>
 export async function listRazorpayPayments(count = 50, skip = 0): Promise<RazorpayPayment[]> {
   const data = await call<{ items: RazorpayPayment[] }>("payments.list", { count, skip });
   return data.items || [];
+}
+
+/** Refund a captured payment. Omit amount for a full refund; pass major units for partial. */
+export async function refundPayment(input: {
+  payment_id: string;
+  amount?: number;
+  currency?: string;
+}): Promise<{ id: string; amount: number; currency: string; status: string }> {
+  const data = await call<{ refund: { id: string; amount: number; currency: string; status: string } }>(
+    "payments.refund",
+    input as unknown as Record<string, unknown>,
+  );
+  return data.refund;
 }

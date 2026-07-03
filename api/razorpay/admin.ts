@@ -13,6 +13,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
  *          | "invoices.create"  params: { customer:{name,email,contact}, description?, item_name, amount, currency, notify? }
  *          | "invoices.cancel"  params: { invoice_id }
  *          | "payments.list"    params: { count?, skip? }
+ *          | "payments.refund"  params: { payment_id, amount?, currency? }  (omit amount for a full refund)
  *
  * invoices.create issues the invoice and returns its short_url (a hosted pay
  * page). This lets an admin raise a professional invoice, in any currency, from
@@ -125,6 +126,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ok: true,
         invoice: { id: r.data.id, status: r.data.status, short_url: r.data.short_url, amount: r.data.amount, currency: r.data.currency },
       });
+    }
+
+    if (action === 'payments.refund') {
+      if (!p.payment_id) return res.status(400).json({ ok: false, message: 'Missing payment id.' });
+      // Optional partial amount (major units). Omit for a full refund.
+      const body: Record<string, unknown> = { speed: 'normal' };
+      if (p.amount !== undefined && p.amount !== null && p.amount !== '') {
+        const amt = Number(p.amount);
+        if (!Number.isFinite(amt) || amt <= 0) return res.status(400).json({ ok: false, message: 'Enter a valid refund amount.' });
+        body.amount = toSmallestUnit(amt, String(p.currency || 'INR'));
+      }
+      const r = await rzp('POST', `/payments/${encodeURIComponent(String(p.payment_id))}/refund`, body);
+      if (!r.ok) return res.status(r.status).json({ ok: false, message: r.data?.error?.description || 'Could not refund this payment.' });
+      return res.status(200).json({ ok: true, refund: { id: r.data.id, amount: r.data.amount, currency: r.data.currency, status: r.data.status } });
     }
 
     if (action === 'invoices.cancel') {
