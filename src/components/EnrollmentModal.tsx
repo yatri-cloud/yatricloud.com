@@ -10,12 +10,20 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
-import { initiateRazorpayPayment, formatEventPrice } from "@/lib/razorpay";
+import { openRazorpayCheckout, createRazorpayOrder } from "@/lib/razorpay";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
 import { getStoredUser, isProfileComplete } from "@/lib/yatris-api";
-import { enroll } from "@/lib/training-api";
+import { enroll, createTrainingOrder } from "@/lib/training-api";
 import { Country } from "country-state-city";
+import { CurrencySelect } from "@/components/CurrencySelect";
+import {
+    DEFAULT_CURRENCY,
+    convertFromInr,
+    formatMoney,
+    toSmallestUnit,
+    type CurrencyOption,
+} from "@/lib/currency";
 
 interface EnrollmentModalProps {
     open: boolean;
@@ -42,6 +50,10 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [autoSubmitting, setAutoSubmitting] = useState(false);
+    const [payCurrency, setPayCurrency] = useState<CurrencyOption>(DEFAULT_CURRENCY);
+    const inrPrice = typeof price === "string" ? parseFloat(String(price).replace(/[^\d.]/g, "")) || 0 : (price || 0);
+    const convertedPrice = convertFromInr(inrPrice, payCurrency);
+    const priceLabel = formatMoney(convertedPrice, payCurrency);
     const [formData, setFormData] = useState<FormData>({
         name: "",
         email: "",
@@ -114,14 +126,9 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
         return false;
     };
 
-    const submitEnrollment = async (paymentData?: any) => {
+    // Welcome email + success handoff shared by both flows.
+    const sendWelcomeAndFinish = async () => {
         try {
-            await enroll({
-                trainingId: courseId,
-                email: formData.email,
-                paymentId: paymentData?.paymentId || undefined,
-            });
-
             const emailHtml = `
                 <div style="font-family: sans-serif; padding: 20px;">
                     <h1>Welcome to ${courseName}!</h1>
@@ -132,100 +139,97 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     <p>Happy Learning,<br/>Yatri Cloud Team</p>
                 </div>
             `;
-
             await sendEmail({
                 to: formData.email,
                 subject: `Enrollment Confirmed: ${courseName}`,
-                html: emailHtml
+                html: emailHtml,
             });
+        } catch (emailErr) {
+            console.error("Failed to send enrollment email", emailErr);
+        }
+        toast({ title: "Enrollment Successful!", description: "Welcome aboard! Check your email." });
+        onSuccess();
+        onClose();
+    };
 
-            toast({ title: "Enrollment Successful!", description: "Welcome aboard! Check your email." });
-            onSuccess();
-            onClose();
+    // Order based enrollment: pending row + Razorpay in the chosen currency for
+    // paid trainings, or a direct free enrollment otherwise.
+    const startEnrollment = async () => {
+        setIsSubmitting(true);
+        try {
+            if (isPaid && inrPrice > 0) {
+                const smallest = toSmallestUnit(convertedPrice, payCurrency);
+
+                const { orderId, error: orderErr } = await createTrainingOrder({
+                    email: formData.email,
+                    amount: convertedPrice,
+                    currency: payCurrency.code,
+                    items: [{ name: courseName, price_inr: inrPrice }],
+                });
+                if (orderErr || !orderId) throw new Error(orderErr || "Could not start your order. Please try again.");
+
+                // Pending enrollment before payment (reused on retry).
+                const { id: enrollmentId } = await enroll({
+                    trainingId: courseId,
+                    email: formData.email,
+                    amount: convertedPrice,
+                    currency: payCurrency.code,
+                    paymentStatus: "pending",
+                    orderId,
+                });
+
+                const razorpayOrderId = await createRazorpayOrder({
+                    amount: smallest,
+                    currency: payCurrency.code,
+                    receipt: `train_${Date.now()}`,
+                    notes: { kind: "training", enrollment_id: enrollmentId, order_id: orderId },
+                });
+
+                openRazorpayCheckout({
+                    razorpayOrderId,
+                    amountSmallestUnit: smallest,
+                    currency: payCurrency.code,
+                    productName: courseName,
+                    customer: { name: formData.name, email: formData.email, phone: formData.phone },
+                    ourOrderId: orderId,
+                    verifyExtra: {
+                        kind: "training",
+                        enrollment_id: enrollmentId,
+                        buyer_name: formData.name,
+                        buyer_email: formData.email,
+                        item: courseName,
+                    },
+                    onSuccess: async () => {
+                        await sendWelcomeAndFinish();
+                        setIsSubmitting(false);
+                    },
+                    onFailure: (message) => {
+                        setIsSubmitting(false);
+                        setAutoSubmitting(false);
+                        toast({ title: "Payment Failed", description: message, variant: "destructive" });
+                    },
+                });
+            } else {
+                await enroll({ trainingId: courseId, email: formData.email, paymentStatus: "free" });
+                await sendWelcomeAndFinish();
+                setIsSubmitting(false);
+            }
         } catch (e: any) {
             console.error(e);
+            setIsSubmitting(false);
+            setAutoSubmitting(false);
             toast({ title: "Enrollment Failed", description: e?.message || "Please try again.", variant: "destructive" });
         }
     };
 
-    // Auto-submit for users with complete profiles
-    const handleAutoSubmit = async () => {
-        setIsSubmitting(true);
-        try {
-            if (isPaid) {
-                const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-                initiateRazorpayPayment(
-                    {
-                        amount: numPrice,
-                        currency: currency || 'INR',
-                        eventName: courseName,
-                        userDetails: {
-                            name: formData.name,
-                            email: formData.email,
-                            phone: formData.phone,
-                        }
-                    },
-                    async (response) => {
-                        await submitEnrollment({
-                            paymentId: response.razorpay_payment_id,
-                            amount: numPrice
-                        });
-                        setIsSubmitting(false);
-                    },
-                    (err) => {
-                        setIsSubmitting(false);
-                        setAutoSubmitting(false);
-                        toast({ title: "Payment Failed", description: err.error, variant: "destructive" });
-                    }
-                );
-            } else {
-                await submitEnrollment();
-                setIsSubmitting(false);
-            }
-        } catch (e) {
-            setIsSubmitting(false);
-            setAutoSubmitting(false);
-        }
+    // Auto-submit for users with complete profiles.
+    const handleAutoSubmit = () => {
+        void startEnrollment();
     };
 
     const handleSubmit = async () => {
         if (!validateForm()) return;
-        setIsSubmitting(true);
-
-        try {
-            if (isPaid) {
-                const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-
-                initiateRazorpayPayment(
-                    {
-                        amount: numPrice,
-                        currency: currency || 'INR',
-                        eventName: courseName,
-                        userDetails: {
-                            name: formData.name,
-                            email: formData.email,
-                            phone: formData.phone,
-                        }
-                    },
-                    async (response) => {
-                        await submitEnrollment({
-                            paymentId: response.razorpay_payment_id,
-                            amount: numPrice
-                        });
-                        setIsSubmitting(false);
-                    },
-                    (err) => {
-                        setIsSubmitting(false);
-                        toast({ title: "Payment Failed", description: err.error, variant: "destructive" });
-                    }
-                );
-            } else {
-                await submitEnrollment();
-                setIsSubmitting(false);
-            }
-        } catch (e) {
-            setIsSubmitting(false);
-        }
+        await startEnrollment();
     };
 
     // Show a simple loading dialog when auto-enrolling (profile complete)
@@ -252,7 +256,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                         {isPaid ? (
                             <div className="flex items-center gap-2 text-base mt-2">
                                 <CreditCard className="w-5 h-5" />
-                                <span>Total: <strong>{currency} {price}</strong></span>
+                                <span>Total: <strong>{priceLabel}</strong></span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 text-base mt-2 text-green-600">
@@ -345,6 +349,20 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                         </div>
                     </div>
 
+                    {isPaid && (
+                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 p-3">
+                            <div className="text-sm">
+                                <span className="text-muted-foreground">You pay </span>
+                                <span className="font-semibold text-foreground">{priceLabel}</span>
+                            </div>
+                            <CurrencySelect
+                                value={payCurrency.code}
+                                onChange={(_code, option) => setPayCurrency(option)}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+                    )}
+
                     <div className="flex gap-3 pt-4">
                         <Button
                             variant="outline"
@@ -369,7 +387,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                                     {isPaid ? (
                                         <>
                                             <CreditCard className="w-4 h-4 mr-2" />
-                                            Pay Now
+                                            Pay {priceLabel}
                                         </>
                                     ) : (
                                         'Confirm Enrollment'

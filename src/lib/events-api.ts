@@ -236,6 +236,14 @@ export interface CreateRegistrationInput {
         linkedIn?: string;
     };
     paymentId?: string;
+    /** INR price of the ticket (stored for the record). */
+    amount?: number;
+    /** Currency the Yatri chose to pay in (INR default). */
+    currency?: string;
+    /** 'pending' before a paid checkout, 'paid'/'free' when settled. */
+    paymentStatus?: "pending" | "paid" | "failed" | "free";
+    /** Our orders.id row backing this registration (paid flows). */
+    orderId?: string | null;
 }
 
 function generateRegistrationCode(prefix?: string): string {
@@ -269,9 +277,61 @@ function regRowToRegistration(row: EventRow): EventRegistration {
     };
 }
 
+/** Payment/amount fields that vary between the free and paid flows. */
+function registrationPaymentFields(input: CreateRegistrationInput): Record<string, unknown> {
+    const fields: Record<string, unknown> = {};
+    if (input.paymentId) fields.payment_id = input.paymentId;
+    if (input.amount !== undefined) fields.amount = input.amount;
+    if (input.currency) fields.currency = input.currency;
+    if (input.paymentStatus) fields.payment_status = input.paymentStatus;
+    if (input.orderId !== undefined && input.orderId !== null) fields.order_id = input.orderId;
+    return fields;
+}
+
+/**
+ * Creates (or reuses) a registration for an event.
+ *
+ * The (event_id, email) pair is unique, so an abandoned then retried paid
+ * attempt must reuse the existing pending row rather than hit the constraint.
+ * We look it up first (fast path for the Yatri's own row), fall back to an
+ * insert, and if the insert races into a 23505 we patch the existing row.
+ */
 export async function createRegistration(
     input: CreateRegistrationInput
 ): Promise<{ registrationCode: string; id: string }> {
+    const email = input.userDetails.email.trim().toLowerCase();
+    const detailFields = {
+        name: input.userDetails.name,
+        phone: input.userDetails.phone || null,
+        city: input.userDetails.city || null,
+        state: input.userDetails.state || null,
+        country: input.userDetails.country || null,
+        linkedin_url: input.userDetails.linkedIn || null,
+    };
+    const paymentFields = registrationPaymentFields(input);
+
+    // Fast path: reuse the Yatri's own existing row for this event.
+    const { data: existing } = await supabase
+        .from("event_registrations")
+        .select("id, registration_code")
+        .eq("event_id", input.eventId)
+        .eq("email", email)
+        .maybeSingle();
+
+    if (existing?.id) {
+        const { data, error } = await supabase
+            .from("event_registrations")
+            .update({ ...detailFields, ...paymentFields })
+            .eq("id", existing.id)
+            .select("id, registration_code")
+            .single();
+        if (error) {
+            console.error("[events-api] createRegistration(update)", error.message);
+            throw error;
+        }
+        return { registrationCode: data.registration_code, id: data.id };
+    }
+
     const registrationCode = generateRegistrationCode(input.codePrefix);
     const { data, error } = await supabase
         .from("event_registrations")
@@ -279,23 +339,64 @@ export async function createRegistration(
             event_id: input.eventId,
             user_id: input.userId || null,
             registration_code: registrationCode,
-            name: input.userDetails.name,
-            email: input.userDetails.email,
-            phone: input.userDetails.phone || null,
-            city: input.userDetails.city || null,
-            state: input.userDetails.state || null,
-            country: input.userDetails.country || null,
-            linkedin_url: input.userDetails.linkedIn || null,
+            email,
             status: "registered",
-            payment_id: input.paymentId || null,
+            ...detailFields,
+            ...paymentFields,
         })
         .select("id, registration_code")
         .single();
+
     if (error) {
+        // Row already exists (e.g. RLS hid it above) — patch it instead.
+        if ((error as any).code === "23505") {
+            const { data: patched, error: upErr } = await supabase
+                .from("event_registrations")
+                .update({ ...detailFields, ...paymentFields })
+                .eq("event_id", input.eventId)
+                .eq("email", email)
+                .select("id, registration_code")
+                .single();
+            if (upErr) {
+                console.error("[events-api] createRegistration(conflict)", upErr.message);
+                throw upErr;
+            }
+            return { registrationCode: patched.registration_code, id: patched.id };
+        }
         console.error("[events-api] createRegistration", error.message);
         throw error;
     }
     return { registrationCode: data.registration_code, id: data.id };
+}
+
+/**
+ * Creates our orders row (kind 'event') and returns its id. Mirrors
+ * createMentorshipOrder so the paid registration flow has an order to link.
+ */
+export async function createEventOrder(input: {
+    userId?: string | null;
+    email: string;
+    amount: number;
+    currency: string;
+    items: unknown[];
+}): Promise<{ orderId: string | null; error: string | null }> {
+    const { data, error } = await supabase
+        .from("orders")
+        .insert({
+            user_id: input.userId || null,
+            email: input.email,
+            kind: "event",
+            items: input.items,
+            amount: input.amount,
+            currency: input.currency,
+        })
+        .select("id")
+        .single();
+    if (error || !data) {
+        console.error("[events-api] createEventOrder", error?.message);
+        return { orderId: null, error: "We could not start your order. Please try again." };
+    }
+    return { orderId: String(data.id), error: null };
 }
 
 export async function getEventRegistrations(eventId: string): Promise<EventRegistration[]> {

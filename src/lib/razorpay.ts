@@ -26,33 +26,62 @@ declare global {
 }
 
 /**
- * Initialize and open Razorpay payment modal
+ * Order based Razorpay checkout — the ONE correct flow.
+ *
+ * The caller must already have created a Razorpay order (createRazorpayOrder)
+ * so a signature comes back and /api/razorpay/verify can validate the HMAC.
+ * The verify body carries the smallest unit amount + chosen currency, our
+ * orders.id (ourOrderId) and any extra fields (kind, registration_id,
+ * enrollment_id, buyer info, item) so the server can confirm the row and
+ * issue an invoice. Mirrors openMentorshipCheckout in src/lib/mentorship.ts.
  */
-export function initiateRazorpayPayment(
-  options: RazorpayOptions,
-  onSuccess: (response: RazorpayResponse) => void,
-  onFailure: (error: any) => void
-): void {
+export interface RazorpayCheckoutInput {
+  /** Razorpay order id from createRazorpayOrder. */
+  razorpayOrderId: string;
+  /** Amount in the smallest unit of the chosen currency (e.g. paise, cents). */
+  amountSmallestUnit: number;
+  /** ISO currency code being charged (INR, USD, ...). */
+  currency: string;
+  /** Shown in the Razorpay modal. */
+  productName: string;
+  customer: { name: string; email: string; phone: string };
+  /** Our orders.id row, forwarded to verify as order_id. */
+  ourOrderId?: string;
+  /** Extra fields merged into the verify body (kind, registration_id, ...). */
+  verifyExtra?: Record<string, unknown>;
+  onSuccess: (paymentId: string) => void;
+  onFailure: (message: string) => void;
+}
+
+/** Drops undefined/null entries so Razorpay notes and the verify body stay clean. */
+function compact(obj: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined && v !== null) out[k] = v;
+  }
+  return out;
+}
+
+export function openRazorpayCheckout(input: RazorpayCheckoutInput): void {
   const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
-
   if (!key) {
-    console.error('Razorpay Key ID not configured');
-    onFailure({ error: 'Payment gateway not configured. Please contact administrator.' });
+    input.onFailure('Payment gateway not configured. Please contact administrator.');
+    return;
+  }
+  if (!window.Razorpay) {
+    input.onFailure('Payment system not available. Please refresh and try again.');
     return;
   }
 
-  if (!window.Razorpay) {
-    console.error('Razorpay script not loaded');
-    onFailure({ error: 'Payment system not available. Please refresh and try again.' });
-    return;
-  }
+  const extra = compact(input.verifyExtra || {});
 
   const razorpayOptions = {
-    key: key,
-    amount: Math.round(options.amount * 100), // Convert to paise
-    currency: options.currency,
-    name: 'Yatri Cloud Events',
-    description: `Registration for ${options.eventName}`,
+    key,
+    amount: input.amountSmallestUnit,
+    currency: input.currency,
+    name: 'Yatri Cloud',
+    description: input.productName,
+    order_id: input.razorpayOrderId,
     image: 'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png',
     handler: async function (response: RazorpayResponse) {
       // Server-side signature verification — the payment is only trusted
@@ -65,55 +94,49 @@ export function initiateRazorpayPayment(
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
-            amount: Math.round(options.amount * 100),
-            currency: options.currency,
+            amount: input.amountSmallestUnit,
+            currency: input.currency,
+            ...(input.ourOrderId ? { order_id: input.ourOrderId } : {}),
+            ...extra,
           }),
         });
         const verdict = await verifyRes.json().catch(() => ({}));
         if (!verifyRes.ok || !verdict.verified) {
-          onFailure({ error: 'Payment could not be verified. If money was deducted it will be auto-refunded — please contact support.' });
+          input.onFailure('Payment could not be verified. If money was deducted it will be auto-refunded — please contact support.');
           return;
         }
       } catch (e) {
         console.error('Payment verification request failed:', e);
-        onFailure({ error: 'Payment verification failed — please contact support with your payment ID.' });
+        input.onFailure('Payment verification failed — please contact support with your payment ID.');
         return;
       }
-      onSuccess(response);
+      input.onSuccess(response.razorpay_payment_id);
     },
     prefill: {
-      name: options.userDetails.name,
-      email: options.userDetails.email,
-      contact: options.userDetails.phone,
+      name: input.customer.name,
+      email: input.customer.email,
+      contact: input.customer.phone,
     },
-    notes: {
-      event: options.eventName,
-    },
+    notes: extra,
     theme: {
       color: '#3B82F6', // Primary blue color
     },
     modal: {
       ondismiss: function () {
-        onFailure({ error: 'Payment cancelled by user' });
-      }
-    }
+        input.onFailure('Payment cancelled by user');
+      },
+    },
   };
 
   try {
     const razorpayInstance = new window.Razorpay(razorpayOptions);
-
     razorpayInstance.on('payment.failed', function (response: any) {
-      onFailure({
-        error: response.error.description || 'Payment failed',
-        code: response.error.code,
-        reason: response.error.reason
-      });
+      input.onFailure(response?.error?.description || 'Payment failed');
     });
-
     razorpayInstance.open();
   } catch (error) {
     console.error('Error opening Razorpay:', error);
-    onFailure({ error: 'Failed to open payment gateway' });
+    input.onFailure('Failed to open payment gateway');
   }
 }
 
@@ -178,72 +201,20 @@ export function initiatePayment(
   email: string,
   phone: string,
   onSuccess: (paymentId: string) => void,
-  onFailure: (error: string) => void
+  onFailure: (error: string) => void,
+  currency: string = "INR",
+  verifyExtra: Record<string, unknown> = {}
 ) {
-  const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
-
-  if (!key) {
-    onFailure("Razorpay Key ID not configured");
-    return;
-  }
-
-  const options = {
-    key: key,
-    amount: amount,
-    currency: "INR",
-    name: "Yatri Cloud",
-    description: productName,
-    order_id: orderId,
-    image: "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png",
-    handler: async function (response: any) {
-      // Server-side signature verification before trusting the payment.
-      try {
-        const verifyRes = await fetch('/api/razorpay/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            amount,
-            currency: 'INR',
-          }),
-        });
-        const verdict = await verifyRes.json().catch(() => ({}));
-        if (!verifyRes.ok || !verdict.verified) {
-          onFailure('Payment could not be verified. If money was deducted it will be auto-refunded — please contact support.');
-          return;
-        }
-      } catch (e) {
-        console.error('Payment verification request failed:', e);
-        onFailure('Payment verification failed — please contact support with your payment ID.');
-        return;
-      }
-      onSuccess(response.razorpay_payment_id);
-    },
-    prefill: {
-      name: customerName,
-      email: email,
-      contact: phone,
-    },
-    theme: {
-      color: "#3B82F6",
-    },
-    modal: {
-      ondismiss: function () {
-        onFailure('Payment cancelled by user');
-      }
-    }
-  };
-
-  try {
-    const razorpay = new window.Razorpay(options);
-    razorpay.on("payment.failed", function (response: any) {
-      onFailure(response.error.description || "Payment failed");
-    });
-    razorpay.open();
-  } catch (error) {
-    console.error("Error opening Razorpay:", error);
-    onFailure("Failed to open payment gateway");
-  }
+  // Delegates to the shared order based checkout so the store benefits from the
+  // same verified flow, multi currency support and server side invoicing.
+  openRazorpayCheckout({
+    razorpayOrderId: orderId,
+    amountSmallestUnit: amount,
+    currency,
+    productName,
+    customer: { name: customerName, email, phone },
+    verifyExtra: { kind: "store", ...verifyExtra },
+    onSuccess,
+    onFailure,
+  });
 }

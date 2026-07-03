@@ -182,20 +182,104 @@ export async function enroll(input: {
   trainingId: string;
   email: string;
   paymentId?: string;
-}): Promise<void> {
+  /** INR price of the training (stored for the record). */
+  amount?: number;
+  /** Currency the Yatri chose to pay in (INR default). */
+  currency?: string;
+  /** 'pending' before a paid checkout, 'paid'/'free' when settled. */
+  paymentStatus?: "pending" | "paid" | "failed" | "free";
+  /** Our orders.id row backing this enrollment (paid flows). */
+  orderId?: string | null;
+}): Promise<{ id: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Please sign in to enroll.");
+  const email = input.email.trim().toLowerCase();
 
-  const { error } = await supabase.from("training_enrollments").insert({
-    training_id: input.trainingId,
-    user_id: user.id,
-    email: input.email.trim().toLowerCase(),
-    status: "enrolled",
-    payment_id: input.paymentId || null,
-  });
+  const fields: Record<string, unknown> = {};
+  if (input.paymentId) fields.payment_id = input.paymentId;
+  if (input.amount !== undefined) fields.amount = input.amount;
+  if (input.currency) fields.currency = input.currency;
+  if (input.paymentStatus) fields.payment_status = input.paymentStatus;
+  if (input.orderId !== undefined && input.orderId !== null) fields.order_id = input.orderId;
 
-  // Unique (training_id, email) — already enrolled counts as success.
-  if (error && (error as any).code !== "23505") throw error;
+  // Reuse an existing row for this (training, email) so a retried paid attempt
+  // does not hit the unique constraint — mirrors the events flow.
+  const { data: existing } = await supabase
+    .from("training_enrollments")
+    .select("id")
+    .eq("training_id", input.trainingId)
+    .eq("email", email)
+    .maybeSingle();
+
+  if (existing?.id) {
+    const { data, error } = await supabase
+      .from("training_enrollments")
+      .update(fields)
+      .eq("id", existing.id)
+      .select("id")
+      .single();
+    if (error) throw error;
+    return { id: data.id };
+  }
+
+  const { data, error } = await supabase
+    .from("training_enrollments")
+    .insert({
+      training_id: input.trainingId,
+      user_id: user.id,
+      email,
+      status: "enrolled",
+      ...fields,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    // Row already exists (e.g. RLS hid it above) — patch and reuse it.
+    if ((error as any).code === "23505") {
+      const { data: again, error: upErr } = await supabase
+        .from("training_enrollments")
+        .update(fields)
+        .eq("training_id", input.trainingId)
+        .eq("email", email)
+        .select("id")
+        .single();
+      if (upErr) throw upErr;
+      return { id: again.id };
+    }
+    throw error;
+  }
+  return { id: data.id };
+}
+
+/**
+ * Creates our orders row (kind 'training') and returns its id. Mirrors
+ * createMentorshipOrder so the paid enrollment flow has an order to link.
+ */
+export async function createTrainingOrder(input: {
+  email: string;
+  amount: number;
+  currency: string;
+  items: unknown[];
+}): Promise<{ orderId: string | null; error: string | null }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data, error } = await supabase
+    .from("orders")
+    .insert({
+      user_id: user?.id || null,
+      email: input.email,
+      kind: "training",
+      items: input.items,
+      amount: input.amount,
+      currency: input.currency,
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    console.error("[training-api] createTrainingOrder", error?.message);
+    return { orderId: null, error: "We could not start your order. Please try again." };
+  }
+  return { orderId: String(data.id), error: null };
 }
 
 /** Is the current user enrolled in a training? */
@@ -204,12 +288,13 @@ export async function checkEnrollment(trainingId: string): Promise<boolean> {
   if (!user) return false;
   const { data, error } = await supabase
     .from("training_enrollments")
-    .select("id")
+    .select("id,payment_status")
     .eq("training_id", trainingId)
     .eq("user_id", user.id)
     .maybeSingle();
-  if (error) return false;
-  return !!data;
+  if (error || !data) return false;
+  // A pending or failed payment does not grant access to a paid course.
+  return data.payment_status !== "pending" && data.payment_status !== "failed";
 }
 
 /** The current user's enrollments + a map of their trainings (My Trainings). */

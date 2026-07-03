@@ -24,6 +24,70 @@ const googleCalendarUrl = (input: {
   return `https://calendar.google.com/calendar/render?${params}`;
 };
 
+/** Minimal symbol map for the receipt (server has no currency table). */
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  INR: '₹', USD: '$', EUR: '€', GBP: '£', AED: 'د.إ', SGD: 'S$', AUD: 'A$', CAD: 'C$',
+};
+
+/** "₹499" for INR, "$5.99" for everything else. */
+function formatReceiptMoney(amount: number, currency: string): string {
+  const code = (currency || 'INR').toUpperCase();
+  const symbol = CURRENCY_SYMBOLS[code] || `${code} `;
+  if (code === 'INR') return `${symbol}${Math.round(amount).toLocaleString('en-IN')}`;
+  return `${symbol}${amount.toFixed(2)}`;
+}
+
+/** Friendly line item label when none is supplied. */
+function labelForKind(kind: string | null): string {
+  switch (kind) {
+    case 'store': return 'Yatri Cloud store purchase';
+    case 'event': return 'Event registration';
+    case 'training': return 'Training enrollment';
+    case 'mentorship': return 'Mentorship session';
+    default: return 'Yatri Cloud purchase';
+  }
+}
+
+/** Inline-styled payment receipt sent to the buyer (domestic and international). */
+function buildInvoiceEmail(input: {
+  invoiceNumber: string;
+  buyerName: string;
+  buyerEmail: string;
+  item: string;
+  amountLabel: string;
+  dateLabel: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Payment receipt</title></head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;color:#1f2937;line-height:1.6;">
+    <div style="background-color:#1e3a8a;padding:30px;text-align:center;border-radius:0 0 20px 20px;">
+      <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:bold;">Yatri Cloud</h1>
+    </div>
+    <div style="background-color:#ffffff;padding:40px;margin:20px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+      <h2 style="color:#1e3a8a;margin-top:0;">Payment receipt</h2>
+      <p>Hello ${input.buyerName},</p>
+      <p>Thank you for your payment. This email is your receipt.</p>
+      <div style="background-color:#eff6ff;border-left:4px solid #3b82f6;padding:15px;margin:25px 0;border-radius:4px;">
+        <p style="margin:5px 0;"><strong>Invoice number:</strong> ${input.invoiceNumber}</p>
+        <p style="margin:5px 0;"><strong>Date:</strong> ${input.dateLabel}</p>
+        <p style="margin:5px 0;"><strong>Billed to:</strong> ${input.buyerEmail}</p>
+        <p style="margin:5px 0;"><strong>Item:</strong> ${input.item}</p>
+        <p style="margin:5px 0;"><strong>Amount paid:</strong> ${input.amountLabel}</p>
+      </div>
+      <p style="font-size:13px;color:#6b7280;">Seller: Yatri Cloud. This is a payment receipt for your records.</p>
+      <p>Best regards,<br>Team Yatri Cloud</p>
+    </div>
+    <div style="text-align:center;padding:20px;color:#6b7280;font-size:12px;">
+      <p style="margin:5px 0;">&copy; ${new Date().getFullYear()} Yatri Cloud. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 /**
  * Verify a Razorpay payment signature server-side, then record the payment
  * in Supabase (`payments` table) with the service-role key.
@@ -65,6 +129,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       currency,
       order_id,
       booking_id,
+      registration_id,
+      enrollment_id,
+      kind,
+      buyer_name,
+      buyer_email,
+      item,
     } = req.body || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -85,6 +155,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     //    authoritative even if the audit insert hiccups)
     let recorded = false;
     let paymentRowId: string | null = null;
+
+    // Invoice context, filled by whichever branch matches (mentorship / event /
+    // training) and finally by the order row for the store. Drives the receipt.
+    let invoiceKind: string | null = kind || null;
+    let invoiceBuyerName: string = buyer_name || '';
+    let invoiceBuyerEmail: string = buyer_email || '';
+    let invoiceItem: string = item || '';
+
     if (supabaseUrl && serviceKey) {
       const insert = await fetch(`${supabaseUrl}/rest/v1/payments`, {
         method: 'POST',
@@ -162,6 +240,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
               const patched = await bookingPatch.json().catch(() => []);
               const booking = Array.isArray(patched) ? patched[0] : null;
+
+              // Invoice context from the booking (buyer + amount currency).
+              if (booking) {
+                invoiceKind = invoiceKind || 'mentorship';
+                invoiceBuyerName = invoiceBuyerName || booking.customer_name || '';
+                invoiceBuyerEmail = invoiceBuyerEmail || booking.customer_email || '';
+                if (!invoiceItem) invoiceItem = 'Mentorship session';
+              }
 
               // Record the commission split on the booking (Route order transfer).
               // Best effort: never affects the payment verdict.
@@ -277,6 +363,159 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         } catch (bookingError) {
           console.error('⚠️ booking confirm errored (payment still verified):', bookingError);
+        }
+      }
+
+      const sbHeaders = {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      };
+
+      // ── Event: flip the paid pending registration to 'paid'.
+      if (registration_id) {
+        try {
+          const regPatch = await fetch(
+            `${supabaseUrl}/rest/v1/event_registrations?id=eq.${encodeURIComponent(registration_id)}`,
+            {
+              method: 'PATCH',
+              headers: { ...sbHeaders, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+              body: JSON.stringify({
+                payment_status: 'paid',
+                ...(paymentRowId ? { payment_id: paymentRowId } : {}),
+                ...(order_id ? { order_id } : {}),
+              }),
+            }
+          );
+          if (!regPatch.ok) {
+            console.error('⚠️ event registration confirm failed:', await regPatch.text());
+          } else {
+            const rows = await regPatch.json().catch(() => []);
+            const reg = Array.isArray(rows) ? rows[0] : null;
+            if (reg) {
+              invoiceKind = invoiceKind || 'event';
+              invoiceBuyerName = invoiceBuyerName || reg.name || '';
+              invoiceBuyerEmail = invoiceBuyerEmail || reg.email || '';
+              if (!invoiceItem) invoiceItem = 'Event registration';
+            }
+          }
+        } catch (regError) {
+          console.error('⚠️ event confirm errored (payment still verified):', regError);
+        }
+      }
+
+      // ── Training: flip the paid pending enrollment to 'paid'.
+      if (enrollment_id) {
+        try {
+          const enrPatch = await fetch(
+            `${supabaseUrl}/rest/v1/training_enrollments?id=eq.${encodeURIComponent(enrollment_id)}`,
+            {
+              method: 'PATCH',
+              headers: { ...sbHeaders, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+              body: JSON.stringify({
+                payment_status: 'paid',
+                ...(paymentRowId ? { payment_id: paymentRowId } : {}),
+                ...(order_id ? { order_id } : {}),
+              }),
+            }
+          );
+          if (!enrPatch.ok) {
+            console.error('⚠️ training enrollment confirm failed:', await enrPatch.text());
+          } else {
+            const rows = await enrPatch.json().catch(() => []);
+            const enr = Array.isArray(rows) ? rows[0] : null;
+            if (enr) {
+              invoiceKind = invoiceKind || 'training';
+              invoiceBuyerEmail = invoiceBuyerEmail || enr.email || '';
+              if (!invoiceItem) invoiceItem = 'Training enrollment';
+            }
+          }
+        } catch (enrError) {
+          console.error('⚠️ training confirm errored (payment still verified):', enrError);
+        }
+      }
+
+      // ── Invoice + receipt email for every successful payment (best effort).
+      //    Never changes the payment verdict if anything here fails.
+      if (paymentRowId) {
+        try {
+          // Fall back to the order row for buyer info + line items (store etc.).
+          let invoiceItems: unknown = invoiceItem ? [{ name: invoiceItem }] : [];
+          if (order_id && (!invoiceKind || !invoiceBuyerEmail || !invoiceItem)) {
+            const oRes = await fetch(
+              `${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(order_id)}&select=kind,email,items`,
+              { headers: sbHeaders }
+            );
+            const [orow] = (await oRes.json().catch(() => [])) as Array<{
+              kind?: string;
+              email?: string;
+              items?: unknown;
+            }>;
+            if (orow) {
+              invoiceKind = invoiceKind || orow.kind || 'store';
+              invoiceBuyerEmail = invoiceBuyerEmail || orow.email || '';
+              if ((!Array.isArray(invoiceItems) || invoiceItems.length === 0) && orow.items) {
+                invoiceItems = orow.items;
+              }
+            }
+          }
+          if (!invoiceKind) invoiceKind = 'other';
+
+          const amountMajor = Number(amount ?? 0) / 100 || 0;
+          const cur = currency || 'INR';
+          const idForNumber = String(paymentRowId || razorpay_payment_id || '').replace(/-/g, '');
+          const now = new Date();
+          const yyyymmdd = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, '0')}${String(
+            now.getUTCDate()
+          ).padStart(2, '0')}`;
+          const invoiceNumber = `YC-${yyyymmdd}-${idForNumber.slice(0, 8).toUpperCase()}`;
+
+          const invoiceRes = await fetch(`${supabaseUrl}/rest/v1/invoices`, {
+            method: 'POST',
+            headers: { ...sbHeaders, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+            body: JSON.stringify({
+              invoice_number: invoiceNumber,
+              kind: invoiceKind,
+              payment_id: paymentRowId,
+              order_id: order_id || null,
+              buyer_name: invoiceBuyerName || null,
+              buyer_email: invoiceBuyerEmail || null,
+              amount: amountMajor,
+              currency: cur,
+              items: invoiceItems,
+            }),
+          });
+          if (!invoiceRes.ok) {
+            console.error('⚠️ invoice insert failed (ignored):', await invoiceRes.text());
+          }
+
+          if (invoiceBuyerEmail) {
+            const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
+            const host = req.headers.host;
+            const amountLabel = formatReceiptMoney(amountMajor, cur);
+            await fetch(`${proto}://${host}/api/send-email`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: invoiceBuyerEmail,
+                subject: `Your Yatri Cloud receipt ${invoiceNumber}`,
+                html: buildInvoiceEmail({
+                  invoiceNumber,
+                  buyerName: invoiceBuyerName || 'Yatri',
+                  buyerEmail: invoiceBuyerEmail,
+                  item: invoiceItem || labelForKind(invoiceKind),
+                  amountLabel,
+                  dateLabel: now.toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    timeZone: 'Asia/Kolkata',
+                  }),
+                }),
+              }),
+            });
+          }
+        } catch (invoiceError) {
+          console.error('⚠️ invoice/receipt errored (payment still verified):', invoiceError);
         }
       }
     } else {

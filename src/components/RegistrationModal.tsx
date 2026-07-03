@@ -11,13 +11,21 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { Event } from "@/lib/events-store";
-import { initiateRazorpayPayment, isEventPaid, formatEventPrice } from "@/lib/razorpay";
+import { isEventPaid, openRazorpayCheckout, createRazorpayOrder } from "@/lib/razorpay";
 import type { EventRegistration } from "@/lib/registration-store";
-import { createRegistration as apiCreateRegistration } from "@/lib/events-api";
+import { createRegistration as apiCreateRegistration, createEventOrder } from "@/lib/events-api";
 import { getCachedUser } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
 import { getRegistrationEmail } from "@/lib/email-templates";
+import { CurrencySelect } from "@/components/CurrencySelect";
+import {
+    DEFAULT_CURRENCY,
+    convertFromInr,
+    formatMoney,
+    toSmallestUnit,
+    type CurrencyOption,
+} from "@/lib/currency";
 
 interface RegistrationModalProps {
     event: Event;
@@ -51,6 +59,10 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
 
     const isPaid = isEventPaid(event.price);
     const userId = getCachedUser()?.id || "";
+    const inrPrice = typeof event.price === "string" ? parseFloat(event.price) : (event.price || 0);
+    const [currency, setCurrency] = useState<CurrencyOption>(DEFAULT_CURRENCY);
+    const convertedPrice = convertFromInr(inrPrice, currency);
+    const priceLabel = formatMoney(convertedPrice, currency);
 
     // Duplicate registrations are prevented by the DB unique (event_id, email)
     // constraint; the insert surfaces an error if the Yatri is already registered.
@@ -88,34 +100,27 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
         return true;
     };
 
-    const createRegistration = async (
-        paymentData?: {
-            paymentId: string;
-            orderId?: string;
-            amount: number;
-        }
-    ): Promise<EventRegistration> => {
-        const ticketPrice = typeof event.price === 'string' ? parseFloat(event.price) : (event.price || 0);
-
-        // Extract Tech Stack for prefix
-        // Logic: specific tech stack > category > uppercase name > "EVENT"
+    // Registration code prefix: specific tech stack > category > name > "EVENT".
+    const buildCodePrefix = (): string => {
         let codePrefix = "EVENT";
-        if (event.techStack && event.techStack.length > 0) {
-            codePrefix = event.techStack[0];
-        } else if (event.category) {
-            codePrefix = event.category;
-        } else {
-            codePrefix = event.name.split(' ')[0] || "EVENT";
-        }
+        if (event.techStack && event.techStack.length > 0) codePrefix = event.techStack[0];
+        else if (event.category) codePrefix = event.category;
+        else codePrefix = event.name.split(' ')[0] || "EVENT";
+        return codePrefix.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 10);
+    };
 
-        // Clean prefix
-        codePrefix = codePrefix.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 10);
-
-        // Insert into Supabase and get the generated registration code.
-        const { registrationCode } = await apiCreateRegistration({
+    // Creates or reuses the registration row (pending before a paid checkout,
+    // 'free' for a free event). Returns the code + id for the UI and verify notes.
+    const persistRegistration = async (opts: {
+        paymentStatus: "pending" | "free";
+        amountInr: number;
+        currencyCode: string;
+        orderId?: string | null;
+    }): Promise<{ registrationCode: string; id: string }> => {
+        return apiCreateRegistration({
             eventId: event.id,
             userId,
-            codePrefix,
+            codePrefix: buildCodePrefix(),
             userDetails: {
                 name: formData.name,
                 email: formData.email,
@@ -125,38 +130,68 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                 country: formData.country,
                 linkedIn: formData.linkedIn || undefined,
             },
-            paymentId: paymentData?.paymentId,
+            amount: opts.amountInr || undefined,
+            currency: opts.currencyCode,
+            paymentStatus: opts.paymentStatus,
+            orderId: opts.orderId ?? undefined,
         });
+    };
 
-        const registrationPayload: EventRegistration = {
-            id: `reg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            userId,
-            eventId: event.id,
-            eventSlug: event.slug || event.id,
-            eventName: event.name,
-            registrationCode,
-            registeredAt: new Date().toISOString(),
-            status: 'registered',
-            userDetails: {
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                city: formData.city,
-                state: formData.state,
-                country: formData.country,
-                linkedIn: formData.linkedIn || undefined,
-            },
-            ticketType: isPaid ? 'paid' : 'free',
-            ticketPrice: isPaid ? ticketPrice : undefined,
-            currency: isPaid ? 'INR' : undefined,
-            paymentStatus: paymentData ? 'completed' : undefined,
-            paymentId: paymentData?.paymentId,
-            orderId: paymentData?.orderId,
-            paymentAmount: paymentData?.amount,
-            paymentTimestamp: paymentData ? new Date().toISOString() : undefined,
-        };
+    // Builds the EventRegistration shape the parent expects on success.
+    const buildRegistrationPayload = (
+        registrationCode: string,
+        paymentData?: { paymentId: string; orderId?: string }
+    ): EventRegistration => ({
+        id: `reg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId,
+        eventId: event.id,
+        eventSlug: event.slug || event.id,
+        eventName: event.name,
+        registrationCode,
+        registeredAt: new Date().toISOString(),
+        status: 'registered',
+        userDetails: {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            city: formData.city,
+            state: formData.state,
+            country: formData.country,
+            linkedIn: formData.linkedIn || undefined,
+        },
+        ticketType: isPaid ? 'paid' : 'free',
+        ticketPrice: isPaid ? inrPrice : undefined,
+        currency: isPaid ? currency.code : undefined,
+        paymentStatus: paymentData ? 'completed' : undefined,
+        paymentId: paymentData?.paymentId,
+        orderId: paymentData?.orderId,
+        paymentAmount: paymentData ? convertedPrice : undefined,
+        paymentTimestamp: paymentData ? new Date().toISOString() : undefined,
+    });
 
-        return registrationPayload;
+    const sendConfirmationEmail = async (registrationCode: string) => {
+        try {
+            const locationStr = event.location.venue || (event.location.type === 'online' ? 'Online' : 'TBD');
+            const emailHtml = getRegistrationEmail(formData.name, event.name, registrationCode, event.date || 'TBD', locationStr);
+            await sendEmail({
+                to: formData.email,
+                subject: `Registration Confirmed: ${event.name}`,
+                html: emailHtml,
+            });
+        } catch (emailErr) {
+            console.error("Failed to send confirmation email", emailErr);
+        }
+    };
+
+    const finishSuccess = async (registration: EventRegistration) => {
+        await sendConfirmationEmail(registration.registrationCode);
+        toast({
+            title: "Registration Successful!",
+            description: `Your code: ${registration.registrationCode}. A confirmation email has been sent.`,
+        });
+        onSuccess(registration);
+        onClose();
+        setIsSubmitting(false);
     };
 
     const handleSubmit = async () => {
@@ -169,94 +204,67 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
         setIsSubmitting(true);
 
         try {
-            if (isPaid) {
-                // Handle payment flow
-                const price = typeof event.price === 'string' ? parseFloat(event.price) : (event.price || 0);
+            if (isPaid && inrPrice > 0) {
+                // Order based checkout in the chosen currency.
+                const smallest = toSmallestUnit(convertedPrice, currency);
 
-                initiateRazorpayPayment(
-                    {
-                        amount: price,
-                        currency: 'INR',
-                        eventName: event.name,
-                        userDetails: {
-                            name: formData.name,
-                            email: formData.email,
-                            phone: formData.phone,
-                        }
-                    },
-                    async (response) => {
-                        // Payment successful
-                        try {
-                            const registration = await createRegistration({
-                                paymentId: response.razorpay_payment_id,
-                                orderId: response.razorpay_order_id,
-                                amount: price,
-                            });
+                const { orderId, error: orderErr } = await createEventOrder({
+                    userId: userId || null,
+                    email: formData.email,
+                    amount: convertedPrice,
+                    currency: currency.code,
+                    items: [{ name: event.name, price_inr: inrPrice }],
+                });
+                if (orderErr || !orderId) throw new Error(orderErr || "Could not start your order. Please try again.");
 
-                            try {
-                                const locationStr = event.location.venue || (event.location.type === 'online' ? 'Online' : 'TBD');
-                                const emailHtml = getRegistrationEmail(formData.name, event.name, registration.registrationCode, event.date || 'TBD', locationStr);
-                                await sendEmail({
-                                    to: formData.email,
-                                    subject: `Registration Confirmed: ${event.name}`,
-                                    html: emailHtml
-                                });
-                            } catch (emailErr) {
-                                console.error("Failed to send confirmation email", emailErr);
-                            }
-
-                            toast({
-                                title: "Registration Successful!",
-                                description: `Your code: ${registration.registrationCode}. A confirmation email has been sent.`,
-                            });
-
-                            onSuccess(registration);
-                            onClose();
-                        } catch (error) {
-                            toast({
-                                title: "Registration Failed",
-                                description: "Payment successful but registration failed. Please contact support.",
-                                variant: "destructive"
-                            });
-                        } finally {
-                            setIsSubmitting(false);
-                        }
-                    },
-                    (error) => {
-                        // Payment failed
-                        setIsSubmitting(false);
-                        toast({
-                            title: "Payment Failed",
-                            description: error.error || "Payment was unsuccessful",
-                            variant: "destructive"
-                        });
-                    }
-                );
-            } else {
-                // Free event - direct registration
-                const registration = await createRegistration();
-
-                // Send Confirmation Email
-                try {
-                    const locationStr = event.location.venue || (event.location.type === 'online' ? 'Online' : 'TBD');
-                    const emailHtml = getRegistrationEmail(formData.name, event.name, registration.registrationCode, event.date || 'TBD', locationStr);
-                    await sendEmail({
-                        to: formData.email,
-                        subject: `Registration Confirmed: ${event.name}`,
-                        html: emailHtml
-                    });
-                } catch (emailErr) {
-                    console.error("Failed to send confirmation email", emailErr);
-                }
-
-                toast({
-                    title: "Registration Successful!",
-                    description: `Your code: ${registration.registrationCode}. A confirmation email has been sent.`,
+                // Pending registration before payment (reused on retry).
+                // Store the actual charged amount in the chosen currency so the
+                // amount and currency always agree with the order and invoice.
+                const { id: registrationId, registrationCode } = await persistRegistration({
+                    paymentStatus: "pending",
+                    amountInr: convertedPrice,
+                    currencyCode: currency.code,
+                    orderId,
                 });
 
-                onSuccess(registration);
-                onClose();
-                setIsSubmitting(false);
+                const razorpayOrderId = await createRazorpayOrder({
+                    amount: smallest,
+                    currency: currency.code,
+                    receipt: `evt_${Date.now()}`,
+                    notes: { kind: "event", registration_id: registrationId, order_id: orderId },
+                });
+
+                openRazorpayCheckout({
+                    razorpayOrderId,
+                    amountSmallestUnit: smallest,
+                    currency: currency.code,
+                    productName: event.name,
+                    customer: { name: formData.name, email: formData.email, phone: formData.phone },
+                    ourOrderId: orderId,
+                    verifyExtra: {
+                        kind: "event",
+                        registration_id: registrationId,
+                        buyer_name: formData.name,
+                        buyer_email: formData.email,
+                        item: event.name,
+                    },
+                    onSuccess: async (paymentId) => {
+                        const registration = buildRegistrationPayload(registrationCode, { paymentId, orderId });
+                        await finishSuccess(registration);
+                    },
+                    onFailure: (message) => {
+                        setIsSubmitting(false);
+                        toast({ title: "Payment Failed", description: message, variant: "destructive" });
+                    },
+                });
+            } else {
+                // Free event — direct registration.
+                const { registrationCode } = await persistRegistration({
+                    paymentStatus: "free",
+                    amountInr: 0,
+                    currencyCode: "INR",
+                });
+                await finishSuccess(buildRegistrationPayload(registrationCode));
             }
         } catch (error: any) {
             toast({
@@ -277,7 +285,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                         {isPaid ? (
                             <div className="flex items-center gap-2 text-base mt-2">
                                 <CreditCard className="w-5 h-5" />
-                                <span>Ticket Price: <strong>{formatEventPrice(event.price)}</strong></span>
+                                <span>Ticket Price: <strong>{priceLabel}</strong></span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 text-base mt-2 text-green-600">
@@ -379,6 +387,20 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                             </div>
                         </div>
 
+                        {isPaid && (
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 p-3">
+                                <div className="text-sm">
+                                    <span className="text-muted-foreground">You pay </span>
+                                    <span className="font-semibold text-foreground">{priceLabel}</span>
+                                </div>
+                                <CurrencySelect
+                                    value={currency.code}
+                                    onChange={(_code, option) => setCurrency(option)}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+                        )}
+
                         <div className="flex gap-3 pt-4">
                             <Button
                                 variant="outline"
@@ -403,7 +425,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                         {isPaid ? (
                                             <>
                                                 <CreditCard className="w-4 h-4 mr-2" />
-                                                Pay {formatEventPrice(event.price)}
+                                                Pay {priceLabel}
                                             </>
                                         ) : (
                                             'Complete Registration'

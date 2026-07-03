@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { getStoredUser } from "@/lib/yatris-api";
 import { sendEmail } from "@/lib/email";
 import { getProductPurchaseEmail } from "@/lib/email-templates";
+import { CurrencySelect } from "@/components/CurrencySelect";
+import { DEFAULT_CURRENCY, convertFromInr, formatMoney, toSmallestUnit, type CurrencyOption } from "@/lib/currency";
 
 interface CartSheetProps {
   trigger?: ReactNode;
@@ -23,8 +25,11 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
   const [guestEmail, setGuestEmail] = useState("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [purchasedDumps, setPurchasedDumps] = useState<any[]>([]);
+  const [currency, setCurrency] = useState<CurrencyOption>(DEFAULT_CURRENCY);
   const testMode = isTestMode();
   const user = getStoredUser();
+  const convertedTotal = convertFromInr(totalPrice, currency);
+  const totalLabel = formatMoney(convertedTotal, currency);
 
   const handleCheckout = async () => {
     if (items.length === 0) {
@@ -34,8 +39,10 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
 
     setIsProcessing(true);
     try {
-      // Calculate total amount in paise (no GST)
-      const amountInPaise = totalPrice * 100;
+      // Amount in the smallest unit of the chosen currency (converted from INR).
+      const chargeAmount = convertFromInr(totalPrice, currency);
+      const amountInSmallestUnit = toSmallestUnit(chargeAmount, currency);
+      const amountLabel = formatMoney(chargeAmount, currency);
 
       // Create order description
       const productNames = items.map(item => item.title).join(", ");
@@ -55,8 +62,8 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
 
       const { createRazorpayOrder } = await import("@/lib/razorpay");
       const orderId = await createRazorpayOrder({
-        amount: amountInPaise,
-        currency: "INR",
+        amount: amountInSmallestUnit,
+        currency: currency.code,
         receipt: `receipt_${Date.now()}`,
         notes: {
           email: customerEmail,
@@ -71,7 +78,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
 
       await initiatePayment(
         orderId,
-        amountInPaise,
+        amountInSmallestUnit,
         productNames,
         customerName,
         customerEmail,
@@ -96,7 +103,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                 const emailHtml = getExamDumpPurchaseEmail(
                   customerName,
                   firstDump.title,
-                  `₹${totalPrice.toLocaleString("en-IN")}`,
+                  amountLabel,
                   firstDump.downloadUrl!,
                   paymentId
                 );
@@ -113,7 +120,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
               } else {
                 // Send Standard Product Email
                 console.log("📧 Sending Standard Product email to:", customerEmail);
-                const emailHtml = getProductPurchaseEmail(customerName, productNames, `₹${totalPrice.toLocaleString("en-IN")}`, paymentId);
+                const emailHtml = getProductPurchaseEmail(customerName, productNames, amountLabel, paymentId);
 
                 const emailResult = await sendEmail({
                   to: customerEmail,
@@ -139,6 +146,12 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
         (error) => {
           toast.error(`Payment failed: ${error}`);
           setIsProcessing(false);
+        },
+        currency.code,
+        {
+          buyer_name: customerName,
+          buyer_email: customerEmail,
+          item: productNames,
         }
       );
     } catch (error) {
@@ -288,13 +301,18 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                     </div>
                   </div>
                 )}
-                <div className="space-y-2">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Choose your currency</span>
+                    <CurrencySelect
+                      value={currency.code}
+                      onChange={(_code, option) => setCurrency(option)}
+                      disabled={isProcessing}
+                    />
+                  </div>
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="flex items-center gap-1">
-                      <IndianRupee className="h-4 w-4" />
-                      {totalPrice.toLocaleString("en-IN")}
-                    </span>
+                    <span>{totalLabel}</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
