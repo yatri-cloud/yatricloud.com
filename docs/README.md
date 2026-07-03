@@ -34,20 +34,11 @@ Per-feature end-to-end docs: flows, data model, security, code map, gotchas, tes
 |---|---|
 | [deployment/](deployment/) | Deploy guides (production = Vercel project `yatricloud.com`, deploys from the `origin` GitHub repo) |
 | [vercel/](vercel/) | Vercel-specific notes. ⚠️ Hobby plan = 12 serverless-function cap — extend the `api/razorpay/admin.ts` gateway instead of adding functions |
-| [setup/](setup/) | Environment / project setup |
-| [quick-start/](quick-start/) | Quick-start guides |
 | [guides/](guides/) | General how-tos |
 | [canva/](canva/) | Canva celebration-card API setup (optional; template id via `VITE_CANVA_TEMPLATE_ID`) |
-| [general/](general/) | Miscellaneous notes |
 
-## 🗄 Legacy (historical — the platform migrated to Supabase in July 2026)
-These document the **retired** Google Apps Script / Sheets backend and are kept for history only. Nothing in `src/` uses them.
-| Folder | Was about |
-|---|---|
-| [google-sheets/](google-sheets/) | The old Sheets-as-database backend |
-| [cors-fixes/](cors-fixes/) | CORS workarounds for Apps Script webhooks |
-| [yatri-ai/](yatri-ai/) | The removed Ollama/YatriAI experiment |
-| [yatri-store/](yatri-store/) | Early store docs (store now runs on Supabase `products`) |
+## 🗄 Legacy (removed 2026-07-04)
+The Sheets/Apps-Script-era folders (`google-sheets/`, `cors-fixes/`, `yatri-ai/`, `yatri-store/`, `quick-start/`, `setup/`, `general/`) and the root `archive/` + `infrastructure/` were deleted in the root cleanup — nothing in `src/` used them. They remain fully recoverable from git history (commit tagged "chore: root cleanup").
 
 ## Conventions
 - Schema changes: numbered `supabase/migrations/*.sql` only — applied to production via psql, committed with the feature.
