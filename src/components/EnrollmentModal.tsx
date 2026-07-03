@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
 import { getStoredUser, isProfileComplete } from "@/lib/yatris-api";
 import { enroll, createTrainingOrder } from "@/lib/training-api";
+import { validateCoupon, redeemCoupon, discountedInr, type AppliedCoupon } from "@/lib/coupons";
 import { googleCalendarUrl } from "@/lib/calendar";
 import { Country } from "country-state-city";
 import { CurrencySelect } from "@/components/CurrencySelect";
@@ -66,8 +67,30 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
         return () => { active = false; };
     }, []);
     const inrPrice = typeof price === "string" ? parseFloat(String(price).replace(/[^\d.]/g, "")) || 0 : (price || 0);
-    const convertedPrice = convertFromInr(inrPrice, payCurrency);
+
+    // Coupon: discount applies to the INR base before currency conversion.
+    const [couponInput, setCouponInput] = useState("");
+    const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+    const [couponChecking, setCouponChecking] = useState(false);
+    const [couponError, setCouponError] = useState("");
+
+    const applyCoupon = async () => {
+        setCouponChecking(true);
+        setCouponError("");
+        const result = await validateCoupon(couponInput, "training");
+        setCouponChecking(false);
+        if (result) {
+            setCoupon(result);
+        } else {
+            setCoupon(null);
+            setCouponError("That code did not work. Check the spelling or try another.");
+        }
+    };
+
+    const effectiveInr = discountedInr(inrPrice, coupon);
+    const convertedPrice = convertFromInr(effectiveInr, payCurrency);
     const priceLabel = formatMoney(convertedPrice, payCurrency);
+    const originalLabel = formatMoney(convertFromInr(inrPrice, payCurrency), payCurrency);
     const [formData, setFormData] = useState<FormData>({
         name: "",
         email: "",
@@ -211,7 +234,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     email: formData.email,
                     amount: convertedPrice,
                     currency: payCurrency.code,
-                    items: [{ name: courseName, price_inr: inrPrice }],
+                    items: [{ name: courseName, price_inr: effectiveInr }],
                 });
                 if (orderErr || !orderId) throw new Error(orderErr || "Could not start your order. Please try again.");
 
@@ -247,6 +270,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                         item: courseName,
                     },
                     onSuccess: async () => {
+                        if (coupon) void redeemCoupon(coupon.code);
                         await sendWelcomeAndFinish();
                         setIsSubmitting(false);
                     },
@@ -303,7 +327,15 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                         {isPaid ? (
                             <div className="flex items-center gap-2 text-base mt-2">
                                 <CreditCard className="w-5 h-5" />
-                                <span>Total: <strong>{priceLabel}</strong></span>
+                                <span>
+                                    Total: <strong>{priceLabel}</strong>
+                                    {coupon && (
+                                        <>
+                                            {" "}<s className="text-muted-foreground">{originalLabel}</s>{" "}
+                                            <span className="text-sm font-medium text-success">{coupon.percentOff}% off applied</span>
+                                        </>
+                                    )}
+                                </span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 text-base mt-2 text-green-600">
@@ -397,10 +429,38 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     </div>
 
                     {isPaid && (
+                        <>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="enroll-coupon">Coupon code (optional)</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="enroll-coupon"
+                                    value={couponInput}
+                                    onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
+                                    placeholder="e.g. YATRI10"
+                                    className="uppercase"
+                                    disabled={isSubmitting || !!coupon}
+                                />
+                                {coupon ? (
+                                    <Button type="button" variant="outline" onClick={() => { setCoupon(null); setCouponInput(""); }} disabled={isSubmitting}>
+                                        Remove
+                                    </Button>
+                                ) : (
+                                    <Button type="button" variant="outline" onClick={applyCoupon} disabled={couponChecking || !couponInput.trim() || isSubmitting}>
+                                        {couponChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Apply
+                                    </Button>
+                                )}
+                            </div>
+                            {coupon && <p className="text-sm text-success">{coupon.code} applied — you save {coupon.percentOff}%.</p>}
+                            {couponError && <p className="text-sm text-destructive">{couponError}</p>}
+                        </div>
+
                         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 p-3">
                             <div className="text-sm">
                                 <span className="text-muted-foreground">You pay </span>
                                 <span className="font-semibold text-foreground">{priceLabel}</span>
+                                {coupon && <s className="ml-2 text-muted-foreground">{originalLabel}</s>}
                             </div>
                             <CurrencySelect
                                 value={payCurrency.code}
@@ -408,6 +468,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                                 disabled={isSubmitting}
                             />
                         </div>
+                        </>
                     )}
 
                     <div className="flex gap-3 pt-4">

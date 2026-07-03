@@ -1,7 +1,7 @@
 import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
-    CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, type LucideIcon,
+    CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag, type LucideIcon,
 } from "lucide-react";
 
 /**
@@ -83,6 +83,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Revenue", path: "/admin/payments", icon: Receipt, description: "Every receipt and revenue in one place." },
             { name: "Invoices", path: "/admin/razorpay-invoices", icon: ExternalLink, description: "Raise Razorpay invoices and view dashboard ones." },
             { name: "Transactions", path: "/admin/transactions", icon: CreditCard, description: "All payments, with refunds." },
+            { name: "Coupons", path: "/admin/coupons", icon: Tag, description: "Discount codes for trainings and events." },
         ],
     },
     {

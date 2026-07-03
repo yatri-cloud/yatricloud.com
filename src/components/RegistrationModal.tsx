@@ -14,6 +14,7 @@ import { Event } from "@/lib/events-store";
 import { isEventPaid, openRazorpayCheckout, createRazorpayOrder } from "@/lib/razorpay";
 import type { EventRegistration } from "@/lib/registration-store";
 import { createRegistration as apiCreateRegistration, createEventOrder } from "@/lib/events-api";
+import { validateCoupon, redeemCoupon, discountedInr, type AppliedCoupon } from "@/lib/coupons";
 import { getCachedUser } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
@@ -70,8 +71,29 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
         getInitialCurrency().then((c) => { if (active) setCurrency(c); });
         return () => { active = false; };
     }, []);
-    const convertedPrice = convertFromInr(inrPrice, currency);
+    // Coupon: discount applies to the INR base before currency conversion.
+    const [couponInput, setCouponInput] = useState("");
+    const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+    const [couponChecking, setCouponChecking] = useState(false);
+    const [couponError, setCouponError] = useState("");
+
+    const applyCoupon = async () => {
+        setCouponChecking(true);
+        setCouponError("");
+        const result = await validateCoupon(couponInput, "event");
+        setCouponChecking(false);
+        if (result) {
+            setCoupon(result);
+        } else {
+            setCoupon(null);
+            setCouponError("That code did not work. Check the spelling or try another.");
+        }
+    };
+
+    const effectiveInr = discountedInr(inrPrice, coupon);
+    const convertedPrice = convertFromInr(effectiveInr, currency);
     const priceLabel = formatMoney(convertedPrice, currency);
+    const originalLabel = formatMoney(convertFromInr(inrPrice, currency), currency);
 
     // Duplicate registrations are prevented by the DB unique (event_id, email)
     // constraint; the insert surfaces an error if the Yatri is already registered.
@@ -274,6 +296,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                         item: event.name,
                     },
                     onSuccess: async (paymentId) => {
+                        if (coupon) void redeemCoupon(coupon.code);
                         const registration = buildRegistrationPayload(registrationCode, { paymentId, orderId });
                         await finishSuccess(registration);
                     },
@@ -413,10 +436,38 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                         </div>
 
                         {isPaid && (
+                            <>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="event-coupon">Coupon code (optional)</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="event-coupon"
+                                        value={couponInput}
+                                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
+                                        placeholder="e.g. YATRI10"
+                                        className="uppercase"
+                                        disabled={isSubmitting || !!coupon}
+                                    />
+                                    {coupon ? (
+                                        <Button type="button" variant="outline" onClick={() => { setCoupon(null); setCouponInput(""); }} disabled={isSubmitting}>
+                                            Remove
+                                        </Button>
+                                    ) : (
+                                        <Button type="button" variant="outline" onClick={applyCoupon} disabled={couponChecking || !couponInput.trim() || isSubmitting}>
+                                            {couponChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            Apply
+                                        </Button>
+                                    )}
+                                </div>
+                                {coupon && <p className="text-sm text-success">{coupon.code} applied — you save {coupon.percentOff}%.</p>}
+                                {couponError && <p className="text-sm text-destructive">{couponError}</p>}
+                            </div>
+
                             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 p-3">
                                 <div className="text-sm">
                                     <span className="text-muted-foreground">You pay </span>
                                     <span className="font-semibold text-foreground">{priceLabel}</span>
+                                    {coupon && <s className="ml-2 text-muted-foreground">{originalLabel}</s>}
                                 </div>
                                 <CurrencySelect
                                     value={currency.code}
@@ -424,6 +475,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                     disabled={isSubmitting}
                                 />
                             </div>
+                            </>
                         )}
 
                         <div className="flex gap-3 pt-4">

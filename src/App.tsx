@@ -75,6 +75,7 @@ import AdminEditExamDump from "./pages/admin/AdminEditExamDump";
 import AdminSiteContent from "./pages/admin/AdminSiteContent";
 import AdminCommunity from "./pages/admin/AdminCommunity";
 import AdminInquiries from "./pages/admin/AdminInquiries";
+import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminAchievements from "./pages/admin/AdminAchievements";
 import AdminCertCatalog from "./pages/admin/AdminCertCatalog";
 import RequestVoucher from "./pages/RequestVoucher";
@@ -184,6 +185,7 @@ const App = () => (
                 <Route path="certifications" element={<AdminCertCatalog />} />
                 <Route path="community" element={<AdminCommunity />} />
                 <Route path="inquiries" element={<AdminInquiries />} />
+                <Route path="coupons" element={<AdminCoupons />} />
                 <Route path="achievements" element={<AdminAchievements />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
