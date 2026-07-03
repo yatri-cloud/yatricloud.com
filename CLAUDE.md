@@ -13,7 +13,7 @@ We are re-skinning the **entire** app to a Lovable-grade craft standard while ke
 **The one rule:** change how it **looks, feels, and moves** — never routing, auth, API calls, data fetching, state, props, or business logic. If a change would alter behavior, stop and flag it. See [docs/design-decisions.md](docs/design-decisions.md).
 
 ## New session? Start here
-Read **[docs/SESSION-GUIDE.md](docs/SESSION-GUIDE.md)** first — how to behave, the hard rules, and the workflow. A paste-ready kickoff prompt is in **[docs/NEW-SESSION-PROMPT.md](docs/NEW-SESSION-PROMPT.md)**.
+Read **[docs/SESSION-GUIDE.md](docs/SESSION-GUIDE.md)** first — how to behave, the hard rules, and the workflow. A paste-ready kickoff prompt is in **[docs/NEW-SESSION-PROMPT.md](docs/NEW-SESSION-PROMPT.md)**. The full documentation index is **[docs/README.md](docs/README.md)**; per-feature end-to-end docs (flows, migrations, RLS, code maps, gotchas) live in **[docs/features/](docs/features/README.md)** — read the relevant one before touching a feature.
 
 **Working agreement:** after *every* meaningful change, update `DESIGN.md` (patterns/tokens/§10 catalog), `MEMORY.md` (decision line), and the persistent memory progress file. **No duplicate UI** — each section/page gets a distinct layout + signature motion (see DESIGN.md §10).
 
