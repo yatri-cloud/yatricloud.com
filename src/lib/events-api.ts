@@ -32,10 +32,10 @@ function eventToRow(event: Event): EventRow {
         ? (typeof event.price === "number" ? event.price : parseFloat(String(event.price)))
         : null;
 
-    // Everything the flat columns can't hold — round-tripped on read.
+    // Everything the flat columns can't hold — stored in the `details` jsonb
+    // column (a real object) and rebuilt on read. The plain-text summary now
+    // lives in the `description` column, so it is not duplicated here.
     const ext = {
-        __yc: 1,
-        description: event.description ?? "",
         fullDescription: event.fullDescription,
         timezone: event.timezone,
         endDate: event.endDate,
@@ -64,7 +64,8 @@ function eventToRow(event: Event): EventRow {
     const row: EventRow = {
         slug: event.slug || null,
         name: event.name || "Untitled Event",
-        description: JSON.stringify(ext),
+        description: event.description ?? "",
+        details: ext,
         event_date: event.date ? new Date(event.date).toISOString() : null,
         location: event.location?.venue || null,
         city: event.location?.city || null,
@@ -84,7 +85,22 @@ function eventToRow(event: Event): EventRow {
 function rowToEvent(row: EventRow): Event {
     let ext: any = {};
     let plainDescription: string | undefined;
-    if (typeof row.description === "string") {
+
+    const details = row.details;
+    const hasDetails =
+        details &&
+        typeof details === "object" &&
+        !Array.isArray(details) &&
+        Object.keys(details).length > 0;
+
+    if (hasDetails) {
+        // New path: rich data lives in the `details` jsonb column and the
+        // plain-text summary lives in the `description` column.
+        ext = details;
+        plainDescription = typeof row.description === "string" ? row.description : "";
+    } else if (typeof row.description === "string") {
+        // Legacy path: the rich data was JSON-encoded into `description`
+        // (marked with __yc). Keeps the pre-migration events rendering.
         try {
             const parsed = JSON.parse(row.description);
             if (parsed && parsed.__yc) ext = parsed;
@@ -252,13 +268,29 @@ function generateRegistrationCode(prefix?: string): string {
     return `${clean}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
-function regRowToRegistration(row: EventRow): EventRegistration {
+/**
+ * A registration plus the schedule fields carried from the embedded event, so
+ * calendar buttons can be built without a second read. Superset of
+ * EventRegistration, so existing consumers keep working unchanged.
+ */
+export interface RegistrationWithEvent extends EventRegistration {
+    eventDate?: string;
+    meetLink?: string;
+    city?: string;
+}
+
+function regRowToRegistration(row: EventRow): RegistrationWithEvent {
+    // A to-one embed returns an object; guard for the array shape too.
+    const ev = Array.isArray(row.events) ? row.events[0] : row.events;
     return {
         id: row.id,
         userId: row.user_id || "",
         eventId: row.event_id,
-        eventSlug: "",
-        eventName: "",
+        eventSlug: ev?.slug || "",
+        eventName: ev?.name || "",
+        eventDate: ev?.event_date || undefined,
+        meetLink: ev?.meet_link || undefined,
+        city: ev?.city || undefined,
         registrationCode: row.registration_code,
         registeredAt: row.created_at,
         status: row.status,
@@ -400,11 +432,13 @@ export async function createEventOrder(input: {
     return { orderId: String(data.id), error: null };
 }
 
-export async function getEventRegistrations(eventId: string): Promise<EventRegistration[]> {
+export async function getEventRegistrations(eventId: string): Promise<RegistrationWithEvent[]> {
     if (!eventId) return [];
     const { data, error } = await supabase
         .from("event_registrations")
-        .select("*")
+        // Left embed of the event so slug/date/meet link/city ride along; a
+        // registration missing its event still returns (event fields empty).
+        .select("*, events(name,slug,event_date,meet_link,city)")
         .eq("event_id", eventId)
         .order("created_at", { ascending: false });
     if (error) {

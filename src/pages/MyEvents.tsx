@@ -1,126 +1,136 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, ArrowLeft, Copy, CheckCircle2, XCircle, Info, Ticket, Edit, Loader2, CalendarPlus, Download } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { getUserRegistrations, cancelRegistration, updateRegistration, type EventRegistration } from "@/lib/registration-store";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import {
+    isAuthenticated,
+    getStoredUser,
+    getRegisteredEvents,
+    type EventRegistration,
+} from "@/lib/yatris-api";
+import { cancelRegistration } from "@/lib/events-api";
 import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+
+/** Two hours after a start time, since events store no explicit finish time. */
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * Build add to calendar links when a registration is confirmed and carries a
+ * real, upcoming event date. Returns null otherwise so the buttons stay hidden.
+ */
+function getEventCalendar(reg: EventRegistration) {
+    if (reg.status !== "confirmed" || !reg.eventDate) return null;
+    const start = new Date(reg.eventDate);
+    if (isNaN(start.getTime()) || start.getTime() <= Date.now()) return null;
+    const startISO = start.toISOString();
+    const endISO = new Date(start.getTime() + TWO_HOURS_MS).toISOString();
+    const location = reg.eventLocation || "Online";
+    const details = `Your spot at ${reg.eventName}, a Yatri Cloud event.`;
+    return {
+        gcal: googleCalendarUrl({ title: reg.eventName, startISO, endISO, details, location }),
+        ics: icsDataUri(
+            buildIcs({
+                uid: `event-${reg.id}@yatricloud.com`,
+                title: reg.eventName,
+                startISO,
+                endISO,
+                details,
+                location,
+            })
+        ),
+    };
+}
+
+/** Format an event date for display, falling back gracefully when missing. */
+function formatEventDate(value: string): string {
+    if (!value) return "Date to be announced";
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) return "Date to be announced";
+    return format(parsed, "EEEE, MMM dd, yyyy · h:mm a");
+}
 
 export default function MyEvents() {
     const navigate = useNavigate();
     const { toast } = useToast();
+
+    const [signedIn, setSignedIn] = useState(false);
     const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
     const [loading, setLoading] = useState(true);
-    const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-    // Modal state
-    const [selectedRegistration, setSelectedRegistration] = useState<EventRegistration | null>(null);
-    const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
+    // Cancel confirmation state
+    const [pendingCancel, setPendingCancel] = useState<EventRegistration | null>(null);
+    const [cancelling, setCancelling] = useState(false);
 
-    // Mock user ID - in production, get from auth context
-    const userId = "user123";
-
-    useEffect(() => {
-        // Fetch registrations
-        const userRegs = getUserRegistrations(userId);
-        // Sort by registration date, newest first
-        userRegs.sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime());
-        setRegistrations(userRegs);
+    const load = useCallback(async () => {
+        setLoading(true);
+        const data = await getRegisteredEvents();
+        // Newest first by registration date.
+        data.sort(
+            (a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()
+        );
+        setRegistrations(data);
         setLoading(false);
     }, []);
 
-    const copyCode = (code: string) => {
-        navigator.clipboard.writeText(code);
-        setCopiedCode(code);
-        toast({ title: "Code Copied!", description: "Registration code copied to clipboard" });
-        setTimeout(() => setCopiedCode(null), 2000);
-    };
-
-    const [editForm, setEditForm] = useState({ name: "", phone: "", city: "" });
-
-    const handleCancelRegistration = (regId: string) => {
-        if (confirm("Are you sure you want to cancel this registration? Effect depends on event policy.")) {
-            cancelRegistration(regId);
-            setRegistrations(prev => prev.map(r => r.id === regId ? { ...r, status: 'cancelled' } : r));
-            toast({ title: "Registration Cancelled", description: "You have been removed from the event." });
-            setShowDetailsModal(false);
+    useEffect(() => {
+        const authed = isAuthenticated() && !!getStoredUser();
+        setSignedIn(authed);
+        if (!authed) {
+            setLoading(false);
+            return;
         }
-    };
+        load();
+    }, [load]);
 
-    const handleEditClick = (reg: EventRegistration) => {
-        setEditForm({
-            name: reg.userDetails.name,
-            phone: reg.userDetails.phone,
-            city: reg.userDetails.city
+    const confirmCancel = async () => {
+        if (!pendingCancel) return;
+        setCancelling(true);
+        const ok = await cancelRegistration(pendingCancel.id);
+        setCancelling(false);
+        if (!ok) {
+            toast({
+                title: "We could not cancel that",
+                description: "Something went wrong on our side. Please try again in a moment.",
+                variant: "destructive",
+            });
+            return;
+        }
+        setRegistrations((prev) =>
+            prev.map((r) => (r.id === pendingCancel.id ? { ...r, status: "cancelled" } : r))
+        );
+        toast({
+            title: "Registration cancelled",
+            description: `Your spot for ${pendingCancel.eventName} has been released. We hope to see you at another Yatri Cloud event.`,
         });
-        setSelectedRegistration(reg);
-        setShowEditModal(true);
-    };
-
-    const handleSaveEdit = () => {
-        if (!selectedRegistration) return;
-
-        const updated = updateRegistration(selectedRegistration.id, editForm);
-        if (updated) {
-            setRegistrations(prev => prev.map(r => r.id === updated.id ? updated : r));
-            setSelectedRegistration(updated);
-            setShowEditModal(false);
-            toast({ title: "Details Updated", description: "Your registration details have been updated." });
-        }
-    };
-
-    // Build add to calendar links when a registration carries a real, upcoming
-    // event date. End is +2 hours since events store no explicit finish time.
-    const getEventCalendar = (reg: EventRegistration) => {
-        const raw = (reg as any).eventDate || (reg as any).date;
-        if (!raw) return null;
-        const start = new Date(raw);
-        if (isNaN(start.getTime()) || start.getTime() <= Date.now()) return null;
-        const startISO = start.toISOString();
-        const endISO = new Date(start.getTime() + 2 * 60 * 60 * 1000).toISOString();
-        const location = reg.userDetails.city || 'Online';
-        const details = `Your spot at ${reg.eventName}, a Yatri Cloud event.`;
-        return {
-            gcal: googleCalendarUrl({ title: reg.eventName, startISO, endISO, details, location }),
-            ics: icsDataUri(buildIcs({ uid: `event-${reg.eventId}@yatricloud.com`, title: reg.eventName, startISO, endISO, details, location })),
-        };
-    };
-
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'attended': return <Badge className="bg-green-600">✓ Attended</Badge>;
-            case 'registered': return <Badge className="bg-blue-600">Registered</Badge>;
-            case 'cancelled': return <Badge variant="outline" className="text-muted-foreground">Cancelled</Badge>;
-            default: return <Badge variant="secondary">{status}</Badge>;
-        }
+        setPendingCancel(null);
     };
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <SEO title="My Events · Yatri Cloud" description="See and manage your event registrations." noindex />
+            <SEO
+                title="My Events · Yatri Cloud"
+                description="See and manage your event registrations."
+                noindex
+            />
             <Navbar />
 
-            <main className="pt-24 pb-12">
+            <main className="pt-24 pb-16">
                 <div className="container mx-auto px-4 md:px-6 max-w-5xl">
-                    <Button
-                        variant="ghost"
-                        className="gap-2 mb-6 pl-0 hover:pl-2 transition-all"
-                        onClick={() => navigate('/manage-certifications')}
-                    >
-                        <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-                    </Button>
-
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -128,172 +138,199 @@ export default function MyEvents() {
                     >
                         <h1 className="text-3xl md:text-4xl font-bold mb-2">My Registered Events</h1>
                         <p className="text-muted-foreground text-lg">
-                            Track your upcoming events, access tickets, and manage registrations.
+                            Track your upcoming events, keep your registration codes handy, and manage
+                            your spots.
                         </p>
                     </motion.div>
 
-                    {loading ? (
-                        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin" /></div>
-                    ) : registrations.length === 0 ? (
-                        <div className="text-center py-16 border rounded-xl bg-muted/10">
-                            <Calendar className="w-16 h-16 mx-auto text-muted-foreground mb-4 opacity-50" />
-                            <h3 className="text-xl font-semibold mb-2">No Registrations Yet</h3>
+                    {!signedIn ? (
+                        <div className="text-center py-16 border rounded-xl bg-brand-50/40">
+                            <h2 className="text-xl font-semibold mb-2">Please sign in first</h2>
                             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                                You haven't registered for any events. Browse our upcoming events to get started!
+                                Your event registrations live with your Yatri Cloud account. Sign in to
+                                see everything you have booked.
                             </p>
-                            <Button onClick={() => navigate('/events')}>Browse Events</Button>
+                            <Button asChild className="min-h-[44px]">
+                                <Link to="/login">Sign in to continue</Link>
+                            </Button>
+                        </div>
+                    ) : loading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[0, 1, 2].map((i) => (
+                                <div
+                                    key={i}
+                                    className="h-64 rounded-xl border bg-muted/40 animate-pulse"
+                                />
+                            ))}
+                        </div>
+                    ) : registrations.length === 0 ? (
+                        <div className="text-center py-16 border rounded-xl bg-brand-50/40">
+                            <h2 className="text-xl font-semibold mb-2">No registrations yet</h2>
+                            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                                You have not registered for any events. Browse what is coming up and grab
+                                your spot.
+                            </p>
+                            <Button
+                                className="min-h-[44px]"
+                                onClick={() => navigate("/events")}
+                            >
+                                Browse events
+                            </Button>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {registrations.map((reg) => (
-                                <Card key={reg.id} className="flex flex-col overflow-hidden hover:shadow-md transition-shadow">
-                                    <div className="h-2 bg-gradient-to-r from-blue-500 to-purple-500" />
-                                    <CardHeader className="pb-3">
-                                        <div className="flex justify-between items-start mb-2">
-                                            {getStatusBadge(reg.status)}
-                                            {reg.ticketType === 'paid' && <Badge variant="outline" className="border-green-500 text-green-600">Paid</Badge>}
-                                        </div>
-                                        <CardTitle className="text-xl line-clamp-1">{reg.eventName}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="flex-grow space-y-4 text-sm">
-                                        <div className="flex items-center text-muted-foreground">
-                                            <Calendar className="w-4 h-4 mr-2" />
-                                            Registered: {format(new Date(reg.registeredAt), 'MMM dd, yyyy')}
-                                        </div>
-                                        <div className="flex items-center text-muted-foreground">
-                                            <MapPin className="w-4 h-4 mr-2" />
-                                            {reg.userDetails.city || 'Online'}
-                                        </div>
-                                        <div className="bg-muted/50 p-3 rounded-md flex justify-between items-center group cursor-pointer hover:bg-muted" onClick={() => copyCode(reg.registrationCode)}>
-                                            <div>
-                                                <p className="text-xs text-muted-foreground">Check-in Code</p>
-                                                <p className="font-mono font-bold text-lg tracking-wider">{reg.registrationCode}</p>
+                            {registrations.map((reg) => {
+                                const cal = getEventCalendar(reg);
+                                const code = reg.attendees[0]?.ticketId;
+                                const isConfirmed = reg.status === "confirmed";
+                                return (
+                                    <Card
+                                        key={reg.id}
+                                        className="flex flex-col overflow-hidden hover:shadow-md transition-shadow"
+                                    >
+                                        {reg.eventImage ? (
+                                            <div className="h-36 w-full overflow-hidden bg-brand-50">
+                                                <img
+                                                    src={reg.eventImage}
+                                                    alt={reg.eventName}
+                                                    className="h-full w-full object-cover"
+                                                    loading="lazy"
+                                                />
                                             </div>
-                                            <Button size="icon" variant="ghost" className="h-8 w-8">
-                                                {copiedCode === reg.registrationCode ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                                            </Button>
-                                        </div>
-                                        {(() => {
-                                            const cal = getEventCalendar(reg);
-                                            if (!cal) return null;
-                                            return (
+                                        ) : (
+                                            <div className="h-1.5 bg-brand-500" />
+                                        )}
+                                        <CardHeader className="pb-3">
+                                            <div className="flex justify-between items-start mb-2">
+                                                {isConfirmed ? (
+                                                    <Badge className="bg-brand-600 text-white hover:bg-brand-600">
+                                                        Confirmed
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="text-muted-foreground"
+                                                    >
+                                                        Cancelled
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <CardTitle className="text-xl line-clamp-2">
+                                                {reg.eventName}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="flex-grow space-y-4 text-sm">
+                                            <div className="text-muted-foreground">
+                                                {formatEventDate(reg.eventDate)}
+                                            </div>
+                                            <div className="text-muted-foreground">
+                                                {reg.eventLocation || "Online"}
+                                            </div>
+                                            {code && (
+                                                <div className="bg-brand-50/70 border border-brand-200/40 p-3 rounded-md">
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Registration code
+                                                    </p>
+                                                    <p className="font-mono font-bold text-lg tracking-wider">
+                                                        {code}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {cal && (
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                    <Button asChild variant="outline" size="sm" className="min-h-[44px] gap-2">
-                                                        <a href={cal.gcal} target="_blank" rel="noopener noreferrer">
-                                                            <CalendarPlus className="w-4 h-4" />
+                                                    <Button
+                                                        asChild
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="min-h-[44px]"
+                                                    >
+                                                        <a
+                                                            href={cal.gcal}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
                                                             Add to Google Calendar
                                                         </a>
                                                     </Button>
-                                                    <Button asChild variant="outline" size="sm" className="min-h-[44px] gap-2">
-                                                        <a href={cal.ics} download={`${reg.eventName}.ics`}>
-                                                            <Download className="w-4 h-4" />
+                                                    <Button
+                                                        asChild
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="min-h-[44px]"
+                                                    >
+                                                        <a
+                                                            href={cal.ics}
+                                                            download={`${reg.eventName}.ics`}
+                                                        >
                                                             Download .ics
                                                         </a>
                                                     </Button>
                                                 </div>
-                                            );
-                                        })()}
-                                    </CardContent>
-                                    <CardFooter className="pt-2 gap-2">
-                                        <Button
-                                            variant="outline"
-                                            className="flex-1"
-                                            onClick={() => {
-                                                setSelectedRegistration(reg);
-                                                setShowDetailsModal(true);
-                                            }}
-                                        >
-                                            <Info className="w-4 h-4 mr-2" />
-                                            Details
-                                        </Button>
-                                        <Button
-                                            variant="secondary"
-                                            onClick={() => navigate(`/events/${reg.eventSlug || reg.eventId}`)}
-                                        >
-                                            View Event
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-                            ))}
+                                            )}
+                                        </CardContent>
+                                        <CardFooter className="pt-2 gap-2">
+                                            {reg.eventSlug && (
+                                                <Button
+                                                    asChild
+                                                    variant="secondary"
+                                                    className="flex-1 min-h-[44px]"
+                                                >
+                                                    <Link to={`/events/${reg.eventSlug}`}>
+                                                        View event
+                                                    </Link>
+                                                </Button>
+                                            )}
+                                            {isConfirmed && (
+                                                <Button
+                                                    variant="outline"
+                                                    className="flex-1 min-h-[44px]"
+                                                    onClick={() => setPendingCancel(reg)}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            )}
+                                        </CardFooter>
+                                    </Card>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
             </main>
 
-            {/* Registration Details Modal */}
-            <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+            {/* Cancel confirmation */}
+            <Dialog
+                open={!!pendingCancel}
+                onOpenChange={(open) => {
+                    if (!open && !cancelling) setPendingCancel(null);
+                }}
+            >
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Registration Details</DialogTitle>
-                        <DialogDescription>Full details of your registration for {selectedRegistration?.eventName}</DialogDescription>
+                        <DialogTitle>Cancel this registration?</DialogTitle>
+                        <DialogDescription>
+                            You are about to release your spot for {pendingCancel?.eventName}. This
+                            frees the seat for another Yatri and cannot be undone here.
+                        </DialogDescription>
                     </DialogHeader>
-
-                    {selectedRegistration && (
-                        <div className="space-y-6 py-2">
-                            {/* Code Card */}
-                            <div className="bg-primary/5 border border-primary/20 p-6 rounded-xl text-center relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-                                <p className="text-sm text-muted-foreground mb-1 uppercase tracking-widest font-semibold">Event Ticket Code</p>
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <Ticket className="w-5 h-5 text-primary" />
-                                    <p className="text-4xl font-mono font-bold tracking-wider text-foreground">{selectedRegistration.registrationCode}</p>
-                                </div>
-                                <p className="text-xs text-muted-foreground">Show this code at the venue entrance</p>
-                            </div>
-
-                            {/* User Details */}
-                            <div className="space-y-3">
-                                <h4 className="font-semibold text-sm border-b pb-1">Attendee Information</h4>
-                                <div className="grid grid-cols-[100px_1fr] gap-y-2 text-sm">
-                                    <span className="text-muted-foreground">Name:</span>
-                                    <span className="font-medium text-right">{selectedRegistration.userDetails.name}</span>
-
-                                    <span className="text-muted-foreground">Email:</span>
-                                    <span className="font-medium text-right truncate">{selectedRegistration.userDetails.email}</span>
-
-                                    <span className="text-muted-foreground">Phone:</span>
-                                    <span className="font-medium text-right">{selectedRegistration.userDetails.phone}</span>
-
-                                    <span className="text-muted-foreground">Location:</span>
-                                    <span className="font-medium text-right">{selectedRegistration.userDetails.city}, {selectedRegistration.userDetails.state}</span>
-                                </div>
-                            </div>
-
-                            {/* Payment Info if exists */}
-                            {selectedRegistration.paymentStatus && (
-                                <div className="space-y-3">
-                                    <h4 className="font-semibold text-sm border-b pb-1">Payment Information</h4>
-                                    <div className="grid grid-cols-[100px_1fr] gap-y-2 text-sm">
-                                        <span className="text-muted-foreground">Status:</span>
-                                        <span className="font-medium text-right flex justify-end items-center gap-1">
-                                            {selectedRegistration.paymentStatus === 'completed'
-                                                ? <><span className="text-green-600">Paid</span><CheckCircle2 className="w-3 h-3 text-green-600" /></>
-                                                : <span className="capitalize">{selectedRegistration.paymentStatus}</span>
-                                            }
-                                        </span>
-
-                                        <span className="text-muted-foreground">Amount:</span>
-                                        <span className="font-medium text-right">₹{selectedRegistration.paymentAmount}</span>
-
-                                        <span className="text-muted-foreground">Transaction:</span>
-                                        <span className="font-medium text-right font-mono text-xs">{selectedRegistration.paymentId}</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex gap-2 pt-2">
-                                {selectedRegistration.status === 'registered' && (
-                                    <Button
-                                        variant="destructive"
-                                        className="w-full"
-                                        onClick={() => handleCancelRegistration(selectedRegistration.id)}
-                                    >
-                                        <XCircle className="w-4 h-4 mr-2" /> Cancel Registration
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    <DialogFooter className="gap-2">
+                        <Button
+                            variant="outline"
+                            className="min-h-[44px]"
+                            disabled={cancelling}
+                            onClick={() => setPendingCancel(null)}
+                        >
+                            Keep my spot
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            className="min-h-[44px]"
+                            disabled={cancelling}
+                            onClick={confirmCancel}
+                        >
+                            {cancelling ? "Cancelling…" : "Yes, cancel"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
