@@ -620,6 +620,136 @@ export async function cancelPendingBooking(
   return { error: null };
 }
 
+/**
+ * Cancels a booking through the server endpoint, which also starts a Razorpay
+ * refund when the session was paid. Works for the mentee, the mentor, or an
+ * admin: the server re checks who is asking. Never trust the browser to
+ * refund; this only asks the server to do it.
+ */
+export async function cancelBooking(
+  bookingId: string,
+  reason?: string
+): Promise<{ ok: boolean; refunded: boolean; message: string }> {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      return {
+        ok: false,
+        refunded: false,
+        message: "Please sign in again to cancel this booking.",
+      };
+    }
+    const res = await fetch("/api/mentorship/cancel-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        booking_id: bookingId,
+        access_token: accessToken,
+        cancel_reason: reason ?? null,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      return {
+        ok: false,
+        refunded: false,
+        message:
+          data.message || "This booking could not be cancelled. Please try again.",
+      };
+    }
+    return {
+      ok: true,
+      refunded: Boolean(data.refunded),
+      message: data.message || "Your session was cancelled.",
+    };
+  } catch {
+    return {
+      ok: false,
+      refunded: false,
+      message: "This booking could not be cancelled. Please try again.",
+    };
+  }
+}
+
+/**
+ * Moves an upcoming booking to a new slot. RLS lets the mentee update their
+ * own row; we only allow it while the booking is pending or confirmed. The
+ * unique slot index is the real double booking guard, surfaced here as a
+ * friendly "slot taken" so the caller can ask for another time.
+ */
+export async function rescheduleBooking(
+  bookingId: string,
+  newSlotStart: string,
+  newSlotEnd: string
+): Promise<{ error: string | null; slotTaken: boolean }> {
+  try {
+    const { data: current, error: readError } = await supabase
+      .from("mentorship_bookings")
+      .select("rescheduled_count, status")
+      .eq("id", bookingId)
+      .single();
+    if (readError || !current) {
+      return { error: "We could not find this booking.", slotTaken: false };
+    }
+    if (current.status !== "pending" && current.status !== "confirmed") {
+      return {
+        error: "Only upcoming sessions can be moved to a new time.",
+        slotTaken: false,
+      };
+    }
+    const { error } = await supabase
+      .from("mentorship_bookings")
+      .update({
+        slot_start: newSlotStart,
+        slot_end: newSlotEnd,
+        rescheduled_count: (Number(current.rescheduled_count) || 0) + 1,
+      })
+      .eq("id", bookingId)
+      .in("status", ["pending", "confirmed"]);
+    if (error) {
+      if (error.code === "23505") {
+        return {
+          error: "That time was just taken. Please pick another slot.",
+          slotTaken: true,
+        };
+      }
+      return {
+        error: "This session could not be rescheduled. Please try again.",
+        slotTaken: false,
+      };
+    }
+    return { error: null, slotTaken: false };
+  } catch {
+    return {
+      error: "This session could not be rescheduled. Please try again.",
+      slotTaken: false,
+    };
+  }
+}
+
+/**
+ * Upcoming pending and confirmed bookings for a mentor, earliest first, for
+ * the calendar view. RLS scopes rows to the mentor's own.
+ */
+export async function getMentorUpcomingBookings(
+  mentorId: string
+): Promise<MentorshipBooking[]> {
+  try {
+    const { data, error } = await supabase
+      .from("mentorship_bookings")
+      .select("*")
+      .eq("mentor_id", mentorId)
+      .in("status", ["pending", "confirmed"])
+      .not("slot_start", "is", null)
+      .order("slot_start", { ascending: true });
+    if (error || !data) return [];
+    return data.map(mapBooking);
+  } catch {
+    return [];
+  }
+}
+
 /** Creates our orders row (kind mentorship) and returns its id. */
 export async function createMentorshipOrder(input: {
   userId: string;

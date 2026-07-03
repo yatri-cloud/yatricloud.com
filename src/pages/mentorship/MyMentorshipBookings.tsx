@@ -1,11 +1,33 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { LoginModal } from "@/components/LoginModal";
+import SlotPicker from "@/components/mentorship/SlotPicker";
+import BookingCalendar from "@/components/mentorship/BookingCalendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { hasSession } from "@/lib/auth";
+import { generateSlots, type Slot } from "@/lib/mentorship-slots";
 import {
   MentorshipBookingWithRefs,
   MentorReview,
@@ -13,7 +35,11 @@ import {
   getMyBookings,
   getMyReviews,
   getServiceSecrets,
-  cancelPendingBooking,
+  cancelBooking,
+  rescheduleBooking,
+  getMentorBySlug,
+  getMentorAvailability,
+  getMentorBookedSlots,
   submitReview,
   formatServicePrice,
   formatInstant,
@@ -50,8 +76,21 @@ const MyMentorshipBookings = () => {
   const [secrets, setSecrets] = useState<ServiceSecret[]>([]);
   const [myReviews, setMyReviews] = useState<MentorReview[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [cancelling, setCancelling] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, ReviewDraft>>({});
+  const [view, setView] = useState<"list" | "calendar">("list");
+
+  // Cancel with refund (confirm dialog).
+  const [cancelTarget, setCancelTarget] = useState<MentorshipBookingWithRefs | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  // Reschedule (slot picker in a dialog).
+  const [reschedule, setReschedule] = useState<{
+    booking: MentorshipBookingWithRefs;
+    slots: Slot[];
+    selected: Slot | null;
+    loadingSlots: boolean;
+    submitting: boolean;
+  } | null>(null);
 
   const timeZone = useMemo(() => visitorTimezone(), []);
 
@@ -88,17 +127,83 @@ const MyMentorshipBookings = () => {
   const secretFor = (serviceId: string): ServiceSecret | undefined =>
     secrets.find((s) => s.service_id === serviceId);
 
-  const handleCancel = async (bookingId: string) => {
-    setCancelling(bookingId);
-    const { error } = await cancelPendingBooking(bookingId);
-    setCancelling(null);
-    if (error) {
-      toast({ title: "Could not cancel", description: error });
+  const isUpcoming = (b: MentorshipBookingWithRefs): boolean =>
+    (b.status === "pending" || b.status === "confirmed") &&
+    (!b.slot_start || new Date(b.slot_start).getTime() >= Date.now());
+
+  const confirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    const { ok, refunded, message } = await cancelBooking(cancelTarget.id);
+    setCancelling(false);
+    setCancelTarget(null);
+    if (!ok) {
+      toast({ title: "Could not cancel", description: message });
       return;
     }
     toast({
-      title: "Booking cancelled",
-      description: "The slot is free again. Book another time whenever you are ready.",
+      title: refunded ? "Session cancelled and refund started" : "Session cancelled",
+      description: message,
+    });
+    void load();
+  };
+
+  const buildSlotsFor = async (
+    booking: MentorshipBookingWithRefs
+  ): Promise<Slot[]> => {
+    if (!booking.mentor?.slug) return [];
+    const mentor = await getMentorBySlug(booking.mentor.slug);
+    if (!mentor) return [];
+    const [rules, booked] = await Promise.all([
+      getMentorAvailability(mentor.id),
+      getMentorBookedSlots(mentor.id),
+    ]);
+    return generateSlots(
+      rules,
+      booked,
+      booking.service?.duration_min ?? 30,
+      mentor.buffer_min,
+      mentor.notice_hours,
+      mentor.booking_window_days,
+      new Date()
+    );
+  };
+
+  const openReschedule = async (booking: MentorshipBookingWithRefs) => {
+    setReschedule({ booking, slots: [], selected: null, loadingSlots: true, submitting: false });
+    const slots = await buildSlotsFor(booking);
+    setReschedule((r) => (r && r.booking.id === booking.id ? { ...r, slots, loadingSlots: false } : r));
+  };
+
+  const confirmReschedule = async () => {
+    if (!reschedule?.selected) return;
+    const { booking, selected } = reschedule;
+    setReschedule((r) => (r ? { ...r, submitting: true } : r));
+    const { error, slotTaken } = await rescheduleBooking(
+      booking.id,
+      selected.start.toISOString(),
+      selected.end.toISOString()
+    );
+    if (slotTaken) {
+      const slots = await buildSlotsFor(booking);
+      setReschedule((r) =>
+        r ? { ...r, slots, selected: null, submitting: false } : r
+      );
+      toast({
+        title: "That time was just taken",
+        description: "Please pick another slot, Yatri.",
+      });
+      return;
+    }
+    if (error) {
+      setReschedule((r) => (r ? { ...r, submitting: false } : r));
+      toast({ title: "Could not reschedule", description: error });
+      return;
+    }
+    setReschedule(null);
+    toast({
+      title: "Session rescheduled",
+      description: "Your new time is saved. Your mentor can see it right away.",
     });
     void load();
   };
@@ -200,11 +305,35 @@ const MyMentorshipBookings = () => {
           <h1 className="font-display text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-3">
             My mentorship bookings
           </h1>
-          <p className="text-muted-foreground mb-10">
+          <p className="text-muted-foreground mb-6">
             Every session, meeting link and digital product you have booked, in
             one calm place.
           </p>
         </div>
+
+        {loaded && bookings.length > 0 && (
+          <div className="flex gap-2 mb-8" role="tablist" aria-label="Choose how to view your bookings">
+            {(["list", "calendar"] as const).map((option) => {
+              const active = view === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setView(option)}
+                  className={`min-h-[44px] px-5 rounded-xl border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-foreground hover:border-brand-200 hover:bg-brand-50"
+                  }`}
+                >
+                  {option === "list" ? "List" : "Calendar"}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {!loaded ? (
           <div className="space-y-4 max-w-3xl animate-pulse motion-reduce:animate-none">
@@ -223,6 +352,10 @@ const MyMentorshipBookings = () => {
             >
               Find a mentor
             </Link>
+          </div>
+        ) : view === "calendar" ? (
+          <div className="max-w-3xl">
+            <BookingCalendar bookings={bookings} timezone={timeZone} />
           </div>
         ) : (
           <div className="space-y-5 max-w-3xl">
@@ -290,18 +423,27 @@ const MyMentorshipBookings = () => {
                   {/* Actions */}
                   <div className="mt-5 pt-5 border-t border-border flex flex-wrap items-center gap-3">
                     {booking.status === "pending" && (
+                      <p className="text-sm text-muted-foreground flex-1 min-w-[200px]">
+                        This booking is waiting on payment. Unpaid holds release
+                        after 30 minutes.
+                      </p>
+                    )}
+
+                    {isUpcoming(booking) && (
                       <>
-                        <p className="text-sm text-muted-foreground flex-1 min-w-[200px]">
-                          This booking is waiting on payment. Unpaid holds
-                          release after 30 minutes.
-                        </p>
                         <button
                           type="button"
-                          onClick={() => handleCancel(booking.id)}
-                          disabled={cancelling === booking.id}
-                          className="min-h-[44px] px-5 rounded-xl border border-border text-sm font-medium hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          onClick={() => openReschedule(booking)}
+                          className="min-h-[44px] px-5 rounded-xl border border-border text-sm font-medium hover:border-brand-200 hover:bg-brand-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
-                          {cancelling === booking.id ? "Cancelling" : "Cancel booking"}
+                          Reschedule
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCancelTarget(booking)}
+                          className="min-h-[44px] px-5 rounded-xl border border-border text-sm font-medium hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          Cancel session
                         </button>
                       </>
                     )}
@@ -397,6 +539,87 @@ const MyMentorshipBookings = () => {
           </div>
         )}
       </main>
+
+      {/* Reschedule dialog */}
+      <Dialog
+        open={reschedule !== null}
+        onOpenChange={(open) => {
+          if (!open) setReschedule(null);
+        }}
+      >
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Reschedule your session</DialogTitle>
+            <DialogDescription>
+              Pick a new time that suits you. Your mentor sees the change right
+              away.
+            </DialogDescription>
+          </DialogHeader>
+
+          {reschedule?.loadingSlots ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
+              <p className="text-sm text-muted-foreground">Finding open times</p>
+            </div>
+          ) : reschedule ? (
+            <SlotPicker
+              slots={reschedule.slots}
+              selected={reschedule.selected}
+              onSelect={(slot) =>
+                setReschedule((r) => (r ? { ...r, selected: slot } : r))
+              }
+              timeZone={timeZone}
+            />
+          ) : null}
+
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setReschedule(null)}
+              className="min-h-[44px] px-5 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Keep current time
+            </button>
+            <button
+              type="button"
+              onClick={confirmReschedule}
+              disabled={!reschedule?.selected || reschedule?.submitting}
+              className="min-h-[44px] px-6 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-brand-600 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {reschedule?.submitting ? "Saving" : "Confirm new time"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel confirm */}
+      <AlertDialog
+        open={cancelTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setCancelTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel this session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This frees the slot for other Yatris. If you paid for this session
+              your full refund starts automatically and reaches your account in a
+              few working days.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep my session</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancel}
+              disabled={cancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cancelling ? "Cancelling" : "Cancel session"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Footer />
     </div>

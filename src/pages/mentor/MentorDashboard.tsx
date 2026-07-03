@@ -62,7 +62,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { getMyMentorApplication, getMentorEarnings } from "@/lib/mentorship";
+import BookingCalendar from "@/components/mentorship/BookingCalendar";
+import { getMyMentorApplication, getMentorEarnings, cancelBooking } from "@/lib/mentorship";
 import type {
   AvailabilityRule,
   Mentor,
@@ -339,6 +340,7 @@ const MentorDashboard = () => {
               bookings={bookings}
               services={services}
               loading={loadingData}
+              timezone={mentor.timezone}
               onChanged={() => loadData(mentor.id)}
             />
           </TabsContent>
@@ -1508,13 +1510,17 @@ const BookingsTab = ({
   bookings,
   services,
   loading,
+  timezone,
   onChanged,
 }: {
   bookings: BookingRow[];
   services: ServiceRow[];
   loading: boolean;
+  timezone: string;
   onChanged: () => void;
 }) => {
+  const [view, setView] = useState<"list" | "calendar">("list");
+
   const serviceTitle = useMemo(() => {
     const map = new Map<string, string>();
     services.forEach((s) => map.set(s.id, s.title));
@@ -1531,8 +1537,38 @@ const BookingsTab = ({
     .sort((a, b) => (a.slot_start ?? "9999").localeCompare(b.slot_start ?? "9999"));
   const past = bookings.filter((b) => !upcoming.includes(b));
 
+  // The calendar needs a service title on each booking to label sessions.
+  const calendarBookings = upcoming
+    .filter((b) => b.slot_start)
+    .map((b) => ({
+      id: b.id,
+      slot_start: b.slot_start,
+      status: b.status,
+      customer_name: b.customer_name,
+      amount: b.amount,
+      service: { title: serviceTitle(b.service_id) },
+    }));
+
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex gap-2" role="tablist" aria-label="Choose how to view your bookings">
+        {(["list", "calendar"] as const).map((option) => (
+          <Button
+            key={option}
+            variant={view === option ? "default" : "outline"}
+            size="sm"
+            className={view === option ? "bg-brand-500 hover:bg-brand-600 text-white" : ""}
+            onClick={() => setView(option)}
+          >
+            {option === "list" ? "List" : "Calendar"}
+          </Button>
+        ))}
+      </div>
+
+      {view === "calendar" ? (
+        <BookingCalendar bookings={calendarBookings} timezone={timezone} />
+      ) : (
+      <>
       <BookingsCard
         title="Upcoming"
         subtitle="Confirmed and pending sessions. Add the meeting link before the call."
@@ -1553,6 +1589,8 @@ const BookingsTab = ({
         onChanged={onChanged}
         editable={false}
       />
+      </>
+      )}
     </div>
   );
 };
@@ -1578,6 +1616,24 @@ const BookingsCard = ({
 }) => {
   const [linkEdit, setLinkEdit] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<BookingRow | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  const confirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    const { ok, refunded, message } = await cancelBooking(cancelTarget.id);
+    setCancelling(false);
+    setCancelTarget(null);
+    if (!ok) {
+      toast.error(message);
+      return;
+    }
+    toast.success(
+      refunded ? "Session cancelled and refund started." : "Session cancelled."
+    );
+    onChanged();
+  };
 
   const saveLink = async (b: BookingRow) => {
     const link = (linkEdit[b.id] ?? b.meeting_link ?? "").trim();
@@ -1685,6 +1741,17 @@ const BookingsCard = ({
                             Complete
                           </Button>
                         )}
+                        {(b.status === "confirmed" || b.status === "pending") && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                            disabled={busyId === b.id}
+                            onClick={() => setCancelTarget(b)}
+                          >
+                            Cancel
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   )}
@@ -1694,6 +1761,35 @@ const BookingsCard = ({
           </Table>
         )}
       </CardContent>
+
+      <AlertDialog
+        open={cancelTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setCancelTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel this session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This frees the slot and tells the Yatri. If the session was paid, a
+              full refund starts automatically and reaches them in a few working
+              days.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep the session</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancel}
+              disabled={cancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cancelling && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Cancel session
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
