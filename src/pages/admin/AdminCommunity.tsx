@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Loader2, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +38,17 @@ export default function AdminCommunity() {
     const [editId, setEditId] = useState<string | null>(null);
     const [form, setForm] = useState<Omit<Community, "id">>(EMPTY);
     const [saving, setSaving] = useState(false);
+    const [search, setSearch] = useState("");
+    const [groupFilter, setGroupFilter] = useState("all");
+
+    const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return rows.filter((c) => {
+            if (groupFilter !== "all" && c.grp !== groupFilter) return false;
+            if (!q) return true;
+            return c.name.toLowerCase().includes(q) || c.url.toLowerCase().includes(q) || (c.tagline || "").toLowerCase().includes(q);
+        });
+    }, [rows, search, groupFilter]);
 
     const load = async () => {
         setLoading(true);
@@ -100,14 +111,27 @@ export default function AdminCommunity() {
             </div>
 
             <Card>
-                <CardHeader>
+                <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <CardTitle className="text-base">All community links</CardTitle>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <div className="relative w-full sm:w-56">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search links" className="pl-9 h-9" />
+                        </div>
+                        <Select value={groupFilter} onValueChange={setGroupFilter}>
+                            <SelectTrigger className="h-9 w-full sm:w-[190px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All groups</SelectItem>
+                                {GROUPS.map((g) => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {loading ? (
                         <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-                    ) : rows.length === 0 ? (
-                        <p className="py-8 text-center text-sm text-muted-foreground">No community links yet. Add your first one.</p>
+                    ) : filtered.length === 0 ? (
+                        <p className="py-8 text-center text-sm text-muted-foreground">{rows.length === 0 ? "No community links yet. Add your first one." : "No links match your search."}</p>
                     ) : (
                         <div className="overflow-x-auto">
                             <Table>
@@ -121,7 +145,7 @@ export default function AdminCommunity() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {rows.map((c) => (
+                                    {filtered.map((c) => (
                                         <TableRow key={c.id}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
@@ -72,6 +72,22 @@ const UdemyAdmin = () => {
     const [loadingCourses, setLoadingCourses] = useState(true);
     const [editing, setEditing] = useState<UdemyCourse | null>(null);
     const [savingEdit, setSavingEdit] = useState(false);
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+
+    const filteredCourses = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return courses.filter((c) => {
+            if (statusFilter !== "all" && c.status !== statusFilter) return false;
+            if (!q) return true;
+            return (
+                c.title.toLowerCase().includes(q) ||
+                (c.creator || "").toLowerCase().includes(q) ||
+                (c.tech || "").toLowerCase().includes(q) ||
+                (c.category || "").toLowerCase().includes(q)
+            );
+        });
+    }, [courses, search, statusFilter]);
 
     const loadCourses = async () => {
         setLoadingCourses(true);
@@ -492,14 +508,27 @@ const UdemyAdmin = () => {
             {/* Manage existing courses */}
             <ScrollReveal delay={0.15}>
                 <div className="bg-card border border-border rounded-2xl p-5 md:p-6">
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h2 className="font-display text-lg font-bold tracking-tight">Manage courses</h2>
-                        <span className="text-sm text-muted-foreground">{courses.length} {courses.length === 1 ? "course" : "courses"}</span>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <div className="relative w-full sm:w-56">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search courses" className="pl-9 h-9" />
+                            </div>
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className="h-9 w-full sm:w-[130px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All status</SelectItem>
+                                    <SelectItem value="published">Published</SelectItem>
+                                    <SelectItem value="draft">Draft</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                     {loadingCourses ? (
                         <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-                    ) : courses.length === 0 ? (
-                        <p className="py-8 text-center text-sm text-muted-foreground">No courses yet. Add your first course above.</p>
+                    ) : filteredCourses.length === 0 ? (
+                        <p className="py-8 text-center text-sm text-muted-foreground">{courses.length === 0 ? "No courses yet. Add your first course above." : "No courses match your search."}</p>
                     ) : (
                         <div className="overflow-x-auto">
                             <Table>
@@ -513,7 +542,7 @@ const UdemyAdmin = () => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {courses.map((c) => (
+                                    {filteredCourses.map((c) => (
                                         <TableRow key={c.id}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">

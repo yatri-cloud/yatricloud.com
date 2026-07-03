@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react";
-import { Loader2, Plus, Database, Server, Pencil, Trash2, Check, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Loader2, Plus, Database, Server, Pencil, Trash2, Check, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,17 @@ export default function AdminProviders() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingRow, setEditingRow] = useState<number | null>(null);
     const [editName, setEditName] = useState("");
+    const [search, setSearch] = useState("");
+
+    const filteredProviders = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return providers;
+        return providers.filter((p) =>
+            p.name.toLowerCase().includes(q) ||
+            (p.slug || "").toLowerCase().includes(q) ||
+            (p.type || "").toLowerCase().includes(q)
+        );
+    }, [providers, search]);
 
     const [newProvider, setNewProvider] = useState("");
     const [newLogo, setNewLogo] = useState("");
@@ -203,7 +214,9 @@ export default function AdminProviders() {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        providers.map((p: ProviderData, i) => (
+                                        providers.map((p: ProviderData, i) => {
+                                            if (search.trim() && !filteredProviders.includes(p)) return null;
+                                            return (
                                             <TableRow key={p.id || i} className="hover:bg-brand-50">
                                                 <TableCell className="font-semibold">
                                                     {editingRow === i ? (
@@ -261,7 +274,8 @@ export default function AdminProviders() {
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
-                                        ))
+                                            );
+                                        })
                                     )}
                                 </TableBody>
                             </Table>
