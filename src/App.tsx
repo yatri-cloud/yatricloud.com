@@ -54,6 +54,7 @@ import AdminSitemapView from "./pages/admin/AdminSitemapView";
 import AdminOverview from "./pages/admin/AdminOverview";
 import UserSitemapView from "./pages/UserSitemapView";
 import YatriDashboard from "./pages/YatriDashboard";
+import MyCertificates from "./pages/MyCertificates";
 import Training from "./pages/Training";
 import TrainingDetail from "./pages/TrainingDetail";
 import AdminTrainingList from "@/pages/admin/AdminTrainingList";
@@ -157,6 +158,7 @@ const App = () => (
 
               {/* Profile Routes */}
               <Route path="/dashboard" element={<YatriDashboard />} />
+              <Route path="/certificates" element={<MyCertificates />} />
               <Route path="/profile/my-events" element={<MyEvents />} />
               <Route path="/my-trainings" element={<MyTrainings />} />
               <Route path="/profile/purchases" element={<MyPurchases />} />

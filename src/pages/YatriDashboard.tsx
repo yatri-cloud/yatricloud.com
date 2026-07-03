@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, BookOpen, Calendar, Receipt, ArrowRight, MapPin, GraduationCap, ShoppingBag, Handshake } from "lucide-react";
+import { Loader2, BookOpen, Calendar, Receipt, ArrowRight, MapPin, GraduationCap, ShoppingBag, Handshake, Award } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { getStoredUser } from "@/lib/yatris-api";
 import { getRegisteredEvents, type EventRegistration } from "@/lib/yatris-api";
 import { listMyEnrollments } from "@/lib/training-api";
 import { getMyInvoices, formatInvoiceMoney, type Invoice } from "@/lib/invoices-api";
+import { getMyCertificates, type MyCertificate } from "@/lib/certificates-api";
 import { format } from "date-fns";
 
 const BROWSE_LINKS = [
@@ -26,6 +28,7 @@ export default function YatriDashboard() {
     const [enrollments, setEnrollments] = useState<any[]>([]);
     const [events, setEvents] = useState<EventRegistration[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [certs, setCerts] = useState<MyCertificate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -39,14 +42,16 @@ export default function YatriDashboard() {
         (async () => {
             setIsLoading(true);
             try {
-                const [enr, evts, invs] = await Promise.all([
+                const [enr, evts, invs, cert] = await Promise.all([
                     listMyEnrollments().catch(() => ({ enrollments: [], trainings: {} })),
                     getRegisteredEvents().catch(() => []),
                     getMyInvoices().catch(() => []),
+                    getMyCertificates().catch(() => []),
                 ]);
                 setEnrollments(enr.enrollments || []);
                 setEvents(evts || []);
                 setInvoices(invs || []);
+                setCerts(cert || []);
             } finally {
                 setIsLoading(false);
             }
@@ -93,10 +98,10 @@ export default function YatriDashboard() {
                         <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                     ) : (
                         <div className="space-y-8">
-                            {/* Summary tiles */}
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                            {/* Summary tiles — each navigates to its full page */}
+                            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                                 <Link to="/my-trainings">
-                                    <Card className="group transition-colors hover:border-primary/40 hover:bg-brand-50/40">
+                                    <Card className="group h-full transition-colors hover:border-primary/40 hover:bg-brand-50/40">
                                         <CardContent className="flex items-center gap-4 p-5">
                                             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><BookOpen className="h-5 w-5" /></span>
                                             <span><span className="block text-2xl font-black tabular-nums">{enrollments.length}</span><span className="text-sm text-muted-foreground">Trainings</span></span>
@@ -104,15 +109,23 @@ export default function YatriDashboard() {
                                     </Card>
                                 </Link>
                                 <Link to="/profile/my-events">
-                                    <Card className="group transition-colors hover:border-primary/40 hover:bg-brand-50/40">
+                                    <Card className="group h-full transition-colors hover:border-primary/40 hover:bg-brand-50/40">
                                         <CardContent className="flex items-center gap-4 p-5">
                                             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Calendar className="h-5 w-5" /></span>
                                             <span><span className="block text-2xl font-black tabular-nums">{upcoming.length}</span><span className="text-sm text-muted-foreground">Upcoming events</span></span>
                                         </CardContent>
                                     </Card>
                                 </Link>
+                                <Link to="/certificates">
+                                    <Card className="group h-full transition-colors hover:border-primary/40 hover:bg-brand-50/40">
+                                        <CardContent className="flex items-center gap-4 p-5">
+                                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Award className="h-5 w-5" /></span>
+                                            <span><span className="block text-2xl font-black tabular-nums">{certs.length}</span><span className="text-sm text-muted-foreground">Certificates</span></span>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
                                 <Link to="/profile/purchases">
-                                    <Card className="group transition-colors hover:border-primary/40 hover:bg-brand-50/40">
+                                    <Card className="group h-full transition-colors hover:border-primary/40 hover:bg-brand-50/40">
                                         <CardContent className="flex items-center gap-4 p-5">
                                             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Receipt className="h-5 w-5" /></span>
                                             <span><span className="block text-2xl font-black tabular-nums">{invoices.length}</span><span className="text-sm text-muted-foreground">Receipts</span></span>
