@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,10 @@ import {
 } from "@/lib/certification-logos";
 import { getCountryFlag, getCountryName } from "@/lib/country-flag";
 import { useReviews } from "@/hooks/use-reviews";
+import { ListPager } from "@/components/ui/list-pager";
 import { SEO } from "@/components/SEO";
+
+const PAGE_SIZE = 12;
 
 const Reviews = () => {
   const { theme } = useTheme();
@@ -27,7 +30,10 @@ const Reviews = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
   const [sort, setSort] = useState<string>("newest");
+  const [page, setPage] = useState(1);
   const resolvedTheme = theme;
+
+  useEffect(() => { setPage(1); }, [selectedProvider, selectedCountry, search, sort]);
 
   const avg = reviews.length
     ? (reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / reviews.length).toFixed(1)
@@ -59,6 +65,9 @@ const Reviews = () => {
     if (sort === "rating-asc") return [...searchedReviews].sort((a, b) => Number(a.rating) - Number(b.rating));
     return searchedReviews; // "newest" — already ordered by created_at desc from the query
   })();
+  const pageCount = Math.max(1, Math.ceil(filteredReviews.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pagedReviews = filteredReviews.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // Only show known certificate providers in the filter (exclude "web" / source)
   const providers = Array.from(
@@ -287,8 +296,9 @@ const Reviews = () => {
                     No reviews match your search. Try a different name, provider or keyword.
                   </div>
                 ) : (
+                <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredReviews.map((r) => {
+                  {pagedReviews.map((r) => {
                     const providerInfo = r.provider
                       ? CERTIFICATION_PROVIDER_LOGOS[r.provider]
                       : null;
@@ -346,6 +356,8 @@ const Reviews = () => {
                     );
                   })}
                 </div>
+                <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
+                </>
                 )}
                 </>
               )}

@@ -14,7 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ListPager } from "@/components/ui/list-pager";
 import { CartProvider, useCart } from "@/contexts/CartContext";
+
+const PAGE_SIZE = 9;
 
 const YatriStore = () => {
   const navigate = useNavigate();
@@ -23,8 +26,11 @@ const YatriStore = () => {
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | "All">("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("featured");
+  const [page, setPage] = useState(1);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => { setPage(1); }, [selectedCategory, search, sort]);
 
   // Fetch products from Google Sheets on mount
   useEffect(() => {
@@ -61,6 +67,10 @@ const YatriStore = () => {
     else if (sort === "name") sorted.sort((a, b) => a.title.localeCompare(b.title));
     return sorted;
   }, [selectedCategory, search, sort, products]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pagedProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const handleViewProcedure = () => {
     // Navigate to home and scroll to the 3-step certification process section
@@ -295,7 +305,7 @@ const YatriStore = () => {
 
                 {/* Products Grid - 3 Columns, staggered reveal */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                  {filteredProducts.map((product, index) => (
+                  {pagedProducts.map((product, index) => (
                     <motion.div
                       key={product.id}
                       initial={{ opacity: 0, y: rise }}
@@ -307,6 +317,7 @@ const YatriStore = () => {
                     </motion.div>
                   ))}
                 </div>
+                <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
               </>
             )}
           </div>

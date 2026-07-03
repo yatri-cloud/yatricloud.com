@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ListPager } from "@/components/ui/list-pager";
+
+const PAGE_SIZE = 9;
 
 const ExamDumps = () => {
   const navigate = useNavigate();
@@ -21,6 +24,9 @@ const ExamDumps = () => {
   const [selectedProvider, setSelectedProvider] = useState<string>("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("featured");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { setPage(1); }, [selectedProvider, search, sort]);
 
   useEffect(() => {
     const loadDumps = async () => {
@@ -58,6 +64,10 @@ const ExamDumps = () => {
     else if (sort === "name") sorted.sort((a, b) => a.title.localeCompare(b.title));
     return sorted;
   }, [selectedProvider, search, sort, dumps]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredDumps.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pagedDumps = filteredDumps.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <>
@@ -168,11 +178,14 @@ const ExamDumps = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredDumps.map((dump) => (
-                  <ExamDumpCard key={dump.id} dump={dump} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {pagedDumps.map((dump) => (
+                    <ExamDumpCard key={dump.id} dump={dump} />
+                  ))}
+                </div>
+                <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
+              </>
             )}
           </div>
         </section>
