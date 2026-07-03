@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2, Video, FileText, ExternalLink, Pencil, Star, Users } from "lucide-react";
+import { UserCheck, CheckCircle, XCircle, Eye, Calendar, Key, UserCog, BookOpen, Trash2, Video, FileText, ExternalLink, Pencil, Star, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -108,6 +108,8 @@ export const AdminTrainersNew = () => {
     const [selectedApplication, setSelectedApplication] = useState<TrainerApplication | null>(null);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string>("all");
+    const [appSearch, setAppSearch] = useState("");
+    const [trainerSearch, setTrainerSearch] = useState("");
 
     const [trainers, setTrainers] = useState<Trainer[]>([]);
     const [isLoadingTrainers, setIsLoadingTrainers] = useState(false);
@@ -160,12 +162,26 @@ export const AdminTrainersNew = () => {
     }, [selectedProvider, allProviders]);
 
     useEffect(() => {
-        if (statusFilter === "all") {
-            setFilteredApplications(applications);
-        } else {
-            setFilteredApplications(applications.filter(app => app.status === statusFilter));
-        }
-    }, [statusFilter, applications]);
+        const q = appSearch.trim().toLowerCase();
+        setFilteredApplications(
+            applications.filter((app) => {
+                if (statusFilter !== "all" && app.status !== statusFilter) return false;
+                if (!q) return true;
+                return (app.fullName || "").toLowerCase().includes(q)
+                    || (app.email || "").toLowerCase().includes(q)
+                    || (app.expertise || "").toLowerCase().includes(q);
+            })
+        );
+    }, [statusFilter, applications, appSearch]);
+
+    const trainerQuery = trainerSearch.trim().toLowerCase();
+    const filteredTrainers = trainerQuery
+        ? trainers.filter((t) =>
+            (t.fullName || "").toLowerCase().includes(trainerQuery) ||
+            (t.email || "").toLowerCase().includes(trainerQuery) ||
+            (t.expertise || "").toLowerCase().includes(trainerQuery) ||
+            (t.trainerId || "").toLowerCase().includes(trainerQuery))
+        : trainers;
 
     const fetchApplications = async () => {
         try {
@@ -525,6 +541,10 @@ export const AdminTrainersNew = () => {
                 {/* Applications Tab */}
                 <TabsContent value="applications" className="space-y-4">
                     <div className="flex flex-wrap gap-3 items-center">
+                        <div className="relative w-full sm:w-72">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input value={appSearch} onChange={(e) => setAppSearch(e.target.value)} placeholder="Search by name, email or expertise" className="pl-9 rounded-xl" />
+                        </div>
                         <label className="font-medium text-sm">Filter by Status:</label>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
                             <SelectTrigger className="w-[200px] rounded-xl">
@@ -645,9 +665,15 @@ export const AdminTrainersNew = () => {
                 {/* Approved Trainers Tab */}
                 <TabsContent value="trainers" className="space-y-4">
                     <Card className="border border-border rounded-2xl shadow-none">
-                        <CardHeader>
-                            <CardTitle className="text-lg">Active Trainers</CardTitle>
-                            <CardDescription>Trainers with created credentials</CardDescription>
+                        <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <CardTitle className="text-lg">Active Trainers</CardTitle>
+                                <CardDescription>Trainers with created credentials</CardDescription>
+                            </div>
+                            <div className="relative w-full sm:w-64">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input value={trainerSearch} onChange={(e) => setTrainerSearch(e.target.value)} placeholder="Search trainers" className="pl-9 h-9 rounded-xl" />
+                            </div>
                         </CardHeader>
                         <CardContent>
                             {isLoadingTrainers ? (
@@ -667,7 +693,7 @@ export const AdminTrainersNew = () => {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {trainers.length === 0 ? (
+                                        {filteredTrainers.length === 0 ? (
                                             <TableRow>
                                                 <TableCell colSpan={6} className="text-center py-16">
                                                     <div className="flex flex-col items-center gap-4">
@@ -675,13 +701,13 @@ export const AdminTrainersNew = () => {
                                                             <UserCheck className="w-7 h-7" />
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <h3 className="font-display text-lg font-semibold">No approved trainers yet</h3>
-                                                            <p className="text-muted-foreground text-sm">Approve an application to add your first trainer.</p>
+                                                            <h3 className="font-display text-lg font-semibold">{trainers.length === 0 ? "No approved trainers yet" : "No trainers match your search"}</h3>
+                                                            <p className="text-muted-foreground text-sm">{trainers.length === 0 ? "Approve an application to add your first trainer." : "Try a different name, email or expertise."}</p>
                                                         </div>
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
-                                        ) : trainers.map((trainer) => (
+                                        ) : filteredTrainers.map((trainer) => (
                                             <TableRow key={trainer.trainerId} className="hover:bg-brand-50">
                                                 <TableCell className="font-mono text-sm">{trainer.trainerId}</TableCell>
                                                 <TableCell className="font-medium">{trainer.fullName}</TableCell>

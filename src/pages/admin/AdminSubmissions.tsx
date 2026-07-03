@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, XCircle, Clock, Building2, Mic, Handshake, Eye, Mail, Phone, Pencil } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Building2, Mic, Handshake, Eye, Mail, Phone, Pencil, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +20,7 @@ export default function AdminSubmissions() {
     const { toast } = useToast();
     const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
     const [selectedEventId, setSelectedEventId] = useState<string>("");
+    const [search, setSearch] = useState("");
     const [submissions, setSubmissions] = useState<{
         venues: VenueSubmission[];
         speakers: SpeakerSubmission[];
@@ -141,6 +143,13 @@ export default function AdminSubmissions() {
         return <Badge className="rounded-full border-0 bg-warning/10 text-warning text-xs font-medium">Pending</Badge>;
     };
 
+    const q = search.trim().toLowerCase();
+    const matches = (...vals: (string | undefined | null)[]) =>
+        !q || vals.some((v) => (v || "").toLowerCase().includes(q));
+    const filteredVenues = submissions.venues.filter((v) => matches(v.venueName, v.address, v.contactName, v.contactEmail));
+    const filteredSpeakers = submissions.speakers.filter((s) => matches(s.fullName, s.talkTitle, s.email, s.bio, s.topicCategory));
+    const filteredSponsors = submissions.sponsors.filter((s) => matches(s.companyName, s.contactName, s.contactEmail, s.sponsorshipTier));
+
     return (
         <div className="px-4 md:px-8 py-8 md:py-10 space-y-6 md:space-y-8">
             <div className="max-w-5xl mx-auto space-y-6 md:space-y-8">
@@ -185,6 +194,11 @@ export default function AdminSubmissions() {
                 )}
 
                 {selectedEventId && (
+                    <>
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search submissions by name, contact or email" className="min-h-[44px] rounded-xl pl-9" />
+                    </div>
                     <Tabs defaultValue="venues" className="w-full space-y-6">
                         <TabsList className="grid w-full grid-cols-3 rounded-xl p-1">
                             <TabsTrigger value="venues" className="min-h-[44px] rounded-lg focus-visible:ring-2 focus-visible:ring-ring">
@@ -203,16 +217,16 @@ export default function AdminSubmissions() {
 
                         {/* Venues Tab */}
                         <TabsContent value="venues" className="space-y-4">
-                            {submissions.venues.length === 0 ? (
+                            {filteredVenues.length === 0 ? (
                                 <div className="border border-border rounded-2xl bg-card p-10 text-center">
                                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                                         <Building2 className="h-7 w-7" />
                                     </div>
-                                    <h3 className="font-display text-lg font-semibold">No venue proposals yet</h3>
-                                    <p className="text-muted-foreground mt-1">New venue offers for this event will show up here.</p>
+                                    <h3 className="font-display text-lg font-semibold">{submissions.venues.length === 0 ? "No venue proposals yet" : "No venues match your search"}</h3>
+                                    <p className="text-muted-foreground mt-1">{submissions.venues.length === 0 ? "New venue offers for this event will show up here." : "Try a different name, contact or email."}</p>
                                 </div>
                             ) : (
-                                submissions.venues.map((venue) => (
+                                filteredVenues.map((venue) => (
                                     <div key={venue.id} className="border border-border rounded-2xl bg-card p-5 md:p-6 space-y-5 hover:border-brand-200 hover:shadow-card transition">
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="space-y-1">
@@ -281,16 +295,16 @@ export default function AdminSubmissions() {
 
                         {/* Speakers Tab */}
                         <TabsContent value="speakers" className="space-y-4">
-                            {submissions.speakers.length === 0 ? (
+                            {filteredSpeakers.length === 0 ? (
                                 <div className="border border-border rounded-2xl bg-card p-10 text-center">
                                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                                         <Mic className="h-7 w-7" />
                                     </div>
-                                    <h3 className="font-display text-lg font-semibold">No speaker applications yet</h3>
-                                    <p className="text-muted-foreground mt-1">Talk proposals for this event will appear here.</p>
+                                    <h3 className="font-display text-lg font-semibold">{submissions.speakers.length === 0 ? "No speaker applications yet" : "No speakers match your search"}</h3>
+                                    <p className="text-muted-foreground mt-1">{submissions.speakers.length === 0 ? "Talk proposals for this event will appear here." : "Try a different name, talk or email."}</p>
                                 </div>
                             ) : (
-                                submissions.speakers.map((speaker) => (
+                                filteredSpeakers.map((speaker) => (
                                     <div key={speaker.id} className="border border-border rounded-2xl bg-card p-5 md:p-6 space-y-5 hover:border-brand-200 hover:shadow-card transition">
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="space-y-1">
@@ -359,16 +373,16 @@ export default function AdminSubmissions() {
 
                         {/* Sponsors Tab */}
                         <TabsContent value="sponsors" className="space-y-4">
-                            {submissions.sponsors.length === 0 ? (
+                            {filteredSponsors.length === 0 ? (
                                 <div className="border border-border rounded-2xl bg-card p-10 text-center">
                                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                                         <Handshake className="h-7 w-7" />
                                     </div>
-                                    <h3 className="font-display text-lg font-semibold">No sponsorship proposals yet</h3>
-                                    <p className="text-muted-foreground mt-1">Partnership offers for this event will appear here.</p>
+                                    <h3 className="font-display text-lg font-semibold">{submissions.sponsors.length === 0 ? "No sponsorship proposals yet" : "No sponsors match your search"}</h3>
+                                    <p className="text-muted-foreground mt-1">{submissions.sponsors.length === 0 ? "Partnership offers for this event will appear here." : "Try a different company, contact or email."}</p>
                                 </div>
                             ) : (
-                                submissions.sponsors.map((sponsor) => (
+                                filteredSponsors.map((sponsor) => (
                                     <div key={sponsor.id} className="border border-border rounded-2xl bg-card p-5 md:p-6 space-y-5 hover:border-brand-200 hover:shadow-card transition">
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="space-y-1">
@@ -445,6 +459,7 @@ export default function AdminSubmissions() {
                             )}
                         </TabsContent>
                     </Tabs>
+                    </>
                 )}
             </div>
         </div>

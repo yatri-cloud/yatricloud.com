@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Pencil, Plus, Save, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Save, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -153,6 +153,7 @@ const AdminMentorshipServices = () => {
     const [services, setServices] = useState<MentorshipService[]>([]);
 
     // Filters
+    const [search, setSearch] = useState("");
     const [mentorFilter, setMentorFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -242,16 +243,21 @@ const AdminMentorshipServices = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const filteredServices = useMemo(
-        () =>
-            services.filter(
-                (s) =>
-                    (mentorFilter === "all" || s.mentor_id === mentorFilter) &&
-                    (typeFilter === "all" || s.type === typeFilter) &&
-                    (statusFilter === "all" || s.status === statusFilter)
-            ),
-        [services, mentorFilter, typeFilter, statusFilter]
-    );
+    const filteredServices = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return services.filter(
+            (s) =>
+                (mentorFilter === "all" || s.mentor_id === mentorFilter) &&
+                (typeFilter === "all" || s.type === typeFilter) &&
+                (statusFilter === "all" || s.status === statusFilter) &&
+                (!q ||
+                    s.title.toLowerCase().includes(q) ||
+                    s.slug.toLowerCase().includes(q) ||
+                    (s.short_description || "").toLowerCase().includes(q) ||
+                    mentorName(s.mentor_id).toLowerCase().includes(q))
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [services, mentors, search, mentorFilter, typeFilter, statusFilter]);
 
     /* --------------------------- dialog --------------------------- */
 
@@ -531,6 +537,17 @@ const AdminMentorshipServices = () => {
                             <p className="text-sm text-muted-foreground">
                                 {filteredServices.length} of {services.length} services shown.
                             </p>
+                        </div>
+
+                        {/* Search */}
+                        <div className="mb-3 relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search services by title, slug or mentor"
+                                className="min-h-[44px] rounded-xl pl-9"
+                            />
                         </div>
 
                         {/* Filters */}

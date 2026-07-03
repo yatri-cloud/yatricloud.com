@@ -7,6 +7,7 @@ import {
     Pencil,
     Plus,
     Save,
+    Search,
     Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -139,6 +140,8 @@ const AdminMentors = () => {
 
     const [loading, setLoading] = useState(true);
     const [mentors, setMentors] = useState<Mentor[]>([]);
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
     const [contactEmails, setContactEmails] = useState<Record<string, string>>({});
     const [loginEmails, setLoginEmails] = useState<Record<string, string>>({});
     const [totals, setTotals] = useState<{
@@ -583,6 +586,16 @@ const AdminMentors = () => {
         );
     }
 
+    const q = search.trim().toLowerCase();
+    const filteredMentors = mentors.filter((m) => {
+        if (statusFilter !== "all" && m.status !== statusFilter) return false;
+        if (!q) return true;
+        return m.name.toLowerCase().includes(q)
+            || m.slug.toLowerCase().includes(q)
+            || (m.headline || "").toLowerCase().includes(q)
+            || (m.expertise || []).some((e) => e.toLowerCase().includes(q));
+    });
+
     return (
         <div className="px-4 md:px-8 py-8 md:py-10">
             <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
@@ -638,11 +651,29 @@ const AdminMentors = () => {
                 <ScrollReveal delay={0.05}>
                     <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
                         <div className="-mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 rounded-t-2xl border-b border-brand-100 bg-gradient-to-r from-brand-50 to-transparent px-5 md:px-6 py-4">
-                            <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Directory</p>
-                            <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">Mentors</h2>
-                            <p className="text-sm text-muted-foreground">
-                                {mentors.length} mentors. Featured mentors appear first on the public directory.
-                            </p>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Directory</p>
+                                    <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">Mentors</h2>
+                                    <p className="text-sm text-muted-foreground">
+                                        {mentors.length} mentors. Featured mentors appear first on the public directory.
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                    <div className="relative w-full sm:w-56">
+                                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search mentors" className="pl-9 h-9 rounded-xl" />
+                                    </div>
+                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                        <SelectTrigger className="h-9 w-full rounded-xl sm:w-[150px]"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All statuses</SelectItem>
+                                            <SelectItem value="published">Published</SelectItem>
+                                            <SelectItem value="draft">Draft</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
                         </div>
 
                         {mentors.length === 0 ? (
@@ -653,9 +684,15 @@ const AdminMentors = () => {
                                     Add mentor
                                 </Button>
                             </div>
+                        ) : filteredMentors.length === 0 ? (
+                            <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                                <p>No mentors match your search.</p>
+                            </div>
                         ) : (
                             <div className="space-y-2">
-                                {mentors.map((mentor, index) => (
+                                {mentors.map((mentor, index) => {
+                                    if (!filteredMentors.includes(mentor)) return null;
+                                    return (
                                     <div
                                         key={mentor.id}
                                         className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 hover:bg-brand-50/50 transition-colors p-3 md:p-4"
@@ -780,7 +817,8 @@ const AdminMentors = () => {
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

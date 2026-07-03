@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, Mic, Layers, Plus, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList } from "lucide-react";
+import { Calendar, Users, Mic, Layers, Plus, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search } from "lucide-react";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { getAllEvents, getEventStatus, Event, deleteEvent } from "@/lib/events-store";
 import { Badge } from "@/components/ui/badge";
 import { deleteEventFolder } from "@/lib/event-automation-api";
@@ -23,17 +24,25 @@ export default function AdminEvents() {
     const [activeTab, setActiveTab] = useState<TabType>("active");
     const [events, setEvents] = useState<Event[]>([]);
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         // Fetch events on mount
         getAllEvents().then(setEvents);
     }, []);
 
+    const q = search.trim().toLowerCase();
     const filteredEvents = events.filter(event => {
         const computedStatus = getEventStatus(event);
-        if (activeTab === 'active') return computedStatus === 'upcoming';
-        if (activeTab === 'past') return computedStatus === 'past';
-        return computedStatus === 'draft';
+        const matchesTab = activeTab === 'active' ? computedStatus === 'upcoming'
+            : activeTab === 'past' ? computedStatus === 'past'
+            : computedStatus === 'draft';
+        if (!matchesTab) return false;
+        if (!q) return true;
+        const city = event.location?.type === 'online' ? 'online' : (event.location?.city || '');
+        return event.name.toLowerCase().includes(q)
+            || (event.description || '').toLowerCase().includes(q)
+            || city.toLowerCase().includes(q);
     });
 
     const handleDelete = async (id: string, name: string, driveFolderId?: string) => {
@@ -155,7 +164,8 @@ export default function AdminEvents() {
                 </div>
             </div>
 
-            {/* Tabs — segmented control with live counts */}
+            {/* Tabs + search */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-border bg-card p-1">
                 {tabs.map((tab) => {
                     const count = tab.id === "active" ? stats.activeEvents : tab.id === "draft" ? stats.draftEvents : stats.pastEvents;
@@ -177,6 +187,11 @@ export default function AdminEvents() {
                         </button>
                     );
                 })}
+            </div>
+                <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events" className="pl-9 h-9" />
+                </div>
             </div>
 
             {/* Events List */}

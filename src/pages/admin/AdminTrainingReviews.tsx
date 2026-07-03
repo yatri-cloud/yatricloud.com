@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -55,6 +56,7 @@ const AdminTrainingReviews = () => {
     const [reviews, setReviews] = useState<AdminTrainingReview[]>([]);
 
     // Filters
+    const [search, setSearch] = useState("");
     const [trainingFilter, setTrainingFilter] = useState("all");
     const [visibilityFilter, setVisibilityFilter] = useState("all");
 
@@ -95,16 +97,19 @@ const AdminTrainingReviews = () => {
         return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
     }, [reviews]);
 
-    const filteredReviews = useMemo(
-        () =>
-            reviews.filter(
-                (r) =>
-                    (trainingFilter === "all" || r.training_id === trainingFilter) &&
-                    (visibilityFilter === "all" ||
-                        (visibilityFilter === "public" ? r.is_public : !r.is_public))
-            ),
-        [reviews, trainingFilter, visibilityFilter]
-    );
+    const filteredReviews = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return reviews.filter(
+            (r) =>
+                (trainingFilter === "all" || r.training_id === trainingFilter) &&
+                (visibilityFilter === "all" ||
+                    (visibilityFilter === "public" ? r.is_public : !r.is_public)) &&
+                (!q ||
+                    (r.name || "").toLowerCase().includes(q) ||
+                    (r.review || "").toLowerCase().includes(q) ||
+                    (r.trainingName || "").toLowerCase().includes(q))
+        );
+    }, [reviews, search, trainingFilter, visibilityFilter]);
 
     /* -------------------------- moderation ------------------------- */
 
@@ -187,6 +192,17 @@ const AdminTrainingReviews = () => {
                             <p className="text-sm text-muted-foreground">
                                 {filteredReviews.length} of {reviews.length} reviews shown, newest first.
                             </p>
+                        </div>
+
+                        {/* Search */}
+                        <div className="mb-3 relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search by reviewer, text or training"
+                                className="min-h-[44px] rounded-xl pl-9"
+                            />
                         </div>
 
                         {/* Filters */}
