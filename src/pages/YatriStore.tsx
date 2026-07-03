@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Loader2, Star, PackageOpen, BadgeCheck, Zap, LifeBuoy, Tag } from "lucide-react";
+import { Loader2, Star, PackageOpen, BadgeCheck, Zap, LifeBuoy, Tag, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -11,6 +11,7 @@ import { MobileCartBar } from "@/components/store/MobileCartBar";
 import { categories, ProductCategory } from "@/data/store-products";
 import { fetchStoreProducts, StoreProduct } from "@/lib/store-products";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CartProvider, useCart } from "@/contexts/CartContext";
 
@@ -19,6 +20,7 @@ const YatriStore = () => {
   const prefersReducedMotion = useReducedMotion();
   const rise = prefersReducedMotion ? 0 : 18;
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | "All">("All");
+  const [search, setSearch] = useState("");
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,11 +43,17 @@ const YatriStore = () => {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === "All") {
-      return products;
-    }
-    return products.filter((product) => product.category === selectedCategory);
-  }, [selectedCategory, products]);
+    const q = search.trim().toLowerCase();
+    return products.filter((product) => {
+      if (selectedCategory !== "All" && product.category !== selectedCategory) return false;
+      if (!q) return true;
+      return product.title.toLowerCase().includes(q)
+        || (product.description || "").toLowerCase().includes(q)
+        || (product.examCode || "").toLowerCase().includes(q)
+        || product.category.toLowerCase().includes(q)
+        || (product.level || "").toLowerCase().includes(q);
+    });
+  }, [selectedCategory, search, products]);
 
   const handleViewProcedure = () => {
     // Navigate to home and scroll to the 3-step certification process section
@@ -141,6 +149,18 @@ const YatriStore = () => {
         {/* Category Filters + Cart CTA */}
         <section className="sticky top-16 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
           <div className="container mx-auto px-4 md:px-6">
+            <div className="pt-4">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search vouchers by exam, provider or code"
+                  aria-label="Search vouchers"
+                  className="h-10 rounded-full pl-9"
+                />
+              </div>
+            </div>
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -239,7 +259,7 @@ const YatriStore = () => {
                 <p className="text-muted-foreground mb-6">
                   Fresh verified deals drop often, Yatris. Explore another track or browse every voucher we have.
                 </p>
-                <Button onClick={() => setSelectedCategory("All")} className="h-11 rounded-full px-6 font-semibold shadow-inset-btn">
+                <Button onClick={() => { setSelectedCategory("All"); setSearch(""); }} className="h-11 rounded-full px-6 font-semibold shadow-inset-btn">
                   View all vouchers
                 </Button>
               </motion.div>

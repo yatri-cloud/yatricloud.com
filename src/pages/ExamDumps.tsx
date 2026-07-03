@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Loader2, FileSearch, ArrowRight } from "lucide-react";
+import { Loader2, FileSearch, ArrowRight, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -10,6 +10,7 @@ import { CartSheet } from "@/components/store/CartSheet";
 import { MobileCartBar } from "@/components/store/MobileCartBar";
 import { fetchExamDumps, ExamDump } from "@/lib/exam-dumps";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 const ExamDumps = () => {
@@ -17,6 +18,7 @@ const ExamDumps = () => {
   const [dumps, setDumps] = useState<ExamDump[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<string>("All");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const loadDumps = async () => {
@@ -40,9 +42,15 @@ const ExamDumps = () => {
   }, [dumps]);
 
   const filteredDumps = useMemo(() => {
-    if (selectedProvider === "All") return dumps;
-    return dumps.filter(d => d.provider === selectedProvider);
-  }, [selectedProvider, dumps]);
+    const q = search.trim().toLowerCase();
+    return dumps.filter((d) => {
+      if (selectedProvider !== "All" && d.provider !== selectedProvider) return false;
+      if (!q) return true;
+      return d.title.toLowerCase().includes(q)
+        || d.provider.toLowerCase().includes(q)
+        || (d.description || "").toLowerCase().includes(q);
+    });
+  }, [selectedProvider, search, dumps]);
 
   return (
     <>
@@ -90,6 +98,18 @@ const ExamDumps = () => {
 
         {/* Filters */}
         <section className="sticky top-16 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
+          <div className="container mx-auto px-4 md:px-6 pt-4">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search dumps by exam or provider"
+                aria-label="Search exam dumps"
+                className="h-10 rounded-full pl-9"
+              />
+            </div>
+          </div>
           <div className="container mx-auto px-4 md:px-6 flex items-center justify-between py-4">
             <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {providers.map((provider) => (

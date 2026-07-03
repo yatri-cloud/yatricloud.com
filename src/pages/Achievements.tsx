@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Linkedin, Calendar, Award, Trophy, Medal, CheckCircle2, Star, ExternalLink, ShieldCheck, TrendingUp, Users, Building2, Calendar as CalendarIcon, BadgeCheck, GraduationCap, Briefcase, Zap, Star as StarIcon, CheckCircle, Clock, FileText, Download } from "lucide-react";
+import { Linkedin, Calendar, Award, Trophy, Medal, CheckCircle2, Star, ExternalLink, ShieldCheck, TrendingUp, Users, Building2, Calendar as CalendarIcon, BadgeCheck, GraduationCap, Briefcase, Zap, Star as StarIcon, CheckCircle, Clock, FileText, Download, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import html2canvas from "html2canvas";
 import { downloadCanvaImage } from "@/lib/canva-api";
 import { fetchCertifications } from "@/lib/google-sheets";
@@ -291,6 +292,7 @@ const Achievements = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
   const [selectedMapProvider, setSelectedMapProvider] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<GroupedPerson | null>(null);
@@ -474,6 +476,19 @@ const Achievements = () => {
       const countryName = getCountryName(person.country || '');
       return countryName === selectedCountry;
     });
+  }
+
+  // Free-text search across name, certification name / provider / exam code
+  if (search.trim()) {
+    const q = search.trim().toLowerCase();
+    filteredPersons = filteredPersons.filter(person =>
+      person.fullName.toLowerCase().includes(q) ||
+      person.certifications.some(c =>
+        (c.certificationName || "").toLowerCase().includes(q) ||
+        (c.certificationProvider || "").toLowerCase().includes(q) ||
+        (c.examCode || "").toLowerCase().includes(q)
+      )
+    );
   }
 
   // Filter based on selected provider
@@ -1173,6 +1188,24 @@ const Achievements = () => {
               </ScrollReveal>
             )}
 
+            {/* Search by name or certification */}
+            {!isLoading && certifications.length > 0 && (
+              <ScrollReveal delay={0.12}>
+                <div className="flex justify-center">
+                  <div className="relative w-full max-w-md">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                    <Input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search Yatris by name or certification"
+                      aria-label="Search the Wall of Fame"
+                      className="h-11 rounded-xl pl-9"
+                    />
+                  </div>
+                </div>
+              </ScrollReveal>
+            )}
+
           </div>
         </section>
 
@@ -1217,6 +1250,18 @@ const Achievements = () => {
                   <p className="text-muted-foreground">
                     No certifications up here yet — be the first to plant your flag.
                     Pass your exam, then <a href="/certifiedyatris" className="text-primary font-semibold hover:underline">share it here</a> and kick off the Wall of Fame. 🎉
+                  </p>
+                </div>
+              </ScrollReveal>
+            ) : filteredPersons.length === 0 ? (
+              <ScrollReveal delay={0.2}>
+                <div className="text-center py-24 max-w-md mx-auto">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-50 border border-brand-100 mb-5">
+                    <Search className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-semibold font-display mb-2">No Yatris match your search</h3>
+                  <p className="text-muted-foreground">
+                    Try a different name, certification or provider — or clear the filters to see the whole wall.
                   </p>
                 </div>
               </ScrollReveal>

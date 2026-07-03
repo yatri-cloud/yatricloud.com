@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   CERTIFICATION_PROVIDER_LOGOS,
@@ -23,6 +24,7 @@ const Reviews = () => {
   const { reviews, loading, error } = useReviews(200);
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
   const resolvedTheme = theme;
 
   const avg = reviews.length
@@ -33,12 +35,23 @@ const Reviews = () => {
     selectedProvider === "all"
       ? reviews
       : reviews.filter((r) => r.provider === selectedProvider);
-  const filteredReviews =
+  const filteredByCountry =
     selectedCountry === "all"
       ? filteredByProvider
       : filteredByProvider.filter(
           (r) => r.country && getCountryName(r.country) === selectedCountry
         );
+  const searchQuery = search.trim().toLowerCase();
+  const filteredReviews = searchQuery
+    ? filteredByCountry.filter((r) => {
+        const providerLabel = r.provider ? CERTIFICATION_PROVIDER_LOGOS[r.provider]?.label ?? "" : "";
+        return (
+          (r.name || "").toLowerCase().includes(searchQuery) ||
+          (r.feedback || "").toLowerCase().includes(searchQuery) ||
+          providerLabel.toLowerCase().includes(searchQuery)
+        );
+      })
+    : filteredByCountry;
 
   // Only show known certificate providers in the filter (exclude "web" / source)
   const providers = Array.from(
@@ -124,6 +137,17 @@ const Reviews = () => {
                 <>
                   {/* Certification + Country Filters (dropdowns) */}
                   <div className="mb-8 flex flex-wrap items-center gap-3">
+                    {/* Search */}
+                    <div className="relative w-full sm:w-72">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                      <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search reviews by name or text"
+                        aria-label="Search reviews"
+                        className="h-10 pl-9"
+                      />
+                    </div>
                     {/* Certification dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -240,6 +264,11 @@ const Reviews = () => {
                   </div>
 
                   {/* Reviews Grid */}
+                {filteredReviews.length === 0 ? (
+                  <div className="text-center py-16 text-muted-foreground">
+                    No reviews match your search. Try a different name, provider or keyword.
+                  </div>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {filteredReviews.map((r) => {
                     const providerInfo = r.provider
@@ -299,6 +328,7 @@ const Reviews = () => {
                     );
                   })}
                 </div>
+                )}
                 </>
               )}
             </div>
