@@ -1,11 +1,34 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Users, Calendar, GraduationCap, Handshake, Receipt, IndianRupee, TicketCheck, ArrowRight, UserPlus } from "lucide-react";
+import { Loader2, Users, Calendar, GraduationCap, Handshake, Receipt, IndianRupee, TicketCheck, ArrowRight, UserPlus, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCard } from "@/components/admin/StatsCard";
-import { getAdminOverview, getRecentActivity, type AdminOverview, type RecentActivity } from "@/lib/admin-overview";
+import { getAdminOverview, getRecentActivity, getGrowthTrends, type AdminOverview, type RecentActivity, type GrowthTrends, type Trend } from "@/lib/admin-overview";
 import { formatInvoiceMoney } from "@/lib/invoices-api";
 import { format } from "date-fns";
+
+/** A compact "this month" figure with a delta chip against last month. */
+function TrendTile({ title, value, trend }: { title: string; value: string; trend: Trend }) {
+    const diff = trend.thisMonth - trend.lastMonth;
+    const pct = trend.lastMonth > 0 ? Math.round((diff / trend.lastMonth) * 100) : null;
+    const up = diff > 0, flat = diff === 0;
+    const Icon = flat ? Minus : up ? TrendingUp : TrendingDown;
+    const tone = flat ? "text-muted-foreground bg-muted" : up ? "text-emerald-600 bg-emerald-500/10" : "text-rose-600 bg-rose-500/10";
+    const label = trend.lastMonth === 0
+        ? (diff > 0 ? "new this month" : "vs last month")
+        : `${pct! >= 0 ? "+" : ""}${pct}% vs last month`;
+    return (
+        <Card>
+            <CardContent className="p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
+                <p className="mt-2 font-display text-3xl font-black tracking-tight tabular-nums">{value}</p>
+                <span className={`mt-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}>
+                    <Icon className="h-3 w-3" aria-hidden="true" /> {label}
+                </span>
+            </CardContent>
+        </Card>
+    );
+}
 
 const QUICK_LINKS = [
     { name: "Payments & Revenue", path: "/admin/payments", description: "Receipts and revenue in one place." },
@@ -19,14 +42,16 @@ const QUICK_LINKS = [
 export default function AdminOverview() {
     const [data, setData] = useState<AdminOverview | null>(null);
     const [activity, setActivity] = useState<RecentActivity | null>(null);
+    const [trends, setTrends] = useState<GrowthTrends | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         (async () => {
             try {
-                const [overview, recent] = await Promise.all([getAdminOverview(), getRecentActivity()]);
+                const [overview, recent, growth] = await Promise.all([getAdminOverview(), getRecentActivity(), getGrowthTrends()]);
                 setData(overview);
                 setActivity(recent);
+                setTrends(growth);
             } finally {
                 setIsLoading(false);
             }
@@ -58,6 +83,17 @@ export default function AdminOverview() {
                         <StatsCard title="Trainings" value={data.trainings} icon={GraduationCap} color="bg-cyan-500/10 text-cyan-600" />
                         <StatsCard title="Enrollments" value={data.enrollments} icon={Users} color="bg-teal-500/10 text-teal-600" />
                     </div>
+
+                    {trends && (
+                        <div>
+                            <h2 className="mb-4 text-lg font-bold">This month</h2>
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                                <TrendTile title="New Yatris" value={String(trends.yatris.thisMonth)} trend={trends.yatris} />
+                                <TrendTile title="Revenue in INR" value={formatInvoiceMoney(trends.inrRevenue.thisMonth, "INR")} trend={trends.inrRevenue} />
+                                <TrendTile title="Receipts" value={String(trends.receipts.thisMonth)} trend={trends.receipts} />
+                            </div>
+                        </div>
+                    )}
 
                     {otherRevenue.length > 0 && (
                         <Card>

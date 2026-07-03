@@ -8,6 +8,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
+import { startOfMonth, subMonths } from "date-fns";
 
 export interface AdminOverview {
     yatris: number;
@@ -107,6 +108,70 @@ export async function getRecentActivity(limit = 6): Promise<RecentActivity> {
         : [];
 
     return { receipts, yatris };
+}
+
+export interface Trend {
+    thisMonth: number;
+    lastMonth: number;
+}
+
+export interface GrowthTrends {
+    yatris: Trend;
+    inrRevenue: Trend;
+    receipts: Trend;
+}
+
+async function countBetween(table: string, fromIso: string, toIso: string): Promise<number> {
+    try {
+        const { count, error } = await supabase
+            .from(table)
+            .select("*", { count: "exact", head: true })
+            .gte("created_at", fromIso)
+            .lt("created_at", toIso);
+        return error ? 0 : count ?? 0;
+    } catch {
+        return 0;
+    }
+}
+
+/** Sum INR invoice revenue and count receipts in a window. Never throws. */
+async function invoicesBetween(fromIso: string, toIso: string): Promise<{ inr: number; receipts: number }> {
+    try {
+        const { data, error } = await supabase
+            .from("invoices")
+            .select("amount, currency, created_at")
+            .gte("created_at", fromIso)
+            .lt("created_at", toIso);
+        if (error || !Array.isArray(data)) return { inr: 0, receipts: 0 };
+        let inr = 0;
+        for (const r of data as Array<{ amount: number; currency: string }>) {
+            if (String(r.currency || "INR").toUpperCase() === "INR") inr += Number(r.amount) || 0;
+        }
+        return { inr, receipts: data.length };
+    } catch {
+        return { inr: 0, receipts: 0 };
+    }
+}
+
+/** This month vs last month for Yatris, INR revenue and receipts. Never throws. */
+export async function getGrowthTrends(): Promise<GrowthTrends> {
+    const now = new Date();
+    const thisStart = startOfMonth(now).toISOString();
+    const lastStart = startOfMonth(subMonths(now, 1)).toISOString();
+    const nextStart = startOfMonth(subMonths(now, -1)).toISOString();
+
+    const [yThis, yLast, iThis, iLast] = await Promise.all([
+        countBetween("profiles", thisStart, nextStart),
+        countBetween("profiles", lastStart, thisStart),
+        invoicesBetween(thisStart, nextStart),
+        invoicesBetween(lastStart, thisStart),
+    ]);
+
+    return {
+        yatris: { thisMonth: yThis, lastMonth: yLast },
+        inrRevenue: { thisMonth: iThis.inr, lastMonth: iLast.inr },
+        receipts: { thisMonth: iThis.receipts, lastMonth: iLast.receipts },
+    };
 }
 
 export async function getAdminOverview(): Promise<AdminOverview> {
