@@ -51,6 +51,7 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import AdminRazorpayInvoices from "./pages/admin/AdminRazorpayInvoices";
 import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminSitemapView from "./pages/admin/AdminSitemapView";
+import AdminOverview from "./pages/admin/AdminOverview";
 import UserSitemapView from "./pages/UserSitemapView";
 import Training from "./pages/Training";
 import TrainingDetail from "./pages/TrainingDetail";
@@ -169,7 +170,7 @@ const App = () => (
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />}>
-                <Route index element={<Navigate to="/admin/events" replace />} />
+                <Route index element={<AdminOverview />} />
                 <Route path="site" element={<AdminSiteContent />} />
                 <Route path="certifications" element={<AdminCertCatalog />} />
                 <Route path="events" element={<AdminEvents />} />

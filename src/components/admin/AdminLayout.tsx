@@ -28,8 +28,12 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
     const menuGroups = ADMIN_NAV_GROUPS;
 
     // Path matcher with a segment boundary so "/admin/site" never matches "/admin/sitemap".
+    // The Overview link is the index ("/admin"), so match it exactly — otherwise
+    // it would light up on every admin page.
     const isPathActive = (path: string) =>
-        location.pathname === path || location.pathname.startsWith(`${path}/`);
+        path === "/admin"
+            ? location.pathname === "/admin"
+            : location.pathname === path || location.pathname.startsWith(`${path}/`);
 
     // Determine current active group to open it by default
     const currentActiveGroup = menuGroups.find(group =>
