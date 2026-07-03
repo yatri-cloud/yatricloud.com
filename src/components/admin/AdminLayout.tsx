@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LogOut, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight } from "lucide-react";
+import { LogOut, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, LayoutDashboard, ExternalLink } from "lucide-react";
 import { ADMIN_NAV_GROUPS } from "@/config/admin-nav";
 import { Button } from "@/components/ui/button";
 import {
