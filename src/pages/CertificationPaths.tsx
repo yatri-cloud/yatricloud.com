@@ -86,8 +86,9 @@ export default function CertificationPaths() {
         window.scrollTo({ top: 0, behavior: "smooth" });
         getCertificationOptions().then(setCatalog);
         // Social proof: how many wall-of-fame Yatris hold each provider's certs.
+        // Reads the public view — the certifications table is own-rows only.
         supabase
-            .from("certifications")
+            .from("certifications_public")
             .select("provider")
             .then(({ data }) => {
                 const counts: Record<string, number> = {};

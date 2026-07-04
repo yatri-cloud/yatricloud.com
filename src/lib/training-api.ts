@@ -183,15 +183,30 @@ function rowToCourse(row: any, modulesCount = 0): Course {
 // Public catalog
 // ---------------------------------------------------------------------------
 
+/**
+ * Column list for anonymous visitors: everything EXCEPT meet_link and
+ * trainer_email — the anon role cannot select those (migration 038), and a
+ * `select *` would fail outright. Signed-in requests keep `*` so enrolled
+ * students still receive the meeting link on their dashboards.
+ */
+const TRAINING_PUBLIC_COLS =
+  "id,slug,name,course_title,provider,start_date,start_time,end_date,duration_hours,mode,city,trainer_id,trainer_name,max_capacity,price_inr,image_url,description,resources,status,created_at,updated_at,review_status,avg_rating,review_count,certification_id,visibility,level";
+
+async function trainingCatalogColumns(): Promise<string> {
+  const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+  return data.session ? "*" : TRAINING_PUBLIC_COLS;
+}
+
 /** All published (and archived) trainings for the public catalog. */
 export async function listPublishedTrainings(): Promise<Course[]> {
+  const cols = await trainingCatalogColumns();
   const { data, error } = await supabase
     .from("trainings")
-    .select("*, provider_certifications(label, exam_code, provider_slug)")
+    .select(`${cols}, provider_certifications(label, exam_code, provider_slug)`)
     .in("status", ["published", "archived"])
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data || []).map((r) => rowToCourse(r));
+  return ((data || []) as unknown as Record<string, unknown>[]).map((r) => rowToCourse(r));
 }
 
 /**
@@ -200,14 +215,16 @@ export async function listPublishedTrainings(): Promise<Course[]> {
  */
 export async function getTrainingDetail(idOrSlug: string): Promise<Course | null> {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug || "");
+  const cols = await trainingCatalogColumns();
   const base = supabase
     .from("trainings")
-    .select("*, provider_certifications(label, exam_code, provider_slug)");
-  const { data, error } = await (
+    .select(`${cols}, provider_certifications(label, exam_code, provider_slug)`);
+  const { data: rawData, error } = await (
     isUuid ? base.eq("id", idOrSlug) : base.eq("slug", idOrSlug)
   ).maybeSingle();
   if (error) throw error;
-  if (!data) return null;
+  if (!rawData) return null;
+  const data = rawData as unknown as Record<string, any>;
   const { count } = await supabase
     .from("course_modules")
     .select("id", { count: "exact", head: true })

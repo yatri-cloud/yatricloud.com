@@ -132,14 +132,13 @@ export async function fetchCertifications(): Promise<CertificationEntry[]> {
   // page with 0 results until a reload. getSession() refreshes if expired.
   await supabase.auth.getSession().catch(() => null);
 
-  // Display columns only — no personal contact data. The anon role's column
-  // privileges (migration 037) enforce the same boundary server-side: email,
-  // phone, state/city and country code are not selectable on the public wall.
+  // The wall reads the certifications_public VIEW (migration 038): display
+  // columns of public rows only. The underlying table is own-rows + admin —
+  // no role can read another person's contact data through it.
   const runQuery = () =>
     supabase
-      .from("certifications")
+      .from("certifications_public")
       .select("id,full_name,provider,certification_name,exam_code,certification_date,verified_credential_url,linkedin_url,photo_url,country,additional_notes")
-      .eq("is_public", true)
       .order("created_at", { ascending: false });
 
   let { data, error } = await runQuery();
