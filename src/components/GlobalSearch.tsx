@@ -135,7 +135,7 @@ export function GlobalSearch() {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex min-h-[40px] shrink-0 items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
                 <Search className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only lg:not-sr-only">Search</span>

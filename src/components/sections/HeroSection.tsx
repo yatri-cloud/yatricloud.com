@@ -169,14 +169,21 @@ export const HeroSection = () => {
   const HEADLINE_LINE_ONE = headlineWords.slice(0, splitAt);
   const HEADLINE_LINE_TWO = headlineWords.slice(splitAt);
 
+  /* When the static index.html shell already painted this hero's text,
+     entrance animations are skipped: re-animating identical content flashes
+     it out/in and re-fires LCP at the later React paint. */
+  const instantHero =
+    typeof window !== "undefined" && Boolean((window as unknown as { __YC_STATIC_SHELL__?: boolean }).__YC_STATIC_SHELL__);
+  const skipEntrance = instantHero || reduceMotion;
+
   const wordContainer: Variants = {
     hidden: {},
     show: {
-      transition: { staggerChildren: reduceMotion ? 0 : 0.07, delayChildren: 0.15 },
+      transition: { staggerChildren: skipEntrance ? 0 : 0.07, delayChildren: 0.15 },
     },
   };
 
-  const wordChild: Variants = reduceMotion
+  const wordChild: Variants = skipEntrance
     ? { hidden: { opacity: 1 }, show: { opacity: 1 } }
     : {
         hidden: { y: "115%", opacity: 0 },
@@ -214,7 +221,7 @@ export const HeroSection = () => {
         <div className="max-w-4xl">
           {/* Personal, time-aware welcome */}
           <motion.p
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+            initial={skipEntrance ? { opacity: 1 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: EASE_EDITORIAL }}
             className="mb-4 text-lg md:text-xl font-medium"
@@ -238,14 +245,14 @@ export const HeroSection = () => {
 
           {/* Subheadline — lives in site_settings under the `hero` key,
            * with the exact live copy as the hardcoded fallback. */}
-          <ScrollReveal delay={0.35}>
+          <ScrollReveal delay={0.35} instant={instantHero}>
             <p className="mb-9 max-w-2xl text-lg text-muted-foreground md:text-xl">
               {settings.hero?.subheadline || FALLBACK_SETTINGS.hero.subheadline}
             </p>
           </ScrollReveal>
 
           {/* CTAs */}
-          <ScrollReveal delay={0.45}>
+          <ScrollReveal delay={0.45} instant={instantHero}>
             <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
               <motion.a
                 href="#"

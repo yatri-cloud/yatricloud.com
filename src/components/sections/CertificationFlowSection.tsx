@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ExternalLink, BadgeCheck, CalendarDays, Loader2 } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -16,9 +16,10 @@ import {
 } from "@/lib/site-content";
 
 /**
- * Click-to-load facade for the Calendly inline widget. The real widget pulls
- * ~2.5 MB of booking JS/CSS plus third-party cookies, so nothing loads until
- * a Yatri actually asks for the calendar.
+ * Inline Calendly widget that loads itself as the section approaches the
+ * viewport. The live calendar shows directly (no click needed — per the
+ * user's request), but its ~2.5 MB of booking JS/CSS still stays out of the
+ * initial page load: nothing downloads until the visitor scrolls near it.
  */
 const CalendlyInlineFacade = ({ url }: { url: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,14 +29,26 @@ const CalendlyInlineFacade = ({ url }: { url: string }) => {
     if (state !== "idle" || !containerRef.current) return;
     setState("loading");
     const ok = await loadCalendlyInline(containerRef.current, url);
-    if (ok) {
-      setState("loaded");
-    } else {
-      // Widget blocked or failed — send them to the booking page directly.
-      setState("idle");
-      window.open("https://calendly.com/yatricloud/40min", "_blank", "noopener");
-    }
+    setState(ok ? "loaded" : "idle");
   };
+
+  // Auto-load once the section is within ~400px of the viewport.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || state !== "idle") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          observer.disconnect();
+          void handleLoad();
+        }
+      },
+      { rootMargin: "400px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <div ref={containerRef} className="w-full" style={{ minWidth: "320px", height: "700px" }}>
@@ -46,22 +59,19 @@ const CalendlyInlineFacade = ({ url }: { url: string }) => {
           </span>
           <div>
             <p className="font-display text-xl font-bold tracking-tight text-foreground">Pick a time that works for you</p>
-            <p className="mt-1 text-sm text-muted-foreground">The live calendar opens right here.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              <Loader2 className="mr-1.5 inline h-4 w-4 animate-spin" aria-hidden="true" />
+              Opening the live calendar...
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={handleLoad}
-            disabled={state === "loading"}
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-inset-btn transition-all duration-300 hover:bg-brand-600 disabled:opacity-70"
+          <a
+            href="https://calendly.com/yatricloud/40min"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-semibold text-primary underline underline-offset-4"
           >
-            {state === "loading" ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Opening the calendar...
-              </>
-            ) : (
-              "Open the booking calendar"
-            )}
-          </button>
+            Calendar not loading? Book on Calendly instead
+          </a>
         </div>
       )}
     </div>

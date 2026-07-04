@@ -44,6 +44,11 @@
   <link rel="preconnect" href="https://raw.githubusercontent.com" />
   <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
 
+  <!-- Font preloads (stable names in /public/fonts — declared in index.css).
+       Font fetches are always CORS, hence crossorigin here. -->
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/inter-tight-latin-wght-normal.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/bricolage-grotesque-latin-wght-normal.woff2" crossorigin />
+
   <!-- Primary Meta Tags -->
   <title>Yatri Cloud · 50% OFF Cloud Certification Vouchers</title>
   <meta name="title" content="Yatri Cloud · 50% OFF Cloud Certification Vouchers" />
@@ -115,7 +120,31 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KZ4L6JFK"
       height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <div id="root"></div>
+  <!-- Static hero shell: paints the real headline + subheadline (the page's
+       LCP element) from raw HTML+CSS, seconds before React executes on slow
+       connections. createRoot().render() replaces it wholesale with the
+       identical live hero, so nothing here can drift into a hydration bug.
+       Copy mirrors FALLBACK_PROMOTION.headline / FALLBACK_SETTINGS.hero
+       (the live DB rows are seeded with the same values). All classes are
+       already emitted into the CSS bundle by HeroSection. -->
+  <div id="root">
+    <div class="min-h-screen bg-background text-foreground font-sans antialiased">
+      <section class="relative flex min-h-screen items-center overflow-hidden pb-24 pt-28">
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent"></div>
+        <div class="container relative z-10 mx-auto px-4 md:px-6">
+          <div class="max-w-4xl">
+            <h1 class="mb-6 font-display text-4xl font-bold leading-[1.02] tracking-[-0.02em] md:text-6xl lg:text-7xl">
+              Get 50% OFF on<br />
+              <span class="gradient-text">Certification Vouchers</span>
+            </h1>
+            <p class="mb-9 max-w-2xl text-lg text-muted-foreground md:text-xl">
+              Get AWS certified at 50% OFF. Book your time slot and we'll schedule your exam during the meeting. Dumps, resources, and support included!
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
   <!-- Razorpay checkout.js and Google GSI load on demand via src/lib/third-party.ts -->
   <script type="module" src="/src/main.tsx"></script>
 </body>

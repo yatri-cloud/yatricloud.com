@@ -1,8 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
-// Self-hosted variable fonts — no render-blocking Google Fonts requests.
-import "@fontsource-variable/inter-tight";
-import "@fontsource-variable/bricolage-grotesque";
+// Fonts are self-hosted with stable names in /public/fonts and declared in
+// index.css so index.html can preload them.
 import "./index.css";
 
 // After a deploy, a tab that loaded the previous build may navigate to a
@@ -19,6 +18,14 @@ window.addEventListener("vite:preloadError", (event) => {
     }
 });
 
+// The static hero shell in index.html painted real content before React ran.
+// HeroSection reads this flag to skip its entrance animations — re-animating
+// content that is already on screen would flash it and re-fire LCP.
+const rootEl = document.getElementById("root")!;
+if (rootEl.childElementCount > 0) {
+    (window as unknown as { __YC_STATIC_SHELL__?: boolean }).__YC_STATIC_SHELL__ = true;
+}
+
 // GoogleOAuthProvider is scoped to the two pages that use it (BecomeTrainer,
 // TrainerLogin) — app-wide it loaded Google's 95 KB gsi/client everywhere.
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(rootEl).render(<App />);

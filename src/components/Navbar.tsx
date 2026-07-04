@@ -79,9 +79,12 @@ export const Navbar = () => {
           }`}
       >
         <div className="container mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-between h-16 md:h-20 gap-3 md:gap-6 flex-wrap">
+          {/* flex-nowrap: with wrap, the account button fell out of the
+              fixed-height bar onto a second row at mid widths. The links
+              region scrolls instead of wrapping. */}
+          <div className="flex flex-nowrap items-center justify-between h-16 md:h-20 gap-3 md:gap-6">
             {/* Logo */}
-            <a href="/" className="group flex items-center gap-2.5">
+            <a href="/" className="group flex shrink-0 items-center gap-2.5">
               <img
                 src="/logo-64.png"
                 alt="Yatri Cloud"
@@ -93,7 +96,7 @@ export const Navbar = () => {
             </a>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-4 lg:gap-8 max-w-full overflow-x-auto scrollbar-hide">
+            <div className="hidden md:flex min-w-0 flex-1 items-center gap-4 lg:gap-8 overflow-x-auto scrollbar-hide">
               {navLinks.map((link) => (
                 <a
                   key={link.href}
@@ -128,7 +131,7 @@ export const Navbar = () => {
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}
-                  className={`group relative py-1 text-sm font-medium transition-colors ${location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`group relative shrink-0 whitespace-nowrap py-1 text-sm font-medium transition-colors ${location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   {link.label}
                   <span
@@ -138,18 +141,22 @@ export const Navbar = () => {
               ))}
             </div>
 
+            {/* Right cluster: search + account/CTA + hamburger stay grouped —
+                without the wrapper, justify-between floated the search icon
+                into the middle of the bar on mobile. */}
+            <div className="flex shrink-0 items-center gap-2 md:gap-4">
             {/* Search — one instance for every screen size (its trigger
                 collapses to icon-only below lg, and mounting it twice would
                 double-toggle the Cmd+K listener). */}
             <GlobalSearch />
 
             {/* Desktop Actions */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex shrink-0 items-center gap-4">
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2">
-                      {user.fullName || user.email}
+                    <Button variant="outline" className="gap-2 max-w-[200px]">
+                      <span className="truncate">{user.fullName || user.email}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -235,6 +242,7 @@ export const Navbar = () => {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
+            </div>
           </div>
         </div>
       </motion.nav>

@@ -7,6 +7,10 @@ interface ScrollRevealProps {
   delay?: number;
   direction?: "up" | "down" | "left" | "right" | "none";
   duration?: number;
+  /** Render children immediately with no entrance animation. Used by the
+   * hero when the static index.html shell already painted the same content —
+   * re-animating it would flash and re-fire LCP. */
+  instant?: boolean;
 }
 
 export const ScrollReveal = ({
@@ -15,9 +19,14 @@ export const ScrollReveal = ({
   delay = 0,
   direction = "up",
   duration = 0.6,
+  instant = false,
 }: ScrollRevealProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  if (instant) {
+    return <div className={className}>{children}</div>;
+  }
 
   const getInitialPosition = () => {
     switch (direction) {
