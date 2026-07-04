@@ -989,11 +989,8 @@ const Achievements = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
-                    className="bg-white border border-brand-100 rounded-2xl p-6 text-center hover:shadow-elevated hover:border-primary/40 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                    className="bg-white border border-border rounded-2xl px-8 py-7 text-center hover:border-primary/40 hover:shadow-card transition-all duration-300 w-full sm:w-[260px]"
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <BadgeCheck className="w-8 h-8 text-primary" strokeWidth={2.5} />
-                    </div>
                     <div className="text-4xl md:text-5xl font-extrabold font-display gradient-text mb-2 tabular-nums">
                       {isLoading ? (
                         <div className="flex items-center justify-center gap-1.5">
@@ -1017,18 +1014,16 @@ const Achievements = () => {
                         totalCertifications
                       )}
                     </div>
-                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certifications earned</div>
+                    <div className="mx-auto mt-4 mb-3 h-px w-10 bg-border" />
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.18em]">Certifications earned</div>
                   </motion.div>
 
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="bg-white border border-brand-100 rounded-2xl p-6 text-center hover:shadow-elevated hover:border-primary/40 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                    className="bg-white border border-border rounded-2xl px-8 py-7 text-center hover:border-primary/40 hover:shadow-card transition-all duration-300 w-full sm:w-[260px]"
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <GraduationCap className="w-8 h-8 text-primary" strokeWidth={2.5} />
-                    </div>
                     <div className="text-4xl md:text-5xl font-extrabold font-display gradient-text mb-2 tabular-nums">
                       {isLoading ? (
                         <div className="flex items-center justify-center gap-1.5">
@@ -1052,18 +1047,16 @@ const Achievements = () => {
                         uniquePersons
                       )}
                     </div>
-                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certified Yatris</div>
+                    <div className="mx-auto mt-4 mb-3 h-px w-10 bg-border" />
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.18em]">Certified Yatris</div>
                   </motion.div>
 
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="bg-white border border-brand-100 rounded-2xl p-6 text-center hover:shadow-elevated hover:border-primary/40 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                    className="bg-white border border-border rounded-2xl px-8 py-7 text-center hover:border-primary/40 hover:shadow-card transition-all duration-300 w-full sm:w-[260px]"
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Building2 className="w-8 h-8 text-primary" strokeWidth={2.5} />
-                    </div>
                     <div className="text-4xl md:text-5xl font-extrabold font-display gradient-text mb-2 tabular-nums">
                       {isLoading ? (
                         <div className="flex items-center justify-center gap-1.5">
@@ -1087,7 +1080,8 @@ const Achievements = () => {
                         uniqueProviders
                       )}
                     </div>
-                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Cloud providers</div>
+                    <div className="mx-auto mt-4 mb-3 h-px w-10 bg-border" />
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.18em]">Cloud providers</div>
                   </motion.div>
 
                   {thisMonth > 0 && (
@@ -1095,15 +1089,13 @@ const Achievements = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: 0.4 }}
-                      className="bg-white border border-brand-100 rounded-2xl p-6 text-center hover:shadow-elevated hover:border-primary/40 hover:scale-105 transition-all duration-300 group w-full sm:w-[280px]"
+                      className="bg-white border border-border rounded-2xl px-8 py-7 text-center hover:border-primary/40 hover:shadow-card transition-all duration-300 w-full sm:w-[260px]"
                     >
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-50 border border-brand-100 mb-4 group-hover:scale-110 transition-transform duration-300">
-                        <Zap className="w-8 h-8 text-primary" strokeWidth={2.5} />
-                      </div>
                       <div className="text-4xl md:text-5xl font-extrabold font-display gradient-text mb-2 tabular-nums">
                         {thisMonth}
                       </div>
-                      <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Certified this month</div>
+                      <div className="mx-auto mt-4 mb-3 h-px w-10 bg-border" />
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.18em]">Certified this month</div>
                     </motion.div>
                   )}
                 </div>
@@ -1411,11 +1403,11 @@ const Achievements = () => {
                                     whileHover={{ scale: 1.05 }}
                                   >
                                     <img
-                                      src={person.photoUrl || "https://via.placeholder.com/200"}
+                                      src={person.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.fullName)}&background=007CFF&color=fff&size=200`}
                                       alt={person.fullName}
                                       className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-full"
                                       onError={(e) => {
-                                        (e.target as HTMLImageElement).src = "https://via.placeholder.com/200";
+                                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.fullName)}&background=007CFF&color=fff&size=200`;
                                       }}
                                     />
                                     {/* Certification Count Badge - On the circular border, bottom right */}
@@ -1545,27 +1537,26 @@ const Achievements = () => {
                                   )}
                                 </div>
 
-                                {/* Action Buttons */}
-                                <div className="flex items-center justify-center gap-2 mt-auto relative z-10">
-                                  <a
-                                    href={person.linkedinUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all group/linkedin"
+                                {/* Action buttons — text only, no icons: quiet outline for
+                                    LinkedIn, solid primary for the profile view. */}
+                                <div className="flex items-center justify-center gap-2.5 mt-auto relative z-10">
+                                  {person.linkedinUrl && (
+                                    <a
+                                      href={person.linkedinUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="inline-flex min-h-[40px] flex-1 max-w-[130px] items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                                    >
+                                      LinkedIn
+                                    </a>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="inline-flex min-h-[40px] flex-1 max-w-[130px] items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-inset-btn transition-colors hover:bg-brand-600"
                                   >
-                                    <svg className="w-4 h-4 group-hover/linkedin:scale-110" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                                    </svg>
-                                  </a>
-                                  <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-sm font-semibold transition-all"
-                                  >
-                                    <BadgeCheck className="w-4 h-4" />
-                                    <span>View</span>
-                                  </motion.button>
+                                    View profile
+                                  </button>
                                 </div>
                               </motion.div>
                             );
@@ -1773,14 +1764,14 @@ const Achievements = () => {
                       const isSpecialPerson = selectedPerson.fullName === "Yatharth Chauhan" || selectedPerson.fullName === "Nensi Ravaliya";
                       return (
                         <img
-                          src={selectedPerson.photoUrl || "https://via.placeholder.com/150"}
+                          src={selectedPerson.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedPerson.fullName)}&background=007CFF&color=fff&size=150`}
                           alt={selectedPerson.fullName}
                           className={`w-20 h-20 rounded-full object-cover border-4 ${isSpecialPerson
                             ? "border-yellow-500"
                             : "border-primary/30"
                             }`}
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://via.placeholder.com/150";
+                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedPerson.fullName)}&background=007CFF&color=fff&size=150`;
                           }}
                         />
                       );

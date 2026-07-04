@@ -63,11 +63,37 @@ const ENUM_TO_DISPLAY: Record<string, string> = {
  * Submit a certification for the signed-in user.
  * Photo: reuse the profile URL, else upload the file to the `avatars` bucket.
  */
+/**
+ * If the photo is an inline data URI, upload it to the avatars bucket and
+ * return the public URL instead. Inline base64 photos (up to ~3 MB per row)
+ * once made the wall-of-fame query exceed the DB statement timeout — no
+ * data URI may ever be written to certifications.photo_url again.
+ */
+export async function ensurePhotoIsUrl(
+  photo: string | null | undefined,
+  userId: string
+): Promise<string | null> {
+  if (!photo) return null;
+  if (!photo.startsWith("data:")) return photo;
+  try {
+    const blob = await (await fetch(photo)).blob();
+    const ext = (blob.type.split("/")[1] || "png").replace("jpeg", "jpg");
+    const path = `${userId}/${Date.now()}-photo.${ext}`;
+    const { error } = await supabase.storage
+      .from("avatars")
+      .upload(path, blob, { upsert: true, contentType: blob.type });
+    if (error) return null; // better no photo than a timeout-inducing blob
+    return supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+  } catch {
+    return null;
+  }
+}
+
 export async function submitCertification(data: CertificationSubmission): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Please sign in to submit your certification.");
 
-  let photoUrl = data.photoUrl || "";
+  let photoUrl = (await ensurePhotoIsUrl(data.photoUrl, user.id)) || "";
   if (!photoUrl && data.photo) {
     const path = `${user.id}/${Date.now()}-${data.photo.name.replace(/[^\w.-]+/g, "_")}`;
     const { error: upErr } = await supabase.storage.from("avatars").upload(path, data.photo, { upsert: true });
@@ -101,14 +127,28 @@ export async function submitCertification(data: CertificationSubmission): Promis
 
 /** Fetch all public certifications (the Wall of Fame). */
 export async function fetchCertifications(): Promise<CertificationEntry[]> {
-  const { data, error } = await supabase
-    .from("certifications")
-    .select("id,full_name,email,provider,certification_name,exam_code,certification_date,verified_credential_url,linkedin_url,photo_url,country,state_province,city,country_code,phone_number,additional_notes")
-    .eq("is_public", true)
-    .order("created_at", { ascending: false });
+  // Let the auth session settle first: on a signed-in visitor's first load a
+  // stale access token could ride along and get rejected, which showed the
+  // page with 0 results until a reload. getSession() refreshes if expired.
+  await supabase.auth.getSession().catch(() => null);
+
+  const runQuery = () =>
+    supabase
+      .from("certifications")
+      .select("id,full_name,email,provider,certification_name,exam_code,certification_date,verified_credential_url,linkedin_url,photo_url,country,state_province,city,country_code,phone_number,additional_notes")
+      .eq("is_public", true)
+      .order("created_at", { ascending: false });
+
+  let { data, error } = await runQuery();
+  if (error) {
+    // One retry after a short beat — transient auth/network hiccups on first
+    // load should not blank the whole Wall of Fame.
+    await new Promise((r) => setTimeout(r, 800));
+    ({ data, error } = await runQuery());
+  }
   if (error) {
     console.error("❌ Error fetching certifications:", error.message);
-    return [];
+    throw new Error(error.message);
   }
   return (data || []).map((c) => ({
     id: c.id,

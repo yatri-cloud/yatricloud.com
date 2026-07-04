@@ -864,11 +864,15 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
 
       // Reload certifications from achievements in background (no delay)
       (async () => {
-        const currentCerts = await fetchCertifications();
-        setExistingCertifications(currentCerts);
-        // Also reload user certifications if authenticated
-        if (user?.email) {
-          await loadUserCertifications();
+        try {
+          const currentCerts = await fetchCertifications();
+          setExistingCertifications(currentCerts);
+          // Also reload user certifications if authenticated
+          if (user?.email) {
+            await loadUserCertifications();
+          }
+        } catch (e) {
+          console.warn("Background certification refresh failed:", e);
         }
       })();
     } catch (error: any) {

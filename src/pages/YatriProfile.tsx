@@ -46,6 +46,7 @@ export default function YatriProfile() {
         window.scrollTo({ top: 0, behavior: "smooth" });
         fetchCertifications()
             .then((all: CertEntry[]) => setCerts(all.filter((c) => yatriSlug(c.fullName) === slug)))
+            .catch((e) => console.error("Failed to load profile certifications:", e))
             .finally(() => setLoading(false));
     }, [slug]);
 

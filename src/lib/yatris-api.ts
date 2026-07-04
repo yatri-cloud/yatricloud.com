@@ -14,6 +14,7 @@ import {
   type YatriUser,
 } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { ensurePhotoIsUrl } from '@/lib/google-sheets';
 
 /** Display provider name → DB enum. */
 const PROVIDER_TO_ENUM: Record<string, string> = {
@@ -190,7 +191,8 @@ export async function submitCertification(data: {
     verified_credential_url: data.verifiedCredential || null,
     additional_notes: data.additionalNotes || null,
     linkedin_url: profile.linkedinUrl || null,
-    photo_url: profile.photoUrl || null,
+    // Base64 profile photos are uploaded to storage — never inlined in the row.
+    photo_url: await ensurePhotoIsUrl(profile.photoUrl, authUser.id),
     country: profile.country || null,
     state_province: profile.stateProvince || null,
     city: profile.city || null,
