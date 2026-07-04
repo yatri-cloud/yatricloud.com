@@ -1,13 +1,7 @@
-import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Calendar } from "lucide-react";
 import { motion } from "framer-motion";
-
-declare global {
-    interface Window {
-        Calendly: any;
-    }
-}
+import { openCalendlyPopup } from "@/lib/third-party";
 
 export const CalendlyPopup = () => {
     // This is a public-site call to action. Keep it off the admin console, where
@@ -15,39 +9,11 @@ export const CalendlyPopup = () => {
     const { pathname } = useLocation();
     const isAdmin = pathname.startsWith("/admin");
 
-    useEffect(() => {
-        if (isAdmin) return;
-        // Add Calendly CSS
-        const link = document.createElement("link");
-        link.href = "https://assets.calendly.com/assets/external/widget.css";
-        link.rel = "stylesheet";
-        document.head.appendChild(link);
-
-        // Add Calendly JS script
-        const script = document.createElement("script");
-        script.src = "https://assets.calendly.com/assets/external/widget.js";
-        script.type = "text/javascript";
-        script.async = true;
-        document.body.appendChild(script);
-
-        return () => {
-            // Cleanup to prevent duplicate tags if component remounts
-            if (document.head.contains(link)) {
-                document.head.removeChild(link);
-            }
-            if (document.body.contains(script)) {
-                document.body.removeChild(script);
-            }
-        };
-    }, [isAdmin]);
-
+    // Calendly's widget JS/CSS (and its cookies) load on first click only —
+    // never at page load. See src/lib/third-party.ts.
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (window.Calendly) {
-            window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
-        } else {
-            window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
-        }
+        void openCalendlyPopup('https://calendly.com/yatricloud/40min');
     };
 
     if (isAdmin) return null;

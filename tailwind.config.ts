@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter Tight', 'Inter Tight Placeholder', 'system-ui', 'sans-serif'],
-        display: ['Bricolage Grotesque', 'Inter Tight', 'system-ui', 'sans-serif'],
+        sans: ['Inter Tight Variable', 'Inter Tight', 'system-ui', 'sans-serif'],
+        display: ['Bricolage Grotesque Variable', 'Inter Tight Variable', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         'inset-btn': 'var(--shadow-inset)',

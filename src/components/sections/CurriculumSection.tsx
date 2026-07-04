@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useUdemySheets } from "@/hooks/use-udemy-sheets";
+import { fetchUdemyCourseImages } from "@/lib/udemy-sheets";
 import { cn } from "@/lib/utils";
 import type { Course } from "@/data/courses";
 import { LogoMarquee } from "@/components/TechLogos";
@@ -65,10 +66,31 @@ export const CurriculumSection = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [visibleCourses, setVisibleCourses] = useState(6); // Show 3x2 = 6 courses initially
 
-  // Fetch courses from Google Sheets
+  // Defer the catalog fetch until the section approaches the viewport, and
+  // fetch metadata only — thumbnails are base64-heavy (the full catalog with
+  // images is ~11 MB) so they hydrate per visible card below.
+  const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || inView) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setInView(true);
+      },
+      { rootMargin: "600px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [inView]);
+
   const { courses, isLoading, error, refetch, creators } = useUdemySheets({
-    enabled: true,
+    enabled: inView,
+    withImages: false,
   });
+
+  // id → image_url for the cards currently on screen.
+  const [imageMap, setImageMap] = useState<Record<string, string>>({});
 
   // Dynamically generate filters from actual courses
   const availableFilters = useMemo(() => {
@@ -121,6 +143,21 @@ export const CurriculumSection = () => {
     return filteredCourses.slice(0, visibleCourses);
   }, [filteredCourses, visibleCourses]);
 
+  // Hydrate thumbnails for just the visible cards (metadata fetch skips them).
+  useEffect(() => {
+    const missing = displayedCourses
+      .map((c) => c.id)
+      .filter((id) => !(id in imageMap));
+    if (missing.length === 0) return;
+    let cancelled = false;
+    fetchUdemyCourseImages(missing).then((fetched) => {
+      if (!cancelled) setImageMap((prev) => ({ ...prev, ...fetched }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [displayedCourses, imageMap]);
+
   const hasMoreCourses = filteredCourses.length > visibleCourses;
   const viewMoreButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -143,7 +180,7 @@ export const CurriculumSection = () => {
   };
 
   return (
-    <section id="courses" className="py-20 md:py-28 bg-background relative">
+    <section ref={sectionRef} id="courses" className="py-20 md:py-28 bg-background relative">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <ScrollReveal>
           <div className="text-center mb-12 max-w-2xl mx-auto">
@@ -198,11 +235,12 @@ export const CurriculumSection = () => {
                 {/* Instructor Filter */}
                 {creators && creators.length > 0 && (
                   <div className="group">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                    <label htmlFor="course-filter-instructor" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
                       Instructor
                     </label>
                     <div className="relative">
                       <select
+                        id="course-filter-instructor"
                         value={selectedInstructor}
                         onChange={(e) => setSelectedInstructor(e.target.value)}
                         className="w-full min-h-[44px] bg-card border border-border rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring transition-all appearance-none cursor-pointer hover:border-primary/40"
@@ -226,11 +264,12 @@ export const CurriculumSection = () => {
                 {/* Certification Filter */}
                 {availableFilters.certifications.length > 0 && (
                   <div className="group">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                    <label htmlFor="course-filter-certification" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
                       Certifications
                     </label>
                     <div className="relative">
                       <select
+                        id="course-filter-certification"
                         value={selectedCertification}
                         onChange={(e) => setSelectedCertification(e.target.value)}
                         className="w-full min-h-[44px] bg-card border border-border rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring transition-all appearance-none cursor-pointer hover:border-primary/40"
@@ -254,11 +293,12 @@ export const CurriculumSection = () => {
                 {/* Category Filter */}
                 {availableFilters.categories.length > 0 && (
                   <div className="group">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                    <label htmlFor="course-filter-category" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
                       Categories
                     </label>
                     <div className="relative">
                       <select
+                        id="course-filter-category"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
                         className="w-full min-h-[44px] bg-card border border-border rounded-xl px-4 py-3 text-foreground font-medium focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring transition-all appearance-none cursor-pointer hover:border-primary/40"
@@ -331,7 +371,7 @@ export const CurriculumSection = () => {
                           className="relative overflow-hidden bg-muted shrink-0 aspect-video"
                         >
                           <img
-                            src={course.thumbnail || getFallbackImageUrl(course.udemyUrl, course.thumbnail)}
+                            src={imageMap[course.id] || course.thumbnail || getFallbackImageUrl(course.udemyUrl, course.thumbnail)}
                             alt={course.title}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             loading="lazy"

@@ -4,6 +4,8 @@ import type { Course } from "@/data/courses";
 
 interface UseUdemySheetsOptions {
   enabled?: boolean;
+  /** Skip the image_url column (base64-heavy) — hydrate visible cards separately. */
+  withImages?: boolean;
 }
 
 interface UseUdemySheetsReturn {
@@ -18,14 +20,15 @@ interface UseUdemySheetsReturn {
  * Hook to fetch Udemy courses from Google Sheets
  */
 export function useUdemySheets(options: UseUdemySheetsOptions = {}): UseUdemySheetsReturn {
-  const { enabled = true } = options;
+  const { enabled = true, withImages = true } = options;
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchCourses = async () => {
     if (!enabled) {
-      setIsLoading(false);
+      // Keep the loading skeleton up — the fetch starts once the section
+      // scrolls near the viewport (enabled flips to true).
       return;
     }
 
@@ -33,7 +36,7 @@ export function useUdemySheets(options: UseUdemySheetsOptions = {}): UseUdemyShe
     setError(null);
 
     try {
-      const udemyCourses = await fetchUdemyCourses();
+      const udemyCourses = await fetchUdemyCourses({ withImages });
       
       // Transform UdemyCourse to Course format
       const transformedCourses: Course[] = udemyCourses.map((udemyCourse) => ({

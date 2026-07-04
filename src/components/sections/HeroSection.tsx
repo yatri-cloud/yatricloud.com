@@ -20,6 +20,7 @@ import {
   FALLBACK_PROMOTION,
 } from "@/lib/site-content";
 import { FALLBACK_CERT_TRACKS } from "@/lib/cert-catalog";
+import { openCalendlyPopup } from "@/lib/third-party";
 
 const EASE_EDITORIAL = [0.16, 1, 0.3, 1] as const;
 
@@ -29,10 +30,28 @@ const EASE_EDITORIAL = [0.16, 1, 0.3, 1] as const;
    sequence. */
 const CERT_TRACKS = FALLBACK_CERT_TRACKS;
 
-/* Kinetic outline marquee — purely decorative, reduced-motion safe. */
+/* Kinetic outline marquee — purely decorative, reduced-motion safe.
+   Renders only after the display font is live: 14vw text reflowing on the
+   font swap was the page's biggest layout shift (CLS). */
 const CertMarquee = () => {
   const reduceMotion = useReducedMotion();
   const line = CERT_TRACKS.join("  ·  ");
+  const [fontsReady, setFontsReady] = useState(
+    typeof document !== "undefined" && document.fonts?.status === "loaded"
+  );
+
+  useEffect(() => {
+    if (fontsReady || !document.fonts?.ready) return;
+    let cancelled = false;
+    document.fonts.ready.then(() => {
+      if (!cancelled) setFontsReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fontsReady]);
+
+  if (!fontsReady) return null;
 
   return (
     <div
@@ -88,7 +107,10 @@ const CountUp = ({ value, decimals = 0, suffix = "", ariaLabel }: CountUpProps) 
   }, [inView, reduceMotion, value, decimals]);
 
   return (
-    <span ref={ref} aria-label={ariaLabel} className="tabular-nums">
+    // aria-label is prohibited on a plain <span>, so screen readers get the
+    // final value via a visually-hidden twin while the count-up is hidden.
+    <span ref={ref} className="tabular-nums">
+      <span className="sr-only">{ariaLabel}</span>
       <span aria-hidden="true">
         {display}
         {suffix}
@@ -127,11 +149,8 @@ export const HeroSection = () => {
 
   const openCalendly = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (window.Calendly) {
-      window.Calendly.initPopupWidget({ url: calendlyUrl });
-    } else {
-      window.open(calendlyUrl, "_blank", "noopener");
-    }
+    // Loads Calendly's widget on first use; falls back to the booking page.
+    void openCalendlyPopup(calendlyUrl);
   };
 
   const STATS = [
@@ -267,23 +286,27 @@ export const HeroSection = () => {
                   whileHover={reduceMotion ? undefined : { y: -4 }}
                   className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-colors duration-base hover:border-brand-200 hover:shadow-card"
                 >
-                  {/* Soft blue glow that blooms on hover */}
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/15 blur-2xl opacity-0 transition-opacity duration-slow group-hover:opacity-100"
-                  />
+                  {/* A <div> inside <dl> may only contain dt/dd groups, so the
+                      glow + visible label live inside the <dd>. */}
                   <dt className="sr-only">{stat.label}</dt>
-                  <dd className="font-display text-4xl font-black tracking-tight gradient-text md:text-5xl">
-                    <CountUp
-                      value={stat.value}
-                      decimals={stat.decimals}
-                      suffix={stat.suffix}
-                      ariaLabel={stat.aria}
+                  <dd className="m-0">
+                    {/* Soft blue glow that blooms on hover */}
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/15 blur-2xl opacity-0 transition-opacity duration-slow group-hover:opacity-100"
                     />
+                    <span className="block font-display text-4xl font-black tracking-tight gradient-text md:text-5xl">
+                      <CountUp
+                        value={stat.value}
+                        decimals={stat.decimals}
+                        suffix={stat.suffix}
+                        ariaLabel={stat.aria}
+                      />
+                    </span>
+                    <span aria-hidden="true" className="mt-1 block text-sm font-medium text-muted-foreground">
+                      {stat.label}
+                    </span>
                   </dd>
-                  <span className="mt-1 block text-sm font-medium text-muted-foreground">
-                    {stat.label}
-                  </span>
                 </motion.div>
               ))}
             </dl>

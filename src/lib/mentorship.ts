@@ -10,6 +10,7 @@
 
 import { supabase } from "@/lib/supabase";
 import type { DateOverride } from "@/lib/mentorship-slots";
+import { loadRazorpay } from "@/lib/third-party";
 
 /* ------------------------------------------------------------------ */
 /* Canonical types (other agents import these)                         */
@@ -1013,12 +1014,14 @@ export interface MentorshipCheckoutInput {
  * src/lib/razorpay.ts but sends booking_id to /api/razorpay/verify so
  * the server flips the pending booking to confirmed after the HMAC check.
  */
-export function openMentorshipCheckout(input: MentorshipCheckoutInput): void {
+export async function openMentorshipCheckout(input: MentorshipCheckoutInput): Promise<void> {
   const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
   if (!key) {
     input.onFailure("Payments are not configured yet. Please contact support.");
     return;
   }
+  // checkout.js loads on demand — it is no longer on every page.
+  await loadRazorpay();
   const RazorpayCtor = (window as any).Razorpay;
   if (!RazorpayCtor) {
     input.onFailure("The payment system did not load. Please refresh and try again.");

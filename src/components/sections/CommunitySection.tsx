@@ -333,6 +333,10 @@ export const CommunitySection = () => {
                         : company.logo
                     }
                     alt={company.name}
+                    width={120}
+                    height={48}
+                    loading="lazy"
+                    decoding="async"
                     className={`h-6 sm:h-8 md:h-12 w-auto object-contain max-w-[120px] sm:max-w-[150px] md:max-w-none opacity-60 hover:opacity-100 transition-opacity ${
                       company.name === 'GitHub' && theme === 'light' ? 'invert' : ''
                     }`}

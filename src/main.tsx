@@ -1,6 +1,9 @@
 import { createRoot } from "react-dom/client";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from "./App.tsx";
+// Self-hosted variable fonts — no render-blocking Google Fonts requests.
+import "@fontsource-variable/inter-tight";
+import "@fontsource-variable/bricolage-grotesque";
 import "./index.css";
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";

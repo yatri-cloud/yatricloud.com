@@ -41,6 +41,8 @@ Depth is **shallow and honest**: containment comes from hairline borders against
 ## 2. Color Palette & Roles
 
 > **⚑ COLORS ARE FROZEN.** Per the user: keep the **existing blue (main logo color) and the existing palette unchanged.** The tables below are the **current** `src/index.css` values, reproduced verbatim — we do **not** repaint them. Blue stays `hsl(210 100% 50%)` (`#007CFF`), no second accent is introduced. The redesign changes **layout, type, spacing, depth, structure, and motion — never the colors.** Any contrast tweak is *optional and requires the user's OK first* (see §2.6).
+>
+> **⚑ AA EXCEPTION (2026-07-04, user-approved via "PageSpeed 100% in all").** White on `#0080FF` is 3.79:1 — a hard WCAG-AA failure Lighthouse flags. Interactive tokens therefore moved: **light** `--primary`/`--accent` → `210 100% 44%` (4.78:1 with white); **dark** flips to the standard accessible pair — `--primary` `210 100% 62%` with near-black `--primary-foreground` `214 60% 10%` (6.4:1 fills, 7.1:1 links), plus dark overrides `--blue-600: 210 100% 68%` (hover), `--blue-50/100` as deep navy washes. Light `--muted-foreground` → `0 0% 38%` (45% failed on band tints). **Brand identity is untouched:** `--blue-500`, `--band-blue`, logos and gradients stay `#007CFF`.
 
 All values are **HSL triplets** consumed as `hsl(var(--token))`, matching the existing `src/index.css`. **Preserve every existing token name and value** — the 49 shadcn/ui primitives depend on them. New tokens (blue scale, shadows, motion, bands) are additive and only affect *new* usages, never existing colors.
 
@@ -143,7 +145,7 @@ Until approved, **do not apply these** — keep the existing values verbatim.
 
 ## 3. Typography
 
-**Family:** `Inter Tight` (already loaded, weights 300–900) → `system-ui, sans-serif`. Keep it — it's a modern, slightly-condensed grotesque that reads as confident tech without shouting. Reserve **one** optional display face only if a hero needs extra character.
+**Family:** `Inter Tight` (body) + `Bricolage Grotesque` (display). **Self-hosted since 2026-07-04** via `@fontsource-variable/*` imported in `main.tsx` — family names are `'Inter Tight Variable'` / `'Bricolage Grotesque Variable'` (see `tailwind.config.ts` + `--font-display`). The old render-blocking Google Fonts `@import`s are gone; do not re-add them.
 
 **Principle:** hierarchy through **size + tracking + weight discipline**, not weight sprawl. Body/UI at **400–500**; headings at **600–700**; `800/900` reserved for a single hero numeral or stat.
 

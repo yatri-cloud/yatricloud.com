@@ -2,6 +2,8 @@
  * Razorpay Payment Integration Utility
  */
 
+import { loadRazorpay } from "@/lib/third-party";
+
 export interface RazorpayOptions {
   amount: number; // Amount in rupees (not paise)
   currency: string;
@@ -62,13 +64,14 @@ function compact(obj: Record<string, unknown>): Record<string, unknown> {
   return out;
 }
 
-export function openRazorpayCheckout(input: RazorpayCheckoutInput): void {
+export async function openRazorpayCheckout(input: RazorpayCheckoutInput): Promise<void> {
   const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
   if (!key) {
     input.onFailure('Payment gateway not configured. Please contact administrator.');
     return;
   }
-  if (!window.Razorpay) {
+  // checkout.js loads on demand — it is no longer on every page.
+  if (!(await loadRazorpay())) {
     input.onFailure('Payment system not available. Please refresh and try again.');
     return;
   }

@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ExternalLink, BadgeCheck } from "lucide-react";
+import { ExternalLink, BadgeCheck, CalendarDays, Loader2 } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
+import { openCalendlyPopup, loadCalendlyInline } from "@/lib/third-party";
 import {
   useSiteContent,
   getEligibleExams,
@@ -13,6 +14,59 @@ import {
   type PackageBenefit,
   type StepAction,
 } from "@/lib/site-content";
+
+/**
+ * Click-to-load facade for the Calendly inline widget. The real widget pulls
+ * ~2.5 MB of booking JS/CSS plus third-party cookies, so nothing loads until
+ * a Yatri actually asks for the calendar.
+ */
+const CalendlyInlineFacade = ({ url }: { url: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [state, setState] = useState<"idle" | "loading" | "loaded">("idle");
+
+  const handleLoad = async () => {
+    if (state !== "idle" || !containerRef.current) return;
+    setState("loading");
+    const ok = await loadCalendlyInline(containerRef.current, url);
+    if (ok) {
+      setState("loaded");
+    } else {
+      // Widget blocked or failed — send them to the booking page directly.
+      setState("idle");
+      window.open("https://calendly.com/yatricloud/40min", "_blank", "noopener");
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="w-full" style={{ minWidth: "320px", height: "700px" }}>
+      {state !== "loaded" && (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-5 p-8 text-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary" aria-hidden="true">
+            <CalendarDays className="h-8 w-8" />
+          </span>
+          <div>
+            <p className="font-display text-xl font-bold tracking-tight text-foreground">Pick a time that works for you</p>
+            <p className="mt-1 text-sm text-muted-foreground">The live calendar opens right here.</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleLoad}
+            disabled={state === "loading"}
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-inset-btn transition-all duration-300 hover:bg-brand-600 disabled:opacity-70"
+          >
+            {state === "loading" ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Opening the calendar...
+              </>
+            ) : (
+              "Open the booking calendar"
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Public AWS exam codes for entries whose title doesn't include the code inline.
 const EXAM_CODE_FALLBACK: Record<string, string> = {
@@ -148,12 +202,8 @@ export const CertificationFlowSection = () => {
   ) => {
     e.preventDefault();
     if (action?.isPopup) {
-      if (window.Calendly) {
-        window.Calendly.initPopupWidget({ url: 'https://calendly.com/yatricloud/40min' });
-      } else {
-        // Calendly script blocked/slow — open the booking page directly.
-        window.open('https://calendly.com/yatricloud/40min', '_blank', 'noopener');
-      }
+      // Loads Calendly's widget on first use; falls back to the booking page.
+      void openCalendlyPopup('https://calendly.com/yatricloud/40min');
     } else if (action?.url?.startsWith('#') && action.url.length > 1) {
       const element = document.querySelector(action.url);
       if (element) {
@@ -162,16 +212,8 @@ export const CertificationFlowSection = () => {
     }
   };
 
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://assets.calendly.com/assets/external/widget.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+  // Calendly's widget JS/CSS load on demand via src/lib/third-party.ts —
+  // both the popup buttons and the inline facade trigger it on click.
 
   return (
     <section id="certification-flow" className="py-20 md:py-28 bg-background relative overflow-hidden">
@@ -199,7 +241,7 @@ export const CertificationFlowSection = () => {
               <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <img src="/logos/aws.svg" alt="AWS" className="h-6 w-auto" loading="lazy" />
+                    <img src="/logos/aws.svg" alt="AWS" width={40} height={24} className="h-6 w-auto" loading="lazy" decoding="async" />
                     <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
                       Eligible Associate Exams
                     </h3>
@@ -498,11 +540,7 @@ export const CertificationFlowSection = () => {
                 {...reveal}
                 className="w-full rounded-2xl overflow-hidden border border-border bg-card relative z-20"
               >
-                <div
-                  className="calendly-inline-widget w-full"
-                  data-url="https://calendly.com/yatricloud/40min?hide_gdpr_banner=1"
-                  style={{ minWidth: "320px", height: "700px" }}
-                />
+                <CalendlyInlineFacade url="https://calendly.com/yatricloud/40min?hide_gdpr_banner=1" />
               </motion.div>
             </div>
           </ScrollReveal>

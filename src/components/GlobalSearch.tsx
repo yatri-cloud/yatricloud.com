@@ -130,14 +130,15 @@ export function GlobalSearch() {
 
     return (
         <>
+            {/* No aria-label: the accessible name comes from the content so it
+                always matches the visible text (label-content-name-mismatch). */}
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                aria-label="Search the site"
                 className="inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
                 <Search className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden lg:inline">Search</span>
+                <span className="sr-only lg:not-sr-only">Search</span>
                 <kbd className="hidden rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground lg:inline-block">
                     ⌘K
                 </kbd>

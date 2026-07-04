@@ -68,17 +68,17 @@ const CountUpStat = ({ value, label }: { value: string; label: string }) => {
 
   return (
     <div ref={ref} className="text-center">
-      <div
-        className="font-display font-bold tracking-[-0.02em] tabular-nums gradient-text leading-none text-6xl md:text-7xl lg:text-8xl"
-        aria-label={`${value} ${label}`}
-      >
+      <div className="font-display font-bold tracking-[-0.02em] tabular-nums gradient-text leading-none text-6xl md:text-7xl lg:text-8xl">
+        {/* aria-label is prohibited on a plain <div>; a visually-hidden twin
+            carries the final value while the count-up stays decorative. */}
+        <span className="sr-only">{`${value} ${label}`}</span>
         <span aria-hidden="true">
           {prefix}
           {hasNumber ? display : value}
           {suffix}
         </span>
       </div>
-      <div className="mt-4 text-sm md:text-base font-medium text-muted-foreground uppercase tracking-wider">
+      <div aria-hidden="true" className="mt-4 text-sm md:text-base font-medium text-muted-foreground uppercase tracking-wider">
         {label}
       </div>
     </div>
@@ -272,6 +272,7 @@ export const TrustSection = () => {
         <ScrollReveal delay={0.2}>
           <div
             className="max-w-7xl mx-auto space-y-4"
+            role="region"
             aria-label="What's included with the certification program"
           >
             <MarqueeRow reverse label="Program benefits, scrolling" features={trustFeatures} />

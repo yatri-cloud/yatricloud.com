@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap');
-/* Display face for headings (body stays Inter Tight) — redesign 2026-07 */
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap');
+/* Fonts are self-hosted via @fontsource-variable (imported in main.tsx) —
+   the render-blocking Google Fonts round-trips are gone. Family names are
+   'Inter Tight Variable' / 'Bricolage Grotesque Variable'. */
 
 @tailwind base;
 @tailwind components;
@@ -23,17 +23,20 @@
     --popover: 0 0% 98%;
     --popover-foreground: 0 0% 9%;
 
-    /* Blue accent as primary (#007CFF = hsl(210 100% 50%)) */
-    --primary: 210 100% 50%;
+    /* Brand blue stays #007CFF (see --blue-500/--band-blue). Interactive
+       fills use the 44% step so white button text passes WCAG AA 4.5:1 —
+       #0080FF with white was 3.79:1 (PageSpeed accessibility failure). */
+    --primary: 210 100% 44%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 9%;
 
     --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    /* 38% (was 45%): 45% failed 4.5:1 on the blue band tints (3.7:1). */
+    --muted-foreground: 0 0% 38%;
 
-    --accent: 210 100% 50%;
+    --accent: 210 100% 44%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -55,7 +58,7 @@
        REDESIGN ADDITIVE TOKENS (2026-07) — existing colors above are UNCHANGED.
        These only power NEW usages (bands, shadows, motion, display type).
        ============================================================ */
-    --font-display: 'Bricolage Grotesque', 'Inter Tight', system-ui, sans-serif;
+    --font-display: 'Bricolage Grotesque Variable', 'Inter Tight Variable', system-ui, sans-serif;
 
     /* Blue accent scale — same hue (210) as --primary, additive only */
     --blue-50: 210 100% 97%;
@@ -111,8 +114,13 @@
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 210 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    /* Dark AA pair: a lighter blue fill with near-black text (6.4:1) — the
+       standard accessible dark pattern. White on #0080FF was 3.79:1, and no
+       single blue passes as both a fill under white text AND link text on
+       near-black, so dark splits the pair instead. text-primary links get
+       7.1:1 on the page background. */
+    --primary: 210 100% 62%;
+    --primary-foreground: 214 60% 10%;
 
     --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
@@ -120,8 +128,8 @@
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 210 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 210 100% 62%;
+    --accent-foreground: 214 60% 10%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -132,8 +140,8 @@
 
     --sidebar-background: 0 0% 6%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 210 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 210 100% 62%;
+    --sidebar-primary-foreground: 214 60% 10%;
     --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 15%;
@@ -145,6 +153,12 @@
     --glow-soft: 0 0 40px hsl(210 100% 50% / 0.15);
 
     /* Redesign additive tokens — dark overrides (blue scale/font/motion inherit) */
+    /* Hover step for filled buttons must stay lighter than the 62% fill so
+       the dark --primary-foreground keeps AA on hover (7.6:1). */
+    --blue-600: 210 100% 68%;
+    /* Faintest blue washes read as deep navy in dark, not near-white. */
+    --blue-50: 214 50% 12%;
+    --blue-100: 214 50% 16%;
     --band-tint: 214 50% 8%;   /* deep blue-black wash */
     --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.4);
     --shadow-elevated: 0 12px 32px hsl(0 0% 0% / 0.5);
@@ -176,7 +190,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: "Inter Tight", "Inter Tight Placeholder", sans-serif;
+    font-family: "Inter Tight Variable", "Inter Tight", sans-serif;
   }
   
   /* Default font weight for headings and important text */

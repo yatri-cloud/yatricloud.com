@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Linkedin } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import ScrollReveal from "@/components/ScrollReveal";
 import { useTheme } from "@/components/ThemeProvider";
@@ -47,12 +48,14 @@ export const HomeReviewsSection = () => {
         <div className="flex items-start justify-between gap-4 mb-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="font-display font-bold tracking-tight text-lg text-foreground truncate">
+              <h3 className="font-display font-bold tracking-tight text-lg text-foreground truncate">
                 {r.name}
-              </h4>
+              </h3>
               {r.linkedinProfile && (
-                <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="flex-shrink-0 hover:opacity-80 transition">
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png" alt="LinkedIn" className="w-4 h-4 object-contain" width={16} height={16} />
+                <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="flex-shrink-0 text-primary hover:opacity-80 transition">
+                  {/* Inline icon — the Wikimedia-hosted logo set a third-party cookie */}
+                  <Linkedin className="w-4 h-4" aria-hidden="true" />
+                  <span className="sr-only">LinkedIn</span>
                 </a>
               )}
             </div>

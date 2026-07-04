@@ -18,6 +18,7 @@ import { Country } from "country-state-city";
 import { parsePhoneNumber } from "libphonenumber-js";
 import { sendEmail } from "@/lib/email";
 import { getWelcomeEmail } from "@/lib/email-templates";
+import { loadGoogleIdentity } from "@/lib/third-party";
 
 /** Google Identity Services script attaches itself to window.google at runtime. */
 declare global {
@@ -88,17 +89,19 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
     }
   }, [registerData.country]);
 
-  // Google Auth Initialization
+  // Google Auth Initialization — the GSI client script loads on demand here
+  // instead of on every page via index.html.
   useEffect(() => {
-    // Check if google is available
-    if (typeof window !== 'undefined' && window.google) {
+    let cancelled = false;
+    (async () => {
+      const client_id = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!client_id || client_id.includes("YOUR_GOOGLE")) {
+        console.warn("Google Client ID missing in .env");
+        return;
+      }
+      const ready = await loadGoogleIdentity();
+      if (!ready || cancelled || !window.google) return;
       try {
-        const client_id = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-        if (!client_id || client_id.includes("YOUR_GOOGLE")) {
-          console.warn("Google Client ID missing in .env");
-          return;
-        }
-
         window.google.accounts.id.initialize({
           client_id: client_id,
           callback: handleGoogleResponse
@@ -111,7 +114,8 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       } catch (e) {
         console.error("Google Auth Init Error", e);
       }
-    }
+    })();
+    return () => { cancelled = true; };
   }, [isLogin]);
 
   const handleGoogleResponse = async (response: any) => {

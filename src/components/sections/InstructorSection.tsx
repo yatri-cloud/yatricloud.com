@@ -126,6 +126,10 @@ export const InstructorSection = () => {
                       <img
                         src={member.image}
                         alt={member.name}
+                        width={80}
+                        height={80}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;

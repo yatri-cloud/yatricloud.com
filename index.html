@@ -26,7 +26,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
   <!-- Primary Meta Tags -->
   <title>Yatri Cloud · 50% OFF Cloud Certification Vouchers</title>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <meta name="title" content="Yatri Cloud · 50% OFF Cloud Certification Vouchers" />
   <meta name="description"
     content="Free practice tests, verified exam dumps and 50% OFF vouchers for AWS, Azure, GCP, Kubernetes and DevOps certifications. Join 50K+ happy learners." />
@@ -68,13 +67,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Yatri Cloud" />
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" sizes="32x32"
-    href="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png" />
-  <link rel="icon" type="image/png" sizes="16x16"
-    href="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png" />
-  <link rel="apple-touch-icon" sizes="180x180"
-    href="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png" />
+  <!-- Favicon (small local files — the full logo PNG is 440 KB and was fetched 3x) -->
+  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
 
   <!-- Structured Data (JSON-LD) -->
@@ -101,8 +96,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div id="root"></div>
-  <!-- Razorpay Checkout Script -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <!-- Razorpay checkout.js and Google GSI load on demand via src/lib/third-party.ts -->
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

@@ -68,6 +68,9 @@ export const LogoMarquee = ({
               src={logo.src}
               alt={`${logo.name} logo`}
               loading="lazy"
+              decoding="async"
+              width={96}
+              height={28}
               className="h-7 w-auto object-contain"
             />
             {showLabel && (

@@ -212,7 +212,7 @@ export const VoucherPromoSection = () => {
                     <feature.icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-display font-bold tracking-tight text-white">{feature.title}</h4>
+                    <h3 className="font-display font-bold tracking-tight text-white">{feature.title}</h3>
                     <p className="mt-1 text-sm text-white/80 leading-relaxed">{feature.desc}</p>
                   </div>
                 </motion.div>
