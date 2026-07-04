@@ -1,0 +1,127 @@
+/* =============================================================================
+   DESIGN TOKENS — the re-theme engine.
+   Drop this into your global stylesheet (e.g. index.css) above @tailwind base.
+   To re-theme the ENTIRE app, edit ONLY the "SEED" block. Everything else derives.
+
+   Values are HSL triplets ("H S% L%") consumed as hsl(var(--token)). This is the
+   shadcn/ui convention, so it drops straight into that ecosystem.
+   ============================================================================= */
+
+@layer base {
+  :root {
+    /* -------------------------------------------------------------------------
+       SEED — the ~12 values that define the theme. Change these to re-brand.
+       ------------------------------------------------------------------------- */
+    --brand-h: 210;          /* brand hue (0–360). 210=blue, 160=teal, 270=purple, 25=orange */
+    --brand-s: 100%;         /* brand saturation */
+    --brand-l: 45%;          /* brand lightness for FILLS. 40–46% clears 4.5:1 vs white text */
+    --neutral-h: 220;        /* subtle tint for grays (keeps neutrals from looking dead) */
+    --radius: 0.75rem;       /* base corner radius */
+
+    /* ---- Brand ramp (same hue, stepped lightness). Regenerate if hue changes. */
+    --brand-50:  var(--brand-h) var(--brand-s) 97%;
+    --brand-100: var(--brand-h) var(--brand-s) 93%;
+    --brand-200: var(--brand-h) var(--brand-s) 85%;
+    --brand-300: var(--brand-h) var(--brand-s) 74%;
+    --brand-400: var(--brand-h) var(--brand-s) 60%;
+    --brand-500: var(--brand-h) var(--brand-s) 50%;
+    --brand-600: var(--brand-h) var(--brand-s) 44%;
+    --brand-700: var(--brand-h) var(--brand-s) 38%;
+    --brand-800: var(--brand-h) var(--brand-s) 30%;
+    --brand-900: var(--brand-h) var(--brand-s) 22%;
+
+    /* -------------------------------------------------------------------------
+       LIGHT THEME — semantic roles. Components reference ONLY these.
+       ------------------------------------------------------------------------- */
+    --background: 0 0% 100%;
+    --foreground: var(--neutral-h) 15% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: var(--neutral-h) 15% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--neutral-h) 15% 12%;
+
+    --primary: var(--brand-h) var(--brand-s) var(--brand-l);
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: var(--neutral-h) 15% 96%;
+    --secondary-foreground: var(--neutral-h) 15% 12%;
+
+    --muted: var(--neutral-h) 15% 96%;
+    --muted-foreground: var(--neutral-h) 8% 40%;   /* 40% L clears 4.5:1 on white */
+
+    --accent: var(--brand-h) var(--brand-s) var(--brand-l);
+    --accent-foreground: 0 0% 100%;
+
+    --success: 152 55% 33%;         /* clears 4.5:1 with white text */
+    --warning: 38 95% 40%;          /* pair with DARK text (fails white); ~5.9:1 on near-black */
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: var(--neutral-h) 13% 90%;
+    --input: var(--neutral-h) 13% 90%;
+    --ring: var(--brand-h) var(--brand-s) var(--brand-l);
+
+    /* ---- Elevation (see foundations/elevation-motion.md) */
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.06);
+    --shadow:    0 4px 16px hsl(0 0% 0% / 0.08);
+    --shadow-md: 0 8px 24px hsl(0 0% 0% / 0.10);
+    --shadow-lg: 0 16px 40px hsl(0 0% 0% / 0.14);
+    --shadow-xl: 0 24px 60px hsl(0 0% 0% / 0.18);
+
+    /* ---- Motion tokens (unify rhythm across the app) */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur-fast: 150ms;
+    --dur-base: 220ms;
+    --dur-slow: 320ms;
+  }
+
+  /* ---------------------------------------------------------------------------
+     DARK THEME — a SEPARATE design, not an inversion. Re-verify contrast here.
+     Note: brand FILL goes lighter + text on it goes dark (the accessible dark
+     pattern), because a saturated fill under white text often fails on near-black.
+     --------------------------------------------------------------------------- */
+  .dark {
+    --background: var(--neutral-h) 15% 7%;
+    --foreground: 0 0% 96%;
+
+    --card: var(--neutral-h) 14% 11%;              /* lighter than canvas = elevation */
+    --card-foreground: 0 0% 96%;
+
+    --popover: var(--neutral-h) 14% 11%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: var(--brand-h) var(--brand-s) 62%;  /* lighter fill */
+    --primary-foreground: var(--brand-h) 40% 12%;  /* dark text on it */
+
+    --secondary: var(--neutral-h) 12% 16%;
+    --secondary-foreground: 0 0% 96%;
+
+    --muted: var(--neutral-h) 12% 16%;
+    --muted-foreground: var(--neutral-h) 8% 62%;
+
+    --accent: var(--brand-h) var(--brand-s) 62%;
+    --accent-foreground: var(--brand-h) 40% 12%;
+
+    --success: 152 55% 52%;
+    --warning: 38 92% 58%;
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: var(--neutral-h) 10% 20%;
+    --input: var(--neutral-h) 10% 20%;
+    --ring: var(--brand-h) var(--brand-s) 62%;
+
+    /* Brand ramp overrides so faint tints read as deep, not near-white, in dark */
+    --brand-50:  var(--brand-h) 40% 14%;
+    --brand-100: var(--brand-h) 40% 18%;
+    --brand-600: var(--brand-h) var(--brand-s) 68%;  /* hover stays lighter than 62% fill */
+
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.4);
+    --shadow:    0 4px 16px hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 8px 24px hsl(0 0% 0% / 0.5);
+    --shadow-lg: 0 16px 40px hsl(0 0% 0% / 0.55);
+    --shadow-xl: 0 24px 60px hsl(0 0% 0% / 0.6);
+  }
+}
