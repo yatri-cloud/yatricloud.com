@@ -132,10 +132,13 @@ export async function fetchCertifications(): Promise<CertificationEntry[]> {
   // page with 0 results until a reload. getSession() refreshes if expired.
   await supabase.auth.getSession().catch(() => null);
 
+  // Display columns only — no personal contact data. The anon role's column
+  // privileges (migration 037) enforce the same boundary server-side: email,
+  // phone, state/city and country code are not selectable on the public wall.
   const runQuery = () =>
     supabase
       .from("certifications")
-      .select("id,full_name,email,provider,certification_name,exam_code,certification_date,verified_credential_url,linkedin_url,photo_url,country,state_province,city,country_code,phone_number,additional_notes")
+      .select("id,full_name,provider,certification_name,exam_code,certification_date,verified_credential_url,linkedin_url,photo_url,country,additional_notes")
       .eq("is_public", true)
       .order("created_at", { ascending: false });
 
@@ -153,7 +156,8 @@ export async function fetchCertifications(): Promise<CertificationEntry[]> {
   return (data || []).map((c) => ({
     id: c.id,
     fullName: c.full_name || "",
-    email: c.email || "",
+    // Contact fields are intentionally absent from the public wall payload.
+    email: "",
     certificationProvider: ENUM_TO_DISPLAY[c.provider] ?? c.provider,
     certificationName: c.certification_name || "",
     examCode: c.exam_code || "",
@@ -161,10 +165,10 @@ export async function fetchCertifications(): Promise<CertificationEntry[]> {
     linkedinUrl: c.linkedin_url || "",
     verifiedCredential: c.verified_credential_url || undefined,
     country: c.country || undefined,
-    stateProvince: c.state_province || undefined,
-    city: c.city || undefined,
-    countryCode: c.country_code || undefined,
-    phoneNumber: c.phone_number || undefined,
+    stateProvince: undefined,
+    city: undefined,
+    countryCode: undefined,
+    phoneNumber: undefined,
     photoUrl: c.photo_url || "",
     additionalNotes: c.additional_notes || undefined,
   }));

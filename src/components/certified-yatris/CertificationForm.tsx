@@ -13,7 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CheckCircle2, Loader2, Upload, X, Calendar, Check, Edit, Trash2, Plus } from "lucide-react";
-import { submitCertification, fetchCertifications } from "@/lib/google-sheets";
+// Duplicate checks use getUserCertifications (the signed-in user's OWN rows):
+// the public wall payload no longer carries emails (migration 037), and a
+// duplicate is only meaningful within the same account anyway.
+import { submitCertification } from "@/lib/google-sheets";
 import { getUserCertifications, updateCertification, deleteCertification } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -315,7 +318,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
   useEffect(() => {
     const loadExistingCertifications = async () => {
       try {
-        const certs = await fetchCertifications();
+        const certs = await getUserCertifications();
         setExistingCertifications(certs);
       } catch (error) {
         console.error("Error loading existing certifications:", error);
@@ -865,7 +868,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
       // Reload certifications from achievements in background (no delay)
       (async () => {
         try {
-          const currentCerts = await fetchCertifications();
+          const currentCerts = await getUserCertifications();
           setExistingCertifications(currentCerts);
           // Also reload user certifications if authenticated
           if (user?.email) {
@@ -939,7 +942,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     try {
       // Refresh certifications list before checking to get latest data
       console.log("🔄 Refreshing existing certifications before submission...");
-      const currentCerts = await fetchCertifications();
+      const currentCerts = await getUserCertifications();
       console.log(`📊 Loaded ${currentCerts.length} existing certifications for duplicate check`);
       setExistingCertifications(currentCerts);
       // Duplicate checking is now done per certification in the submission loop
