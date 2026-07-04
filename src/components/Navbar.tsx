@@ -83,7 +83,7 @@ export const Navbar = () => {
             {/* Logo */}
             <a href="/" className="group flex items-center gap-2.5">
               <img
-                src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
+                src="/logo-192.png"
                 alt="Yatri Cloud"
                 className="h-8 w-8 transition-transform duration-300 ease-out-expo group-hover:scale-110 group-hover:rotate-6"
               />

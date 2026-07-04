@@ -78,6 +78,10 @@ export const LatestExamDumpsSection = () => {
                     <img
                       src={dump.image || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60"}
                       alt={dump.title}
+                      width={800}
+                      height={500}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     {/* Provider document tag */}

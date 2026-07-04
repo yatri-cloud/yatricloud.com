@@ -132,7 +132,7 @@ export const Footer = () => {
           >
             <a href="/" className="group flex w-fit items-center gap-3">
               <img
-                src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
+                src="/logo-192.png"
                 alt="Yatri Cloud"
                 className="h-10 w-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
               />

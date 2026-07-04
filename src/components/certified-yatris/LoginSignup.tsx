@@ -371,7 +371,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
               className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4"
             >
               <img
-                src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
+                src="/logo-192.png"
                 alt="Yatri Cloud Logo"
                 className="w-12 h-12 object-contain"
               />

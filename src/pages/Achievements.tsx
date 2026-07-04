@@ -776,7 +776,7 @@ const Achievements = () => {
             z-index: 10;
           ">
             <img 
-              src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png"
+              src="/logo-192.png"
               alt="Yatri Cloud"
               style="width: 40px; height: 40px; filter: brightness(0) invert(1);"
               crossorigin="anonymous"

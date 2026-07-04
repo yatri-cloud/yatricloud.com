@@ -169,6 +169,10 @@ const GlobeVisualization = () => {
               <img
                 src={profilePictures[i % profilePictures.length]}
                 alt={`Community member ${i + 1}`}
+                width={56}
+                height={56}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover pointer-events-none select-none"
                 draggable={false}
                 onError={(e) => {
