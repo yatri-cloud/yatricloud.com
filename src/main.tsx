@@ -1,12 +1,9 @@
 import { createRoot } from "react-dom/client";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from "./App.tsx";
 // Self-hosted variable fonts — no render-blocking Google Fonts requests.
 import "@fontsource-variable/inter-tight";
 import "@fontsource-variable/bricolage-grotesque";
 import "./index.css";
-
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 // After a deploy, a tab that loaded the previous build may navigate to a
 // lazy route whose hashed chunk no longer exists. Vite surfaces that as
@@ -22,8 +19,6 @@ window.addEventListener("vite:preloadError", (event) => {
     }
 });
 
-createRoot(document.getElementById("root")!).render(
-    <GoogleOAuthProvider clientId={googleClientId}>
-        <App />
-    </GoogleOAuthProvider>
-);
+// GoogleOAuthProvider is scoped to the two pages that use it (BecomeTrainer,
+// TrainerLogin) — app-wide it loaded Google's 95 KB gsi/client everywhere.
+createRoot(document.getElementById("root")!).render(<App />);

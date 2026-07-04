@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Country } from "country-state-city";
-import { useGoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import Navbar from "@/components/Navbar";
 import { SEO } from "@/components/SEO";
 import { listProviders, submitTrainerApplication } from "@/lib/training-api";
@@ -589,4 +589,12 @@ export const BecomeTrainer = () => {
     );
 };
 
-export default BecomeTrainer;
+/* GoogleOAuthProvider is scoped here (and TrainerLogin) instead of main.tsx —
+   mounting it app-wide loaded Google's 95 KB gsi/client on every page. */
+const BecomeTrainerPage = () => (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
+        <BecomeTrainer />
+    </GoogleOAuthProvider>
+);
+
+export default BecomeTrainerPage;

@@ -4,24 +4,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-KZ4L6JFK');</script>
-  <!-- End Google Tag Manager -->
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6VPRYNK2TW"></script>
+  <!-- Google Tag Manager + gtag — deferred until load+idle (or first
+       interaction). dataLayer stubs queue everything immediately, so no
+       events are lost; the ~425 KB of tag JS just stays off the critical
+       path (it was the single biggest TBT contributor on mobile). -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', 'G-6VPRYNK2TW');
+    window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+    (function () {
+      var loaded = false;
+      function loadTags() {
+        if (loaded) return; loaded = true;
+        [
+          'https://www.googletagmanager.com/gtm.js?id=GTM-KZ4L6JFK',
+          'https://www.googletagmanager.com/gtag/js?id=G-6VPRYNK2TW'
+        ].forEach(function (src) {
+          var s = document.createElement('script');
+          s.async = true; s.src = src;
+          document.head.appendChild(s);
+        });
+      }
+      function onIdle() {
+        if ('requestIdleCallback' in window) requestIdleCallback(loadTags, { timeout: 3000 });
+        else setTimeout(loadTags, 1500);
+      }
+      if (document.readyState === 'complete') onIdle();
+      else window.addEventListener('load', onIdle);
+      ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (evt) {
+        window.addEventListener(evt, loadTags, { once: true, passive: true });
+      });
+    })();
   </script>
 
-  <!-- Performance hints -->
-  <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
+  <!-- Performance hints. No crossorigin: <img> fetches are no-CORS, so a
+       crossorigin preconnect opened a second, unused connection. -->
+  <link rel="preconnect" href="https://raw.githubusercontent.com" />
   <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
 
   <!-- Primary Meta Tags -->

@@ -18,8 +18,9 @@ const COMPANIES_FALLBACK = FALLBACK_TECH_LOGOS.filter((l) => l.grp === "communit
 
 // Profile pictures for the globe - mix of actual and real profile images
 const profilePictures = [
-  "https://raw.githubusercontent.com/YatharthChauhan2362/prod-public-images/refs/heads/main/yatharth-chauhan-profile1.png",
-  "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Team%20Yatri%20Cloud/Nensi%20Ravaliya/profile-nensi-ravaliya.png",
+  // Self-hosted 200px copies — the originals were 812 KB and 2 MB PNGs.
+  "/team/yatharth-chauhan-200.png",
+  "/team/nensi-ravaliya-200.png",
   "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces",
   "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces",
   "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=200&h=200&fit=crop&crop=faces",

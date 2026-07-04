@@ -268,13 +268,15 @@ export const FALLBACK_TEAM_MEMBERS: TeamMember[] = [
   {
     name: "Yatharth Chauhan",
     role: "Founder – Yatri Cloud",
-    image: "https://raw.githubusercontent.com/YatharthChauhan2362/prod-public-images/refs/heads/main/yatharth-chauhan-profile1.png",
+    // Self-hosted 200px copy — the original remote PNG was 812 KB.
+    image: "/team/yatharth-chauhan-200.png",
     portfolio: "https://yatharthchauhan.me/",
   },
   {
     name: "Nensi Ravaliya",
     role: "Creator - Yatri Cloud",
-    image: "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Team%20Yatri%20Cloud/Nensi%20Ravaliya/profile-nensi-ravaliya.png",
+    // Self-hosted 200px copy — the original remote PNG was 2 MB.
+    image: "/team/nensi-ravaliya-200.png",
     portfolio: "https://nensi.yatricloud.com/",
   },
 ];

@@ -90,7 +90,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
         <>
             <div className="h-16 flex items-center justify-center border-b border-border">
                 <Link to="/" title="Yatri Cloud" className="hover:opacity-80 transition-opacity">
-                    <img src="/logo-192.png" alt="Yatri Cloud" className="w-8 h-8" />
+                    <img src="/logo-64.png" alt="Yatri Cloud" width={32} height={32} className="w-8 h-8" />
                 </Link>
             </div>
 
@@ -148,7 +148,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
             {/* Logo/Home + collapse toggle */}
             <div className="pl-6 pr-3 h-16 flex items-center justify-between border-b border-border">
                 <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-                    <img src="/logo-192.png" alt="Yatri Cloud" className="w-8 h-8" />
+                    <img src="/logo-64.png" alt="Yatri Cloud" width={32} height={32} className="w-8 h-8" />
                     <span className="font-display text-lg font-bold tracking-tight">Yatri <span className="gradient-text">Admin</span></span>
                 </Link>
                 {/* Close button (mobile only) */}

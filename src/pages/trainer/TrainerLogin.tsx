@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { GraduationCap } from "lucide-react";
-import { useGoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -142,4 +142,12 @@ export const TrainerLogin = () => {
     );
 };
 
-export default TrainerLogin;
+/* GoogleOAuthProvider is scoped here (and BecomeTrainer) instead of main.tsx —
+   mounting it app-wide loaded Google's 95 KB gsi/client on every page. */
+const TrainerLoginPage = () => (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
+        <TrainerLogin />
+    </GoogleOAuthProvider>
+);
+
+export default TrainerLoginPage;
