@@ -2,6 +2,9 @@
 
 The exact order to build a new UI so you never paint yourself into a corner.
 
+> **Scaffolding the project first?** Use [`PROJECT-SCAFFOLD-PROMPT.md`](PROJECT-SCAFFOLD-PROMPT.md)
+> to get a production-grade folder structure + tooling + CI, then come back here for the UI/design layer.
+
 ## The workflow
 
 ### 0. Frame it (5 min)

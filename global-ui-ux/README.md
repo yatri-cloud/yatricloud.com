@@ -20,6 +20,7 @@
 
 | Folder | What it gives you |
 |---|---|
+| [`PROJECT-SCAFFOLD-PROMPT.md`](PROJECT-SCAFFOLD-PROMPT.md) | Paste-ready prompt to make an AI scaffold a **production-grade** folder structure + tooling + CI for a new project. Use this first. |
 | [`START-HERE.md`](START-HERE.md) | The workflow + kickoff prompt for a brand-new UI. |
 | [`principles/`](principles/) | The non-negotiables: visual craft, UX laws, the pre-ship checklist. |
 | [`foundations/`](foundations/) | Color, typography, spacing/layout, elevation+motion, iconography — the raw materials. |
