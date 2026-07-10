@@ -135,8 +135,8 @@ const FIGURE_ARMS = [
 ];
 // kick = mirrored outward swing around the hip (originY 0 = top of the leg)
 const FIGURE_LEGS = [
-  { d: "M 94.5 107 L 94.5 129", spark: "M 94.5 129 L 94.5 107", kick: -8 },
-  { d: "M 105.5 107 L 105.5 129", spark: "M 105.5 129 L 105.5 107", kick: 8 },
+  { d: "M 94.5 107 L 94.5 126", spark: "M 94.5 126 L 94.5 107", kick: -8 },
+  { d: "M 105.5 107 L 105.5 126", spark: "M 105.5 126 L 105.5 107", kick: 8 },
 ];
 
 // Evenly space n points along the closed outline (by arc length)
@@ -160,7 +160,20 @@ const spotsAlongOutline = (pts: Pt[], n: number): Pt[] => {
   return out;
 };
 
-const AVATAR_SPOTS = spotsAlongOutline(CLOUD_OUTLINE, profilePictures.length);
+// Nudge each avatar outward from the cloud's visual center so the photo
+// chips ride the line from OUTSIDE it — keeps the interior (and the
+// cheering figure) clear and puts air between neighboring chips.
+const CLOUD_CENTER = { x: 100, y: 103 };
+const pushOut = (p: Pt, dist = 7): Pt => {
+  const dx = p.x - CLOUD_CENTER.x;
+  const dy = p.y - CLOUD_CENTER.y;
+  const len = Math.hypot(dx, dy) || 1;
+  return { x: p.x + (dx / len) * dist, y: p.y + (dy / len) * dist };
+};
+
+const AVATAR_SPOTS = spotsAlongOutline(CLOUD_OUTLINE, profilePictures.length).map(
+  (p) => pushOut(p)
+);
 
 // The Yatri Cloud logo drawn in community members — dotted cloud outline +
 // figure, with member avatars riding the cloud line. Pure presentation.
@@ -438,7 +451,7 @@ const CloudLogoVisualization = () => {
               }
             >
               <motion.div
-                className="h-10 w-10 sm:h-14 sm:w-14 rounded-full border-2 border-primary/50 bg-background overflow-hidden shadow-lg"
+                className="h-9 w-9 sm:h-12 sm:w-12 rounded-full border-2 border-primary/50 bg-background overflow-hidden shadow-lg"
                 whileHover={{ scale: 1.25 }}
                 transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
               >
