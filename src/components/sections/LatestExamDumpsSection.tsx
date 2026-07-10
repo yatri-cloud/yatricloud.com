@@ -59,9 +59,6 @@ export const LatestExamDumpsSection = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {dumps.map((dump, index) => {
-              // Stacked-deck feel: each paper sits at a slight angle and
-              // straightens on hover. Purely presentational.
-              const deckRotate = [-2.5, 1.5, -1][index % 3];
               const discount = Math.round(
                 ((dump.originalPrice - dump.price) / dump.originalPrice) * 100
               );
@@ -69,20 +66,20 @@ export const LatestExamDumpsSection = () => {
               <ScrollReveal key={dump.id} delay={index * 0.06}>
                 <motion.div
                   className="group relative h-full flex flex-col bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/40 hover:shadow-card transition-colors duration-300"
-                  style={{ rotate: deckRotate }}
-                  whileHover={{ y: -6, rotate: 0 }}
+                  whileHover={{ y: -6 }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
-                  {/* Image Container */}
-                  <div className="relative aspect-[16/10] overflow-hidden">
+                  {/* Square image stage — artwork contained and centered,
+                      matching ExamDumpCard on /examdumps */}
+                  <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50/60 via-card to-brand-50/30 p-8">
                     <img
                       src={dump.image || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60"}
                       alt={dump.title}
                       width={800}
-                      height={500}
+                      height={800}
                       loading="lazy"
                       decoding="async"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
                     />
                     {/* Provider document tag */}
                     <div className="absolute top-4 left-4">
