@@ -127,14 +127,16 @@ const CLOUD_PATH =
 // dot). Arms carry a wave rotation around their junction end (transform-box:
 // fill-box makes the % origin land exactly on the junction); spark paths run
 // the opposite way so energy travels junction → tip / ground → hip.
+// Proportions match the logo: wide V arms with the head nested in the notch,
+// legs reaching toward the cloud base.
 const FIGURE_ARMS = [
-  { d: "M 83 84 L 98 101", spark: "M 98 101 L 83 84", originX: 1, wave: 7 },
-  { d: "M 117 84 L 102 101", spark: "M 102 101 L 117 84", originX: 0, wave: -7 },
+  { d: "M 79 80 L 98 101", spark: "M 98 101 L 79 80", originX: 1, wave: 7 },
+  { d: "M 121 80 L 102 101", spark: "M 102 101 L 121 80", originX: 0, wave: -7 },
 ];
-// kick = mirrored outward swing around the hip (transformOrigin "50% 0%")
+// kick = mirrored outward swing around the hip (originY 0 = top of the leg)
 const FIGURE_LEGS = [
-  { d: "M 94.5 108 L 94.5 128", spark: "M 94.5 128 L 94.5 108", kick: -8 },
-  { d: "M 105.5 108 L 105.5 128", spark: "M 105.5 128 L 105.5 108", kick: 8 },
+  { d: "M 94.5 107 L 94.5 129", spark: "M 94.5 129 L 94.5 107", kick: -8 },
+  { d: "M 105.5 107 L 105.5 129", spark: "M 105.5 129 L 105.5 107", kick: 8 },
 ];
 
 // Evenly space n points along the closed outline (by arc length)
@@ -166,7 +168,7 @@ const CloudLogoVisualization = () => {
   const reduce = useReducedMotion();
 
   return (
-    <div className="relative mx-auto w-full max-w-[560px] px-2 py-6">
+    <div className="relative mx-auto w-full max-w-[620px] px-2 py-6">
       <div className="relative w-full" style={{ aspectRatio: "200 / 170" }}>
         {/* Dotted white-line geometry of the logo (drawn in brand blue).
             Choreography: the cloud DRAWS itself → avatars pop as the stroke
@@ -228,9 +230,9 @@ const CloudLogoVisualization = () => {
               id="yc-figure-grad"
               gradientUnits="userSpaceOnUse"
               x1="100"
-              y1="70"
+              y1="64"
               x2="100"
-              y2="130"
+              y2="132"
             >
               <stop offset="0%" style={{ stopColor: "hsl(var(--blue-300))" }} />
               <stop offset="100%" style={{ stopColor: "hsl(var(--primary))" }} />
@@ -275,7 +277,7 @@ const CloudLogoVisualization = () => {
                 <motion.path
                   d={arm.d}
                   stroke="url(#yc-figure-grad)"
-                  strokeWidth="3"
+                  strokeWidth="3.2"
                   strokeLinecap="round"
                   initial={reduce ? undefined : { pathLength: 0, opacity: 0 }}
                   whileInView={reduce ? undefined : { pathLength: 1, opacity: 1 }}
@@ -302,7 +304,7 @@ const CloudLogoVisualization = () => {
                 <motion.path
                   d={leg.d}
                   stroke="url(#yc-figure-grad)"
-                  strokeWidth="3"
+                  strokeWidth="3.2"
                   strokeLinecap="round"
                   initial={reduce ? undefined : { pathLength: 0, opacity: 0 }}
                   whileInView={reduce ? undefined : { pathLength: 1, opacity: 1 }}
@@ -315,10 +317,10 @@ const CloudLogoVisualization = () => {
             {/* head — springs in, then pings like a beacon (rides the hop) */}
             <motion.circle
               cx="100"
-              cy="78"
+              cy="74.5"
               fill="hsl(var(--primary))"
-              initial={reduce ? { r: 5.5, opacity: 0.9 } : { r: 0, opacity: 0 }}
-              whileInView={reduce ? undefined : { r: [0, 7.2, 5.5], opacity: 0.9 }}
+              initial={reduce ? { r: 6, opacity: 0.9 } : { r: 0, opacity: 0 }}
+              whileInView={reduce ? undefined : { r: [0, 7.6, 6], opacity: 0.9 }}
               viewport={{ once: true, amount: 0.35 }}
               transition={{ delay: 2.15, duration: 0.55, ease: "easeOut" }}
             />
@@ -327,12 +329,12 @@ const CloudLogoVisualization = () => {
                 <motion.circle
                   key={`ping-${offset}`}
                   cx="100"
-                  cy="78"
+                  cy="74.5"
                   r="6"
                   stroke="hsl(var(--primary) / 0.5)"
                   strokeWidth="1"
                   initial={{ opacity: 0 }}
-                  whileInView={{ r: [6, 17], opacity: [0.55, 0] }}
+                  whileInView={{ r: [6.5, 18], opacity: [0.55, 0] }}
                   viewport={{ once: true, amount: 0.35 }}
                   transition={{
                     delay: 2.7 + offset,
