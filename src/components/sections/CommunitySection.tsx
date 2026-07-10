@@ -162,7 +162,10 @@ const CloudLogoVisualization = () => {
   return (
     <div className="relative mx-auto w-full max-w-[560px] px-2 py-6">
       <div className="relative w-full" style={{ aspectRatio: "200 / 170" }}>
-        {/* Dotted white-line geometry of the logo (drawn in brand blue) */}
+        {/* Dotted white-line geometry of the logo (drawn in brand blue).
+            Choreography: the cloud DRAWS itself → avatars pop as the stroke
+            passes them → figure draws in → head springs + radar pings →
+            idle life: dots flow around the line, a comet orbits forever. */}
         <svg
           viewBox="0 0 200 170"
           className="absolute inset-0 h-full w-full"
@@ -171,25 +174,109 @@ const CloudLogoVisualization = () => {
         >
           {/* faint continuous guide under the dots */}
           <path d={CLOUD_PATH} stroke="hsl(var(--primary) / 0.12)" strokeWidth="1" />
-          <path
-            d={CLOUD_PATH}
-            stroke="hsl(var(--primary) / 0.55)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray="0.1 5.5"
-          />
-          {FIGURE_PATHS.map((d) => (
-            <path
+
+          {/* the cloud outline draws itself on scroll, then hands off to the dots */}
+          {!reduce && (
+            <motion.path
+              d={CLOUD_PATH}
+              stroke="hsl(var(--primary) / 0.75)"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 1 }}
+              whileInView={{ pathLength: 1, opacity: 0 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{
+                pathLength: { duration: 2.2, ease: "linear" },
+                opacity: { delay: 2.3, duration: 0.9 },
+              }}
+            />
+          )}
+
+          {/* dotted logo line — fades in as the draw completes, then flows
+              slowly around the cloud (seamless: offset cycle = dash cycle) */}
+          <motion.g
+            initial={reduce ? undefined : { opacity: 0 }}
+            whileInView={reduce ? undefined : { opacity: 1 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ delay: 1.9, duration: 1 }}
+          >
+            <motion.path
+              d={CLOUD_PATH}
+              stroke="hsl(var(--primary) / 0.55)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeDasharray="0.1 5.5"
+              animate={reduce ? undefined : { strokeDashoffset: [0, -5.6] }}
+              transition={
+                reduce
+                  ? undefined
+                  : { duration: 2.8, ease: "linear", repeat: Infinity }
+              }
+            />
+          </motion.g>
+
+          {/* the cheering-Yatri figure draws in: arms, then legs */}
+          {FIGURE_PATHS.map((d, i) => (
+            <motion.path
               key={d}
               d={d}
-              stroke="hsl(var(--primary) / 0.65)"
-              strokeWidth="2.4"
+              stroke="hsl(var(--primary) / 0.7)"
+              strokeWidth="3"
               strokeLinecap="round"
-              strokeDasharray="0.1 5"
+              initial={reduce ? undefined : { pathLength: 0, opacity: 0 }}
+              whileInView={reduce ? undefined : { pathLength: 1, opacity: 1 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ delay: 1.4 + i * 0.18, duration: 0.55, ease: "easeOut" }}
             />
           ))}
-          {/* head of the cheering Yatri */}
-          <circle cx="100" cy="78" r="5.5" fill="hsl(var(--primary))" opacity="0.9" />
+
+          {/* head of the cheering Yatri — springs in, then pings like a beacon */}
+          <motion.circle
+            cx="100"
+            cy="78"
+            fill="hsl(var(--primary))"
+            initial={reduce ? { r: 5.5, opacity: 0.9 } : { r: 0, opacity: 0 }}
+            whileInView={reduce ? undefined : { r: [0, 7.2, 5.5], opacity: 0.9 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ delay: 2.15, duration: 0.55, ease: "easeOut" }}
+          />
+          {!reduce &&
+            [0, 1.4].map((offset) => (
+              <motion.circle
+                key={`ping-${offset}`}
+                cx="100"
+                cy="78"
+                r="6"
+                stroke="hsl(var(--primary) / 0.5)"
+                strokeWidth="1"
+                initial={{ opacity: 0 }}
+                whileInView={{ r: [6, 17], opacity: [0.55, 0] }}
+                viewport={{ once: true, amount: 0.35 }}
+                transition={{
+                  delay: 2.7 + offset,
+                  duration: 2.8,
+                  ease: "easeOut",
+                  repeat: Infinity,
+                }}
+              />
+            ))}
+
+          {/* a glowing comet orbits the cloud line forever */}
+          {!reduce && (
+            <motion.g
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ delay: 2.5, duration: 0.8 }}
+            >
+              <circle r="5" fill="hsl(var(--primary) / 0.2)">
+                <animateMotion dur="11s" repeatCount="indefinite" path={CLOUD_PATH} />
+              </circle>
+              <circle r="1.9" fill="hsl(var(--primary))">
+                <animateMotion dur="11s" repeatCount="indefinite" path={CLOUD_PATH} />
+              </circle>
+            </motion.g>
+          )}
         </svg>
 
         {/* Member avatars riding the cloud outline */}
@@ -208,6 +295,19 @@ const CloudLogoVisualization = () => {
               e.currentTarget.style.zIndex = "10";
             }}
           >
+            {/* entrance: pop in exactly as the drawing stroke reaches this spot
+                (draw = 2.2s linear over the closed path; spot i sits at (i+0.5)/10) */}
+            <motion.div
+              initial={reduce ? undefined : { scale: 0, opacity: 0 }}
+              whileInView={reduce ? undefined : { scale: 1, opacity: 1 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{
+                delay: 0.11 + i * 0.22,
+                type: "spring",
+                stiffness: 260,
+                damping: 16,
+              }}
+            >
             <motion.div
               animate={reduce ? undefined : { y: [0, -4, 0] }}
               transition={
@@ -241,6 +341,7 @@ const CloudLogoVisualization = () => {
                   }}
                 />
               </motion.div>
+            </motion.div>
             </motion.div>
           </div>
         ))}
