@@ -401,7 +401,7 @@ const CloudLogoVisualization = () => {
         {AVATAR_SPOTS.map((spot, i) => (
           <div
             key={`profile-${i}`}
-            className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+            className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
             style={{
               left: `${(spot.x / 200) * 100}%`,
               top: `${(spot.y / 170) * 100}%`,
