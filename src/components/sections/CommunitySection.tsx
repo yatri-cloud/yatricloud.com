@@ -160,20 +160,9 @@ const spotsAlongOutline = (pts: Pt[], n: number): Pt[] => {
   return out;
 };
 
-// Nudge each avatar outward from the cloud's visual center so the photo
-// chips ride the line from OUTSIDE it — keeps the interior (and the
-// cheering figure) clear and puts air between neighboring chips.
-const CLOUD_CENTER = { x: 100, y: 103 };
-const pushOut = (p: Pt, dist = 7): Pt => {
-  const dx = p.x - CLOUD_CENTER.x;
-  const dy = p.y - CLOUD_CENTER.y;
-  const len = Math.hypot(dx, dy) || 1;
-  return { x: p.x + (dx / len) * dist, y: p.y + (dy / len) * dist };
-};
-
-const AVATAR_SPOTS = spotsAlongOutline(CLOUD_OUTLINE, profilePictures.length).map(
-  (p) => pushOut(p)
-);
+// Avatar centers sit EXACTLY on the outline — the chips are beads on the
+// logo's line. Spacing comes from the canvas size, not from nudging.
+const AVATAR_SPOTS = spotsAlongOutline(CLOUD_OUTLINE, profilePictures.length);
 
 // The Yatri Cloud logo drawn in community members — dotted cloud outline +
 // figure, with member avatars riding the cloud line. Pure presentation.
@@ -181,7 +170,7 @@ const CloudLogoVisualization = () => {
   const reduce = useReducedMotion();
 
   return (
-    <div className="relative mx-auto w-full max-w-[620px] px-2 py-6">
+    <div className="relative mx-auto w-full max-w-[680px] px-2 py-6">
       <div className="relative w-full" style={{ aspectRatio: "200 / 170" }}>
         {/* Dotted white-line geometry of the logo (drawn in brand blue).
             Choreography: the cloud DRAWS itself → avatars pop as the stroke
@@ -451,7 +440,7 @@ const CloudLogoVisualization = () => {
               }
             >
               <motion.div
-                className="h-9 w-9 sm:h-12 sm:w-12 rounded-full border-2 border-primary/50 bg-background overflow-hidden shadow-lg"
+                className="h-11 w-11 sm:h-14 sm:w-14 rounded-full border-2 border-primary/50 bg-background overflow-hidden shadow-lg"
                 whileHover={{ scale: 1.25 }}
                 transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
               >
