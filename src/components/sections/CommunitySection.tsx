@@ -3,7 +3,6 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
 import Marquee from "@/components/Marquee";
-import { useEffect, useRef } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   useSiteContent,
@@ -31,177 +30,221 @@ const profilePictures = [
   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces",
 ];
 
-// Generate sphere points
-const generateSpherePoints = (count: number, radius: number) => {
-  const points = [];
-  for (let i = 0; i < count; i++) {
-    const theta = (Math.PI * 2 * i) / count;
-    const phi = Math.acos(-1 + (2 * i) / count);
-    const x = Math.cos(theta) * Math.sin(phi) * radius;
-    const y = Math.sin(theta) * Math.sin(phi) * radius;
-    const z = Math.cos(phi) * radius;
-    points.push({ x, y, z, theta, phi });
-  }
-  return points;
+// ——— Yatri Cloud logo shape — the community visual traces the WHITE LINES
+// of the logo (three overlapping cloud lobes + flat base + the cheering-Yatri
+// figure inside), NOT the outer blue disc. All geometry lives in a 200×170
+// design box and renders as percentages so it scales with its container.
+
+type Pt = { x: number; y: number };
+
+const LOBES = {
+  left: { cx: 62, cy: 108, r: 26 },
+  mid: { cx: 100, cy: 82, r: 36 },
+  right: { cx: 138, cy: 108, r: 26 },
+};
+const BASE_Y = 134; // flat bottom of the cloud (= left/right lobe bottoms)
+
+// Upper intersection of two lobes — the visible seam on the cloud outline
+const upperIntersection = (
+  a: { cx: number; cy: number; r: number },
+  b: { cx: number; cy: number; r: number }
+): Pt => {
+  const dx = b.cx - a.cx;
+  const dy = b.cy - a.cy;
+  const d = Math.hypot(dx, dy);
+  const l = (a.r * a.r - b.r * b.r + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(a.r * a.r - l * l, 0));
+  const px = a.cx + (l * dx) / d;
+  const py = a.cy + (l * dy) / d;
+  const p1 = { x: px + (h * dy) / d, y: py - (h * dx) / d };
+  const p2 = { x: px - (h * dy) / d, y: py + (h * dx) / d };
+  return p1.y < p2.y ? p1 : p2;
 };
 
-// Globe component with 3D effect
-const GlobeVisualization = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dots = generateSpherePoints(80, 150);
-  const profiles = generateSpherePoints(profilePictures.length, 150);
+const angleOn = (c: { cx: number; cy: number }, p: Pt) =>
+  Math.atan2(p.y - c.cy, p.x - c.cx);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+// Keep sweeping forward (clockwise on screen) past the previous angle
+const unwrapAfter = (angle: number, after: number) => {
+  let a = angle;
+  while (a <= after) a += Math.PI * 2;
+  return a;
+};
 
-    let angle = 0;
-    const animate = () => {
-      angle += 0.005;
-      if (container) {
-        container.style.transform = `rotateY(${angle}rad) rotateX(0.2rad)`;
-      }
-      requestAnimationFrame(animate);
-    };
-    animate();
-  }, []);
-
-  // Generate connections between nearby profiles
-  const connections = [];
-  for (let i = 0; i < profiles.length; i++) {
-    for (let j = i + 1; j < profiles.length; j++) {
-      const dx = profiles[i].x - profiles[j].x;
-      const dy = profiles[i].y - profiles[j].y;
-      const dz = profiles[i].z - profiles[j].z;
-      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (distance < 200) {
-        connections.push({ from: profiles[i], to: profiles[j] });
-      }
-    }
+const sampleArc = (
+  c: { cx: number; cy: number; r: number },
+  from: number,
+  to: number,
+  steps: number
+): Pt[] => {
+  const pts: Pt[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = from + ((to - from) * i) / steps;
+    pts.push({ x: c.cx + c.r * Math.cos(t), y: c.cy + c.r * Math.sin(t) });
   }
+  return pts;
+};
+
+// Dense closed polyline of the cloud outline, walked from the bottom-left
+// corner: up the left lobe → over the crown → down the right lobe → flat base.
+const buildCloudOutline = (): Pt[] => {
+  const seamL = upperIntersection(LOBES.left, LOBES.mid);
+  const seamR = upperIntersection(LOBES.mid, LOBES.right);
+  const midStart = unwrapAfter(angleOn(LOBES.mid, seamL), Math.PI / 2);
+  const rightStart = unwrapAfter(angleOn(LOBES.right, seamR), Math.PI);
+  const pts: Pt[] = [
+    ...sampleArc(
+      LOBES.left,
+      Math.PI / 2,
+      unwrapAfter(angleOn(LOBES.left, seamL), Math.PI / 2),
+      22
+    ),
+    ...sampleArc(
+      LOBES.mid,
+      midStart,
+      unwrapAfter(angleOn(LOBES.mid, seamR), midStart),
+      30
+    ),
+    ...sampleArc(LOBES.right, rightStart, unwrapAfter(Math.PI / 2, rightStart), 22),
+  ];
+  const baseSteps = 12;
+  const xStart = LOBES.right.cx;
+  const xEnd = LOBES.left.cx;
+  for (let i = 1; i <= baseSteps; i++) {
+    pts.push({ x: xStart + ((xEnd - xStart) * i) / baseSteps, y: BASE_Y });
+  }
+  return pts;
+};
+
+const CLOUD_OUTLINE = buildCloudOutline();
+
+const CLOUD_PATH =
+  CLOUD_OUTLINE.map(
+    (p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`
+  ).join(" ") + " Z";
+
+// The cheering-Yatri figure inside the cloud (V arms + twin legs; head is a dot)
+const FIGURE_PATHS = [
+  "M 78 86 L 97 105", // left arm
+  "M 122 86 L 103 105", // right arm
+  "M 94 110 L 94 129", // left leg
+  "M 106 110 L 106 129", // right leg
+];
+
+// Evenly space n points along the closed outline (by arc length)
+const spotsAlongOutline = (pts: Pt[], n: number): Pt[] => {
+  const cum: number[] = [0];
+  for (let i = 1; i < pts.length; i++) {
+    cum.push(cum[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+  }
+  const total = cum[cum.length - 1];
+  const out: Pt[] = [];
+  let seg = 1;
+  for (let k = 0; k < n; k++) {
+    const target = ((k + 0.5) / n) * total;
+    while (seg < pts.length - 1 && cum[seg] < target) seg++;
+    const t = (target - cum[seg - 1]) / (cum[seg] - cum[seg - 1] || 1);
+    out.push({
+      x: pts[seg - 1].x + (pts[seg].x - pts[seg - 1].x) * t,
+      y: pts[seg - 1].y + (pts[seg].y - pts[seg - 1].y) * t,
+    });
+  }
+  return out;
+};
+
+const AVATAR_SPOTS = spotsAlongOutline(CLOUD_OUTLINE, profilePictures.length);
+
+// The Yatri Cloud logo drawn in community members — dotted cloud outline +
+// figure, with member avatars riding the cloud line. Pure presentation.
+const CloudLogoVisualization = () => {
+  const reduce = useReducedMotion();
 
   return (
-    <div className="relative w-full h-[500px] md:h-[600px] flex items-center justify-center overflow-hidden" style={{ perspective: '1200px', boxShadow: 'none' }}>
-      <div
-        ref={containerRef}
-        className="relative w-[300px] h-[300px] mx-auto"
-        style={{
-          transformStyle: 'preserve-3d',
-        }}
-      >
-        {/* Connection lines between profiles */}
-        {connections.map((conn, i) => {
-          const midX = (conn.from.x + conn.to.x) / 2;
-          const midY = (conn.from.y + conn.to.y) / 2;
-          const midZ = (conn.from.z + conn.to.z) / 2;
-          const length = Math.sqrt(
-            Math.pow(conn.to.x - conn.from.x, 2) +
-            Math.pow(conn.to.y - conn.from.y, 2) +
-            Math.pow(conn.to.z - conn.from.z, 2)
-          );
-          const angle = Math.atan2(conn.to.y - conn.from.y, conn.to.x - conn.from.x);
-          const angleZ = Math.atan2(
-            Math.sqrt(Math.pow(conn.to.x - conn.from.x, 2) + Math.pow(conn.to.y - conn.from.y, 2)),
-            conn.to.z - conn.from.z
-          );
-
-          return (
-            <div
-              key={`conn-${i}`}
-              className="absolute border-t border-primary/30"
-              style={{
-                left: '50%',
-                top: '50%',
-                width: `${length}px`,
-                height: '1px',
-                transformOrigin: 'left center',
-                transform: `translate3d(${conn.from.x}px, ${conn.from.y}px, ${conn.from.z}px) rotateZ(${angle}rad) rotateY(${angleZ}rad)`,
-                opacity: 0.3,
-              }}
-            />
-          );
-        })}
-
-        {/* Dots */}
-        {dots.map((dot, i) => (
-          <div
-            key={`dot-${i}`}
-            className="absolute w-1 h-1 bg-primary/60 rounded-full"
-            style={{
-              left: '50%',
-              top: '50%',
-              transform: `translate3d(${dot.x - 2}px, ${dot.y - 2}px, ${dot.z}px)`,
-              boxShadow: dot.z > 0 ? '0 0 4px rgba(0, 124, 255, 0.5)' : 'none',
-            }}
+    <div className="relative mx-auto w-full max-w-[560px] px-2 py-6">
+      <div className="relative w-full" style={{ aspectRatio: "200 / 170" }}>
+        {/* Dotted white-line geometry of the logo (drawn in brand blue) */}
+        <svg
+          viewBox="0 0 200 170"
+          className="absolute inset-0 h-full w-full"
+          fill="none"
+          aria-hidden
+        >
+          {/* faint continuous guide under the dots */}
+          <path d={CLOUD_PATH} stroke="hsl(var(--primary) / 0.12)" strokeWidth="1" />
+          <path
+            d={CLOUD_PATH}
+            stroke="hsl(var(--primary) / 0.55)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeDasharray="0.1 5.5"
           />
-        ))}
-        
-        {/* Profile pictures */}
-        {profiles.map((profile, i) => (
+          {FIGURE_PATHS.map((d) => (
+            <path
+              key={d}
+              d={d}
+              stroke="hsl(var(--primary) / 0.65)"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeDasharray="0.1 5"
+            />
+          ))}
+          {/* head of the cheering Yatri */}
+          <circle cx="100" cy="78" r="5.5" fill="hsl(var(--primary))" opacity="0.9" />
+        </svg>
+
+        {/* Member avatars riding the cloud outline */}
+        {AVATAR_SPOTS.map((spot, i) => (
           <div
             key={`profile-${i}`}
-            className="absolute cursor-pointer"
+            className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
             style={{
-              left: '50%',
-              top: '50%',
-              transform: `translate3d(${profile.x - 28}px, ${profile.y - 28}px, ${profile.z}px)`,
-              zIndex: profile.z > 0 ? 10 : 5,
-              transformStyle: 'preserve-3d',
+              left: `${(spot.x / 200) * 100}%`,
+              top: `${(spot.y / 170) * 100}%`,
             }}
             onMouseEnter={(e) => {
-              const element = e.currentTarget;
-              element.style.zIndex = '9999';
+              e.currentTarget.style.zIndex = "50";
             }}
             onMouseLeave={(e) => {
-              const element = e.currentTarget;
-              element.style.zIndex = profile.z > 0 ? '10' : '5';
+              e.currentTarget.style.zIndex = "10";
             }}
           >
             <motion.div
-              className="w-14 h-14 rounded-full border-2 border-primary/50 overflow-hidden shadow-lg"
-              whileHover={{ 
-                scale: 1.3,
-              }}
-              transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
-              style={{
-                transformOrigin: 'center center',
-              }}
+              animate={reduce ? undefined : { y: [0, -4, 0] }}
+              transition={
+                reduce
+                  ? undefined
+                  : {
+                      duration: 4 + (i % 3),
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: i * 0.35,
+                    }
+              }
             >
-              <img
-                src={profilePictures[i % profilePictures.length]}
-                alt={`Community member ${i + 1}`}
-                width={56}
-                height={56}
-                loading="lazy"
-                decoding="async"
-                className="w-full h-full object-cover pointer-events-none select-none"
-                draggable={false}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = `https://ui-avatars.com/api/?name=User+${i + 1}&background=007CFF&color=fff&size=128`;
-                }}
-              />
-              {/* Glow effect */}
-              <div 
-                className="absolute inset-0 rounded-full pointer-events-none"
-                style={{
-                  boxShadow: profile.z > 0 
-                    ? `0 0 20px rgba(0, 124, 255, 0.4), inset 0 0 20px rgba(0, 124, 255, 0.1)` 
-                    : 'none',
-                }}
-              />
+              <motion.div
+                className="h-10 w-10 sm:h-14 sm:w-14 rounded-full border-2 border-primary/50 bg-background overflow-hidden shadow-lg"
+                whileHover={{ scale: 1.25 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
+              >
+                <img
+                  src={profilePictures[i % profilePictures.length]}
+                  alt={`Community member ${i + 1}`}
+                  width={56}
+                  height={56}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover pointer-events-none select-none"
+                  draggable={false}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `https://ui-avatars.com/api/?name=User+${i + 1}&background=007CFF&color=fff&size=128`;
+                  }}
+                />
+              </motion.div>
             </motion.div>
           </div>
         ))}
       </div>
-      
-      {/* Blur effect on the left side for depth - only in dark mode */}
-      <div 
-        className="absolute inset-0 pointer-events-none dark:block hidden"
-        style={{
-          background: 'radial-gradient(circle at 30% 50%, transparent 0%, rgba(0, 0, 0, 0.3) 40%, transparent 70%)',
-        }}
-      />
     </div>
   );
 };
@@ -302,12 +345,12 @@ export const CommunitySection = () => {
             </ScrollReveal>
           </div>
 
-          {/* Globe Visualization */}
+          {/* Yatri Cloud logo shape drawn in community members */}
           <ScrollReveal delay={0.4}>
             <div className="mt-16 relative">
               {/* Soft blue glow behind photos */}
               <div className="absolute inset-0 bg-primary/5 rounded-3xl blur-2xl -z-10" />
-              <GlobeVisualization />
+              <CloudLogoVisualization />
             </div>
           </ScrollReveal>
         </div>

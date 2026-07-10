@@ -356,7 +356,7 @@ Motion is a **first-class deliverable** here (awwwards / motionsites energy) —
 | HomeReviews | **3-column vertical infinite** testimonial wall (opposite speeds, fade mask) |
 | Instructor | Editorial lead + **parallax portrait** + avatar filmstrip + hover bios |
 | FAQ | **Sticky-split** (sticky left heading+CTA) + rotating `+`→`×` accordion |
-| Community | **Light-blue band** — kinetic statement + dotted grid + breathing glow + **3D globe** of member avatars + checkmark benefits + logo marquees |
+| Community | **Light-blue band** — kinetic statement + dotted grid + breathing glow + **Yatri Cloud logo drawn in members**: dotted cloud outline (3 lobes + flat base, computed arcs in a 200×170 box) with the cheering-Yatri figure (dashed V arms + twin legs + solid head dot) inside, member avatars evenly spaced along the cloud line (gentle staggered float, hover scale) — NO outer circle/globe + checkmark benefits + logo marquees |
 | Footer | **Light finale** — soft-blue aurora, dotted texture, blue seam, multi-column links, and a **blue-statement block**: the tagline "Focus on learning, not the price tag." over a giant **width-fitted** soft-blue "Yatri Cloud" wordmark backdrop (white bg, no black). Wordmark uses `text-[12.5vw] w-full` so it never clips. |
 
 **Reusable "blue-statement" pattern:** a headline sitting over a large soft-blue watermark/word backdrop on white — user likes this blue-on-white look; OK to reuse in other sections for more blue presence (they want mostly white with blue moments). Always fit big display text with `w-full text-[≤13vw] whitespace-nowrap` so it doesn't clip.
