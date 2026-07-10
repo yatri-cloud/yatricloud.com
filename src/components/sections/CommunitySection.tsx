@@ -130,8 +130,8 @@ const CLOUD_PATH =
 // Proportions match the logo: wide V arms with the head nested in the notch,
 // legs reaching toward the cloud base.
 const FIGURE_ARMS = [
-  { d: "M 79 80 L 98 101", spark: "M 98 101 L 79 80", originX: 1, wave: 7 },
-  { d: "M 121 80 L 102 101", spark: "M 102 101 L 121 80", originX: 0, wave: -7 },
+  { d: "M 85 86.5 L 98 101", spark: "M 98 101 L 85 86.5", originX: 1, wave: 7 },
+  { d: "M 115 86.5 L 102 101", spark: "M 102 101 L 115 86.5", originX: 0, wave: -7 },
 ];
 // kick = mirrored outward swing around the hip (originY 0 = top of the leg)
 const FIGURE_LEGS = [
