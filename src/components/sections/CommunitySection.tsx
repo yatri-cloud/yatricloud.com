@@ -123,12 +123,17 @@ const CLOUD_PATH =
     (p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`
   ).join(" ") + " Z";
 
-// The cheering-Yatri figure inside the cloud (V arms + twin legs; head is a dot)
-const FIGURE_PATHS = [
-  "M 78 86 L 97 105", // left arm
-  "M 122 86 L 103 105", // right arm
-  "M 94 110 L 94 129", // left leg
-  "M 106 110 L 106 129", // right leg
+// The cheering-Yatri figure inside the cloud (V arms + twin legs; head is a
+// dot). Arms carry a wave rotation around their junction end (transform-box:
+// fill-box makes the % origin land exactly on the junction); spark paths run
+// the opposite way so energy travels junction → tip / ground → hip.
+const FIGURE_ARMS = [
+  { d: "M 83 84 L 98 101", spark: "M 98 101 L 83 84", origin: "100% 100%", wave: 7 },
+  { d: "M 117 84 L 102 101", spark: "M 102 101 L 117 84", origin: "0% 100%", wave: -7 },
+];
+const FIGURE_LEGS = [
+  { d: "M 94.5 108 L 94.5 128", spark: "M 94.5 128 L 94.5 108" },
+  { d: "M 105.5 108 L 105.5 128", spark: "M 105.5 128 L 105.5 108" },
 ];
 
 // Evenly space n points along the closed outline (by arc length)
@@ -215,51 +220,131 @@ const CloudLogoVisualization = () => {
             />
           </motion.g>
 
-          {/* the cheering-Yatri figure draws in: arms, then legs */}
-          {FIGURE_PATHS.map((d, i) => (
-            <motion.path
-              key={d}
-              d={d}
-              stroke="hsl(var(--primary) / 0.7)"
-              strokeWidth="3"
-              strokeLinecap="round"
-              initial={reduce ? undefined : { pathLength: 0, opacity: 0 }}
-              whileInView={reduce ? undefined : { pathLength: 1, opacity: 1 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ delay: 1.4 + i * 0.18, duration: 0.55, ease: "easeOut" }}
-            />
-          ))}
+          <defs>
+            <linearGradient id="yc-figure-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" style={{ stopColor: "hsl(var(--blue-300))" }} />
+              <stop offset="100%" style={{ stopColor: "hsl(var(--primary))" }} />
+            </linearGradient>
+          </defs>
 
-          {/* head of the cheering Yatri — springs in, then pings like a beacon */}
-          <motion.circle
-            cx="100"
-            cy="78"
-            fill="hsl(var(--primary))"
-            initial={reduce ? { r: 5.5, opacity: 0.9 } : { r: 0, opacity: 0 }}
-            whileInView={reduce ? undefined : { r: [0, 7.2, 5.5], opacity: 0.9 }}
+          {/* the cheering-Yatri figure — draws in, then comes ALIVE:
+              the whole figure hops while both arms wave outward (a cheer),
+              and energy sparks run up the legs and out along the arms */}
+          <motion.g
+            initial={reduce ? undefined : { y: 0 }}
+            whileInView={reduce ? undefined : { y: [0, -3, 0] }}
             viewport={{ once: true, amount: 0.35 }}
-            transition={{ delay: 2.15, duration: 0.55, ease: "easeOut" }}
-          />
-          {!reduce &&
-            [0, 1.4].map((offset) => (
-              <motion.circle
-                key={`ping-${offset}`}
-                cx="100"
-                cy="78"
-                r="6"
-                stroke="hsl(var(--primary) / 0.5)"
-                strokeWidth="1"
-                initial={{ opacity: 0 }}
-                whileInView={{ r: [6, 17], opacity: [0.55, 0] }}
+            transition={{
+              delay: 3.4,
+              duration: 2,
+              ease: "easeInOut",
+              repeat: Infinity,
+              repeatDelay: 1.2,
+            }}
+          >
+            {FIGURE_ARMS.map((arm, i) => (
+              <motion.g
+                key={arm.d}
+                style={{ transformBox: "fill-box", transformOrigin: arm.origin }}
+                initial={reduce ? undefined : { rotate: 0 }}
+                whileInView={reduce ? undefined : { rotate: [0, arm.wave, 0] }}
                 viewport={{ once: true, amount: 0.35 }}
                 transition={{
-                  delay: 2.7 + offset,
-                  duration: 2.8,
-                  ease: "easeOut",
+                  delay: 3.4,
+                  duration: 2,
+                  ease: "easeInOut",
                   repeat: Infinity,
+                  repeatDelay: 1.2,
                 }}
+              >
+                <motion.path
+                  d={arm.d}
+                  stroke="url(#yc-figure-grad)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  initial={reduce ? undefined : { pathLength: 0, opacity: 0 }}
+                  whileInView={reduce ? undefined : { pathLength: 1, opacity: 1 }}
+                  viewport={{ once: true, amount: 0.35 }}
+                  transition={{ delay: 1.4 + i * 0.18, duration: 0.55, ease: "easeOut" }}
+                />
+              </motion.g>
+            ))}
+            {FIGURE_LEGS.map((leg, i) => (
+              <motion.path
+                key={leg.d}
+                d={leg.d}
+                stroke="url(#yc-figure-grad)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                initial={reduce ? undefined : { pathLength: 0, opacity: 0 }}
+                whileInView={reduce ? undefined : { pathLength: 1, opacity: 1 }}
+                viewport={{ once: true, amount: 0.35 }}
+                transition={{ delay: 1.75 + i * 0.18, duration: 0.55, ease: "easeOut" }}
               />
             ))}
+
+            {/* head — springs in, then pings like a beacon (rides the hop) */}
+            <motion.circle
+              cx="100"
+              cy="78"
+              fill="hsl(var(--primary))"
+              initial={reduce ? { r: 5.5, opacity: 0.9 } : { r: 0, opacity: 0 }}
+              whileInView={reduce ? undefined : { r: [0, 7.2, 5.5], opacity: 0.9 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ delay: 2.15, duration: 0.55, ease: "easeOut" }}
+            />
+            {!reduce &&
+              [0, 1.4].map((offset) => (
+                <motion.circle
+                  key={`ping-${offset}`}
+                  cx="100"
+                  cy="78"
+                  r="6"
+                  stroke="hsl(var(--primary) / 0.5)"
+                  strokeWidth="1"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ r: [6, 17], opacity: [0.55, 0] }}
+                  viewport={{ once: true, amount: 0.35 }}
+                  transition={{
+                    delay: 2.7 + offset,
+                    duration: 2.8,
+                    ease: "easeOut",
+                    repeat: Infinity,
+                  }}
+                />
+              ))}
+
+            {/* energy sparks: rise up the legs, burst out along the arms */}
+            {!reduce && (
+              <motion.g
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, amount: 0.35 }}
+                transition={{ delay: 3.2, duration: 0.6 }}
+              >
+                {[
+                  ...FIGURE_LEGS.map((leg, i) => ({ path: leg.spark, begin: i * 0.4 })),
+                  ...FIGURE_ARMS.map((arm, i) => ({ path: arm.spark, begin: 0.8 + i * 0.4 })),
+                ].map((spark) => (
+                  <circle key={spark.path} r="1.4" fill="hsl(var(--primary))" opacity="0">
+                    <animateMotion
+                      dur="1.6s"
+                      begin={`${spark.begin}s`}
+                      repeatCount="indefinite"
+                      path={spark.path}
+                    />
+                    <animate
+                      attributeName="opacity"
+                      values="0;0.9;0"
+                      dur="1.6s"
+                      begin={`${spark.begin}s`}
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                ))}
+              </motion.g>
+            )}
+          </motion.g>
 
           {/* a glowing comet orbits the cloud line forever */}
           {!reduce && (
