@@ -3,10 +3,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CalendlyPopup } from "@/components/CalendlyPopup";
-import { CartProvider } from "@/contexts/CartContext";
+import { CartProvider, useCart } from "@/contexts/CartContext";
 import Index from "./pages/Index";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
@@ -101,6 +101,29 @@ const AdminTrainingReviews = lazy(() => import("./pages/admin/AdminTrainingRevie
 const AdminMentorshipOverview = lazy(() => import("./pages/admin/AdminMentorshipOverview"));
 const TrainerCreateCourse = lazy(() => import("@/pages/trainer/TrainerCreateCourse"));
 const queryClient = new QueryClient();
+
+// Floating checkout pill: mounts only when the cart has items, and stays off
+// surfaces that carry their own cart UI (store) or aren't shopping (admin,
+// trainer). Lazy so the checkout sheet code never touches the entry bundle.
+const FloatingCart = lazy(() => import("@/components/store/FloatingCart"));
+
+const FloatingCartGate = () => {
+  const { totalItems } = useCart();
+  const { pathname } = useLocation();
+  if (
+    totalItems === 0 ||
+    pathname === "/yatristore" ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/trainer")
+  ) {
+    return null;
+  }
+  return (
+    <Suspense fallback={null}>
+      <FloatingCart />
+    </Suspense>
+  );
+};
 
 /** Shown for the instant a lazy route chunk is fetched. */
 const PageLoader = () => (
@@ -237,6 +260,7 @@ const App = () => (
             </Routes>
             </Suspense>
             <CalendlyPopup />
+            <FloatingCartGate />
           </BrowserRouter>
         </CartProvider>
       </TooltipProvider>
