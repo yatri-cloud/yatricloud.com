@@ -128,12 +128,13 @@ const CLOUD_PATH =
 // fill-box makes the % origin land exactly on the junction); spark paths run
 // the opposite way so energy travels junction → tip / ground → hip.
 const FIGURE_ARMS = [
-  { d: "M 83 84 L 98 101", spark: "M 98 101 L 83 84", origin: "100% 100%", wave: 7 },
-  { d: "M 117 84 L 102 101", spark: "M 102 101 L 117 84", origin: "0% 100%", wave: -7 },
+  { d: "M 83 84 L 98 101", spark: "M 98 101 L 83 84", originX: 1, wave: 7 },
+  { d: "M 117 84 L 102 101", spark: "M 102 101 L 117 84", originX: 0, wave: -7 },
 ];
+// kick = mirrored outward swing around the hip (transformOrigin "50% 0%")
 const FIGURE_LEGS = [
-  { d: "M 94.5 108 L 94.5 128", spark: "M 94.5 128 L 94.5 108" },
-  { d: "M 105.5 108 L 105.5 128", spark: "M 105.5 128 L 105.5 108" },
+  { d: "M 94.5 108 L 94.5 128", spark: "M 94.5 128 L 94.5 108", kick: -8 },
+  { d: "M 105.5 108 L 105.5 128", spark: "M 105.5 128 L 105.5 108", kick: 8 },
 ];
 
 // Evenly space n points along the closed outline (by arc length)
@@ -221,7 +222,16 @@ const CloudLogoVisualization = () => {
           </motion.g>
 
           <defs>
-            <linearGradient id="yc-figure-grad" x1="0" y1="0" x2="0" y2="1">
+            {/* userSpaceOnUse is REQUIRED: bounding-box gradients collapse on
+                zero-width shapes, which made the vertical legs render nothing */}
+            <linearGradient
+              id="yc-figure-grad"
+              gradientUnits="userSpaceOnUse"
+              x1="100"
+              y1="70"
+              x2="100"
+              y2="130"
+            >
               <stop offset="0%" style={{ stopColor: "hsl(var(--blue-300))" }} />
               <stop offset="100%" style={{ stopColor: "hsl(var(--primary))" }} />
             </linearGradient>
@@ -245,7 +255,12 @@ const CloudLogoVisualization = () => {
             {FIGURE_ARMS.map((arm, i) => (
               <motion.g
                 key={arm.d}
-                style={{ transformBox: "fill-box", transformOrigin: arm.origin }}
+                style={{
+                  transformBox: "fill-box",
+                  // framer overwrites transform-origin — set it via originX/Y
+                  originX: arm.originX,
+                  originY: 1,
+                }}
                 initial={reduce ? undefined : { rotate: 0 }}
                 whileInView={reduce ? undefined : { rotate: [0, arm.wave, 0] }}
                 viewport={{ once: true, amount: 0.35 }}
@@ -270,17 +285,31 @@ const CloudLogoVisualization = () => {
               </motion.g>
             ))}
             {FIGURE_LEGS.map((leg, i) => (
-              <motion.path
+              <motion.g
                 key={leg.d}
-                d={leg.d}
-                stroke="url(#yc-figure-grad)"
-                strokeWidth="3"
-                strokeLinecap="round"
-                initial={reduce ? undefined : { pathLength: 0, opacity: 0 }}
-                whileInView={reduce ? undefined : { pathLength: 1, opacity: 1 }}
+                style={{ transformBox: "fill-box", originX: 0.5, originY: 0 }}
+                initial={reduce ? undefined : { rotate: 0 }}
+                whileInView={reduce ? undefined : { rotate: [0, leg.kick, 0] }}
                 viewport={{ once: true, amount: 0.35 }}
-                transition={{ delay: 1.75 + i * 0.18, duration: 0.55, ease: "easeOut" }}
-              />
+                transition={{
+                  delay: 3.4,
+                  duration: 2,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatDelay: 1.2,
+                }}
+              >
+                <motion.path
+                  d={leg.d}
+                  stroke="url(#yc-figure-grad)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  initial={reduce ? undefined : { pathLength: 0, opacity: 0 }}
+                  whileInView={reduce ? undefined : { pathLength: 1, opacity: 1 }}
+                  viewport={{ once: true, amount: 0.35 }}
+                  transition={{ delay: 1.75 + i * 0.18, duration: 0.55, ease: "easeOut" }}
+                />
+              </motion.g>
             ))}
 
             {/* head — springs in, then pings like a beacon (rides the hop) */}
