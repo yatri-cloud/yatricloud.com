@@ -95,8 +95,10 @@ export const Navbar = () => {
               <span className="font-display text-xl font-bold tracking-tight text-foreground">Yatri Cloud</span>
             </a>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex min-w-0 flex-1 items-center gap-4 lg:gap-8 overflow-x-auto scrollbar-hide">
+            {/* Desktop Navigation — centered at lg for a balanced
+                logo · nav · actions header; md keeps left-align so the
+                scrollable overflow never clips the first link. */}
+            <div className="hidden md:flex min-w-0 flex-1 items-center gap-4 lg:gap-8 overflow-x-auto scrollbar-hide lg:justify-center">
               {navLinks.map((link) => (
                 <a
                   key={link.href}

@@ -101,11 +101,17 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </Badge>
         </div>
 
-        {/* Product Image */}
-        <div className="relative overflow-hidden bg-muted/30 aspect-[4/3]">
+        {/* Product Image — clicking it opens the details dialog, same as
+            the View Details button */}
+        <button
+          type="button"
+          onClick={() => setIsDialogOpen(true)}
+          aria-label={`View details of ${product.title}`}
+          className="relative block w-full overflow-hidden bg-muted/30 aspect-[4/3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <motion.img
             src={product.image}
-            alt={product.title}
+            alt=""
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             loading="lazy"
             width={640}
@@ -113,12 +119,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-500" />
-        </div>
+        </button>
 
         <CardHeader className="flex-1 px-5 pt-5 pb-2">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <CardTitle className="text-lg font-bold leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-              {product.title}
+            <CardTitle className="text-lg font-bold leading-snug group-hover:text-primary transition-colors">
+              <button
+                type="button"
+                onClick={() => setIsDialogOpen(true)}
+                className="w-full rounded text-left line-clamp-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {product.title}
+              </button>
             </CardTitle>
           </div>
           <div className="flex items-center gap-2 flex-wrap">

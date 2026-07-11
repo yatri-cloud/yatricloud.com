@@ -70,8 +70,13 @@ export const LatestExamDumpsSection = () => {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
                   {/* Square image stage — artwork contained and centered,
-                      matching ExamDumpCard on /examdumps */}
-                  <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50/60 via-card to-brand-50/30 p-8">
+                      matching ExamDumpCard on /examdumps. The image links to
+                      the dumps page, same as the Details button. */}
+                  <Link
+                    to="/examdumps"
+                    aria-label={`View details of ${dump.title}`}
+                    className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50/60 via-card to-brand-50/30 p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
                     <img
                       src={dump.image || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60"}
                       alt={dump.title}
@@ -95,7 +100,7 @@ export const LatestExamDumpsSection = () => {
                         <span className="text-[9px] font-semibold uppercase tracking-widest">Off</span>
                       </span>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Ruled exam-paper body */}
                   <div
@@ -112,7 +117,12 @@ export const LatestExamDumpsSection = () => {
                       Exam Paper
                     </span>
                     <h3 className="text-xl font-bold text-foreground mb-4 line-clamp-1 group-hover:text-primary transition-colors">
-                      {dump.title}
+                      <Link
+                        to="/examdumps"
+                        className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {dump.title}
+                      </Link>
                     </h3>
 
                     <div className="flex items-end justify-between mb-6 mt-auto">

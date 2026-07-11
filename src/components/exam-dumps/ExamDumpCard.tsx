@@ -61,19 +61,31 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
           </Badge>
         </div>
 
-        {/* Dump Image — square tile, logo shown in full */}
-        <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-muted/20 p-6">
+        {/* Dump Image — square tile, logo shown in full. Clicking it opens
+            the details dialog, same as the View Details button. */}
+        <button
+          type="button"
+          onClick={() => setIsDialogOpen(true)}
+          aria-label={`View details of ${dump.title}`}
+          className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-muted/20 p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <motion.img
             src={dump.image}
-            alt={dump.title}
+            alt=""
             className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
-        </div>
+        </button>
 
         <CardHeader className="flex-1 px-5 pt-5 pb-2">
-          <CardTitle className="text-lg font-bold leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-            {dump.title}
+          <CardTitle className="text-lg font-bold leading-snug group-hover:text-primary transition-colors">
+            <button
+              type="button"
+              onClick={() => setIsDialogOpen(true)}
+              className="w-full rounded text-left line-clamp-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {dump.title}
+            </button>
           </CardTitle>
         </CardHeader>
 
