@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Copy, Search, Sparkle } from "lucide-react";
+import { Loader2, Copy, Search, Sparkle, Linkedin, MapPin } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -25,7 +25,9 @@ const CSE_CX = "d214cfcea7a57404d"; // linkedin-people-finder engine
 interface Person {
   name: string;
   headline: string;
+  role: string;
   company: string;
+  location: string;
   photo: string;
   url: string;
   snippet: string;
@@ -125,15 +127,23 @@ const JobReferrals = () => {
       const [namePart, ...rest] = title.split(/\s+[-–]\s+/);
       const headline = rest.join(" - ").trim();
       const snippet = (el.querySelector(".gs-snippet")?.textContent || "").replace(/\s+/g, " ").trim();
+      const text = `${headline} ${snippet}`;
+      // Role = first segment of the headline before a company marker.
+      const role = headline.split(/\s*(?:@|\bat\b|\||•|·|-)\s*/)[0]?.trim() || "";
+      // Company from "@X", "at X", or "X | Ex" patterns.
       const companyMatch =
-        headline.match(/@\s*([A-Z][\w&.\- ]+?)(?:\s*\||$)/) ||
-        headline.match(/\bat\s+([A-Z][\w&.\- ]+?)(?:\s*\||$)/);
+        text.match(/@\s*([A-Z][\w&.\- ]+?)(?:\s*[|•·]|$)/) ||
+        text.match(/\bat\s+([A-Z][\w&.\- ]+?)(?:\s*[|•·]|,|$)/);
+      // Location — LinkedIn snippets usually start with "City · N connections".
+      const locMatch = snippet.match(/^([A-Za-z .,'-]+?)\s*·/);
       const img =
         el.querySelector<HTMLImageElement>(".gsc-thumbnail img, img.gs-image, .gs-image-box img, img");
       out.push({
         name: namePart.trim(),
         headline: headline || snippet,
+        role,
         company: (companyMatch?.[1] || "").trim(),
+        location: (locMatch?.[1] || "").trim(),
         photo: img?.src || "",
         url,
         snippet,
@@ -283,11 +293,21 @@ const JobReferrals = () => {
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-semibold">{p.name || "—"}</p>
-                        <p className="truncate text-sm text-muted-foreground">{p.headline}</p>
+                        <p className="truncate text-sm text-foreground/80">
+                          {p.role || p.headline}
+                          {p.company && <span className="text-muted-foreground"> · {p.company}</span>}
+                        </p>
+                        {p.location && (
+                          <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" /> {p.location}
+                          </p>
+                        )}
                       </div>
                       <div className="flex shrink-0 items-center gap-1.5">
                         <Button variant="outline" size="sm" className="h-8" asChild>
-                          <a href={p.url} target="_blank" rel="noopener noreferrer">Profile</a>
+                          <a href={p.url} target="_blank" rel="noopener noreferrer">
+                            <Linkedin className="mr-1 h-3.5 w-3.5" /> LinkedIn
+                          </a>
                         </Button>
                         <Button size="sm" className="h-8 shadow-inset-btn" onClick={() => generate(p.name, p.company)}>Note</Button>
                       </div>
