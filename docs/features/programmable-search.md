@@ -9,11 +9,37 @@ The board uses Google's PSE to find **LinkedIn profiles for referrals** and
 - **JSON API mode (next phase, needs a key):** the Mac worker calls the
   Custom Search JSON API, so Claude can rank profiles and auto-write notes.
 
-## Current engine
+## Engines (TWO — people vs jobs are different URL patterns)
 
-- Name: **LinkedIn Email Finder** · CX **`22c8ca52ab7fa46e6`**
-- Restricted to **`*.linkedin.com/in/*`** (profiles only)
-- Embedded on `/jobs/referrals` via `<script src="cse.js?cx=…">` + `.gcse-search`
+### 1. People finder — LIVE (referral table on /jobs/referrals)
+- CX **`d214cfcea7a57404d`** (linkedin-people-finder), restricted to `*.linkedin.com/in/*`.
+- `JobReferrals.tsx` loads `cse.js` in EXPLICIT mode, renders a
+  `searchresults-only` element into an OFF-SCREEN host (position:absolute,
+  left:-10000px, width:760px — Google will NOT render into a zero-size or
+  display:none container), then `parseWidget()` scrapes its DOM into our own
+  table (photo, name, role · company, location, LinkedIn button, Note button).
+  No API key, no GCP project, works for any/no Google account.
+
+### 2. Job finder — TODO (user to create, then wire a "Jobs on the web" tab)
+Create a second PSE, turn ON "Search the entire web", add Sites to search:
+```
+*.linkedin.com/jobs/view/*
+careers.google.com/jobs/*
+jobs.careers.microsoft.com/*
+amazon.jobs/*
+*.greenhouse.io/*
+*.lever.co/*
+*.ashbyhq.com/*
+*.smartrecruiters.com/*
+naukri.com/job-listings/*
+```
+Then give the new CX → wire a jobs tab on /jobs with the same off-screen-widget
+→ custom-table pattern (role, company, location, Apply button).
+
+NOTE: the JSON Custom Search API stayed blocked by a GCP project mismatch
+(enabled in yatri-auth, key in yatri-jobs). The WIDGET approach above avoids
+the API entirely, so we use it. If the JSON API is ever fixed, the custom
+table can read `pagemap.cse_thumbnail`/`metatags` directly instead of scraping.
 
 ## What to ADD into the Programmable Search Engine (your ask)
 
