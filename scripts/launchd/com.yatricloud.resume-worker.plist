@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.yatricloud.resume-worker</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Volumes/Yatri Cloud/org/Yatri Cloud/yatri-practice-hub/scripts/resume-worker.mjs</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Volumes/Yatri Cloud/org/Yatri Cloud/yatri-practice-hub</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Users/yatharthchauhan/.local/bin</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/yatharthchauhan/Library/Logs/yatri-resume-worker.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/yatharthchauhan/Library/Logs/yatri-resume-worker.log</string>
+</dict>
+</plist>

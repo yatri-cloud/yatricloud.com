@@ -116,6 +116,9 @@ function buildJson(job, dir, sourceName) {
     ``,
     `The person's name is: ${job.full_name}`,
     `Set "output" to "${job.full_name.replace(/[^\w ]+/g, "").replace(/ +/g, "_")}_Resume.docx".`,
+    `HARD RULE: the resume must fit ONE page. If content is rich, set`,
+    `"density":"compact", keep the summary to 3 lines, at most 3-4 bullets`,
+    `per role, and drop the weakest project rather than overflowing.`,
     `Read the source files in this directory now, then WRITE the finished`,
     `resume.json here. Write ONLY resume.json. No commentary.`,
   ].join("\n");
@@ -160,14 +163,55 @@ async function finish(id, patch) {
   });
 }
 
+function pdfPages(path) {
+  // macOS Spotlight metadata: reliable page count without extra deps.
+  try {
+    const out = execFileSync("mdls", ["-name", "kMDItemNumberOfPages", "-raw", path], {
+      encoding: "utf8",
+    }).trim();
+    const n = parseInt(out, 10);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+function compactJson(dir, pages) {
+  // Second pass: the built PDF overflowed — have Claude tighten the SAME
+  // resume.json down to one page (never invent, only condense/trim).
+  const prompt = [
+    `resume.json in this directory produced a ${pages}-page PDF. It must fit`,
+    `EXACTLY ONE page. Edit resume.json in place: set "density":"compact",`,
+    `shorten the summary to 3 lines, cut each role to its 3 strongest`,
+    `bullets, tighten wording, and drop the weakest project or extra section`,
+    `if still needed. Do not invent or reword facts into stronger claims.`,
+    `Write ONLY resume.json. No commentary.`,
+  ].join("\n");
+  execFileSync("claude", ["-p", prompt, "--permission-mode", "acceptEdits", "--allowedTools", "Read,Write"], {
+    cwd: dir,
+    stdio: ["ignore", "inherit", "inherit"],
+    timeout: 10 * 60 * 1000,
+  });
+}
+
 async function processJob(job) {
   const dir = join(JOBS, job.id);
   mkdirSync(dir, { recursive: true });
   console.log(`▶ ${job.id} — ${job.full_name}`);
   const sourceName = await fetchSourceFile(job, dir);
   buildJson(job, dir, sourceName);
-  const { docx, pdf } = buildFiles(job, dir);
+  let { docx, pdf } = buildFiles(job, dir);
   if (!docx) throw new Error("build produced no .docx");
+
+  // One-page guarantee: rebuild once (twice max) with compaction if over.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const pages = pdf ? pdfPages(pdf) : null;
+    if (pages === null || pages <= 1) break;
+    console.log(`  ${pages} pages — compacting (attempt ${attempt + 1})`);
+    compactJson(dir, pages);
+    ({ docx, pdf } = buildFiles(job, dir));
+    if (!docx) throw new Error("compaction rebuild produced no .docx");
+  }
   const docxPath = await upload(job, docx, "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
   const pdfPath = pdf ? await upload(job, pdf, "pdf", "application/pdf") : null;
   await finish(job.id, { status: "ready", docx_path: docxPath, pdf_path: pdfPath, error: null });
