@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.yatricloud.jobs-sync</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Volumes/Yatri Cloud/org/Yatri Cloud/yatri-practice-hub/scripts/jobs-sync.mjs</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Volumes/Yatri Cloud/org/Yatri Cloud/yatri-practice-hub</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>9</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>/Users/yatharthchauhan/Library/Logs/yatri-jobs-sync.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/yatharthchauhan/Library/Logs/yatri-jobs-sync.log</string>
+</dict>
+</plist>

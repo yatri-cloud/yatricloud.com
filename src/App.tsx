@@ -84,6 +84,7 @@ const AdminSiteContent = lazy(() => import("./pages/admin/AdminSiteContent"));
 const AdminCommunity = lazy(() => import("./pages/admin/AdminCommunity"));
 const AdminInquiries = lazy(() => import("./pages/admin/AdminInquiries"));
 const AdminResumes = lazy(() => import("./pages/admin/AdminResumes"));
+const AdminJobs = lazy(() => import("./pages/admin/AdminJobs"));
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 const AdminAchievements = lazy(() => import("./pages/admin/AdminAchievements"));
 const AdminCertCatalog = lazy(() => import("./pages/admin/AdminCertCatalog"));
@@ -228,6 +229,7 @@ const App = () => (
                 <Route path="community" element={<AdminCommunity />} />
                 <Route path="inquiries" element={<AdminInquiries />} />
                 <Route path="resumes" element={<AdminResumes />} />
+                <Route path="jobs" element={<AdminJobs />} />
                 <Route path="coupons" element={<AdminCoupons />} />
                 <Route path="achievements" element={<AdminAchievements />} />
                 <Route path="events" element={<AdminEvents />} />
