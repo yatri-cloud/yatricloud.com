@@ -78,12 +78,35 @@ async function claimNext() {
   return claimed.length ? claimed[0] : null; // raced by another worker → skip
 }
 
-function buildJson(job, dir) {
-  writeFileSync(join(dir, "input.txt"), job.input_text);
+async function fetchSourceFile(job, dir) {
+  if (!job.input_file_path) return null;
+  const res = await api(`/storage/v1/object/resumes/${job.input_file_path}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  const isPdf = job.input_file_path.toLowerCase().endsWith(".pdf");
+  const local = join(dir, isPdf ? "uploaded-resume.pdf" : "uploaded-resume.docx");
+  writeFileSync(local, buf);
+  if (isPdf) return "uploaded-resume.pdf"; // Claude reads PDFs directly
+  // DOCX: extract text with python stdlib (docx = zip with document.xml)
+  const py = [
+    "import zipfile,re,sys",
+    "xml = zipfile.ZipFile(sys.argv[1]).read('word/document.xml').decode('utf-8','ignore')",
+    "xml = re.sub(r'</w:p>', chr(10), xml)",
+    "print(re.sub(r'<[^>]+>', '', xml))",
+  ].join("\n");
+  const text = execFileSync("python3", ["-c", py, local], { encoding: "utf8" });
+  writeFileSync(join(dir, "uploaded-resume.txt"), text);
+  return "uploaded-resume.txt";
+}
+
+function buildJson(job, dir, sourceName) {
+  writeFileSync(join(dir, "input.txt"), job.input_text || "");
   writeFileSync(join(dir, "jd.txt"), job.jd_text || "");
+  const sourceLine = sourceName
+    ? `Their uploaded resume is ${sourceName} in this directory — Read it; input.txt may add extra notes on top.`
+    : `input.txt contains their pasted resume or notes.`;
   const prompt = [
-    `You are filling a resume JSON for the person described in input.txt`,
-    `(their pasted resume or notes). ${job.jd_text ? "jd.txt contains the job description to tailor toward — mirror its honest keywords, never invent experience." : "There is no job description; make the strongest honest general resume."}`,
+    `You are filling a resume JSON for a person. ${sourceLine}`,
+    `${job.jd_text ? "jd.txt contains the job description to tailor toward — mirror its honest keywords, never invent experience." : "There is no job description; make the strongest honest general resume."}`,
     ``,
     `Follow these quality rules strictly:`,
     RULES,
@@ -93,7 +116,7 @@ function buildJson(job, dir) {
     ``,
     `The person's name is: ${job.full_name}`,
     `Set "output" to "${job.full_name.replace(/[^\w ]+/g, "").replace(/ +/g, "_")}_Resume.docx".`,
-    `Read input.txt and jd.txt in this directory now, then WRITE the finished`,
+    `Read the source files in this directory now, then WRITE the finished`,
     `resume.json here. Write ONLY resume.json. No commentary.`,
   ].join("\n");
   execFileSync("claude", ["-p", prompt, "--permission-mode", "acceptEdits", "--allowedTools", "Read,Write"], {
@@ -141,7 +164,8 @@ async function processJob(job) {
   const dir = join(JOBS, job.id);
   mkdirSync(dir, { recursive: true });
   console.log(`▶ ${job.id} — ${job.full_name}`);
-  buildJson(job, dir);
+  const sourceName = await fetchSourceFile(job, dir);
+  buildJson(job, dir, sourceName);
   const { docx, pdf } = buildFiles(job, dir);
   if (!docx) throw new Error("build produced no .docx");
   const docxPath = await upload(job, docx, "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");

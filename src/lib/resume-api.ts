@@ -18,11 +18,30 @@ export interface ResumeRequest {
   created_at: string;
 }
 
+/** Upload a source resume (PDF/DOCX) into the caller's private folder. */
+export async function uploadResumeSource(
+  file: File
+): Promise<{ path: string } | { error: string }> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth?.user) return { error: "not signed in" };
+  const ext = file.name.toLowerCase().endsWith(".pdf") ? "pdf" : "docx";
+  const path = `${auth.user.id}/${crypto.randomUUID()}/source.${ext}`;
+  const { error } = await supabase.storage.from("resumes").upload(path, file, {
+    contentType:
+      ext === "pdf"
+        ? "application/pdf"
+        : "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
+  if (error) return { error: error.message };
+  return { path };
+}
+
 export async function createResumeRequest(input: {
   fullName: string;
   email: string;
   inputText: string;
   jdText: string;
+  inputFilePath?: string | null;
 }): Promise<{ id: string } | { error: string }> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth?.user) return { error: "not signed in" };
@@ -34,6 +53,7 @@ export async function createResumeRequest(input: {
       email: input.email,
       input_text: input.inputText,
       jd_text: input.jdText,
+      input_file_path: input.inputFilePath || null,
     })
     .select("id")
     .single();

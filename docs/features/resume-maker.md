@@ -35,6 +35,18 @@ private to their account.
   as the schema shown to Claude; `references/best_practices.md` are the
   quality rules.
 
+## Uploaded source files (migration 040)
+
+Users can upload their existing resume as **PDF or DOCX** instead of (or on
+top of) pasted text. The file goes straight from the browser into the
+private bucket at `resumes/<uid>/<random>/source.<ext>` (owner-folder INSERT
+policy), and `resume_requests.input_file_path` records it. The worker
+downloads it into the job dir; **PDFs are read directly by Claude's Read
+tool**, **DOCX is text-extracted first** with python stdlib (zipfile +
+strip `word/document.xml` tags) because headless Claude has no Bash to
+convert it. Validation client-side: .pdf/.docx only, 10 MB cap; either a
+file or ≥40 chars of pasted text is required.
+
 ## Constraints and honest limits
 
 - Resumes only generate **while the worker is running on the owner's Mac**.

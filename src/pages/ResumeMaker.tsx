@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, FileText, Download, Clock, CircleAlert } from "lucide-react";
+import { Loader2, FileText, Download, Clock, CircleAlert, Upload, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -14,6 +14,7 @@ import {
   createResumeRequest,
   listMyResumeRequests,
   resumeDownloadUrl,
+  uploadResumeSource,
   type ResumeRequest,
 } from "@/lib/resume-api";
 
@@ -35,6 +36,7 @@ const ResumeMaker = () => {
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [inputText, setInputText] = useState("");
   const [jdText, setJdText] = useState("");
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [requests, setRequests] = useState<ResumeRequest[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -58,18 +60,43 @@ const ResumeMaker = () => {
     return () => window.clearInterval(t);
   }, [requests, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const pickFile = (file: File | null) => {
+    if (!file) return;
+    const name = file.name.toLowerCase();
+    if (!name.endsWith(".pdf") && !name.endsWith(".docx")) {
+      toast.error("Upload a PDF or Word (.docx) file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Keep the file under 10 MB.");
+      return;
+    }
+    setSourceFile(file);
+  };
+
   const submit = async () => {
     if (!user) return;
-    if (!fullName.trim() || inputText.trim().length < 40) {
-      toast.error("Add your name and paste your resume or notes first.");
+    if (!fullName.trim() || (!sourceFile && inputText.trim().length < 40)) {
+      toast.error("Add your name, then upload your resume or paste your notes.");
       return;
     }
     setSubmitting(true);
+    let inputFilePath: string | null = null;
+    if (sourceFile) {
+      const uploaded = await uploadResumeSource(sourceFile);
+      if ("error" in uploaded) {
+        setSubmitting(false);
+        toast.error("The file did not upload. Please try again.");
+        return;
+      }
+      inputFilePath = uploaded.path;
+    }
     const result = await createResumeRequest({
       fullName: fullName.trim(),
       email: user.email || "",
       inputText: inputText.trim(),
       jdText: jdText.trim(),
+      inputFilePath,
     });
     setSubmitting(false);
     if ("error" in result) {
@@ -79,6 +106,7 @@ const ResumeMaker = () => {
     toast.success("In the queue. Your resume will be ready here shortly.");
     setInputText("");
     setJdText("");
+    setSourceFile(null);
     refresh();
   };
 
@@ -148,15 +176,53 @@ const ResumeMaker = () => {
                     />
                   </div>
                   <div>
+                    <label className="mb-1.5 block text-sm font-medium">
+                      Upload your current resume{" "}
+                      <span className="text-muted-foreground">(PDF or Word)</span>
+                    </label>
+                    {sourceFile ? (
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
+                        <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-primary">
+                          <FileText className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <span className="truncate">{sourceFile.name}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSourceFile(null)}
+                          aria-label="Remove file"
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex min-h-[64px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-background px-4 py-4 text-sm text-muted-foreground transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-primary">
+                        <Upload className="h-4 w-4" aria-hidden="true" />
+                        Choose a .pdf or .docx file
+                        <input
+                          type="file"
+                          accept=".pdf,.docx"
+                          className="sr-only"
+                          onChange={(e) => pickFile(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <div>
                     <label htmlFor="rm-input" className="mb-1.5 block text-sm font-medium">
-                      Your current resume or notes
+                      {sourceFile ? "Anything to add or update" : "Or paste your resume or notes"}
+                      {sourceFile && <span className="text-muted-foreground"> (optional)</span>}
                     </label>
                     <Textarea
                       id="rm-input"
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
-                      rows={10}
-                      placeholder="Paste your existing resume text, LinkedIn about section, or rough notes about your work, skills, projects and education."
+                      rows={sourceFile ? 4 : 10}
+                      placeholder={
+                        sourceFile
+                          ? "New role, new skills, anything the uploaded file does not cover yet."
+                          : "Paste your existing resume text, LinkedIn about section, or rough notes about your work, skills, projects and education."
+                      }
                     />
                   </div>
                   <div>
