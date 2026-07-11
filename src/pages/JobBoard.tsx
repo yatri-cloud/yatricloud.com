@@ -292,12 +292,18 @@ const JobBoard = () => {
               career boards and job feeds. No stale listings, no logins.
             </p>
             {user && (
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
                 <Button asChild className="shadow-inset-btn">
-                  <Link to="/jobs/applications">
+                  <Link to="/jobs/profile">
                     <UserRound className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                    My job profile &amp; applications
+                    My profile
                   </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/jobs/applications">My applications</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/jobs/referrals">Find a referral</Link>
                 </Button>
               </div>
             )}

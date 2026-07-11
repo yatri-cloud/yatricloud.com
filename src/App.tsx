@@ -36,6 +36,8 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ResumeMaker = lazy(() => import("./pages/ResumeMaker"));
 const JobBoard = lazy(() => import("./pages/JobBoard"));
 const JobApplications = lazy(() => import("./pages/JobApplications"));
+const JobSeekerProfile = lazy(() => import("./pages/JobSeekerProfile"));
+const JobReferrals = lazy(() => import("./pages/JobReferrals"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const UdemyAdmin = lazy(() => import("./pages/admin/UdemyAdmin"));
@@ -158,6 +160,8 @@ const App = () => (
               <Route path="/resume-maker" element={<ResumeMaker />} />
               <Route path="/jobs" element={<JobBoard />} />
               <Route path="/jobs/applications" element={<JobApplications />} />
+              <Route path="/jobs/profile" element={<JobSeekerProfile />} />
+              <Route path="/jobs/referrals" element={<JobReferrals />} />
               <Route path="/manage-certifications" element={<ManageCertifications />} />
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/achievements" element={<Achievements />} />

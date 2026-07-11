@@ -7,12 +7,22 @@ export interface JobProfile {
   full_name: string;
   resume_path: string;
   roles: string;
+  headline?: string;
+  locations?: string;
+  work_area?: string;
+  seniority?: string;
+  work_mode?: string;
+  target_companies?: string;
+  notes?: string;
 }
+
+const PROFILE_COLS =
+  "full_name, resume_path, roles, headline, locations, work_area, seniority, work_mode, target_companies, notes";
 
 export async function getJobProfile(): Promise<JobProfile | null> {
   const { data } = await supabase
     .from("job_profiles")
-    .select("full_name, resume_path, roles")
+    .select(PROFILE_COLS)
     .maybeSingle();
   return (data as JobProfile) || null;
 }
