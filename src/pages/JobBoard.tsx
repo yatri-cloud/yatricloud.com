@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, MapPin, Building2, ExternalLink, BriefcaseBusiness } from "lucide-react";
+import { Loader2, Search, MapPin, Building2, ExternalLink, BriefcaseBusiness, Upload } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -16,6 +16,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { getStoredUser } from "@/lib/yatris-api";
+import { uploadResumeSource } from "@/lib/resume-api";
+import {
+  createJobMatch,
+  deleteJobMatch,
+  latestJobMatch,
+  type JobMatchRequest,
+} from "@/lib/job-match-api";
 
 /**
  * Job board — postings ingested from companies' OFFICIAL ATS APIs
@@ -35,7 +44,7 @@ interface JobRow {
   remote: boolean;
   apply_url: string;
   posted_at: string | null;
-  job_companies: { name: string } | null;
+  job_companies: { name: string; website: string | null } | null;
 }
 
 interface CompanyOpt {
@@ -43,6 +52,37 @@ interface CompanyOpt {
   name: string;
   jobs_count: number;
 }
+
+/** Auto company logo from the website's favicon (no manual uploads). */
+const CompanyLogo = ({ name, website }: { name: string; website: string | null }) => {
+  const [failed, setFailed] = useState(false);
+  let host = "";
+  try {
+    host = website ? new URL(website).hostname : "";
+  } catch {
+    host = "";
+  }
+  if (!host || failed) {
+    return (
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-brand-50 text-sm font-bold text-primary">
+        {name.slice(0, 1)}
+      </span>
+    );
+  }
+  return (
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-background p-1.5">
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${host}&sz=64`}
+        alt=""
+        width={28}
+        height={28}
+        loading="lazy"
+        className="h-7 w-7 object-contain"
+        onError={() => setFailed(true)}
+      />
+    </span>
+  );
+};
 
 const LEVEL_LABEL: Record<string, string> = {
   entry: "Entry level",
@@ -65,6 +105,53 @@ const JobBoard = () => {
   const [debouncedLoc, setDebouncedLoc] = useState("");
   const [page, setPage] = useState(1);
 
+  // ——— resume matching (built by the Mac worker) ———
+  const user = useMemo(() => getStoredUser(), []);
+  const [match, setMatch] = useState<JobMatchRequest | null>(null);
+  const [matchBusy, setMatchBusy] = useState(false);
+  const [matchMode, setMatchMode] = useState(false);
+  const matchIds = useMemo(() => match?.result?.job_ids || [], [match]);
+
+  useEffect(() => {
+    if (!user) return;
+    latestJobMatch().then(setMatch);
+  }, [user]);
+  useEffect(() => {
+    if (!match || (match.status !== "queued" && match.status !== "processing")) return;
+    const t = window.setInterval(() => latestJobMatch().then(setMatch), 6000);
+    return () => window.clearInterval(t);
+  }, [match]);
+
+  const startMatch = async (file: File | null) => {
+    if (!file) return;
+    const name = file.name.toLowerCase();
+    if (!name.endsWith(".pdf") && !name.endsWith(".docx")) {
+      toast.error("Upload a PDF or Word (.docx) resume.");
+      return;
+    }
+    setMatchBusy(true);
+    const uploaded = await uploadResumeSource(file);
+    if ("error" in uploaded) {
+      setMatchBusy(false);
+      toast.error("The file did not upload. Please try again.");
+      return;
+    }
+    const created = await createJobMatch(uploaded.path);
+    setMatchBusy(false);
+    if ("error" in created) {
+      toast.error("Could not start matching. Please try again.");
+      return;
+    }
+    toast.success("Reading your resume. Matches appear here in a minute or two.");
+    latestJobMatch().then(setMatch);
+  };
+
+  const clearMatch = async () => {
+    if (match) await deleteJobMatch(match.id);
+    setMatch(null);
+    setMatchMode(false);
+  };
+
   useEffect(() => {
     const t = window.setTimeout(() => setDebounced(search.trim()), 350);
     return () => window.clearTimeout(t);
@@ -75,7 +162,7 @@ const JobBoard = () => {
   }, [locationQ]);
   useEffect(() => {
     setPage(1);
-  }, [debounced, company, level, workMode, debouncedLoc]);
+  }, [debounced, company, level, workMode, debouncedLoc, matchMode]);
 
   useEffect(() => {
     supabase
@@ -94,10 +181,11 @@ const JobBoard = () => {
       let q = supabase
         .from("job_postings")
         .select(
-          "id, title, location, level, department, remote, apply_url, posted_at, job_companies(name)",
+          "id, title, location, level, department, remote, apply_url, posted_at, job_companies(name, website)",
           { count: "exact" }
         )
         .eq("is_active", true);
+      if (matchMode && matchIds.length) q = q.in("id", matchIds);
       if (company !== "all") q = q.eq("company_id", company);
       if (level !== "all") q = q.eq("level", level);
       if (workMode === "remote") q = q.eq("remote", true);
@@ -119,7 +207,7 @@ const JobBoard = () => {
     return () => {
       cancelled = true;
     };
-  }, [debounced, company, level, workMode, debouncedLoc, page]);
+  }, [debounced, company, level, workMode, debouncedLoc, page, matchMode, matchIds]);
 
   // Detail dialog — description fetched on open only
   const [detail, setDetail] = useState<JobRow | null>(null);
@@ -159,6 +247,74 @@ const JobBoard = () => {
               {totalLabel} live openings, pulled straight from the official
               career boards of {companies.length} companies. No stale listings.
             </p>
+          </div>
+        </section>
+
+        {/* Match panel — upload a resume, the worker shortlists real jobs */}
+        <section className="container mx-auto max-w-5xl px-4 pb-8 md:px-6">
+          <div className="rounded-2xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] via-brand-50/40 to-card p-5 md:p-6">
+            {!user ? (
+              <p className="text-center text-sm text-muted-foreground">
+                <a href="/certifiedyatris" className="font-semibold text-primary hover:underline">
+                  Sign in
+                </a>{" "}
+                and upload your resume. We shortlist the openings that fit you.
+              </p>
+            ) : !match || match.status === "failed" ? (
+              <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
+                <div>
+                  <p className="font-display text-lg font-bold">Let your resume pick the jobs</p>
+                  <p className="text-sm text-muted-foreground">
+                    Upload it once. We read it and shortlist matching openings from this board.
+                    {match?.status === "failed" && " Last try failed, go again."}
+                  </p>
+                </div>
+                <label className={`inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-semibold text-primary-foreground shadow-inset-btn transition-colors hover:bg-primary/90 ${matchBusy ? "pointer-events-none opacity-60" : ""}`}>
+                  {matchBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" aria-hidden="true" />}
+                  {matchBusy ? "Uploading…" : "Upload resume"}
+                  <input
+                    type="file"
+                    accept=".pdf,.docx"
+                    className="sr-only"
+                    onChange={(e) => startMatch(e.target.files?.[0] || null)}
+                  />
+                </label>
+              </div>
+            ) : match.status !== "ready" ? (
+              <p className="flex items-center justify-center gap-2 text-sm font-medium text-primary">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Reading your resume and shortlisting openings… this takes a minute or two.
+              </p>
+            ) : (
+              <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
+                <div>
+                  <p className="font-display text-lg font-bold">
+                    {matchIds.length} openings match your resume
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {match.result?.summary}{" "}
+                    {match.result?.roles?.length ? `Target roles: ${match.result.roles.join(", ")}.` : ""}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button
+                    className={matchMode ? "" : "shadow-inset-btn"}
+                    variant={matchMode ? "outline" : "default"}
+                    onClick={() => setMatchMode((v) => !v)}
+                    disabled={matchIds.length === 0}
+                  >
+                    {matchMode ? "Show all jobs" : "Show my matches"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={clearMatch}
+                    className="text-xs text-muted-foreground transition-colors hover:text-destructive"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -246,7 +402,12 @@ const JobBoard = () => {
                     className="group rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 md:p-5"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div className="min-w-0">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <CompanyLogo
+                          name={job.job_companies?.name || "?"}
+                          website={job.job_companies?.website || null}
+                        />
+                        <div className="min-w-0">
                         <button
                           type="button"
                           onClick={() => openDetail(job)}
@@ -266,6 +427,7 @@ const JobBoard = () => {
                             </span>
                           )}
                         </p>
+                        </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <Badge variant="outline" className="border-brand-100 bg-brand-50 text-primary">

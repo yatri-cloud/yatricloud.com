@@ -88,13 +88,40 @@ async function fetchLever(slug) {
   }));
 }
 
+async function fetchAshby(slug) {
+  // Official Ashby posting API: https://developers.ashbyhq.com/reference/jobpostingapi
+  const res = await fetch(
+    `https://api.ashbyhq.com/posting-api/job-board/${slug}?includeCompensation=false`
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!Array.isArray(data.jobs)) return null;
+  return data.jobs.map((j) => ({
+    external_id: String(j.id),
+    title: j.title || "",
+    location: [j.location, ...(j.secondaryLocations || []).map((l) => l.location)]
+      .filter(Boolean)
+      .join(" · "),
+    department: j.department || "",
+    apply_url: j.jobUrl || j.applyUrl || "",
+    description: stripHtml(j.descriptionHtml || j.descriptionPlain),
+    posted_at: j.publishedAt || null,
+  }));
+}
+
+const PROVIDERS = {
+  greenhouse: fetchGreenhouse,
+  lever: fetchLever,
+  ashby: fetchAshby,
+};
+
 async function syncCompany(company) {
   const runStart = new Date().toISOString();
-  // Probe the stored source first, then the other — self-corrects bad guesses.
-  const order =
-    company.source === "lever"
-      ? [["lever", fetchLever], ["greenhouse", fetchGreenhouse]]
-      : [["greenhouse", fetchGreenhouse], ["lever", fetchLever]];
+  // Probe the stored source first, then the rest — self-corrects bad guesses.
+  const order = [
+    [company.source, PROVIDERS[company.source] || fetchGreenhouse],
+    ...Object.entries(PROVIDERS).filter(([n]) => n !== company.source),
+  ];
   let jobs = null;
   let source = company.source;
   for (const [name, fn] of order) {

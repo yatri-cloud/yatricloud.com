@@ -280,23 +280,149 @@ async function notifyReady(job) {
   }
 }
 
+// ——— Job matching (phase 2 of the job board) ———————————————————————————
+
+async function claimNextMatch() {
+  const res = await api(
+    `/rest/v1/job_match_requests?status=eq.queued&order=created_at.asc&limit=1`
+  );
+  const [row] = await res.json();
+  if (!row) return null;
+  const upd = await api(
+    `/rest/v1/job_match_requests?id=eq.${row.id}&status=eq.queued`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify({ status: "processing", updated_at: new Date().toISOString() }),
+    }
+  );
+  const claimed = await upd.json();
+  return claimed.length ? claimed[0] : null;
+}
+
+async function finishMatch(id, patch) {
+  await api(`/rest/v1/job_match_requests?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
+  });
+}
+
+async function processMatch(m) {
+  const dir = join(JOBS, `match-${m.id}`);
+  mkdirSync(dir, { recursive: true });
+  console.log(`▶ match ${m.id}`);
+
+  // Resume file → local (pdf read directly; docx text-extracted)
+  const res = await api(`/storage/v1/object/resumes/${m.resume_path}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  const isPdf = m.resume_path.toLowerCase().endsWith(".pdf");
+  const local = join(dir, isPdf ? "resume.pdf" : "resume.docx");
+  writeFileSync(local, buf);
+  let sourceName = "resume.pdf";
+  if (!isPdf) {
+    const py = [
+      "import zipfile,re,sys",
+      "xml = zipfile.ZipFile(sys.argv[1]).read('word/document.xml').decode('utf-8','ignore')",
+      "xml = re.sub(r'</w:p>', chr(10), xml)",
+      "print(re.sub(r'<[^>]+>', '', xml))",
+    ].join("\n");
+    writeFileSync(join(dir, "resume.txt"), execFileSync("python3", ["-c", py, local], { encoding: "utf8" }));
+    sourceName = "resume.txt";
+  }
+
+  // Step 1: Claude derives target roles/keywords from the resume
+  execFileSync(
+    "claude",
+    ["-p", [
+      `Read ${sourceName} in this directory (a candidate's resume). Write`,
+      `roles.json here with EXACTLY this shape and nothing else:`,
+      `{"roles":["3-6 realistic target job titles"],`,
+      ` "keywords":["8-14 short title keywords, single words or bigrams"],`,
+      ` "level":"entry|mid|senior",`,
+      ` "summary":"one sentence about the candidate"}`,
+      `Base everything only on what the resume shows. Write ONLY roles.json.`,
+    ].join("\n"), "--permission-mode", "acceptEdits", "--allowedTools", "Read,Write"],
+    { cwd: dir, stdio: ["ignore", "inherit", "inherit"], timeout: 8 * 60 * 1000 }
+  );
+  const roles = JSON.parse(readFileSync(join(dir, "roles.json"), "utf8"));
+
+  // Step 2: shortlist real postings by title keywords (server side)
+  const kws = (roles.keywords || [])
+    .map((k) => String(k).replace(/[^\w +/#.-]+/g, "").trim())
+    .filter(Boolean)
+    .slice(0, 14);
+  const orExpr = kws.map((k) => `title.ilike.*${k}*`).join(",");
+  const cand = await api(
+    `/rest/v1/job_postings?is_active=eq.true&select=id,title,location,level,remote,job_companies(name)&or=(${encodeURIComponent(orExpr)})&limit=350`
+  ).then((r) => r.json());
+
+  if (!cand.length) {
+    await finishMatch(m.id, {
+      status: "ready",
+      result: { ...roles, job_ids: [], total_candidates: 0 },
+    });
+    console.log(`✔ match ${m.id}: 0 candidates`);
+    return;
+  }
+
+  // Step 3: Claude picks the best fits from the shortlist
+  const lines = cand
+    .slice(0, 300)
+    .map((j) => `${j.id}|${j.title}|${j.job_companies?.name || ""}|${j.location}|${j.level}`)
+    .join("\n");
+  writeFileSync(join(dir, "candidates.txt"), lines);
+  execFileSync(
+    "claude",
+    ["-p", [
+      `candidates.txt lists job postings as id|title|company|location|level.`,
+      `roles.json describes the candidate. Pick the postings that genuinely`,
+      `fit their level and target roles (up to 40, best first). Write ONLY`,
+      `matches.json: {"job_ids":["..."]}`,
+    ].join("\n"), "--permission-mode", "acceptEdits", "--allowedTools", "Read,Write"],
+    { cwd: dir, stdio: ["ignore", "inherit", "inherit"], timeout: 8 * 60 * 1000 }
+  );
+  const matches = JSON.parse(readFileSync(join(dir, "matches.json"), "utf8"));
+  const valid = new Set(cand.map((j) => j.id));
+  const jobIds = (matches.job_ids || []).filter((id) => valid.has(id)).slice(0, 40);
+
+  await finishMatch(m.id, {
+    status: "ready",
+    result: { ...roles, job_ids: jobIds, total_candidates: cand.length },
+  });
+  console.log(`✔ match ${m.id}: ${jobIds.length} of ${cand.length} candidates`);
+}
+
 console.log("Yatri resume worker watching the queue… (Ctrl+C to stop)");
 for (;;) {
   try {
     const job = await claimNext();
-    if (!job) {
-      await new Promise((r) => setTimeout(r, 5000));
+    if (job) {
+      try {
+        await processJob(job);
+      } catch (err) {
+        console.error(`✖ ${job.id}:`, err.message);
+        await finish(job.id, {
+          status: "failed",
+          error: "Build failed. The team has been notified, please try again.",
+        });
+      }
       continue;
     }
-    try {
-      await processJob(job);
-    } catch (err) {
-      console.error(`✖ ${job.id}:`, err.message);
-      await finish(job.id, {
-        status: "failed",
-        error: "Build failed. The team has been notified, please try again.",
-      });
+    const match = await claimNextMatch();
+    if (match) {
+      try {
+        await processMatch(match);
+      } catch (err) {
+        console.error(`✖ match ${match.id}:`, err.message);
+        await finishMatch(match.id, {
+          status: "failed",
+          error: "Matching failed. Please try again.",
+        });
+      }
+      continue;
     }
+    await new Promise((r) => setTimeout(r, 5000));
   } catch (err) {
     console.error("worker loop error:", err.message);
     await new Promise((r) => setTimeout(r, 10000));
