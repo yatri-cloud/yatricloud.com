@@ -1,7 +1,7 @@
 import { useState, useEffect, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle, ShieldCheck, MailCheck } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -236,8 +236,9 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         {trigger || (
-          <Button variant="outline" size="icon" className="relative">
+          <Button variant="outline" className="relative gap-2 font-medium">
             <ShoppingCart className="h-5 w-5" />
+            Cart
             {totalItems > 0 && (
               <motion.div
                 initial={{ scale: 0 }}
@@ -247,25 +248,21 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
                 {totalItems}
               </motion.div>
             )}
-            <span className="sr-only">Shopping cart</span>
           </Button>
         )}
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Shopping Cart
+            Your cart
             {totalItems > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {totalItems} {totalItems === 1 ? "item" : "items"}
+              <Badge variant="secondary" className="ml-1">
+                {totalItems}
               </Badge>
             )}
           </SheetTitle>
           <SheetDescription>
-            {totalItems === 0
-              ? "Your cart is empty"
-              : `Review your items and proceed to checkout`}
+            {totalItems === 0 ? "Nothing here yet." : "Review and pay."}
           </SheetDescription>
         </SheetHeader>
 
@@ -359,24 +356,24 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
                   </Alert>
                 )}
                 {!user && (
-                  <div className="space-y-2 p-3 bg-secondary/30 rounded-lg border border-border/50">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Order Delivery Email</p>
-                    <div className="flex flex-col gap-1">
-                      <input
-                        type="email"
-                        placeholder="your@email.com"
-                        className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        value={guestEmail}
-                        onChange={(e) => setGuestEmail(e.target.value)}
-                        required
-                      />
-                      <p className="text-[10px] text-muted-foreground">This is where we will send your download links.</p>
-                    </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="cart-guest-email" className="text-sm text-muted-foreground">
+                      Email for your downloads
+                    </label>
+                    <input
+                      id="cart-guest-email"
+                      type="email"
+                      placeholder="you@email.com"
+                      className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      required
+                    />
                   </div>
                 )}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Choose your currency</span>
+                    <span className="text-sm text-muted-foreground">Currency</span>
                     <CurrencySelect
                       value={currency.code}
                       onChange={(code, option) => { setCurrency(option); setPreferredCurrency(code); }}
@@ -419,41 +416,26 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={clearCart}
-                    disabled={isProcessing}
-                  >
-                    Clear Cart
-                  </Button>
-                  <Button
-                    className="flex-[2] font-semibold shadow-inset-btn"
-                    onClick={handleCheckout}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      "Processing..."
-                    ) : (
-                      <>
-                        <ShieldCheck className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                        Pay {totalLabel} securely
-                      </>
-                    )}
-                  </Button>
-                </div>
-                {/* Reassurance at the moment of highest hesitation */}
-                <div className="space-y-1 pt-0.5">
-                  <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                    <ShieldCheck className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-                    Secured by Razorpay. UPI, cards and netbanking accepted.
-                  </p>
-                  <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                    <MailCheck className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-                    Your downloads reach your email within minutes.
-                  </p>
-                </div>
+                <Button
+                  size="lg"
+                  className="w-full font-semibold shadow-inset-btn"
+                  onClick={handleCheckout}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? "Processing…" : `Pay ${totalLabel}`}
+                </Button>
+                {/* One quiet line says it all */}
+                <p className="text-center text-xs text-muted-foreground">
+                  Secure Razorpay payment · files by email
+                </p>
+                <button
+                  type="button"
+                  onClick={clearCart}
+                  disabled={isProcessing}
+                  className="mx-auto block text-xs text-muted-foreground transition-colors hover:text-destructive"
+                >
+                  Clear cart
+                </button>
               </div>
             </>
           )}
