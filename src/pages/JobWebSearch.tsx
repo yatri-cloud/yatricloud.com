@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Search, ExternalLink, MapPin, ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { Loader2, Search, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -39,13 +39,16 @@ declare global {
 }
 const gcseApi = () => (window as any).google?.search?.cse?.element;
 
-/** Company logo from a name-guessed domain favicon, with an initial fallback. */
+/** Company logo: Clearbit → Google favicon → initial. */
 const CompanyLogo = ({ name }: { name: string }) => {
-  const [failed, setFailed] = useState(false);
+  const [stage, setStage] = useState(0);
   const domain = name
-    ? name.toLowerCase().replace(/\b(inc|llc|ltd|technologies|labs|india|pvt|private|limited)\b/g, "").replace(/[^a-z0-9]/g, "") + ".com"
+    ? name.toLowerCase().replace(/\b(inc|llc|ltd|technologies|labs|india|pvt|private|limited|global)\b/g, "").replace(/[^a-z0-9]/g, "") + ".com"
     : "";
-  if (!name || !domain || failed) {
+  const sources = domain
+    ? [`https://logo.clearbit.com/${domain}`, `https://www.google.com/s2/favicons?domain=${domain}&sz=64`]
+    : [];
+  if (!domain || stage >= sources.length) {
     return (
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-xs font-bold text-primary">
         {(name || "?").slice(0, 1).toUpperCase()}
@@ -54,7 +57,7 @@ const CompanyLogo = ({ name }: { name: string }) => {
   }
   return (
     <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background p-1">
-      <img src={`https://logo.clearbit.com/${domain}`} alt="" width={24} height={24} loading="lazy" className="h-6 w-6 object-contain" onError={() => setFailed(true)} />
+      <img src={sources[stage]} alt="" width={24} height={24} loading="lazy" className="h-6 w-6 object-contain" onError={() => setStage((s) => s + 1)} />
     </span>
   );
 };
@@ -331,38 +334,50 @@ const JobWebSearch = () => {
                   <div className="border-b border-border bg-brand-50/40 px-4 py-2.5 text-sm font-semibold">
                     Page {page} of {maxPage}
                   </div>
-                  <ul className="divide-y divide-border/60">
-                    {rows.map((j) => (
-                      <li key={j.url} className="flex flex-col gap-3 px-4 py-3 hover:bg-brand-50/30 md:flex-row md:items-start md:justify-between">
-                        <div className="flex min-w-0 gap-3 md:pr-4">
-                          <CompanyLogo name={j.company} />
-                          <div className="min-w-0">
-                            <a href={j.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary">
-                              {j.title}
-                            </a>
-                            <p className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-sm text-muted-foreground">
-                              {j.company && <span className="font-medium text-foreground/80">{j.company}</span>}
-                              {j.location && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{j.location}</span>}
-                              {j.posted && <span>{j.posted}</span>}
-                              <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{j.source}</span>
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          {j.company && (
-                            <Button variant="outline" size="sm" asChild>
-                              <Link to={`/jobs/referrals?company=${encodeURIComponent(j.company)}&role=${encodeURIComponent(j.title)}`}>
-                                <Users className="mr-1 h-3.5 w-3.5" /> Referrals
-                              </Link>
-                            </Button>
-                          )}
-                          <Button size="sm" className="shadow-inset-btn" asChild>
-                            <a href={j.url} target="_blank" rel="noopener noreferrer">Apply <ExternalLink className="ml-1 h-3.5 w-3.5" /></a>
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                          <th className="px-4 py-2.5 font-semibold">Role</th>
+                          <th className="px-4 py-2.5 font-semibold">Company</th>
+                          <th className="px-4 py-2.5 font-semibold">Location</th>
+                          <th className="px-4 py-2.5 font-semibold">Posted</th>
+                          <th className="px-4 py-2.5 font-semibold">Source</th>
+                          <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((j) => (
+                          <tr key={j.url} className="border-b border-border/60 align-middle last:border-0 hover:bg-brand-50/30">
+                            <td className="max-w-[280px] px-4 py-3">
+                              <a href={j.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary">{j.title}</a>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="flex items-center gap-2">
+                                <CompanyLogo name={j.company} />
+                                <span className="font-medium">{j.company || "—"}</span>
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground">{j.location || "—"}</td>
+                            <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{j.posted || "—"}</td>
+                            <td className="px-4 py-3"><span className="rounded-full bg-muted px-2 py-0.5 text-xs">{j.source}</span></td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {j.company && (
+                                  <Button variant="outline" size="sm" className="h-8" asChild>
+                                    <Link to={`/jobs/referrals?company=${encodeURIComponent(j.company)}&role=${encodeURIComponent(j.title)}`}>Referrals</Link>
+                                  </Button>
+                                )}
+                                <Button size="sm" className="h-8 shadow-inset-btn" asChild>
+                                  <a href={j.url} target="_blank" rel="noopener noreferrer">Apply <ExternalLink className="ml-1 h-3.5 w-3.5" /></a>
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
                 {maxPage > 1 && (
                   <div className="mt-4 flex items-center justify-center gap-3">
