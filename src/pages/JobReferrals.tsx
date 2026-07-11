@@ -19,7 +19,7 @@ import { getJobProfile, type JobProfile } from "@/lib/job-apply-api";
  * elsewhere. Public Google results only — no scraping, no LinkedIn login.
  */
 
-const CSE_CX = "22c8ca52ab7fa46e6";
+const CSE_CX = "d214cfcea7a57404d";
 const CSE_KEY = import.meta.env.VITE_GOOGLE_CSE_KEY as string | undefined;
 
 interface Profile {
