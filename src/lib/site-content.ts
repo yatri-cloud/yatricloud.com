@@ -523,6 +523,16 @@ export const FALLBACK_OPTION_LISTS: Record<string, OptionItem[]> = {
     { value: "Prize Money", label: "Prize Money" },
     { value: "General Support", label: "General Support" },
   ],
+  // Countries with real Yatri records (wall of fame, profiles, event
+  // registrations, voucher requests). Admin managed via Dropdown Options.
+  community_countries: [
+    { value: "IN", label: "India" },
+    { value: "EG", label: "Egypt" },
+    { value: "NG", label: "Nigeria" },
+    { value: "GT", label: "Guatemala" },
+    { value: "BD", label: "Bangladesh" },
+    { value: "DZ", label: "Algeria" },
+  ],
 };
 
 /* Legal pages — converted 1:1 from the JSX that used to live in

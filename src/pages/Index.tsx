@@ -12,6 +12,8 @@ import { VoucherPromoSection } from "@/components/sections/VoucherPromoSection";
 import FAQSection from "@/components/sections/FAQSection";
 import CommunitySection from "@/components/sections/CommunitySection";
 import { ContactSection } from "@/components/sections/ContactSection";
+import { QuickAccessSection } from "@/components/sections/QuickAccessSection";
+import { YatrisWorldwideSection } from "@/components/sections/YatrisWorldwideSection";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 
@@ -24,16 +26,22 @@ const Index = () => {
       />
       <div className="noise-overlay" />
       <Navbar />
+      {/* Flow follows the buying journey: promise (hero) → instant access
+          (launchpad) → proof (trust) → process → offer → product → authority
+          → belief (reviews + worldwide) → objections (FAQ) → belonging
+          (community) → contact. */}
       <main>
         <HeroSection />
+        <QuickAccessSection />
+        <TrustSection />
         <CertificationFlowSection />
         <VoucherPromoSection />
         <CurriculumSection />
-        <IndustryLeadersSection />
         <LatestExamDumpsSection />
-        <TrustSection />
-        <HomeReviewsSection />
+        <IndustryLeadersSection />
         <InstructorSection />
+        <HomeReviewsSection />
+        <YatrisWorldwideSection />
         <RecognitionsSection />
         <FAQSection />
         <CommunitySection />
