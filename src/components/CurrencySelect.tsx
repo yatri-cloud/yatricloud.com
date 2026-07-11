@@ -90,15 +90,17 @@ export function CurrencySelect({ value, onChange, disabled, className }: Currenc
                     key={o.code}
                     value={`${o.code} ${o.label}`}
                     onSelect={() => handleSelect(o.code)}
-                    className="min-h-[44px] cursor-pointer gap-2"
+                    className="group min-h-[44px] cursor-pointer gap-2"
                   >
                     <Check
                       className={cn("h-4 w-4 shrink-0", o.code === value ? "opacity-100" : "opacity-0")}
                       aria-hidden="true"
                     />
                     <span className="w-12 shrink-0 font-semibold">{o.code}</span>
-                    <span className="w-6 shrink-0 text-muted-foreground">{o.symbol}</span>
-                    <span className="flex-1 text-sm leading-tight text-muted-foreground">{o.label}</span>
+                    {/* muted grays flip light on the blue highlighted row —
+                        gray-on-blue was unreadable (D20 bug class) */}
+                    <span className="w-6 shrink-0 text-muted-foreground group-data-[selected=true]:text-accent-foreground/85">{o.symbol}</span>
+                    <span className="flex-1 text-sm leading-tight text-muted-foreground group-data-[selected=true]:text-accent-foreground">{o.label}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
