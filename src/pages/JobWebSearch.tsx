@@ -6,6 +6,7 @@ import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getStoredUser } from "@/lib/yatris-api";
 import { getJobProfile, type JobProfile } from "@/lib/job-apply-api";
@@ -67,15 +68,50 @@ const JobWebSearch = () => {
 
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
+  const [company, setCompany] = useState("");
+  const [region, setRegion] = useState("any");
+  const [level, setLevel] = useState("any");
+  const [empType, setEmpType] = useState("any");
+  const [remote, setRemote] = useState(false);
+  const [skills, setSkills] = useState<Set<string>>(new Set());
+  const [showMore, setShowMore] = useState(false);
   const [rows, setRows] = useState<WebJob[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(1);
   const [searched, setSearched] = useState(false);
 
+  const REGIONS: Record<string, string> = {
+    any: "", india: "India", us: "United States", uk: "United Kingdom",
+    europe: "Europe", canada: "Canada", australia: "Australia",
+    singapore: "Singapore", uae: "UAE Dubai", remote: "remote",
+  };
+  const LEVEL_TERMS: Record<string, string> = {
+    any: "", intern: "intern", entry: "entry level", mid: "", senior: "senior",
+  };
+  const EMP_TERMS: Record<string, string> = {
+    any: "", fulltime: "full-time", internship: "internship", contract: "contract", parttime: "part-time",
+  };
+  const SKILL_CHIPS = ["Backend", "Frontend", "Java", "Python", "API", "Mobile", "DevOps", "Data", "Cloud", "AI"];
+
+  const toggleSkill = (s: string) =>
+    setSkills((prev) => {
+      const next = new Set(prev);
+      next.has(s) ? next.delete(s) : next.add(s);
+      return next;
+    });
+
   const buildQuery = () =>
-    [title.trim(), location.trim() || profile?.locations?.split(",")[0]?.trim() || ""]
-      .filter(Boolean).join(" ").trim();
+    [
+      title.trim(),
+      [...skills].join(" "),
+      company.trim(),
+      LEVEL_TERMS[level],
+      EMP_TERMS[empType],
+      remote ? "remote" : "",
+      location.trim() || REGIONS[region] || profile?.locations?.split(",")[0]?.trim() || "",
+    ]
+      .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 
   const cleanTitle = (t: string) =>
     t.replace(/\s*[|\-–]\s*(LinkedIn|Indeed|Naukri|Glassdoor).*$/i, "").replace(/\s+/g, " ").trim();
@@ -173,16 +209,74 @@ const JobWebSearch = () => {
           <Button variant="outline" asChild><Link to="/jobs">Yatri job board</Link></Button>
         </div>
 
-        {/* Filter row */}
+        {/* Filter panel */}
         <section className="mb-6 rounded-2xl border border-border bg-card p-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_180px_auto]">
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Job title or keywords" aria-label="Job title" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location" aria-label="Location" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location (or use region)" aria-label="Location" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+            <Select value={region} onValueChange={setRegion}>
+              <SelectTrigger aria-label="Region"><SelectValue placeholder="Region" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any region</SelectItem>
+                <SelectItem value="india">India</SelectItem>
+                <SelectItem value="us">United States</SelectItem>
+                <SelectItem value="uk">United Kingdom</SelectItem>
+                <SelectItem value="europe">Europe</SelectItem>
+                <SelectItem value="canada">Canada</SelectItem>
+                <SelectItem value="australia">Australia</SelectItem>
+                <SelectItem value="singapore">Singapore</SelectItem>
+                <SelectItem value="uae">UAE / Dubai</SelectItem>
+                <SelectItem value="remote">Remote (global)</SelectItem>
+              </SelectContent>
+            </Select>
             <Button className="shadow-inset-btn" onClick={runSearch} disabled={!ready || busy}>
               {busy || !ready ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
               Search
             </Button>
           </div>
+
+          {/* Skill chips */}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {SKILL_CHIPS.map((s) => (
+              <button key={s} type="button" onClick={() => toggleSkill(s)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${skills.has(s) ? "border-primary bg-primary text-primary-foreground" : "border-border bg-brand-50/40 text-primary hover:bg-brand-50"}`}>
+                {s}
+              </button>
+            ))}
+          </div>
+
+          {showMore && (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" aria-label="Company" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+              <Select value={level} onValueChange={setLevel}>
+                <SelectTrigger aria-label="Experience level"><SelectValue placeholder="Experience" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any experience</SelectItem>
+                  <SelectItem value="intern">Internship</SelectItem>
+                  <SelectItem value="entry">Entry level</SelectItem>
+                  <SelectItem value="mid">Mid level</SelectItem>
+                  <SelectItem value="senior">Senior</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={empType} onValueChange={setEmpType}>
+                <SelectTrigger aria-label="Employment type"><SelectValue placeholder="Job type" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any type</SelectItem>
+                  <SelectItem value="fulltime">Full-time</SelectItem>
+                  <SelectItem value="internship">Internship</SelectItem>
+                  <SelectItem value="contract">Contract</SelectItem>
+                  <SelectItem value="parttime">Part-time</SelectItem>
+                </SelectContent>
+              </Select>
+              <label className="flex min-h-[40px] cursor-pointer items-center gap-2 rounded-md border border-border px-3 text-sm">
+                <input type="checkbox" checked={remote} onChange={(e) => setRemote(e.target.checked)} className="h-4 w-4 accent-primary" />
+                Remote only
+              </label>
+            </div>
+          )}
+          <button type="button" onClick={() => setShowMore((v) => !v)} className="mt-2.5 text-xs font-medium text-primary hover:underline">
+            {showMore ? "Fewer filters" : "More filters (company, experience, type, remote)"}
+          </button>
         </section>
 
         {/* Off-screen widget host (real width so Google renders it) */}
