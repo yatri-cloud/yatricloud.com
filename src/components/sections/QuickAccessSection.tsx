@@ -8,6 +8,7 @@ import {
   Users,
   Route,
   Trophy,
+  FilePen,
 } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -25,6 +26,7 @@ const SHORTCUTS = [
   { to: "/events", label: "Events", icon: CalendarDays },
   { to: "/mentorship", label: "Mentorship", icon: Users },
   { to: "/paths", label: "Certification paths", icon: Route },
+  { to: "/resume-maker", label: "Resume maker", icon: FilePen },
   { to: "/achievements", label: "Wall of fame", icon: Trophy },
 ];
 

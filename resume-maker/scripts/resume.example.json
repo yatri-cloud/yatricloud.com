@@ -1,0 +1,62 @@
+{
+  "output": "Jane_Doe_Resume.docx",
+  "density": "normal",
+  "name": "Jane Doe",
+  "title": "Full-Stack Software Engineer   |   MERN \u2022 Python \u2022 AI Automation",
+  "contact": [
+    "Bengaluru, India",
+    "+91 90000 00000",
+    "jane.doe@email.com",
+    "linkedin.com/in/janedoe",
+    "github.com/janedoe"
+  ],
+  "availability": "Immediate Joiner",
+  "summary": "Software engineer with 2+ years of experience building full-stack web applications across the MERN stack and Python, with a focus on clean architecture, performant APIs, and AI-assisted development. Comfortable owning features end to end \u2014 from design through deployment and monitoring.",
+
+  "skills": [
+    ["Languages", "Python, JavaScript (ES6+), TypeScript, C++"],
+    ["Frameworks", "React, Node.js, Express.js, Django"],
+    ["Databases", "MongoDB, PostgreSQL, MySQL, Redis"],
+    ["Cloud & DevOps", "AWS (Lambda, EC2, S3), Docker, GitHub Actions (CI/CD), Linux"],
+    ["AI / ML", "Generative-AI APIs, AI Agents (n8n), OpenCV"],
+    ["Concepts", "RESTful APIs, CRUD, Responsive Design, Debugging, Deployment, DSA"]
+  ],
+
+  "experience": [
+    {
+      "company": "Acme Corp",
+      "dates": "Jan 2024 \u2013 Present",
+      "role": "Software Engineer",
+      "location": "Bengaluru, India",
+      "bullets": [
+        "Built and shipped full-stack features using React, Node.js, and MongoDB, owning work from design through production.",
+        "Reduced API p95 latency by 30% through query optimization and caching with Redis.",
+        "Introduced AI-assisted workflows (Cursor, GitHub Copilot) that cut feature delivery time ~25%."
+      ]
+    }
+  ],
+
+  "projects": [
+    {
+      "title": "ProjectName \u2014 One-line Description",
+      "context": "Live",
+      "bullets": [
+        "What it does and the measurable impact, written as one tight justified sentence."
+      ],
+      "tech": "React, Node.js, Express.js, MongoDB, JWT"
+    }
+  ],
+
+  "education": [
+    { "degree": "B.Tech, Computer Science", "institution": "Some Institute, City", "extra": "8.5 CGPA  |  2023" }
+  ],
+
+  "certifications": [
+    "AWS Certified Cloud Practitioner",
+    "Microsoft Certified: Azure AI Engineer Associate"
+  ],
+
+  "extraSections": [
+    { "heading": "Languages", "lines": ["English   \u2022   Hindi"] }
+  ]
+}
