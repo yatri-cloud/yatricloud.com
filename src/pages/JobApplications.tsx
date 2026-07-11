@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Download, Trash2, Mail, Upload, ExternalLink } from "lucide-react";
+import { Loader2, Download, Trash2, Mail, Upload, ExternalLink, Send, Sparkle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -16,7 +25,10 @@ import {
   listApplications,
   removeApplication,
   buildSelected,
-  applicationMailto,
+  draftEmailsForSelected,
+  saveEmailDraft,
+  markEmailSent,
+  gmailComposeUrl,
   type JobProfile,
   type ApplicationRow,
 } from "@/lib/job-apply-api";
@@ -54,14 +66,69 @@ const JobApplications = () => {
     if (user) refresh();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const building = apps.some((a) =>
-    ["queued", "processing"].includes(a.resume_requests?.status || "")
+  const building = apps.some(
+    (a) =>
+      ["queued", "processing"].includes(a.resume_requests?.status || "") ||
+      a.email_status === "drafting"
   );
   useEffect(() => {
     if (!building) return;
     const t = window.setInterval(refresh, 7000);
     return () => window.clearInterval(t);
   }, [building]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Email drafting + preview/edit
+  const [draftable, drafted] = useMemo(() => {
+    const withContact = apps.filter((a) => a.job_postings?.job_companies?.contact_email);
+    return [
+      withContact.filter((a) => a.email_status === "none").length,
+      withContact.filter((a) => a.email_status === "drafted" || a.email_status === "sent"),
+    ];
+  }, [apps]);
+  const [preview, setPreview] = useState<ApplicationRow | null>(null);
+  const [pSubject, setPSubject] = useState("");
+  const [pBody, setPBody] = useState("");
+  const openPreview = (a: ApplicationRow) => {
+    setPreview(a);
+    setPSubject(a.email_subject || "");
+    setPBody(a.email_body || "");
+  };
+
+  const generateEmails = async () => {
+    const n = await draftEmailsForSelected();
+    if (n === 0) {
+      toast.error("No new emails to draft. Companies need a contact address (admin adds these).");
+      return;
+    }
+    toast.success(`Drafting ${n} ${n === 1 ? "email" : "emails"}. They appear as you refresh.`);
+    refresh();
+  };
+
+  const sendOne = async (a: ApplicationRow) => {
+    if (!profile) return;
+    const url = gmailComposeUrl(a, profile);
+    if (!url) return;
+    window.open(url, "_blank", "noopener");
+    await markEmailSent(a.id);
+    refresh();
+  };
+
+  const sendAll = async () => {
+    if (!profile) return;
+    const ready = drafted.filter((a) => a.email_status === "drafted");
+    if (ready.length === 0) {
+      toast.error("No drafted emails ready to send.");
+      return;
+    }
+    // Open Gmail compose per email; browsers may ask to allow multiple tabs.
+    ready.forEach((a, i) => {
+      const url = gmailComposeUrl(a, profile);
+      if (url) window.setTimeout(() => window.open(url, "_blank", "noopener"), i * 600);
+    });
+    for (const a of ready) await markEmailSent(a.id);
+    toast.success(`Opened ${ready.length} Gmail drafts. Review and send each.`);
+    refresh();
+  };
 
   const uploadProfileResume = async (file: File | null) => {
     if (!file || !user) return;
@@ -169,6 +236,23 @@ const JobApplications = () => {
               </Button>
             </div>
 
+            {/* Outreach actions */}
+            {apps.length > 0 && (
+              <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
+                <Button variant="outline" onClick={generateEmails} disabled={draftable === 0}>
+                  <Sparkle className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                  Draft {draftable > 0 ? `${draftable} ` : ""}application {draftable === 1 ? "email" : "emails"}
+                </Button>
+                <Button onClick={sendAll} disabled={!drafted.some((a) => a.email_status === "drafted")} className="shadow-inset-btn">
+                  <Send className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                  Open all in Gmail
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Emails open in your logged-in Gmail to review and send. Nothing is sent automatically.
+                </p>
+              </div>
+            )}
+
             {/* Applications table */}
             {apps.length === 0 ? (
               <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
@@ -191,7 +275,7 @@ const JobApplications = () => {
                       {apps.map((a) => {
                         const st = a.resume_requests?.status;
                         const meta = st ? STATUS_LABEL[st] : null;
-                        const mailto = profile ? applicationMailto(a, profile) : null;
+                        const hasContact = Boolean(a.job_postings?.job_companies?.contact_email);
                         return (
                           <tr key={a.id} className="border-b border-border/60 last:border-0 hover:bg-brand-50/30">
                             <td className="max-w-[280px] px-4 py-3">
@@ -210,13 +294,7 @@ const JobApplications = () => {
                               )}
                             </td>
                             <td className="px-4 py-3">
-                              {mailto ? (
-                                <Button variant="outline" size="sm" asChild>
-                                  <a href={mailto}>
-                                    <Mail className="mr-1.5 h-3.5 w-3.5" /> Draft email
-                                  </a>
-                                </Button>
-                              ) : (
+                              {!hasContact ? (
                                 <a
                                   href={a.job_postings?.apply_url}
                                   target="_blank"
@@ -225,6 +303,19 @@ const JobApplications = () => {
                                 >
                                   Apply on site <ExternalLink className="h-3 w-3" />
                                 </a>
+                              ) : a.email_status === "drafting" ? (
+                                <span className="inline-flex items-center gap-1.5 text-xs text-primary">
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Drafting…
+                                </span>
+                              ) : a.email_status === "drafted" || a.email_status === "sent" ? (
+                                <div className="flex items-center gap-1.5">
+                                  <Button variant="outline" size="sm" className="h-8" onClick={() => openPreview(a)}>
+                                    <Mail className="mr-1 h-3.5 w-3.5" /> {a.email_status === "sent" ? "View" : "Preview"}
+                                  </Button>
+                                  {a.email_status === "sent" && <Badge variant="secondary">Sent</Badge>}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Not drafted</span>
                               )}
                             </td>
                             <td className="px-4 py-3">
@@ -263,6 +354,50 @@ const JobApplications = () => {
           </>
         )}
       </main>
+
+      {/* Email preview / edit */}
+      <Dialog open={preview !== null} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Email to {preview?.job_postings?.job_companies?.name}</DialogTitle>
+            <DialogDescription>
+              Review and edit, then open it in Gmail to send. Your name signs off automatically.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input value={pSubject} onChange={(e) => setPSubject(e.target.value)} placeholder="Subject" aria-label="Email subject" />
+            <Textarea value={pBody} onChange={(e) => setPBody(e.target.value)} rows={10} aria-label="Email body" />
+            <p className="text-xs text-muted-foreground">Signature: {profile?.full_name}</p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (preview) {
+                  await saveEmailDraft(preview.id, pSubject, pBody);
+                  toast.success("Saved.");
+                  refresh();
+                  setPreview(null);
+                }
+              }}
+            >
+              Save draft
+            </Button>
+            <Button
+              className="shadow-inset-btn"
+              onClick={async () => {
+                if (!preview) return;
+                await saveEmailDraft(preview.id, pSubject, pBody);
+                await sendOne({ ...preview, email_subject: pSubject, email_body: pBody });
+                setPreview(null);
+              }}
+            >
+              <Send className="mr-1.5 h-4 w-4" /> Open in Gmail
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );

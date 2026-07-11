@@ -30,6 +30,9 @@ export interface ApplicationRow {
   id: string;
   job_id: string;
   resume_request_id: string | null;
+  email_subject: string | null;
+  email_body: string | null;
+  email_status: "none" | "drafting" | "drafted" | "sent";
   job_postings: {
     title: string;
     location: string;
@@ -43,10 +46,55 @@ export async function listApplications(): Promise<ApplicationRow[]> {
   const { data } = await supabase
     .from("job_applications")
     .select(
-      "id, job_id, resume_request_id, job_postings(title, location, apply_url, job_companies(name, website, contact_email)), resume_requests(status, docx_path, pdf_path)"
+      "id, job_id, resume_request_id, email_subject, email_body, email_status, job_postings(title, location, apply_url, job_companies(name, website, contact_email)), resume_requests(status, docx_path, pdf_path)"
     )
     .order("created_at", { ascending: false });
   return (data as unknown as ApplicationRow[]) || [];
+}
+
+/** Queue Claude-drafted emails for applications that have a contact address. */
+export async function draftEmailsForSelected(): Promise<number> {
+  const apps = await listApplications();
+  const targets = apps.filter(
+    (a) =>
+      a.email_status === "none" &&
+      a.job_postings?.job_companies?.contact_email
+  );
+  for (const a of targets) {
+    await supabase
+      .from("job_applications")
+      .update({ email_status: "drafting" })
+      .eq("id", a.id);
+  }
+  return targets.length;
+}
+
+export async function saveEmailDraft(id: string, subject: string, body: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("job_applications")
+    .update({ email_subject: subject, email_body: body })
+    .eq("id", id);
+  return !error;
+}
+
+export async function markEmailSent(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("job_applications")
+    .update({ email_status: "sent" })
+    .eq("id", id);
+  return !error;
+}
+
+/** Gmail compose deep-link — opens the user's logged-in Gmail, prefilled.
+    No passwords, no OAuth: the user reviews and clicks Send themselves. */
+export function gmailComposeUrl(app: ApplicationRow, profile: JobProfile): string | null {
+  const email = app.job_postings?.job_companies?.contact_email;
+  if (!email) return null;
+  const subject = app.email_subject || `Application for ${app.job_postings?.title || "the role"}`;
+  const body = `${app.email_body || ""}\n\n${profile.full_name}`;
+  return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+    email
+  )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 export async function selectedJobIds(): Promise<Set<string>> {
@@ -110,15 +158,3 @@ export async function buildSelected(profile: JobProfile): Promise<number> {
   return built;
 }
 
-/** mailto draft for one application (in-app OAuth sending is phase 4). */
-export function applicationMailto(app: ApplicationRow, profile: JobProfile): string | null {
-  const email = app.job_postings?.job_companies?.contact_email;
-  if (!email) return null;
-  const title = app.job_postings?.title || "the open role";
-  const company = app.job_postings?.job_companies?.name || "";
-  const subject = encodeURIComponent(`Application for ${title} — ${profile.full_name}`);
-  const body = encodeURIComponent(
-    `Hi ${company} team,\n\nI came across the ${title} opening and it fits my background well. My tailored resume is attached.\n\nLooking forward to hearing from you.\n\n${profile.full_name}`
-  );
-  return `mailto:${email}?subject=${subject}&body=${body}`;
-}

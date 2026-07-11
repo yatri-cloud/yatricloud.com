@@ -393,6 +393,56 @@ async function processMatch(m) {
   console.log(`✔ match ${m.id}: ${jobIds.length} of ${cand.length} candidates`);
 }
 
+// ——— Email drafting (phase 4 of the job board) ————————————————————————
+
+async function claimNextEmail() {
+  const res = await api(
+    `/rest/v1/job_applications?email_status=eq.drafting&order=created_at.asc&limit=1&select=id,job_id,user_id`
+  );
+  const [row] = await res.json();
+  return row || null;
+}
+
+async function draftEmail(app) {
+  console.log(`▶ email ${app.id}`);
+  const [[job], [profile]] = await Promise.all([
+    api(`/rest/v1/job_postings?id=eq.${app.job_id}&select=title,description,job_companies(name)`).then((r) => r.json()),
+    api(`/rest/v1/job_profiles?user_id=eq.${app.user_id}&select=full_name,roles`).then((r) => r.json()),
+  ]);
+  const company = job?.job_companies?.name || "the company";
+  const dir = join(JOBS, `email-${app.id}`);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    join(dir, "brief.txt"),
+    `Candidate: ${profile?.full_name || ""}\nTarget roles: ${profile?.roles || ""}\nApplying to: ${job?.title || ""} at ${company}\n\nJob description:\n${(job?.description || "").slice(0, 4000)}`
+  );
+  execFileSync(
+    "claude",
+    ["-p", [
+      `brief.txt describes a candidate and a job they are applying to. Write a`,
+      `concise, warm, professional cold application email (110-150 words, no`,
+      `buzzwords, no "I hope this finds you well"). Mention the specific role`,
+      `and 1-2 genuine reasons they fit based ONLY on the brief. Do NOT invent`,
+      `facts. End with a simple sign-off using the candidate's name (no`,
+      `placeholder contact lines — the signature is added separately).`,
+      `Write ONLY email.json: {"subject":"...","body":"..."} — body is plain`,
+      `text with \\n line breaks.`,
+    ].join("\n"), "--permission-mode", "acceptEdits", "--allowedTools", "Read,Write"],
+    { cwd: dir, stdio: ["ignore", "inherit", "inherit"], timeout: 6 * 60 * 1000 }
+  );
+  const email = JSON.parse(readFileSync(join(dir, "email.json"), "utf8"));
+  await api(`/rest/v1/job_applications?id=eq.${app.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email_subject: String(email.subject || `Application for ${job?.title || "the role"}`).slice(0, 300),
+      email_body: String(email.body || ""),
+      email_status: "drafted",
+    }),
+  });
+  console.log(`✔ email ${app.id} drafted`);
+}
+
 console.log("Yatri resume worker watching the queue… (Ctrl+C to stop)");
 for (;;) {
   try {
@@ -418,6 +468,20 @@ for (;;) {
         await finishMatch(match.id, {
           status: "failed",
           error: "Matching failed. Please try again.",
+        });
+      }
+      continue;
+    }
+    const email = await claimNextEmail();
+    if (email) {
+      try {
+        await draftEmail(email);
+      } catch (err) {
+        console.error(`✖ email ${email.id}:`, err.message);
+        await api(`/rest/v1/job_applications?id=eq.${email.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email_status: "none" }),
         });
       }
       continue;
