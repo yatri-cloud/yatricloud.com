@@ -88,6 +88,7 @@ const CompanyLogo = ({ name, website }: { name: string; website: string | null }
 };
 
 const LEVEL_LABEL: Record<string, string> = {
+  intern: "Internship",
   entry: "Entry level",
   mid: "Mid level",
   senior: "Senior",
@@ -392,6 +393,7 @@ const JobBoard = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All levels</SelectItem>
+                <SelectItem value="intern">Internship</SelectItem>
                 <SelectItem value="entry">Entry level</SelectItem>
                 <SelectItem value="mid">Mid level</SelectItem>
                 <SelectItem value="senior">Senior</SelectItem>

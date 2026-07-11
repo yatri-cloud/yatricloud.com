@@ -27,28 +27,66 @@ const SB = env.SUPABASE_URL;
 const KEY = env.SUPABASE_SERVICE_ROLE_KEY;
 const H = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 
-const stripHtml = (html) =>
-  (html || "")
+const stripHtml = (html) => {
+  let s = html || "";
+  // Greenhouse (and some feeds) HTML-ENTITY-ENCODE their markup, so the JSON
+  // holds &lt;h2&gt; not <h2>. Decode the angle brackets FIRST, otherwise the
+  // tag remover below never sees a real tag and raw markup leaks to the UI.
+  s = s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#60;/g, "<").replace(/&#62;/g, ">");
+  return s
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<br\s*\/?>(?=.)/gi, "\n")
-    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "• ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;|&rsquo;/g, "'")
+    .replace(/&quot;|&ldquo;|&rdquo;/g, '"')
+    .replace(/&mdash;/g, "—")
+    .replace(/&[a-z]+;/gi, " ")
     .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
     .slice(0, 15000);
+};
 
-const deriveLevel = (title) => {
-  const t = title.toLowerCase();
-  if (/intern|graduate|junior|entry|fresher|trainee|associate\b|apprentice/.test(t)) return "entry";
-  if (/senior|staff|principal|lead|head|director|manager|architect|vp\b/.test(t)) return "senior";
+// Level from BOTH the title and the description. Titles lie ("Software
+// Engineer" can want 8+ years), so the years-of-experience in the JD is the
+// real signal; the title only overrides for explicit intern/senior wording.
+const deriveLevel = (title, description = "") => {
+  const t = (title || "").toLowerCase();
+  const d = (description || "").toLowerCase();
+
+  // Intern is unambiguous and wins outright.
+  if (/\bintern(ship)?\b|\bco-?op\b|summer analyst|industrial trainee/.test(t)) return "intern";
+  if (/\bintern(ship)?\b/.test(d) && /\bintern/.test(t)) return "intern";
+
+  // Explicit seniority in the title is authoritative.
+  if (/\b(senior|sr\.?|staff|principal|lead|head of|director|manager|architect|vp|distinguished|fellow|expert)\b/.test(t))
+    return "senior";
+  // Explicit early-career wording in the title.
+  if (/\b(junior|jr\.?|graduate|new ?grad|entry|fresher|trainee|apprentice|early career|associate)\b/.test(t))
+    return "entry";
+
+  // Otherwise read the years of experience the JD asks for.
+  const early = /\b(entry[- ]level|new ?grad|recent graduate|early career|no (prior )?experience|0[-–]2 years|university graduate)\b/.test(d);
+  if (early) return "entry";
+  const years = [];
+  const re = /(\d{1,2})\s*\+?\s*(?:to|[-–—])?\s*(\d{1,2})?\s*years?/g;
+  let m;
+  while ((m = re.exec(d))) {
+    const n = parseInt(m[1], 10);
+    if (n >= 0 && n <= 30) years.push(n);
+  }
+  if (years.length) {
+    const min = Math.min(...years);
+    if (min <= 2) return "entry";
+    if (min >= 6) return "senior";
+    return "mid";
+  }
   return "mid";
 };
 
@@ -174,7 +212,7 @@ async function syncCompany(company) {
     .map((j) => ({
       company_id: company.id,
       ...j,
-      level: deriveLevel(j.title),
+      level: deriveLevel(j.title, j.description),
       remote: isRemote(j.location, j.title),
       is_active: true,
       synced_at: runStart,
@@ -366,7 +404,7 @@ async function runAggregator(name, fn) {
       external_id: `${name}:${j.external_id}`,
       title: j.title,
       location: j.location || "",
-      level: deriveLevel(j.title),
+      level: deriveLevel(j.title, j.description),
       remote: !!j.remote,
       department: "",
       apply_url: j.url,
