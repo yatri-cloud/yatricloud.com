@@ -372,14 +372,12 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
                   </div>
                 )}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Currency</span>
-                    <CurrencySelect
-                      value={currency.code}
-                      onChange={(code, option) => { setCurrency(option); setPreferredCurrency(code); }}
-                      disabled={isProcessing}
-                    />
-                  </div>
+                  <CurrencySelect
+                    className="w-full justify-between"
+                    value={currency.code}
+                    onChange={(code, option) => { setCurrency(option); setPreferredCurrency(code); }}
+                    disabled={isProcessing}
+                  />
                   <div className="space-y-1.5">
                     <div className="flex gap-2">
                       <Input

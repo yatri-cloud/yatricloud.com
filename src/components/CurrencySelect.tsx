@@ -69,7 +69,9 @@ export function CurrencySelect({ value, onChange, disabled, className }: Currenc
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[280px] p-0" align="start">
+        {/* align end + collision padding keeps the panel inside the cart
+            sheet instead of clipping at the viewport edge */}
+        <PopoverContent className="w-[300px] p-0" align="end" collisionPadding={12}>
           <Command
             filter={(itemValue, search) => {
               // itemValue is "CODE Name"; match on either the code or the name.
@@ -94,9 +96,9 @@ export function CurrencySelect({ value, onChange, disabled, className }: Currenc
                       className={cn("h-4 w-4 shrink-0", o.code === value ? "opacity-100" : "opacity-0")}
                       aria-hidden="true"
                     />
-                    <span className="w-12 font-semibold">{o.code}</span>
-                    <span className="w-6 text-muted-foreground">{o.symbol}</span>
-                    <span className="truncate text-sm text-muted-foreground">{o.label}</span>
+                    <span className="w-12 shrink-0 font-semibold">{o.code}</span>
+                    <span className="w-6 shrink-0 text-muted-foreground">{o.symbol}</span>
+                    <span className="flex-1 text-sm leading-tight text-muted-foreground">{o.label}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
