@@ -22,13 +22,22 @@ import { getJobProfile, type JobProfile } from "@/lib/job-apply-api";
 
 const CSE_CX = "d214cfcea7a57404d"; // linkedin-people-finder engine
 
+interface Person {
+  name: string;
+  headline: string;
+  company: string;
+  photo: string;
+  url: string;
+  snippet: string;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
   interface Window {
     __gcse?: { parsetags?: string; callback?: () => void };
-    google?: any;
   }
 }
+const gcseApi = () => (window as any).google?.search?.cse?.element;
 
 const JobReferrals = () => {
   const user = useMemo(() => getStoredUser(), []);
@@ -51,7 +60,7 @@ const JobReferrals = () => {
       s.async = true;
       s.src = `https://cse.google.com/cse.js?cx=${CSE_CX}`;
       document.body.appendChild(s);
-    } else if (window.google?.search?.cse?.element) {
+    } else if (gcseApi()) {
       setWidgetReady(true);
     }
   }, []);
@@ -59,28 +68,106 @@ const JobReferrals = () => {
   // Render the results-only element once the widget API is ready.
   useEffect(() => {
     if (!widgetReady || rendered.current) return;
-    const el = window.google?.search?.cse?.element;
+    const el = gcseApi();
     if (!el) return;
     el.render({ div: "gcse-results", tag: "searchresults-only", gname: "referrals" });
     rendered.current = true;
   }, [widgetReady]);
 
-  const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
+  const [company, setCompany] = useState("");
   const [location, setLocation] = useState("");
+  const [pastCompany, setPastCompany] = useState("");
+  const [school, setSchool] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [keywords, setKeywords] = useState("");
+  const [showMore, setShowMore] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [rows, setRows] = useState<Person[] | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  // Compose a Google query over linkedin.com/in profiles from the filters.
+  // Quoted phrases keep multi-word titles/companies together.
+  const buildQuery = () => {
+    const phrase = (s: string) => {
+      const t = s.trim();
+      if (!t) return "";
+      return /\s/.test(t) ? `"${t}"` : t;
+    };
+    return [
+      phrase(role),
+      phrase(company),
+      phrase(pastCompany),
+      phrase(school),
+      phrase(industry),
+      location.trim() || profile?.locations?.split(",")[0]?.trim() || "",
+      keywords.trim(),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+  };
+
+  // Parse the widget's rendered results (which it fetches from the PSE) into
+  // our own structured rows: photo, name, headline, company, url, snippet.
+  const parseWidget = (): Person[] => {
+    const host = document.getElementById("gcse-results");
+    if (!host) return [];
+    const out: Person[] = [];
+    const seen = new Set<string>();
+    host.querySelectorAll(".gsc-webResult.gsc-result").forEach((el) => {
+      const a = el.querySelector<HTMLAnchorElement>("a.gs-title");
+      const url = a?.href || "";
+      if (!url.includes("linkedin.com/in") || seen.has(url)) return;
+      seen.add(url);
+      const rawTitle = (a?.textContent || "").replace(/\s+/g, " ").trim();
+      const title = rawTitle.replace(/\s*[-–|]\s*LinkedIn.*$/i, "");
+      const [namePart, ...rest] = title.split(/\s+[-–]\s+/);
+      const headline = rest.join(" - ").trim();
+      const snippet = (el.querySelector(".gs-snippet")?.textContent || "").replace(/\s+/g, " ").trim();
+      const companyMatch =
+        headline.match(/@\s*([A-Z][\w&.\- ]+?)(?:\s*\||$)/) ||
+        headline.match(/\bat\s+([A-Z][\w&.\- ]+?)(?:\s*\||$)/);
+      const img =
+        el.querySelector<HTMLImageElement>(".gsc-thumbnail img, img.gs-image, .gs-image-box img, img");
+      out.push({
+        name: namePart.trim(),
+        headline: headline || snippet,
+        company: (companyMatch?.[1] || "").trim(),
+        photo: img?.src || "",
+        url,
+        snippet,
+      });
+    });
+    return out;
+  };
 
   const runSearch = () => {
-    const q = [role.trim(), company.trim(), location.trim() || profile?.locations?.split(",")[0]?.trim()]
-      .filter(Boolean)
-      .join(" ");
-    if (!q) { toast.error("Add a company or role to search."); return; }
-    const control = window.google?.search?.cse?.element?.getElement("referrals");
+    const q = buildQuery();
+    if (!q) { toast.error("Fill at least one filter to search."); return; }
+    const control = gcseApi()?.getElement("referrals");
     if (!control) { toast.error("Search is still loading, try again in a moment."); return; }
-    control.execute(q);
+    setBusy(true);
     setHasSearched(true);
-    document.getElementById("gcse-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setRows(null);
+    control.execute(q);
+    // Widget renders into the off-screen host; poll its DOM into our table.
+    let tries = 0;
+    const timer = window.setInterval(() => {
+      tries++;
+      const parsed = parseWidget();
+      if (parsed.length > 0 || tries >= 20) {
+        window.clearInterval(timer);
+        setRows(parsed);
+        setBusy(false);
+      }
+    }, 300);
   };
+
+  const TITLE_SUGGESTIONS = [
+    "Software Engineer", "Senior Software Engineer", "Platform Engineer",
+    "AI Engineer", "Staff Software Engineer", "Engineering Manager", "Recruiter",
+  ];
 
   // Note generator
   const [person, setPerson] = useState("");
@@ -88,11 +175,13 @@ const JobReferrals = () => {
   const [followup, setFollowup] = useState("");
   const me = profile?.full_name || user?.fullName || "";
 
-  const generate = () => {
-    const first = (person.trim().split(/\s+/)[0] || "there").replace(/[^\w'-]/g, "");
-    const target = [role.trim(), company.trim() && `at ${company.trim()}`].filter(Boolean).join(" ");
+  const generate = (fromName?: string, fromCompany?: string) => {
+    if (fromName) setPerson(fromName);
+    const first = ((fromName || person).trim().split(/\s+/)[0] || "there").replace(/[^\w'-]/g, "");
+    const co = fromCompany || company;
+    const target = [role.trim(), co.trim() && `at ${co.trim()}`].filter(Boolean).join(" ");
     setNote(
-      `Hi ${first}, I really admire the work ${company.trim() || "your team"} is doing. ` +
+      `Hi ${first}, I really admire the work ${co.trim() || "your team"} is doing. ` +
       `I'm exploring ${target || "opportunities"} and your path stood out to me. ` +
       `Would you be open to connecting? I'd value any pointers. Thanks! — ${me}`
     );
@@ -102,6 +191,7 @@ const JobReferrals = () => {
       `Either way, thank you for your time. — ${me}`
     );
     toast.success("Note and follow-up ready. Edit freely, then copy.");
+    document.getElementById("note-block")?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const copy = (text: string) => navigator.clipboard.writeText(text).then(() => toast.success("Copied."));
@@ -123,42 +213,98 @@ const JobReferrals = () => {
       <SEO title="Find a Referral | Yatri Cloud" description="Find people at your target company and generate a personalised connection note." noindex />
       <div className="noise-overlay" />
       <Navbar />
-      <main className="container mx-auto max-w-3xl px-4 pb-20 pt-28 md:px-6">
+      <main className="container mx-auto max-w-5xl px-4 pb-20 pt-28 md:px-6">
         <div className="mb-8">
           <p className="mb-1 text-sm font-semibold uppercase tracking-[0.2em] text-primary">Referrals</p>
           <h1 className="font-display text-3xl font-bold tracking-[-0.02em] md:text-4xl">
             Find someone who can <span className="gradient-text">refer you</span>
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Search people at your target company, then generate a note to connect and a
+            Filter people at your target companies, then generate a note to connect and a
             follow-up to send with your resume.
           </p>
         </div>
 
-        {/* Our search form drives the results widget */}
-        <section className="mb-6 rounded-2xl border border-border bg-card p-5">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company (e.g. Stripe)" aria-label="Company" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
-            <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role (e.g. Cloud Engineer)" aria-label="Role" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location (optional)" aria-label="Location" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+        {/* Minimal filter row */}
+        <section className="mb-6 rounded-2xl border border-border bg-card p-4">
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+            <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Job title" aria-label="Job title" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" aria-label="Company" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location" aria-label="Location" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+            <Button className="shadow-inset-btn" onClick={runSearch} disabled={!widgetReady || busy}>
+              {busy || !widgetReady ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+              Find
+            </Button>
           </div>
-          <Button className="mt-3 shadow-inset-btn" onClick={runSearch} disabled={!widgetReady}>
-            {widgetReady ? <Search className="mr-2 h-4 w-4" /> : <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {widgetReady ? "Find people" : "Loading search…"}
-          </Button>
+          {showMore && (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Input value={pastCompany} onChange={(e) => setPastCompany(e.target.value)} placeholder="Past company" aria-label="Past company" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+              <Input value={school} onChange={(e) => setSchool(e.target.value)} placeholder="School" aria-label="School" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+              <Input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="Industry" aria-label="Industry" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+              <Input value={keywords} onChange={(e) => setKeywords(e.target.value)} placeholder="Keywords" aria-label="Keywords" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+            </div>
+          )}
+          <button type="button" onClick={() => setShowMore((v) => !v)} className="mt-2.5 text-xs font-medium text-primary hover:underline">
+            {showMore ? "Fewer filters" : "More filters"}
+          </button>
         </section>
 
-        {/* Results widget (LinkedIn profiles). Styled to sit in our card. */}
-        <section className={`mb-8 rounded-2xl border border-border bg-card p-5 ${hasSearched ? "" : "hidden"}`}>
-          <div id="gcse-results" className="yc-cse" />
-        </section>
+        {/* Off-screen widget host (real width so Google renders it; we parse
+            it into our own table below). Not display:none / zero-size. */}
+        <div
+          id="gcse-results"
+          aria-hidden
+          style={{ position: "absolute", left: "-10000px", top: 0, width: "760px" }}
+        />
+
+        {/* OUR custom table */}
+        {hasSearched && (
+          <section className="mb-8">
+            {busy ? (
+              <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
+                <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-primary" /> Finding people…
+              </div>
+            ) : !rows || rows.length === 0 ? (
+              <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
+                No profiles found. Try different filters.
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-border bg-card">
+                <div className="border-b border-border bg-brand-50/40 px-4 py-2.5 text-sm font-semibold">
+                  {rows.length} people found
+                </div>
+                <ul className="divide-y divide-border/60">
+                  {rows.map((p) => (
+                    <li key={p.url} className="flex items-center gap-3 px-4 py-3 hover:bg-brand-50/30">
+                      {p.photo ? (
+                        <img src={p.photo} alt="" width={44} height={44} loading="lazy" className="h-11 w-11 shrink-0 rounded-full object-cover" onError={(e) => { const t = e.currentTarget as HTMLImageElement; t.replaceWith(Object.assign(document.createElement("span"), { className: "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-primary", textContent: p.name.slice(0, 1) })); }} />
+                      ) : (
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-primary">{p.name.slice(0, 1)}</span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold">{p.name || "—"}</p>
+                        <p className="truncate text-sm text-muted-foreground">{p.headline}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <Button variant="outline" size="sm" className="h-8" asChild>
+                          <a href={p.url} target="_blank" rel="noopener noreferrer">Profile</a>
+                        </Button>
+                        <Button size="sm" className="h-8 shadow-inset-btn" onClick={() => generate(p.name, p.company)}>Note</Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Note generator */}
-        <section className="rounded-2xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] via-brand-50/40 to-card p-5 md:p-6">
+        <section id="note-block" className="rounded-2xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] via-brand-50/40 to-card p-5 md:p-6">
           <h2 className="mb-3 font-display text-lg font-bold">Personalised outreach</h2>
           <div className="mb-4 grid gap-3 sm:grid-cols-2">
             <Input value={person} onChange={(e) => setPerson(e.target.value)} placeholder="Person's name (from a profile above)" aria-label="Person name" />
-            <Button onClick={generate} className="shadow-inset-btn"><Sparkle className="mr-1.5 h-4 w-4" /> Generate note & follow-up</Button>
+            <Button onClick={() => generate()} className="shadow-inset-btn"><Sparkle className="mr-1.5 h-4 w-4" /> Generate note & follow-up</Button>
           </div>
           {note && (
             <div className="space-y-4">
