@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, MapPin, Building2, ExternalLink, BriefcaseBusiness, Upload } from "lucide-react";
+import { Loader2, Search, MapPin, Building2, ExternalLink, BriefcaseBusiness, Upload, UserRound } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -271,6 +271,16 @@ const JobBoard = () => {
               {totalLabel} live openings, pulled straight from official company
               career boards and job feeds. No stale listings, no logins.
             </p>
+            {user && (
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Button asChild className="shadow-inset-btn">
+                  <Link to="/jobs/applications">
+                    <UserRound className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    My job profile &amp; applications
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
         </section>
 

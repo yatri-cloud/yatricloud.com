@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Download, Trash2, Mail, Upload, ExternalLink, Send, Sparkle } from "lucide-react";
+import { Loader2, Download, Trash2, Mail, Upload, ExternalLink, Send, Sparkle, FileText } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { getStoredUser } from "@/lib/yatris-api";
 import { uploadResumeSource, resumeDownloadUrl } from "@/lib/resume-api";
+import { latestJobMatch, type JobMatchRequest } from "@/lib/job-match-api";
 import {
   getJobProfile,
   saveJobProfile,
@@ -55,11 +56,13 @@ const JobApplications = () => {
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const [aiMatch, setAiMatch] = useState<JobMatchRequest | null>(null);
   const refresh = async () => {
-    const [p, a] = await Promise.all([getJobProfile(), listApplications()]);
+    const [p, a, m] = await Promise.all([getJobProfile(), listApplications(), latestJobMatch()]);
     setProfile(p);
     setRoles(p?.roles || "");
     setApps(a);
+    setAiMatch(m);
     setLoaded(true);
   };
   useEffect(() => {
@@ -231,6 +234,11 @@ const JobApplications = () => {
                   </p>
                 </div>
                 <div className="ml-auto flex flex-wrap items-center gap-2 text-sm">
+                  {profile?.resume_path && (
+                    <Button variant="outline" size="sm" className="h-8" onClick={() => download(profile.resume_path)}>
+                      <FileText className="mr-1 h-3.5 w-3.5" /> View resume
+                    </Button>
+                  )}
                   <Badge variant="outline" className="border-brand-100 bg-brand-50 text-primary">
                     {apps.length} selected
                   </Badge>
@@ -240,6 +248,31 @@ const JobApplications = () => {
                   <Badge variant="outline">{drafted.length} emails drafted</Badge>
                 </div>
               </div>
+
+              {/* What the AI read from the resume — the job-seeker snapshot */}
+              {aiMatch?.status === "ready" && aiMatch.result && (
+                <div className="mb-4 rounded-xl border border-border bg-background/60 p-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">Your profile at a glance</p>
+                  {aiMatch.result.summary && (
+                    <p className="mb-3 text-sm text-muted-foreground">{aiMatch.result.summary}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {aiMatch.result.level && (
+                      <Badge variant="secondary" className="capitalize">{aiMatch.result.level} level</Badge>
+                    )}
+                    {(aiMatch.result.roles || []).slice(0, 8).map((r) => (
+                      <Badge key={r} variant="outline">{r}</Badge>
+                    ))}
+                  </div>
+                  {(aiMatch.result.job_ids?.length || 0) > 0 && (
+                    <p className="mt-3 text-sm">
+                      <Link to="/jobs" className="font-semibold text-primary hover:underline">
+                        {aiMatch.result.job_ids?.length} matching openings on the board →
+                      </Link>
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-center">
                 <label className={`inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 font-medium transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-primary ${busy ? "pointer-events-none opacity-60" : ""}`}>
                   <Upload className="h-4 w-4" aria-hidden="true" />

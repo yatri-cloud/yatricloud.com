@@ -10,6 +10,7 @@ import {
   Trophy,
   FilePen,
   BriefcaseBusiness,
+  UserRound,
 } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -28,6 +29,7 @@ const SHORTCUTS = [
   { to: "/mentorship", label: "Mentorship", icon: Users },
   { to: "/paths", label: "Certification paths", icon: Route },
   { to: "/jobs", label: "Job board", icon: BriefcaseBusiness },
+  { to: "/jobs/applications", label: "My job profile", icon: UserRound },
   { to: "/resume-maker", label: "Resume maker", icon: FilePen },
   { to: "/achievements", label: "Wall of fame", icon: Trophy },
 ];
