@@ -9,7 +9,7 @@
 // Companies whose careers page is a custom site (no detectable ATS board)
 // are counted and skipped — they can't be pulled without scraping.
 
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -96,10 +96,20 @@ function guessName(cells) {
 const found = new Map(); // slug → { name, source, website }
 let filesRead = 0, boardsSeen = 0, noBoard = 0;
 
-for (const file of readdirSync(DIR)) {
-  if (!file.toLowerCase().endsWith(".csv")) continue;
+// Walk DIR recursively for every .csv (subfolders like new-jobs-lists/).
+function allCsvs(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) out.push(...allCsvs(p));
+    else if (name.toLowerCase().endsWith(".csv")) out.push(p);
+  }
+  return out;
+}
+
+for (const path of allCsvs(DIR)) {
   filesRead++;
-  const rows = parseCsv(readFileSync(join(DIR, file), "utf8"));
+  const rows = parseCsv(readFileSync(path, "utf8"));
   for (const cells of rows) {
     const line = cells.join(" ");
     const urls = line.match(URL_RE) || [];
