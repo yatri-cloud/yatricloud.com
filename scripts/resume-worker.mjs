@@ -164,13 +164,17 @@ async function finish(id, patch) {
 }
 
 function pdfPages(path) {
-  // macOS Spotlight metadata: reliable page count without extra deps.
+  // Parse the PDF directly (mdls returns null on files Spotlight has not
+  // indexed yet, which is every freshly built job). /Count on the page tree
+  // root is authoritative for LibreOffice output; page objects are backup.
   try {
-    const out = execFileSync("mdls", ["-name", "kMDItemNumberOfPages", "-raw", path], {
-      encoding: "utf8",
-    }).trim();
-    const n = parseInt(out, 10);
-    return Number.isFinite(n) ? n : null;
+    const raw = readFileSync(path).toString("latin1");
+    const counts = (raw.match(/\/Count\s+(\d+)/g) || []).map((s) =>
+      parseInt(s.replace(/\D+/g, ""), 10)
+    );
+    if (counts.length) return Math.max(...counts);
+    const pageObjs = (raw.match(/\/Type\s*\/Page[^s]/g) || []).length;
+    return pageObjs || null;
   } catch {
     return null;
   }

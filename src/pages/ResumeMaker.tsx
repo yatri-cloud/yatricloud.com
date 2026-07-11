@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, FileText, Download, Clock, CircleAlert, Upload, X } from "lucide-react";
+import { Loader2, FileText, Download, Clock, CircleAlert, Upload, X, RotateCcw, Trash2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -12,7 +12,9 @@ import { toast } from "sonner";
 import { getStoredUser } from "@/lib/yatris-api";
 import {
   createResumeRequest,
+  deleteResumeRequest,
   listMyResumeRequests,
+  rebuildResumeRequest,
   resumeDownloadUrl,
   uploadResumeSource,
   type ResumeRequest,
@@ -118,6 +120,26 @@ const ResumeMaker = () => {
       return;
     }
     window.open(url, "_blank", "noopener");
+  };
+
+  const remove = async (r: ResumeRequest) => {
+    const ok = await deleteResumeRequest(r);
+    if (!ok) {
+      toast.error("Could not delete that request.");
+      return;
+    }
+    toast.success("Deleted.");
+    refresh();
+  };
+
+  const rebuild = async (r: ResumeRequest) => {
+    const ok = await rebuildResumeRequest(r);
+    if (!ok) {
+      toast.error("Could not queue a rebuild.");
+      return;
+    }
+    toast.success("Queued again with the same inputs.");
+    refresh();
   };
 
   return (
@@ -291,12 +313,36 @@ const ResumeMaker = () => {
                                 {new Date(r.created_at).toLocaleString()}
                               </p>
                             </div>
-                            <Badge variant="outline" className={meta.cls}>
-                              {(r.status === "queued" || r.status === "processing") && (
-                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              <Badge variant="outline" className={meta.cls}>
+                                {(r.status === "queued" || r.status === "processing") && (
+                                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                )}
+                                {meta.label}
+                              </Badge>
+                              {(r.status === "ready" || r.status === "failed") && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => rebuild(r)}
+                                    aria-label="Build again with the same inputs"
+                                    title="Build again"
+                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-brand-50 hover:text-primary"
+                                  >
+                                    <RotateCcw className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => remove(r)}
+                                    aria-label="Delete this request and its files"
+                                    title="Delete"
+                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </>
                               )}
-                              {meta.label}
-                            </Badge>
+                            </div>
                           </div>
                           {r.status === "failed" && r.error && (
                             <p className="mt-2 flex items-start gap-1.5 text-xs text-destructive">

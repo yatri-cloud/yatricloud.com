@@ -1,7 +1,8 @@
 import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
-    CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag, type LucideIcon,
+    CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag,
+    FilePen, type LucideIcon,
 } from "lucide-react";
 
 /**
@@ -37,6 +38,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Community", path: "/admin/community", icon: Users, description: "Manage the community links shown on the site." },
             { name: "Achievements", path: "/admin/achievements", icon: Award, description: "Moderate the certifications Yatris have shared." },
             { name: "Inquiries", path: "/admin/inquiries", icon: Inbox, description: "Partner requests and contact messages from the site." },
+            { name: "Resume requests", path: "/admin/resumes", icon: FilePen, description: "Resume maker queue: retry, download or remove requests." },
         ],
     },
     {
