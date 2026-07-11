@@ -137,7 +137,33 @@ const JobWebSearch = () => {
       .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 
   const cleanTitle = (t: string) =>
-    t.replace(/\s*[|\-–]\s*(LinkedIn|Indeed|Naukri|Glassdoor).*$/i, "").replace(/\s+/g, " ").trim();
+    t
+      // Everything after a pipe or middot is site/benefits noise ("… | Great pay").
+      .replace(/\s*[|·]\s.*$/, "")
+      // Drop trailing requisition IDs ("… - Job ID 12345", "(Job ID: …)").
+      .replace(/\s*[-–(]\s*Job\s*ID\b.*$/i, "")
+      .replace(/\s*[-–]\s*(LinkedIn|Indeed|Naukri(\.com)?|Glassdoor|Amazon\.jobs|Careers?)\b.*$/i, "")
+      // Trim a trailing org/division tail ("…, Amazon Business", "…, AWS Sales").
+      .replace(/,\s*[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*\s+(Business|Group|Team|Services|Division|Org|Sales|Operations)\b.*$/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  // Known cities/regions — used both to validate a "… in <place>" title tail and
+  // to pull a clean location out of a snippet (never a tech word or team name).
+  const CITY_RE = /\b(Bengaluru|Bangalore|Mumbai|New Delhi|Delhi|Gurgaon|Gurugram|Hyderabad|Pune|Chennai|Noida|Kolkata|Ahmedabad|Jaipur|Remote|London|Dublin|Singapore|Toronto|Sydney|Berlin|Dubai|San Francisco|New York|Seattle|Austin|Amsterdam|India|United States|United Kingdom|USA|UAE|Canada|Australia|Germany|Ireland)\b(?:,\s*(?:Karnataka|Maharashtra|Telangana|Haryana|Tamil Nadu|India|UK|USA?|Ireland|Canada|Germany|Australia|Netherlands|Singapore))?/;
+
+  const sourceName = (host: string): string => {
+    if (/linkedin/.test(host)) return "LinkedIn";
+    if (/naukri/.test(host)) return "Naukri";
+    if (/amazon\.jobs/.test(host)) return "Amazon";
+    if (/careers\.google/.test(host)) return "Google";
+    if (/microsoft/.test(host)) return "Microsoft";
+    if (/greenhouse|job-boards/.test(host)) return "Greenhouse";
+    if (/lever/.test(host)) return "Lever";
+    if (/ashby/.test(host)) return "Ashby";
+    const base = host.replace(/^www\./, "").split(".")[0];
+    return base.charAt(0).toUpperCase() + base.slice(1);
+  };
 
   const parsePage = (): { jobs: WebJob[]; pages: number } => {
     // Read from the whole document — the widget may render inline OR in an
@@ -153,30 +179,58 @@ const JobWebSearch = () => {
       const snippet = (el.querySelector(".gs-snippet")?.textContent || "").replace(/\s+/g, " ").trim();
       // Skip closed postings.
       if (/no longer accepting|closed for applications|position (has been )?filled/i.test(snippet)) return;
-      const dash = raw.match(/^(.*?)\s+[-–]\s+(.+)$/);
-      const hiring = raw.match(/^(.+?)\s+hiring\s+/i);
+      // Source first — it decides how the title is shaped per board.
+      let host = "";
+      try { host = new URL(url).hostname.replace(/^www\./, ""); } catch { /* */ }
+      const source = host ? sourceName(host) : "Web";
+      const isLinkedIn = source === "LinkedIn";
       const isSource = (s: string) => /^(LinkedIn|Naukri|Indeed|Glassdoor|Jobs?)\b/i.test(s.trim());
-      let jobTitle = raw, company = "";
-      if (hiring) { company = hiring[1].trim(); jobTitle = raw.replace(/^.+?hiring\s+/i, "").trim(); }
-      else if (dash && !isSource(dash[2])) { jobTitle = dash[1].trim(); company = dash[2].trim(); }
-      else if (dash) { jobTitle = dash[1].trim(); }
+      // Pull a trailing "… in Bengaluru, Karnataka, India" off the WHOLE title first
+      // so the role reads clean and it never leaks into a dash-split company.
+      let work = raw, titleLoc = "";
+      const inLoc = work.match(/\s+in\s+([A-Z][A-Za-z .,'/-]+)$/);
+      // Only strip the tail when it's genuinely a place ("… in Bengaluru"),
+      // not a team/role phrase ("… in Test, Alexa Global Quality").
+      if (inLoc && CITY_RE.test(inLoc[1])) { titleLoc = inLoc[1].trim(); work = work.slice(0, inLoc.index).trim(); }
+      // Amazon/careers landing pages title themselves with just a place — skip them.
+      const looksLikeLocation = /^[A-Z][A-Za-z .]+,\s*(India|USA?|UK|United\b|Canada|Australia|Singapore|UAE|Germany|Ireland)/i.test(work) && !/engineer|manager|developer|analyst|designer|lead|architect|scientist|consultant|specialist|intern|director|officer|administrator|sde/i.test(work);
+      if (looksLikeLocation) return;
+      let jobTitle = work, company = "";
+      const hiring = work.match(/^(.+?)\s+hiring\s+/i);
+      if (hiring) {
+        company = hiring[1].trim();
+        jobTitle = work.replace(/^.+?hiring\s+/i, "").trim();
+      } else if (!isLinkedIn) {
+        // "Role - Company" only off LinkedIn, and only when the right side really
+        // looks like a company (≤4 words, no stray "in"/level suffix like "II").
+        const dash = work.match(/^(.+?)\s+[-–]\s+(.+)$/);
+        if (dash && !isSource(dash[2]) && dash[2].split(/\s+/).length <= 4 && !/\bin\b/i.test(dash[2]) && !/^[IVX]+\b/.test(dash[2])) {
+          jobTitle = dash[1].trim();
+          company = dash[2].trim();
+        }
+      }
       // Company from snippet ("Google Bengaluru, Karnataka …") if not in title.
       if (!company) {
         const m = snippet.match(/^([A-Z][A-Za-z0-9&.'\- ]{1,40}?)\s+(?:Bengaluru|Bangalore|Mumbai|Delhi|Gurgaon|Gurugram|Hyderabad|Pune|Chennai|Noida|Kolkata|India|Remote|United|London|New York|San |Dublin|Singapore)/);
         if (m && !isSource(m[1])) company = m[1].trim();
       }
-      const locMatch = snippet.match(/\b(?:in|·)\s*([A-Z][A-Za-z .,'-]+?(?:,\s*[A-Z][A-Za-z .]+)?)\b/);
+      // Anchor location to a real city so we never pick up a tech-stack word
+      // ("Python") or a team name ("Test, Alexa Global Quality …") from the snippet.
+      const cityMatch = snippet.match(CITY_RE);
       const postedMatch = snippet.match(/(\d+\s+(?:hour|day|week|month|year)s?\s+ago)/i) || snippet.match(/(\d{1,2}\s+[A-Z][a-z]{2}\s+\d{4})/);
-      let source = "Web";
-      try { source = new URL(url).hostname.replace(/^www\./, "").split(".")[0]; } catch { /* */ }
+      // When the source IS the employer (amazon.jobs, careers.google, MS jobs),
+      // the company is that employer — override snippet noise like "Amazon Careers".
+      if (/^(Amazon|Google|Microsoft)$/.test(source)) company = source;
+      // Otherwise tidy trailing "Careers"/"Jobs" that leaked in from a snippet.
+      company = company.replace(/\s+(Careers?|Jobs?|Hiring)$/i, "").trim();
       jobs.push({
-        title: jobTitle || raw,
+        title: jobTitle || work,
         company,
-        location: (locMatch?.[1] || "").trim(),
+        location: (titleLoc || cityMatch?.[0] || "").trim(),
         posted: (postedMatch?.[1] || "").trim(),
         url,
         snippet,
-        source: source.charAt(0).toUpperCase() + source.slice(1),
+        source,
       });
     });
     const pageEls = document.querySelectorAll(".gsc-cursor-page");
@@ -192,6 +246,15 @@ const JobWebSearch = () => {
     }, 300);
   };
 
+  // The widget doesn't reliably honour the `site:` operator, so enforce the
+  // chosen source ourselves: keep only rows whose parsed source matches.
+  const SOURCE_LABEL: Record<string, string> = {
+    linkedin: "LinkedIn", naukri: "Naukri", google: "Google", microsoft: "Microsoft",
+    amazon: "Amazon", greenhouse: "Greenhouse", lever: "Lever", ashby: "Ashby",
+  };
+  const applySourceFilter = (jobs: WebJob[]) =>
+    source === "any" ? jobs : jobs.filter((j) => j.source === SOURCE_LABEL[source]);
+
   const runSearch = () => {
     const q = buildQuery();
     if (!q) { toast.error("Enter a job title or keyword."); return; }
@@ -199,7 +262,7 @@ const JobWebSearch = () => {
     if (!control) { toast.error("Search is still loading, try again."); return; }
     setBusy(true); setSearched(true); setRows(null); setPage(1);
     control.execute(q);
-    pollParse(({ jobs, pages }) => { setRows(jobs); setMaxPage(pages); setBusy(false); });
+    pollParse(({ jobs, pages }) => { setRows(applySourceFilter(jobs)); setMaxPage(pages); setBusy(false); });
   };
 
   // Go to a page by clicking the widget's own cursor (fetches just that page).
@@ -209,7 +272,7 @@ const JobWebSearch = () => {
     if (!cursor || !cursor[n - 1]) return;
     setBusy(true); setRows(null);
     cursor[n - 1].click();
-    pollParse(({ jobs, pages }) => { setRows(jobs); setMaxPage(pages); setPage(n); setBusy(false); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    pollParse(({ jobs, pages }) => { setRows(applySourceFilter(jobs)); setMaxPage(pages); setPage(n); setBusy(false); window.scrollTo({ top: 0, behavior: "smooth" }); });
   };
 
   if (!user) {
@@ -226,7 +289,7 @@ const JobWebSearch = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEO title="Jobs on the Web | Yatri Cloud" description="Search jobs across LinkedIn, company careers and Naukri in one place." noindex />
+      <SEO title="Jobs on the Web | Yatri Cloud" description="Search jobs across LinkedIn, Amazon, Google and top company boards in one place." noindex />
       <div className="noise-overlay" />
       <Navbar />
       <main className="container mx-auto max-w-4xl px-4 pb-20 pt-28 md:px-6">
@@ -236,7 +299,7 @@ const JobWebSearch = () => {
             <h1 className="font-display text-3xl font-bold tracking-[-0.02em] md:text-4xl">
               Search <span className="gradient-text">everywhere</span>
             </h1>
-            <p className="mt-2 text-muted-foreground">LinkedIn, company careers and Naukri — in one place.</p>
+            <p className="mt-2 text-muted-foreground">LinkedIn, Amazon, Google and top company boards — in one place.</p>
           </div>
           <Button variant="outline" asChild><Link to="/jobs">Yatri job board</Link></Button>
         </div>
@@ -273,15 +336,15 @@ const JobWebSearch = () => {
               <Select value={source} onValueChange={setSource}>
                 <SelectTrigger aria-label="Source"><SelectValue placeholder="Source" /></SelectTrigger>
                 <SelectContent>
+                  {/* Only sources Google actually indexes for job pages — Naukri,
+                      Microsoft careers and Ashby return ~0 via search, so they'd
+                      just show "No jobs found" and are intentionally omitted. */}
                   <SelectItem value="any">Any source</SelectItem>
                   <SelectItem value="linkedin">LinkedIn</SelectItem>
-                  <SelectItem value="naukri">Naukri</SelectItem>
-                  <SelectItem value="google">Google Careers</SelectItem>
-                  <SelectItem value="microsoft">Microsoft</SelectItem>
                   <SelectItem value="amazon">Amazon</SelectItem>
+                  <SelectItem value="google">Google Careers</SelectItem>
                   <SelectItem value="greenhouse">Greenhouse</SelectItem>
                   <SelectItem value="lever">Lever</SelectItem>
-                  <SelectItem value="ashby">Ashby</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={level} onValueChange={setLevel}>
@@ -326,7 +389,9 @@ const JobWebSearch = () => {
               </div>
             ) : !rows || rows.length === 0 ? (
               <div className="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
-                No jobs found. Try different words.
+                {source !== "any"
+                  ? "No results from this source. Try “Any source” or a broader keyword."
+                  : "No jobs found. Try different words."}
               </div>
             ) : (
               <>
@@ -350,11 +415,11 @@ const JobWebSearch = () => {
                         {rows.map((j) => (
                           <tr key={j.url} className="border-b border-border/60 align-middle last:border-0 hover:bg-brand-50/30">
                             <td className="max-w-[280px] px-4 py-3">
-                              <a href={j.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary">{j.title}</a>
+                              <a href={j.url} target="_blank" rel="noopener noreferrer" title={j.title} className="line-clamp-2 font-semibold text-foreground hover:text-primary">{j.title}</a>
                             </td>
                             <td className="px-4 py-3">
                               <span className="flex items-center gap-2">
-                                <CompanyLogo name={j.company} />
+                                {j.company && <CompanyLogo name={j.company} />}
                                 <span className="font-medium">{j.company || "—"}</span>
                               </span>
                             </td>

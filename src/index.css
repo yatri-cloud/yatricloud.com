@@ -472,9 +472,7 @@
    so keep the widget's own overlay/results UI off-screen (still rendered in
    the DOM so we can read it) — the user only ever sees our custom UI. */
 .gsc-results-wrapper-overlay,
-.gsc-results-wrapper-visible,
-.gsc-modal-background-image,
-.gsc-modal-background-image-visible {
+.gsc-results-wrapper-visible {
   position: fixed !important;
   left: -99999px !important;
   top: 0 !important;
@@ -482,4 +480,14 @@
   max-width: 800px !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+/* The modal backdrop is a full-screen fixed layer that captures scroll/clicks —
+   remove it entirely (results are still in the DOM to read) so the page scrolls. */
+.gsc-modal-background-image,
+.gsc-modal-background-image-visible {
+  display: none !important;
+}
+/* Google's overlay adds a scroll-lock to <body>; never let it stick. */
+body {
+  overflow-y: auto !important;
 }
