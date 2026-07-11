@@ -305,6 +305,9 @@ const JobBoard = () => {
                 <Button asChild variant="outline">
                   <Link to="/jobs/referrals">Find a referral</Link>
                 </Button>
+                <Button asChild variant="outline">
+                  <Link to="/jobs/web">Jobs on the web</Link>
+                </Button>
               </div>
             )}
           </div>

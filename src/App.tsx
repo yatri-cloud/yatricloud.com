@@ -38,6 +38,7 @@ const JobBoard = lazy(() => import("./pages/JobBoard"));
 const JobApplications = lazy(() => import("./pages/JobApplications"));
 const JobSeekerProfile = lazy(() => import("./pages/JobSeekerProfile"));
 const JobReferrals = lazy(() => import("./pages/JobReferrals"));
+const JobWebSearch = lazy(() => import("./pages/JobWebSearch"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const UdemyAdmin = lazy(() => import("./pages/admin/UdemyAdmin"));
@@ -162,6 +163,7 @@ const App = () => (
               <Route path="/jobs/applications" element={<JobApplications />} />
               <Route path="/jobs/profile" element={<JobSeekerProfile />} />
               <Route path="/jobs/referrals" element={<JobReferrals />} />
+              <Route path="/jobs/web" element={<JobWebSearch />} />
               <Route path="/manage-certifications" element={<ManageCertifications />} />
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/achievements" element={<Achievements />} />
