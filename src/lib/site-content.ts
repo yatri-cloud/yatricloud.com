@@ -432,7 +432,6 @@ export const FALLBACK_COMMUNITIES: CommunityEntry[] = [
 export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
   navbar: [
     { href: "/training", label: "Training" },
-    { href: "#courses", label: "Practice Tests" },
     { href: "/examdumps", label: "Exam Dumps" },
     { href: "/events", label: "Events" },
     { href: "/community", label: "Community" },
