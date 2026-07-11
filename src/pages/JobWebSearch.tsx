@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Search, ExternalLink, MapPin, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Search, ExternalLink, MapPin, ChevronLeft, ChevronRight, Users } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -25,6 +25,7 @@ interface WebJob {
   title: string;
   company: string;
   location: string;
+  posted: string;
   url: string;
   snippet: string;
   source: string;
@@ -37,6 +38,26 @@ declare global {
   }
 }
 const gcseApi = () => (window as any).google?.search?.cse?.element;
+
+/** Company logo from a name-guessed domain favicon, with an initial fallback. */
+const CompanyLogo = ({ name }: { name: string }) => {
+  const [failed, setFailed] = useState(false);
+  const domain = name
+    ? name.toLowerCase().replace(/\b(inc|llc|ltd|technologies|labs|india|pvt|private|limited)\b/g, "").replace(/[^a-z0-9]/g, "") + ".com"
+    : "";
+  if (!name || !domain || failed) {
+    return (
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-xs font-bold text-primary">
+        {(name || "?").slice(0, 1).toUpperCase()}
+      </span>
+    );
+  }
+  return (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background p-1">
+      <img src={`https://logo.clearbit.com/${domain}`} alt="" width={24} height={24} loading="lazy" className="h-6 w-6 object-contain" onError={() => setFailed(true)} />
+    </span>
+  );
+};
 
 const JobWebSearch = () => {
   const user = useMemo(() => getStoredUser(), []);
@@ -116,37 +137,46 @@ const JobWebSearch = () => {
     t.replace(/\s*[|\-–]\s*(LinkedIn|Indeed|Naukri|Glassdoor).*$/i, "").replace(/\s+/g, " ").trim();
 
   const parsePage = (): { jobs: WebJob[]; pages: number } => {
-    const host = document.getElementById("gcse-jobs");
-    if (!host) return { jobs: [], pages: 1 };
+    // Read from the whole document — the widget may render inline OR in an
+    // overlay (kept off-screen via CSS); either way we find its results here.
     const jobs: WebJob[] = [];
     const seen = new Set<string>();
-    host.querySelectorAll(".gsc-webResult.gsc-result").forEach((el) => {
+    document.querySelectorAll(".gsc-webResult.gsc-result").forEach((el) => {
       const a = el.querySelector<HTMLAnchorElement>("a.gs-title");
       const url = a?.href || "";
       if (!url || seen.has(url)) return;
       seen.add(url);
       const raw = cleanTitle(a?.textContent || "");
       const snippet = (el.querySelector(".gs-snippet")?.textContent || "").replace(/\s+/g, " ").trim();
-      const domain = (el.querySelector(".gs-visibleUrl, .gsc-url-top")?.textContent || "").trim();
-      // Company: "Title - Company", "Company hiring Title", or the domain host.
+      // Skip closed postings.
+      if (/no longer accepting|closed for applications|position (has been )?filled/i.test(snippet)) return;
       const dash = raw.match(/^(.*?)\s+[-–]\s+(.+)$/);
       const hiring = raw.match(/^(.+?)\s+hiring\s+/i);
+      const isSource = (s: string) => /^(LinkedIn|Naukri|Indeed|Glassdoor|Jobs?)\b/i.test(s.trim());
       let jobTitle = raw, company = "";
       if (hiring) { company = hiring[1].trim(); jobTitle = raw.replace(/^.+?hiring\s+/i, "").trim(); }
-      else if (dash) { jobTitle = dash[1].trim(); company = dash[2].trim(); }
+      else if (dash && !isSource(dash[2])) { jobTitle = dash[1].trim(); company = dash[2].trim(); }
+      else if (dash) { jobTitle = dash[1].trim(); }
+      // Company from snippet ("Google Bengaluru, Karnataka …") if not in title.
+      if (!company) {
+        const m = snippet.match(/^([A-Z][A-Za-z0-9&.'\- ]{1,40}?)\s+(?:Bengaluru|Bangalore|Mumbai|Delhi|Gurgaon|Gurugram|Hyderabad|Pune|Chennai|Noida|Kolkata|India|Remote|United|London|New York|San |Dublin|Singapore)/);
+        if (m && !isSource(m[1])) company = m[1].trim();
+      }
       const locMatch = snippet.match(/\b(?:in|·)\s*([A-Z][A-Za-z .,'-]+?(?:,\s*[A-Z][A-Za-z .]+)?)\b/);
+      const postedMatch = snippet.match(/(\d+\s+(?:hour|day|week|month|year)s?\s+ago)/i) || snippet.match(/(\d{1,2}\s+[A-Z][a-z]{2}\s+\d{4})/);
       let source = "Web";
       try { source = new URL(url).hostname.replace(/^www\./, "").split(".")[0]; } catch { /* */ }
       jobs.push({
         title: jobTitle || raw,
-        company: company || domain,
+        company,
         location: (locMatch?.[1] || "").trim(),
+        posted: (postedMatch?.[1] || "").trim(),
         url,
         snippet,
         source: source.charAt(0).toUpperCase() + source.slice(1),
       });
     });
-    const pageEls = host.querySelectorAll(".gsc-cursor-page");
+    const pageEls = document.querySelectorAll(".gsc-cursor-page");
     return { jobs, pages: Math.max(1, pageEls.length) };
   };
 
@@ -303,20 +333,33 @@ const JobWebSearch = () => {
                   </div>
                   <ul className="divide-y divide-border/60">
                     {rows.map((j) => (
-                      <li key={j.url} className="flex flex-col gap-2 px-4 py-3 hover:bg-brand-50/30 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-w-0">
-                          <a href={j.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary">
-                            {j.title}
-                          </a>
-                          <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-muted-foreground">
-                            {j.company && <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" />{j.company}</span>}
-                            {j.location && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{j.location}</span>}
-                            <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{j.source}</span>
-                          </p>
+                      <li key={j.url} className="flex flex-col gap-3 px-4 py-3 hover:bg-brand-50/30 md:flex-row md:items-start md:justify-between">
+                        <div className="flex min-w-0 gap-3 md:pr-4">
+                          <CompanyLogo name={j.company} />
+                          <div className="min-w-0">
+                            <a href={j.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary">
+                              {j.title}
+                            </a>
+                            <p className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-sm text-muted-foreground">
+                              {j.company && <span className="font-medium text-foreground/80">{j.company}</span>}
+                              {j.location && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{j.location}</span>}
+                              {j.posted && <span>{j.posted}</span>}
+                              <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{j.source}</span>
+                            </p>
+                          </div>
                         </div>
-                        <Button size="sm" className="shrink-0 shadow-inset-btn" asChild>
-                          <a href={j.url} target="_blank" rel="noopener noreferrer">Apply <ExternalLink className="ml-1 h-3.5 w-3.5" /></a>
-                        </Button>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          {j.company && (
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to={`/jobs/referrals?company=${encodeURIComponent(j.company)}&role=${encodeURIComponent(j.title)}`}>
+                                <Users className="mr-1 h-3.5 w-3.5" /> Referrals
+                              </Link>
+                            </Button>
+                          )}
+                          <Button size="sm" className="shadow-inset-btn" asChild>
+                            <a href={j.url} target="_blank" rel="noopener noreferrer">Apply <ExternalLink className="ml-1 h-3.5 w-3.5" /></a>
+                          </Button>
+                        </div>
                       </li>
                     ))}
                   </ul>

@@ -56,6 +56,12 @@ const JobReferrals = () => {
 
   useEffect(() => {
     if (user) getJobProfile().then(setProfile);
+    // Prefill from a job's "Referrals" link (/jobs/referrals?company=&role=).
+    const params = new URLSearchParams(window.location.search);
+    const c = params.get("company");
+    const r = params.get("role");
+    if (c) setCompany(c);
+    if (r) setRole(r);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load the PSE widget in EXPLICIT mode so we render + drive it ourselves.

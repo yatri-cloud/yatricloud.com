@@ -468,3 +468,18 @@
       0 20px 48px hsl(0 0% 0% / 0.4);
   }
 }
+/* Google Programmable Search widget: we parse its results into our own tables,
+   so keep the widget's own overlay/results UI off-screen (still rendered in
+   the DOM so we can read it) — the user only ever sees our custom UI. */
+.gsc-results-wrapper-overlay,
+.gsc-results-wrapper-visible,
+.gsc-modal-background-image,
+.gsc-modal-background-image-visible {
+  position: fixed !important;
+  left: -99999px !important;
+  top: 0 !important;
+  width: 800px !important;
+  max-width: 800px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
