@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Copy, Search, Sparkle, Linkedin, UserPlus } from "lucide-react";
+import { Loader2, Copy, Search, Sparkle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -12,110 +12,84 @@ import { getStoredUser } from "@/lib/yatris-api";
 import { getJobProfile, type JobProfile } from "@/lib/job-apply-api";
 
 /**
- * Referral finder — OUR interface, OUR results. A custom search form calls
- * the Google Custom Search JSON API (owner's LinkedIn-profiles engine) and we
- * render the profiles as our own cards. The API key is REFERRER-RESTRICTED to
- * our domains (VITE_GOOGLE_CSE_KEY), so it is safe in the browser and useless
- * elsewhere. Public Google results only — no scraping, no LinkedIn login.
+ * Referral finder. Our own search form drives Google's Programmable Search
+ * Engine results widget (restricted to linkedin.com/in/* profiles). The
+ * widget renders results with no API key and no GCP project setup — reliable
+ * out of the box — and we style the surrounding page. Below it, a note
+ * generator writes a connection request + a post-accept follow-up from the
+ * user's profile. Public results only; no scraping, no LinkedIn login.
  */
 
-const CSE_CX = "d214cfcea7a57404d";
-const CSE_KEY = import.meta.env.VITE_GOOGLE_CSE_KEY as string | undefined;
+const CSE_CX = "d214cfcea7a57404d"; // linkedin-people-finder engine
 
-interface Profile {
-  name: string;
-  headline: string;
-  location: string;
-  url: string;
-  snippet: string;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+declare global {
+  interface Window {
+    __gcse?: { parsetags?: string; callback?: () => void };
+    google?: any;
+  }
 }
-
-const cleanName = (title: string) =>
-  title.replace(/\s*[|\-–—].*$/, "").replace(/ - LinkedIn.*/i, "").trim();
-
-// LinkedIn result titles are usually "Name - Headline - Location | LinkedIn".
-const parseTitle = (title: string) => {
-  const t = title.replace(/\s*\|\s*LinkedIn.*$/i, "").replace(/ - LinkedIn.*/i, "");
-  const parts = t.split(/\s+[-–—]\s+/);
-  return {
-    name: (parts[0] || "").trim(),
-    headline: (parts[1] || "").trim(),
-    location: (parts[2] || "").trim(),
-  };
-};
 
 const JobReferrals = () => {
   const user = useMemo(() => getStoredUser(), []);
   const [profile, setProfile] = useState<JobProfile | null>(null);
+  const [widgetReady, setWidgetReady] = useState(false);
+  const rendered = useRef(false);
+
   useEffect(() => {
     if (user) getJobProfile().then(setProfile);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Load the PSE widget in EXPLICIT mode so we render + drive it ourselves.
+  useEffect(() => {
+    window.__gcse = {
+      parsetags: "explicit",
+      callback: () => setWidgetReady(true),
+    };
+    if (!document.querySelector(`script[src*="cse.js?cx=${CSE_CX}"]`)) {
+      const s = document.createElement("script");
+      s.async = true;
+      s.src = `https://cse.google.com/cse.js?cx=${CSE_CX}`;
+      document.body.appendChild(s);
+    } else if (window.google?.search?.cse?.element) {
+      setWidgetReady(true);
+    }
+  }, []);
+
+  // Render the results-only element once the widget API is ready.
+  useEffect(() => {
+    if (!widgetReady || rendered.current) return;
+    const el = window.google?.search?.cse?.element;
+    if (!el) return;
+    el.render({ div: "gcse-results", tag: "searchresults-only", gname: "referrals" });
+    rendered.current = true;
+  }, [widgetReady]);
+
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [location, setLocation] = useState("");
-  const [results, setResults] = useState<Profile[] | null>(null);
-  const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const runSearch = async () => {
+  const runSearch = () => {
     const q = [role.trim(), company.trim(), location.trim() || profile?.locations?.split(",")[0]?.trim()]
       .filter(Boolean)
       .join(" ");
     if (!q) { toast.error("Add a company or role to search."); return; }
-    if (!CSE_KEY) {
-      toast.error("Search key not set yet. Add VITE_GOOGLE_CSE_KEY to enable in-app results.");
-      return;
-    }
-    setSearching(true);
-    setResults(null);
-    try {
-      // Paginate: 5 pages × 10 = up to 50 profiles (JSON API caps at start=91).
-      const all: Profile[] = [];
-      const seen = new Set<string>();
-      for (let start = 1; start <= 41; start += 10) {
-        const res = await fetch(
-          `https://www.googleapis.com/customsearch/v1?key=${CSE_KEY}&cx=${CSE_CX}&num=10&start=${start}&q=${encodeURIComponent(q)}`
-        );
-        const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
-        const items = (data.items || []).filter((it: { link?: string }) =>
-          (it.link || "").includes("linkedin.com/in/")
-        );
-        for (const it of items as { title: string; link: string; snippet: string }[]) {
-          if (seen.has(it.link)) continue;
-          seen.add(it.link);
-          const parsed = parseTitle(it.title);
-          all.push({
-            name: parsed.name || cleanName(it.title),
-            headline: parsed.headline,
-            location: parsed.location,
-            url: it.link,
-            snippet: it.snippet || "",
-          });
-        }
-        if (items.length < 10) break; // no more pages
-      }
-      setResults(all);
-      if (all.length === 0) toast.message("No profiles found. Try different words.");
-      else toast.success(`${all.length} profiles found.`);
-    } catch (e) {
-      toast.error(`Search failed: ${e instanceof Error ? e.message : "try again"}`);
-      setResults([]);
-    } finally {
-      setSearching(false);
-    }
+    const control = window.google?.search?.cse?.element?.getElement("referrals");
+    if (!control) { toast.error("Search is still loading, try again in a moment."); return; }
+    control.execute(q);
+    setHasSearched(true);
+    document.getElementById("gcse-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Note generator (fills from a chosen profile)
+  // Note generator
   const [person, setPerson] = useState("");
   const [note, setNote] = useState("");
   const [followup, setFollowup] = useState("");
   const me = profile?.full_name || user?.fullName || "";
 
-  const generate = (name?: string) => {
-    const who = (name || person).trim();
-    const first = (who.split(/\s+/)[0] || "there").replace(/[^\w'-]/g, "");
-    if (name) setPerson(name);
+  const generate = () => {
+    const first = (person.trim().split(/\s+/)[0] || "there").replace(/[^\w'-]/g, "");
     const target = [role.trim(), company.trim() && `at ${company.trim()}`].filter(Boolean).join(" ");
     setNote(
       `Hi ${first}, I really admire the work ${company.trim() || "your team"} is doing. ` +
@@ -128,7 +102,6 @@ const JobReferrals = () => {
       `Either way, thank you for your time. — ${me}`
     );
     toast.success("Note and follow-up ready. Edit freely, then copy.");
-    document.getElementById("note-block")?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const copy = (text: string) => navigator.clipboard.writeText(text).then(() => toast.success("Copied."));
@@ -162,83 +135,30 @@ const JobReferrals = () => {
           </p>
         </div>
 
-        {/* Our own search form */}
+        {/* Our search form drives the results widget */}
         <section className="mb-6 rounded-2xl border border-border bg-card p-5">
           <div className="grid gap-3 sm:grid-cols-3">
-            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company (e.g. Stripe)" aria-label="Company" />
-            <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role (e.g. Cloud Engineer)" aria-label="Role" />
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location (optional)" aria-label="Location" />
+            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company (e.g. Stripe)" aria-label="Company" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+            <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role (e.g. Cloud Engineer)" aria-label="Role" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location (optional)" aria-label="Location" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
           </div>
-          <Button className="mt-3 shadow-inset-btn" onClick={runSearch} disabled={searching}>
-            {searching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-            Find people
+          <Button className="mt-3 shadow-inset-btn" onClick={runSearch} disabled={!widgetReady}>
+            {widgetReady ? <Search className="mr-2 h-4 w-4" /> : <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {widgetReady ? "Find people" : "Loading search…"}
           </Button>
-          {!CSE_KEY && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              In-app results need a search key. Add <code className="rounded bg-muted px-1 py-0.5">VITE_GOOGLE_CSE_KEY</code> (referrer-restricted) to enable them — see docs/features/programmable-search.md.
-            </p>
-          )}
         </section>
 
-        {/* Our own result TABLE */}
-        {results !== null && (
-          <section className="mb-8">
-            {results.length === 0 ? (
-              <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">
-                No profiles found. Try different words.
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
-                <div className="flex items-center justify-between border-b border-border bg-brand-50/40 px-4 py-2.5">
-                  <p className="text-sm font-semibold">{results.length} people found</p>
-                  <p className="text-xs text-muted-foreground">Public LinkedIn profiles via Google</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border text-left">
-                        <th className="px-4 py-3 font-semibold">Name</th>
-                        <th className="px-4 py-3 font-semibold">Headline</th>
-                        <th className="px-4 py-3 font-semibold">Location</th>
-                        <th className="px-4 py-3 font-semibold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {results.map((r) => (
-                        <tr key={r.url} className="border-b border-border/60 last:border-0 hover:bg-brand-50/30 align-top">
-                          <td className="px-4 py-3 font-semibold">{r.name || "—"}</td>
-                          <td className="max-w-[320px] px-4 py-3 text-muted-foreground">
-                            {r.headline || <span className="line-clamp-2">{r.snippet}</span>}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">{r.location || "—"}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Button variant="outline" size="sm" className="h-8" asChild>
-                                <a href={r.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${r.name} on LinkedIn`}>
-                                  <Linkedin className="h-3.5 w-3.5" />
-                                </a>
-                              </Button>
-                              <Button size="sm" className="h-8 shadow-inset-btn" onClick={() => generate(r.name)}>
-                                <UserPlus className="mr-1 h-3.5 w-3.5" /> Note
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
+        {/* Results widget (LinkedIn profiles). Styled to sit in our card. */}
+        <section className={`mb-8 rounded-2xl border border-border bg-card p-5 ${hasSearched ? "" : "hidden"}`}>
+          <div id="gcse-results" className="yc-cse" />
+        </section>
 
         {/* Note generator */}
-        <section id="note-block" className="rounded-2xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] via-brand-50/40 to-card p-5 md:p-6">
+        <section className="rounded-2xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] via-brand-50/40 to-card p-5 md:p-6">
           <h2 className="mb-3 font-display text-lg font-bold">Personalised outreach</h2>
           <div className="mb-4 grid gap-3 sm:grid-cols-2">
-            <Input value={person} onChange={(e) => setPerson(e.target.value)} placeholder="Person's name" aria-label="Person name" />
-            <Button onClick={() => generate()} className="shadow-inset-btn"><Sparkle className="mr-1.5 h-4 w-4" /> Generate note & follow-up</Button>
+            <Input value={person} onChange={(e) => setPerson(e.target.value)} placeholder="Person's name (from a profile above)" aria-label="Person name" />
+            <Button onClick={generate} className="shadow-inset-btn"><Sparkle className="mr-1.5 h-4 w-4" /> Generate note & follow-up</Button>
           </div>
           {note && (
             <div className="space-y-4">
