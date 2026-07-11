@@ -56,32 +56,50 @@ interface CompanyOpt {
   jobs_count: number;
 }
 
-/** Auto company logo from the website's favicon (no manual uploads). */
-const CompanyLogo = ({ name, website }: { name: string; website: string | null }) => {
-  const [failed, setFailed] = useState(false);
-  let host = "";
+/** Auto company logo, no manual uploads. Tries multiple sources so a blank
+    from one provider still yields a logo: Clearbit (transparent, high quality)
+    → Google favicon → Icon Horse → an initial chip. Domain is taken from the
+    website, or guessed from the company name when no website is on file. */
+const guessDomain = (name: string, website: string | null): string => {
   try {
-    host = website ? new URL(website).hostname : "";
+    if (website) return new URL(website).hostname.replace(/^www\./, "");
   } catch {
-    host = "";
+    /* fall through */
   }
-  if (!host || failed) {
+  const slug = name
+    .toLowerCase()
+    .replace(/\b(inc|llc|ltd|technologies|technology|labs|software|india|group|global|systems|solutions)\b/g, "")
+    .replace(/[^a-z0-9]/g, "");
+  return slug ? `${slug}.com` : "";
+};
+
+const CompanyLogo = ({ name, website }: { name: string; website: string | null }) => {
+  const [stage, setStage] = useState(0);
+  const domain = guessDomain(name, website);
+  const sources = domain
+    ? [
+        `https://logo.clearbit.com/${domain}`,
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+        `https://icon.horse/icon/${domain}`,
+      ]
+    : [];
+  if (!domain || stage >= sources.length) {
     return (
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-brand-50 text-sm font-bold text-primary">
-        {name.slice(0, 1)}
+        {name.slice(0, 1).toUpperCase()}
       </span>
     );
   }
   return (
     <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-background p-1.5">
       <img
-        src={`https://www.google.com/s2/favicons?domain=${host}&sz=64`}
+        src={sources[stage]}
         alt=""
         width={28}
         height={28}
         loading="lazy"
         className="h-7 w-7 object-contain"
-        onError={() => setFailed(true)}
+        onError={() => setStage((s) => s + 1)}
       />
     </span>
   );
@@ -107,6 +125,7 @@ const JobBoard = () => {
   const [workMode, setWorkMode] = useState("all");
   const [locationQ, setLocationQ] = useState("");
   const [debouncedLoc, setDebouncedLoc] = useState("");
+  const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
 
   // ——— resume matching (built by the Mac worker) ———
@@ -186,7 +205,7 @@ const JobBoard = () => {
   }, [locationQ]);
   useEffect(() => {
     setPage(1);
-  }, [debounced, company, level, workMode, debouncedLoc, matchMode]);
+  }, [debounced, company, level, workMode, debouncedLoc, matchMode, sort]);
 
   useEffect(() => {
     supabase
@@ -217,9 +236,10 @@ const JobBoard = () => {
       if (debounced) q = q.ilike("title", `%${debounced}%`);
       if (debouncedLoc) q = q.ilike("location", `%${debouncedLoc}%`);
       const from = (page - 1) * PAGE_SIZE;
-      const { data, count, error } = await q
-        .order("posted_at", { ascending: false, nullsFirst: false })
-        .range(from, from + PAGE_SIZE - 1);
+      if (sort === "oldest") q = q.order("posted_at", { ascending: true, nullsFirst: false });
+      else if (sort === "title") q = q.order("title", { ascending: true });
+      else q = q.order("posted_at", { ascending: false, nullsFirst: false });
+      const { data, count, error } = await q.range(from, from + PAGE_SIZE - 1);
       if (cancelled) return;
       if (!error) {
         setJobs((data as unknown as JobRow[]) || []);
@@ -231,7 +251,7 @@ const JobBoard = () => {
     return () => {
       cancelled = true;
     };
-  }, [debounced, company, level, workMode, debouncedLoc, page, matchMode, matchIds]);
+  }, [debounced, company, level, workMode, debouncedLoc, page, matchMode, matchIds, sort]);
 
   // Detail dialog — description fetched on open only
   const [detail, setDetail] = useState<JobRow | null>(null);
@@ -410,13 +430,23 @@ const JobBoard = () => {
               </SelectContent>
             </Select>
             <Select value={workMode} onValueChange={setWorkMode}>
-              <SelectTrigger className="h-10 w-full rounded-full lg:w-[140px]" aria-label="Filter by work mode">
+              <SelectTrigger className="h-10 w-full rounded-full lg:w-[130px]" aria-label="Filter by work mode">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Any mode</SelectItem>
                 <SelectItem value="remote">Remote</SelectItem>
                 <SelectItem value="onsite">On site</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger className="h-10 w-full rounded-full lg:w-[150px]" aria-label="Sort jobs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="oldest">Oldest first</SelectItem>
+                <SelectItem value="title">Title A to Z</SelectItem>
               </SelectContent>
             </Select>
           </div>
