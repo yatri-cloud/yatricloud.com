@@ -30,6 +30,7 @@ export interface ApplicationRow {
   id: string;
   job_id: string;
   resume_request_id: string | null;
+  email_to: string | null;
   email_subject: string | null;
   email_body: string | null;
   email_status: "none" | "drafting" | "drafted" | "sent";
@@ -46,20 +47,16 @@ export async function listApplications(): Promise<ApplicationRow[]> {
   const { data } = await supabase
     .from("job_applications")
     .select(
-      "id, job_id, resume_request_id, email_subject, email_body, email_status, job_postings(title, location, apply_url, job_companies(name, website, contact_email)), resume_requests(status, docx_path, pdf_path)"
+      "id, job_id, resume_request_id, email_to, email_subject, email_body, email_status, job_postings(title, location, apply_url, job_companies(name, website, contact_email)), resume_requests(status, docx_path, pdf_path)"
     )
     .order("created_at", { ascending: false });
   return (data as unknown as ApplicationRow[]) || [];
 }
 
-/** Queue Claude-drafted emails for applications that have a contact address. */
+/** Queue Claude-drafted emails for every application without one yet. */
 export async function draftEmailsForSelected(): Promise<number> {
   const apps = await listApplications();
-  const targets = apps.filter(
-    (a) =>
-      a.email_status === "none" &&
-      a.job_postings?.job_companies?.contact_email
-  );
+  const targets = apps.filter((a) => a.email_status === "none");
   for (const a of targets) {
     await supabase
       .from("job_applications")
@@ -69,11 +66,15 @@ export async function draftEmailsForSelected(): Promise<number> {
   return targets.length;
 }
 
-export async function saveEmailDraft(id: string, subject: string, body: string): Promise<boolean> {
-  const { error } = await supabase
-    .from("job_applications")
-    .update({ email_subject: subject, email_body: body })
-    .eq("id", id);
+export async function saveEmailDraft(
+  id: string,
+  subject: string,
+  body: string,
+  to?: string
+): Promise<boolean> {
+  const patch: Record<string, string> = { email_subject: subject, email_body: body };
+  if (to !== undefined) patch.email_to = to;
+  const { error } = await supabase.from("job_applications").update(patch).eq("id", id);
   return !error;
 }
 
@@ -87,9 +88,10 @@ export async function markEmailSent(id: string): Promise<boolean> {
 
 /** Gmail compose deep-link — opens the user's logged-in Gmail, prefilled.
     No passwords, no OAuth: the user reviews and clicks Send themselves. */
-export function gmailComposeUrl(app: ApplicationRow, profile: JobProfile): string | null {
-  const email = app.job_postings?.job_companies?.contact_email;
-  if (!email) return null;
+export function gmailComposeUrl(app: ApplicationRow, profile: JobProfile): string {
+  // Recipient is optional — Gmail opens with an empty To for the user to fill
+  // (their referral/recruiter contact) when no company address is known.
+  const email = app.email_to || app.job_postings?.job_companies?.contact_email || "";
   const subject = app.email_subject || `Application for ${app.job_postings?.title || "the role"}`;
   const body = `${app.email_body || ""}\n\n${profile.full_name}`;
   return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(

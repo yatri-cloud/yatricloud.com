@@ -77,19 +77,20 @@ const JobApplications = () => {
     return () => window.clearInterval(t);
   }, [building]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Email drafting + preview/edit
+  // Email drafting + preview/edit — works for every application
   const [draftable, drafted] = useMemo(() => {
-    const withContact = apps.filter((a) => a.job_postings?.job_companies?.contact_email);
     return [
-      withContact.filter((a) => a.email_status === "none").length,
-      withContact.filter((a) => a.email_status === "drafted" || a.email_status === "sent"),
+      apps.filter((a) => a.email_status === "none").length,
+      apps.filter((a) => a.email_status === "drafted" || a.email_status === "sent"),
     ];
   }, [apps]);
   const [preview, setPreview] = useState<ApplicationRow | null>(null);
+  const [pTo, setPTo] = useState("");
   const [pSubject, setPSubject] = useState("");
   const [pBody, setPBody] = useState("");
   const openPreview = (a: ApplicationRow) => {
     setPreview(a);
+    setPTo(a.email_to || a.job_postings?.job_companies?.contact_email || "");
     setPSubject(a.email_subject || "");
     setPBody(a.email_body || "");
   };
@@ -97,7 +98,7 @@ const JobApplications = () => {
   const generateEmails = async () => {
     const n = await draftEmailsForSelected();
     if (n === 0) {
-      toast.error("No new emails to draft. Companies need a contact address (admin adds these).");
+      toast.error("No new emails to draft. Select some jobs first.");
       return;
     }
     toast.success(`Drafting ${n} ${n === 1 ? "email" : "emails"}. They appear as you refresh.`);
@@ -216,24 +217,47 @@ const JobApplications = () => {
           </div>
         ) : (
           <>
-            {/* Job profile */}
-            <div className="mb-8 grid gap-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] via-brand-50/40 to-card p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
-              <label className={`inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 font-medium transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-primary ${busy ? "pointer-events-none opacity-60" : ""}`}>
-                <Upload className="h-4 w-4" aria-hidden="true" />
-                {profile?.resume_path ? "Replace profile resume" : "Upload profile resume"}
-                <input type="file" accept=".pdf,.docx" className="sr-only" onChange={(e) => uploadProfileResume(e.target.files?.[0] || null)} />
-              </label>
-              <Input
-                value={roles}
-                onChange={(e) => setRoles(e.target.value)}
-                onBlur={saveRoles}
-                placeholder="Target roles, comma separated (Cloud Engineer, DevOps Engineer…)"
-                aria-label="Target roles"
-              />
-              <Button onClick={build} disabled={busy || pendingCount === 0} className="shadow-inset-btn">
-                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Build {pendingCount > 0 ? `${Math.min(pendingCount, 10)} ` : ""}tailored {pendingCount === 1 ? "resume" : "resumes"}
-              </Button>
+            {/* Job profile — the user's full picture */}
+            <div className="mb-8 rounded-2xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] via-brand-50/40 to-card p-5 md:p-6">
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                  {(profile?.full_name || user.fullName || "Y").slice(0, 1)}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-display text-lg font-bold">{profile?.full_name || user.fullName || "Your profile"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {user.email}
+                    {profile?.resume_path ? " · Resume on file" : " · No resume yet"}
+                  </p>
+                </div>
+                <div className="ml-auto flex flex-wrap items-center gap-2 text-sm">
+                  <Badge variant="outline" className="border-brand-100 bg-brand-50 text-primary">
+                    {apps.length} selected
+                  </Badge>
+                  <Badge variant="outline" className="border-success/20 bg-success/10 text-success">
+                    {apps.filter((a) => a.resume_requests?.status === "ready").length} resumes ready
+                  </Badge>
+                  <Badge variant="outline">{drafted.length} emails drafted</Badge>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+                <label className={`inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 font-medium transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-primary ${busy ? "pointer-events-none opacity-60" : ""}`}>
+                  <Upload className="h-4 w-4" aria-hidden="true" />
+                  {profile?.resume_path ? "Replace resume" : "Upload resume"}
+                  <input type="file" accept=".pdf,.docx" className="sr-only" onChange={(e) => uploadProfileResume(e.target.files?.[0] || null)} />
+                </label>
+                <Input
+                  value={roles}
+                  onChange={(e) => setRoles(e.target.value)}
+                  onBlur={saveRoles}
+                  placeholder="Target roles, comma separated (Cloud Engineer, DevOps Engineer…)"
+                  aria-label="Target roles"
+                />
+                <Button onClick={build} disabled={busy || pendingCount === 0} className="shadow-inset-btn">
+                  {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Build {pendingCount > 0 ? `${Math.min(pendingCount, 10)} ` : ""}tailored {pendingCount === 1 ? "resume" : "resumes"}
+                </Button>
+              </div>
             </div>
 
             {/* Outreach actions */}
@@ -275,7 +299,6 @@ const JobApplications = () => {
                       {apps.map((a) => {
                         const st = a.resume_requests?.status;
                         const meta = st ? STATUS_LABEL[st] : null;
-                        const hasContact = Boolean(a.job_postings?.job_companies?.contact_email);
                         return (
                           <tr key={a.id} className="border-b border-border/60 last:border-0 hover:bg-brand-50/30">
                             <td className="max-w-[280px] px-4 py-3">
@@ -294,16 +317,7 @@ const JobApplications = () => {
                               )}
                             </td>
                             <td className="px-4 py-3">
-                              {!hasContact ? (
-                                <a
-                                  href={a.job_postings?.apply_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                                >
-                                  Apply on site <ExternalLink className="h-3 w-3" />
-                                </a>
-                              ) : a.email_status === "drafting" ? (
+                              {a.email_status === "drafting" ? (
                                 <span className="inline-flex items-center gap-1.5 text-xs text-primary">
                                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Drafting…
                                 </span>
@@ -315,7 +329,14 @@ const JobApplications = () => {
                                   {a.email_status === "sent" && <Badge variant="secondary">Sent</Badge>}
                                 </div>
                               ) : (
-                                <span className="text-xs text-muted-foreground">Not drafted</span>
+                                <a
+                                  href={a.job_postings?.apply_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                                >
+                                  Apply on site <ExternalLink className="h-3 w-3" />
+                                </a>
                               )}
                             </td>
                             <td className="px-4 py-3">
@@ -365,16 +386,17 @@ const JobApplications = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
+            <Input value={pTo} onChange={(e) => setPTo(e.target.value)} placeholder="Recipient email (recruiter, referral or careers@…)" aria-label="Recipient email" type="email" />
             <Input value={pSubject} onChange={(e) => setPSubject(e.target.value)} placeholder="Subject" aria-label="Email subject" />
             <Textarea value={pBody} onChange={(e) => setPBody(e.target.value)} rows={10} aria-label="Email body" />
-            <p className="text-xs text-muted-foreground">Signature: {profile?.full_name}</p>
+            <p className="text-xs text-muted-foreground">Signature: {profile?.full_name} · Sends from your logged-in Gmail.</p>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={async () => {
                 if (preview) {
-                  await saveEmailDraft(preview.id, pSubject, pBody);
+                  await saveEmailDraft(preview.id, pSubject, pBody, pTo);
                   toast.success("Saved.");
                   refresh();
                   setPreview(null);
@@ -387,8 +409,8 @@ const JobApplications = () => {
               className="shadow-inset-btn"
               onClick={async () => {
                 if (!preview) return;
-                await saveEmailDraft(preview.id, pSubject, pBody);
-                await sendOne({ ...preview, email_subject: pSubject, email_body: pBody });
+                await saveEmailDraft(preview.id, pSubject, pBody, pTo);
+                await sendOne({ ...preview, email_to: pTo, email_subject: pSubject, email_body: pBody });
                 setPreview(null);
               }}
             >
