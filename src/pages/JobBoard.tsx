@@ -25,6 +25,9 @@ import {
   latestJobMatch,
   type JobMatchRequest,
 } from "@/lib/job-match-api";
+import { selectedJobIds, toggleJobSelection } from "@/lib/job-apply-api";
+import { Link } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
 
 /**
  * Job board — postings ingested from companies' OFFICIAL ATS APIs
@@ -150,6 +153,26 @@ const JobBoard = () => {
     if (match) await deleteJobMatch(match.id);
     setMatch(null);
     setMatchMode(false);
+  };
+
+  // ——— selections feeding /jobs/applications (phase 3) ———
+  const [picks, setPicks] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (user) selectedJobIds().then(setPicks);
+  }, [user]);
+  const togglePick = async (jobId: string) => {
+    const on = !picks.has(jobId);
+    setPicks((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(jobId);
+      else next.delete(jobId);
+      return next;
+    });
+    const ok = await toggleJobSelection(jobId, on);
+    if (!ok) {
+      toast.error(on ? "Could not select that job." : "Already built — remove it from My applications.");
+      selectedJobIds().then(setPicks);
+    }
   };
 
   useEffect(() => {
@@ -315,6 +338,15 @@ const JobBoard = () => {
                 </div>
               </div>
             )}
+            {user && picks.size > 0 && (
+              <p className="mt-3 border-t border-border/60 pt-3 text-center text-sm">
+                <span className="font-semibold text-primary">{picks.size}</span>{" "}
+                {picks.size === 1 ? "job" : "jobs"} selected ·{" "}
+                <Link to="/jobs/applications" className="font-semibold text-primary hover:underline">
+                  Build tailored resumes →
+                </Link>
+              </p>
+            )}
           </div>
         </section>
 
@@ -403,6 +435,14 @@ const JobBoard = () => {
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div className="flex min-w-0 items-center gap-3">
+                        {user && (
+                          <Checkbox
+                            checked={picks.has(job.id)}
+                            onCheckedChange={() => togglePick(job.id)}
+                            aria-label={`Select ${job.title} for applications`}
+                            className="shrink-0"
+                          />
+                        )}
                         <CompanyLogo
                           name={job.job_companies?.name || "?"}
                           website={job.job_companies?.website || null}
