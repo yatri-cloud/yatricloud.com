@@ -115,6 +115,10 @@ function buildJson(job, dir, sourceName) {
     SCHEMA,
     ``,
     `The person's name is: ${job.full_name}`,
+    `Include "${job.email}" in the contact line${job.email ? "" : " if a contact email appears in the source"}.`,
+    `NEVER output the literal strings "undefined" or "null" anywhere. If a`,
+    `field is unknown (an institution, a date, a location), OMIT that key`,
+    `entirely instead of guessing or writing a placeholder.`,
     `Set "output" to "${job.full_name.replace(/[^\w ]+/g, "").replace(/ +/g, "_")}_Resume.docx".`,
     `HARD RULE: the resume must fit ONE page. If content is rich, set`,
     `"density":"compact", keep the summary to 3 lines, at most 3-4 bullets`,
@@ -130,6 +134,36 @@ function buildJson(job, dir, sourceName) {
   if (!existsSync(join(dir, "resume.json"))) {
     throw new Error("claude did not produce resume.json");
   }
+  scrubResumeJson(join(dir, "resume.json"));
+}
+
+// Belt and braces: strip literal "undefined"/"null"/empty values so the
+// docx never prints them (seen once: "Computer Engineering, undefined").
+function scrubResumeJson(path) {
+  const clean = (v) => {
+    if (v === null || v === undefined) return undefined;
+    if (typeof v === "string") {
+      const t = v.trim();
+      return t === "" || t.toLowerCase() === "undefined" || t.toLowerCase() === "null"
+        ? undefined
+        : v;
+    }
+    if (Array.isArray(v)) {
+      const arr = v.map(clean).filter((x) => x !== undefined);
+      return arr.length ? arr : undefined;
+    }
+    if (typeof v === "object") {
+      const out = {};
+      for (const [k, val] of Object.entries(v)) {
+        const c = clean(val);
+        if (c !== undefined) out[k] = c;
+      }
+      return Object.keys(out).length ? out : undefined;
+    }
+    return v;
+  };
+  const scrubbed = clean(JSON.parse(readFileSync(path, "utf8"))) || {};
+  writeFileSync(path, JSON.stringify(scrubbed, null, 2));
 }
 
 function buildFiles(job, dir) {
@@ -220,6 +254,30 @@ async function processJob(job) {
   const pdfPath = pdf ? await upload(job, pdf, "pdf", "application/pdf") : null;
   await finish(job.id, { status: "ready", docx_path: docxPath, pdf_path: pdfPath, error: null });
   console.log(`✔ ready — ${docxPath}`);
+  await notifyReady(job);
+}
+
+// Friendly heads-up mail via the production mailer; never fails the job.
+async function notifyReady(job) {
+  if (!job.email) return;
+  try {
+    await fetch("https://www.yatricloud.com/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: job.email,
+        subject: "Your resume is ready · Yatri Cloud",
+        html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px">
+          <h2 style="color:#007CFF;margin:0 0 12px">Your resume is ready, ${job.full_name.split(" ")[0]}!</h2>
+          <p>Your polished, one page resume is waiting as Word and PDF.</p>
+          <p><a href="https://www.yatricloud.com/resume-maker" style="display:inline-block;background:#007CFF;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:bold">Download your resume</a></p>
+          <p style="color:#666;font-size:13px">It stays private to your Yatri Cloud account.</p>
+        </div>`,
+      }),
+    });
+  } catch (err) {
+    console.log(`  (ready email skipped: ${err.message})`);
+  }
 }
 
 console.log("Yatri resume worker watching the queue… (Ctrl+C to stop)");

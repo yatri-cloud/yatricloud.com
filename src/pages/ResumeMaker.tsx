@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, FileText, Download, Clock, CircleAlert, Upload, X, RotateCcw, Trash2 } from "lucide-react";
+import { Loader2, FileText, Download, Clock, CircleAlert, Upload, X, Trash2, Eye, Pencil } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -14,7 +22,6 @@ import {
   createResumeRequest,
   deleteResumeRequest,
   listMyResumeRequests,
-  rebuildResumeRequest,
   resumeDownloadUrl,
   uploadResumeSource,
   type ResumeRequest,
@@ -132,13 +139,45 @@ const ResumeMaker = () => {
     refresh();
   };
 
-  const rebuild = async (r: ResumeRequest) => {
-    const ok = await rebuildResumeRequest(r);
-    if (!ok) {
-      toast.error("Could not queue a rebuild.");
+  // PDF preview (signed URL in a dialog)
+  const [preview, setPreview] = useState<{ name: string; url: string } | null>(null);
+  const openPreview = async (r: ResumeRequest) => {
+    if (!r.pdf_path) return;
+    const url = await resumeDownloadUrl(r.pdf_path);
+    if (!url) {
+      toast.error("Could not load the preview. Try again in a moment.");
       return;
     }
-    toast.success("Queued again with the same inputs.");
+    setPreview({ name: r.full_name, url });
+  };
+
+  // Edit inputs (notes/JD) and rebuild as a new request
+  const [edit, setEdit] = useState<ResumeRequest | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editJd, setEditJd] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const openEdit = (r: ResumeRequest) => {
+    setEdit(r);
+    setEditText(r.input_text || "");
+    setEditJd(r.jd_text || "");
+  };
+  const submitEdit = async () => {
+    if (!edit) return;
+    setEditSaving(true);
+    const result = await createResumeRequest({
+      fullName: edit.full_name,
+      email: edit.email,
+      inputText: editText.trim(),
+      jdText: editJd.trim(),
+      inputFilePath: edit.input_file_path || null,
+    });
+    setEditSaving(false);
+    if ("error" in result) {
+      toast.error("Could not queue the rebuild. You can have 3 requests building at a time.");
+      return;
+    }
+    setEdit(null);
+    toast.success("Rebuilding with your changes. Watch this list.");
     refresh();
   };
 
@@ -324,12 +363,12 @@ const ResumeMaker = () => {
                                 <>
                                   <button
                                     type="button"
-                                    onClick={() => rebuild(r)}
-                                    aria-label="Build again with the same inputs"
-                                    title="Build again"
+                                    onClick={() => openEdit(r)}
+                                    aria-label="Edit inputs and rebuild"
+                                    title="Edit and rebuild"
                                     className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-brand-50 hover:text-primary"
                                   >
-                                    <RotateCcw className="h-4 w-4" />
+                                    <Pencil className="h-4 w-4" />
                                   </button>
                                   <button
                                     type="button"
@@ -351,7 +390,15 @@ const ResumeMaker = () => {
                             </p>
                           )}
                           {r.status === "ready" && (
-                            <div className="mt-3 grid grid-cols-2 gap-2">
+                            <div className="mt-3 grid grid-cols-3 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openPreview(r)}
+                                disabled={!r.pdf_path}
+                              >
+                                <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -379,6 +426,82 @@ const ResumeMaker = () => {
           </div>
         </section>
       </main>
+
+      {/* PDF preview */}
+      <Dialog open={preview !== null} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{preview?.name} — preview</DialogTitle>
+            <DialogDescription>How your resume looks as a PDF.</DialogDescription>
+          </DialogHeader>
+          {preview && (
+            <iframe
+              src={preview.url}
+              title={`Resume preview for ${preview.name}`}
+              className="h-[70vh] w-full rounded-lg border border-border bg-muted/20"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit inputs + rebuild */}
+      <Dialog open={edit !== null} onOpenChange={(o) => !o && setEdit(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit and rebuild</DialogTitle>
+            <DialogDescription>
+              Change your notes or the job description and we build a fresh
+              version. The original stays until you delete it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {edit?.input_file_path && (
+              <p className="flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-xs font-medium text-primary">
+                <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                Your uploaded resume file is reused automatically.
+              </p>
+            )}
+            <div>
+              <label htmlFor="edit-notes" className="mb-1.5 block text-sm font-medium">
+                Notes
+              </label>
+              <Textarea
+                id="edit-notes"
+                rows={6}
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                placeholder="Anything new or different for this version."
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-jd" className="mb-1.5 block text-sm font-medium">
+                Job description <span className="text-muted-foreground">(optional)</span>
+              </label>
+              <Textarea
+                id="edit-jd"
+                rows={5}
+                value={editJd}
+                onChange={(e) => setEditJd(e.target.value)}
+                placeholder="Paste a job post to tailor this version toward it."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEdit(null)} disabled={editSaving}>
+              Cancel
+            </Button>
+            <Button onClick={submitEdit} disabled={editSaving} className="shadow-inset-btn">
+              {editSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Queuing…
+                </>
+              ) : (
+                "Build this version"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
