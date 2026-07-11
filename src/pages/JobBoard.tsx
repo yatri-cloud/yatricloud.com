@@ -267,8 +267,8 @@ const JobBoard = () => {
               Your next role is <span className="gradient-text">already posted</span>
             </h1>
             <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-              {totalLabel} live openings, pulled straight from the official
-              career boards of {companies.length} companies. No stale listings.
+              {totalLabel} live openings, pulled straight from official company
+              career boards and job feeds. No stale listings, no logins.
             </p>
           </div>
         </section>

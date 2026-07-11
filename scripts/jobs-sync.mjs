@@ -109,10 +109,39 @@ async function fetchAshby(slug) {
   }));
 }
 
+async function fetchSmartRecruiters(slug) {
+  // Official public postings API (paged 100 at a time).
+  const out = [];
+  for (let offset = 0; offset < 2000; offset += 100) {
+    const res = await fetch(
+      `https://api.smartrecruiters.com/v1/companies/${slug}/postings?limit=100&offset=${offset}`
+    );
+    if (!res.ok) return offset === 0 ? null : out;
+    const data = await res.json();
+    const items = data.content || [];
+    for (const j of items) {
+      out.push({
+        external_id: String(j.id),
+        title: j.name || "",
+        location: [j.location?.city, j.location?.region, j.location?.country]
+          .filter(Boolean)
+          .join(", "),
+        department: j.department?.label || j.function?.label || "",
+        apply_url: `https://jobs.smartrecruiters.com/${slug}/${j.id}`,
+        description: "",
+        posted_at: j.releasedDate || null,
+      });
+    }
+    if (items.length < 100) break;
+  }
+  return out;
+}
+
 const PROVIDERS = {
   greenhouse: fetchGreenhouse,
   lever: fetchLever,
   ashby: fetchAshby,
+  smartrecruiters: fetchSmartRecruiters,
 };
 
 async function syncCompany(company) {
@@ -194,14 +223,191 @@ async function syncCompany(company) {
   console.log(`✔ ${company.name}: ${rows.length} jobs (${source})`);
 }
 
+// ——— Free aggregator feeds (no per-company slug) ————————————————————————
+// Each returns { company, title, location, remote, url, description, posted }.
+// We group by company, ensure a job_companies row (source='aggregator'),
+// then upsert postings — all server side with the service role.
+
+const slugify = (s) =>
+  "agg-" +
+  String(s || "unknown")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
+async function fetchArbeitnow() {
+  const res = await fetch("https://www.arbeitnow.com/api/job-board-api");
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.data || []).map((j) => ({
+    company: j.company_name,
+    title: j.title,
+    location: j.location || "",
+    remote: !!j.remote,
+    url: j.url,
+    description: stripHtml(j.description),
+    posted: j.created_at ? new Date(j.created_at * 1000).toISOString() : null,
+    external_id: j.slug || j.url,
+  }));
+}
+
+async function fetchRemotive() {
+  const res = await fetch("https://remotive.com/api/remote-jobs?limit=200");
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.jobs || []).map((j) => ({
+    company: j.company_name,
+    title: j.title,
+    location: j.candidate_required_location || "Remote",
+    remote: true,
+    url: j.url,
+    description: stripHtml(j.description),
+    posted: j.publication_date || null,
+    external_id: String(j.id),
+    website: j.company_logo ? null : null,
+  }));
+}
+
+async function fetchRemoteOK() {
+  const res = await fetch("https://remoteok.com/api", {
+    headers: { "User-Agent": "YatriCloud-JobBoard/1.0" },
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (Array.isArray(data) ? data : [])
+    .filter((j) => j.position && j.company && j.url)
+    .map((j) => ({
+      company: j.company,
+      title: j.position,
+      location: j.location || "Remote",
+      remote: true,
+      url: j.url,
+      description: stripHtml(j.description),
+      posted: j.date || null,
+      external_id: String(j.id || j.slug || j.url),
+    }));
+}
+
+async function fetchAdzuna() {
+  const id = env.ADZUNA_APP_ID;
+  const key = env.ADZUNA_APP_KEY;
+  if (!id || !key) return [];
+  const out = [];
+  // India first (the priority market), then a couple more; 50/page × 4 pages.
+  for (const country of ["in", "us", "gb"]) {
+    for (let page = 1; page <= 4; page++) {
+      const res = await fetch(
+        `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}?app_id=${id}&app_key=${key}&results_per_page=50&content-type=application/json`
+      );
+      if (!res.ok) break;
+      const data = await res.json();
+      for (const j of data.results || []) {
+        out.push({
+          company: j.company?.display_name || "Unknown",
+          title: j.title || "",
+          location: j.location?.display_name || "",
+          remote: /remote/i.test(`${j.location?.display_name} ${j.title}`),
+          url: j.redirect_url,
+          description: stripHtml(j.description),
+          posted: j.created || null,
+          external_id: String(j.id),
+        });
+      }
+      if ((data.results || []).length < 50) break;
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  }
+  return out;
+}
+
+async function runAggregator(name, fn) {
+  const runStart = new Date().toISOString();
+  let jobs;
+  try {
+    jobs = await fn();
+  } catch (e) {
+    console.log(`✖ ${name} aggregator: ${e.message}`);
+    return;
+  }
+  if (!jobs?.length) {
+    console.log(`· ${name}: 0 jobs`);
+    return;
+  }
+  // Ensure a company row per distinct employer.
+  const byCompany = new Map();
+  for (const j of jobs) {
+    const slug = slugify(j.company);
+    if (!byCompany.has(slug)) byCompany.set(slug, { name: j.company || "Unknown", slug });
+  }
+  const companyRows = [...byCompany.values()].map((c) => ({
+    name: c.name,
+    slug: c.slug,
+    source: "aggregator",
+    active: true,
+  }));
+  for (let i = 0; i < companyRows.length; i += 100) {
+    await fetch(`${SB}/rest/v1/job_companies?on_conflict=slug`, {
+      method: "POST",
+      headers: { ...H, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify(companyRows.slice(i, i + 100)),
+    });
+  }
+  const ids = await fetch(
+    `${SB}/rest/v1/job_companies?source=eq.aggregator&select=id,slug`,
+    { headers: H }
+  ).then((r) => r.json());
+  const idBySlug = Object.fromEntries(ids.map((c) => [c.slug, c.id]));
+
+  const rows = jobs
+    .filter((j) => j.title && j.url && idBySlug[slugify(j.company)])
+    .map((j) => ({
+      company_id: idBySlug[slugify(j.company)],
+      external_id: `${name}:${j.external_id}`,
+      title: j.title,
+      location: j.location || "",
+      level: deriveLevel(j.title),
+      remote: !!j.remote,
+      department: "",
+      apply_url: j.url,
+      description: j.description || "",
+      posted_at: j.posted,
+      is_active: true,
+      synced_at: runStart,
+    }));
+  for (let i = 0; i < rows.length; i += 50) {
+    const res = await fetch(
+      `${SB}/rest/v1/job_postings?on_conflict=company_id,external_id`,
+      {
+        method: "POST",
+        headers: { ...H, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify(rows.slice(i, i + 50)),
+      }
+    );
+    if (!res.ok) {
+      console.log(`  ${name} upsert failed: ${res.status} ${await res.text()}`);
+      return;
+    }
+  }
+  console.log(`✔ ${name}: ${rows.length} jobs across ${byCompany.size} companies`);
+}
+
 const companies = await fetch(
-  `${SB}/rest/v1/job_companies?active=eq.true&source=neq.manual&select=id,name,slug,source`,
+  `${SB}/rest/v1/job_companies?active=eq.true&source=neq.manual&source=neq.aggregator&select=id,name,slug,source`,
   { headers: H }
 ).then((r) => r.json());
 
-console.log(`Syncing ${companies.length} companies…`);
+console.log(`Syncing ${companies.length} ATS companies…`);
 for (const c of companies) {
   await syncCompany(c);
   await new Promise((r) => setTimeout(r, 400)); // be polite to the APIs
 }
+
+console.log("Pulling free aggregator feeds…");
+await runAggregator("arbeitnow", fetchArbeitnow);
+await runAggregator("remotive", fetchRemotive);
+await runAggregator("remoteok", fetchRemoteOK);
+await runAggregator("adzuna", fetchAdzuna);
+
+// Recompute per-company counters for aggregator rows (counts changed in bulk).
 console.log("Done.");

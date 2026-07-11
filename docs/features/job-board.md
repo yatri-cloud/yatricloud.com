@@ -24,6 +24,22 @@ Phase 1 shipped; phases 2–4 are the agreed roadmap.
   descriptions load only when a job's Details dialog opens (D39/D40 payload
   lesson). Apply links out to the official posting.
 
+## Sources (all server-side in scripts/jobs-sync.mjs — no keys ever reach the browser)
+
+- **Per-company ATS** (public, no key): Greenhouse, Lever, Ashby, SmartRecruiters.
+  Add a company in /admin/jobs with its board slug + source.
+- **Free aggregator feeds** (no key): Arbeitnow, Remotive, RemoteOK — grouped
+  into on-demand `source='aggregator'` company rows (slug `agg-<name>`), upserted
+  each run. External id namespaced `<feed>:<id>` so feeds never collide.
+- **Adzuna** (India + 11 countries, free key): env-gated on `ADZUNA_APP_ID` /
+  `ADZUNA_APP_KEY` in `.env` (server-only, NEVER `VITE_` — those bundle to the
+  browser). Skipped silently when unset. Get free keys at developer.adzuna.com.
+- Security model: the worker holds every key and uses the Supabase SERVICE ROLE;
+  the /jobs page only reads `job_postings` via the anon key + public-read RLS.
+  Research + option list: `reference/yatri-jobs/Job-and-Company-Data-APIs-Research.md`.
+- Not wired (need scraping / paid / legal review): JSearch, Naukri (Apify),
+  JobSpy (LinkedIn/Indeed/Glassdoor). Documented, deliberately deferred.
+
 ## Roadmap
 
 - **Phase 1b**: /admin/jobs — companies CRUD (add name+slug, toggle,
