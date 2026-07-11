@@ -107,7 +107,7 @@ function skillLine(label, rest) { return para({ style: "kwlist", spacing: { afte
   children: [T(label + "  ", { bold: true, color: NAVY }), T(rest, { color: "000000" })] }); }
 function eduLine(degree, inst, extra) { return para({ style: "kwlist", spacing: { after: D.edu },
   tabStops: [{ type: TabStopType.RIGHT, position: RIGHT }],
-  children: [T(degree, { bold: true, color: "000000" }), T(", " + inst, { color: "000000" }),
+  children: [T(degree, { bold: true, color: "000000" }), T(inst ? ", " + inst : "", { color: "000000" }),
     T(extra ? "\t" + extra : "", { size: 19, color: GRAY })] }); }
 function bodyKw(t, after) { return para({ style: "kwlist", spacing: { after }, children: [T(t, { color: "000000" })] }); }
 function summaryP(t) { return para({ alignment: AlignmentType.JUSTIFIED, style: "nohyp",
