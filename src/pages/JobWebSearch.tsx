@@ -73,7 +73,7 @@ const JobWebSearch = () => {
   const [level, setLevel] = useState("any");
   const [empType, setEmpType] = useState("any");
   const [remote, setRemote] = useState(false);
-  const [skills, setSkills] = useState<Set<string>>(new Set());
+  const [source, setSource] = useState("any");
   const [showMore, setShowMore] = useState(false);
   const [rows, setRows] = useState<WebJob[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -92,24 +92,23 @@ const JobWebSearch = () => {
   const EMP_TERMS: Record<string, string> = {
     any: "", fulltime: "full-time", internship: "internship", contract: "contract", parttime: "part-time",
   };
-  const SKILL_CHIPS = ["Backend", "Frontend", "Java", "Python", "API", "Mobile", "DevOps", "Data", "Cloud", "AI"];
-
-  const toggleSkill = (s: string) =>
-    setSkills((prev) => {
-      const next = new Set(prev);
-      next.has(s) ? next.delete(s) : next.add(s);
-      return next;
-    });
+  // Source filter → a site: operator that narrows within the engine's sites.
+  const SOURCE_SITE: Record<string, string> = {
+    any: "", linkedin: "site:linkedin.com/jobs", naukri: "site:naukri.com",
+    google: "site:careers.google.com", microsoft: "site:jobs.careers.microsoft.com",
+    amazon: "site:amazon.jobs", greenhouse: "site:greenhouse.io",
+    lever: "site:lever.co", ashby: "site:ashbyhq.com",
+  };
 
   const buildQuery = () =>
     [
       title.trim(),
-      [...skills].join(" "),
       company.trim(),
       LEVEL_TERMS[level],
       EMP_TERMS[empType],
       remote ? "remote" : "",
       location.trim() || REGIONS[region] || profile?.locations?.split(",")[0]?.trim() || "",
+      SOURCE_SITE[source],
     ]
       .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 
@@ -235,19 +234,23 @@ const JobWebSearch = () => {
             </Button>
           </div>
 
-          {/* Skill chips */}
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {SKILL_CHIPS.map((s) => (
-              <button key={s} type="button" onClick={() => toggleSkill(s)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${skills.has(s) ? "border-primary bg-primary text-primary-foreground" : "border-border bg-brand-50/40 text-primary hover:bg-brand-50"}`}>
-                {s}
-              </button>
-            ))}
-          </div>
-
           {showMore && (
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" aria-label="Company" onKeyDown={(e) => e.key === "Enter" && runSearch()} />
+              <Select value={source} onValueChange={setSource}>
+                <SelectTrigger aria-label="Source"><SelectValue placeholder="Source" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any source</SelectItem>
+                  <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  <SelectItem value="naukri">Naukri</SelectItem>
+                  <SelectItem value="google">Google Careers</SelectItem>
+                  <SelectItem value="microsoft">Microsoft</SelectItem>
+                  <SelectItem value="amazon">Amazon</SelectItem>
+                  <SelectItem value="greenhouse">Greenhouse</SelectItem>
+                  <SelectItem value="lever">Lever</SelectItem>
+                  <SelectItem value="ashby">Ashby</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={level} onValueChange={setLevel}>
                 <SelectTrigger aria-label="Experience level"><SelectValue placeholder="Experience" /></SelectTrigger>
                 <SelectContent>
