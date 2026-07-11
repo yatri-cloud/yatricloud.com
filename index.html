@@ -97,6 +97,52 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
 
+  <!-- Static-shell paint: styles ONLY the pre-React hero shell below (the
+       data-static-shell attribute disappears when React renders, so these
+       rules can never fight the compiled CSS). Without this, a refresh in
+       dev — or a slow CSS fetch in prod — flashes the shell as bare HTML.
+       Values mirror the src/index.css tokens. -->
+  <style>
+    [data-static-shell] {
+      min-height: 100vh;
+      background: #fff;
+      color: #171717;
+      font-family: 'Inter Tight Variable', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    [data-static-shell] section {
+      display: flex;
+      align-items: center;
+      min-height: 100vh;
+      padding: 7rem 1rem 6rem;
+    }
+    [data-static-shell] .container {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    [data-static-shell] h1 {
+      margin: 0 0 1.5rem;
+      max-width: 56rem;
+      font-family: 'Bricolage Grotesque Variable', 'Inter Tight Variable', system-ui, sans-serif;
+      font-size: clamp(2.25rem, 6vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+    }
+    [data-static-shell] h1 span {
+      color: #007CFF;
+      background: none;
+    }
+    [data-static-shell] p {
+      margin: 0;
+      max-width: 42rem;
+      font-size: clamp(1.125rem, 2vw, 1.25rem);
+      line-height: 1.6;
+      color: #616161;
+    }
+  </style>
+
   <!-- Structured Data (JSON-LD) -->
   <script type="application/ld+json">
     {
