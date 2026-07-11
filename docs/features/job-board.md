@@ -40,6 +40,23 @@ Phase 1 shipped; phases 2–4 are the agreed roadmap.
 - Not wired (need scraping / paid / legal review): JSearch, Naukri (Apify),
   JobSpy (LinkedIn/Indeed/Glassdoor). Documented, deliberately deferred.
 
+## Operations — the scripts (all run on the owner's Mac, service role)
+
+| Script | What it does | When to run |
+|---|---|---|
+| `scripts/jobs-sync.mjs` | Pulls live jobs from every active company's official ATS API + free aggregator feeds. Daily launchd `com.yatricloud.jobs-sync` at 09:00. | After adding companies; else automatic daily |
+| `scripts/jobs-import-csv.mjs` | Scans `reference/yatri-jobs/*.csv`, detects each company's ATS board slug from its careers URLs, adds new companies. | After dropping new CSVs in that folder |
+| `scripts/jobs-enrich.mjs` | Backfills `website` (→ favicon logo) and a best-effort `careers@domain` `contact_email` for every company. ATS companies get a `{slug}.com` guess (favicon falls back to an initial chip if wrong). | After an import/sync brings new companies |
+
+Typical flow for new data: drop CSVs → `jobs-import-csv.mjs` → `jobs-sync.mjs` → `jobs-enrich.mjs`.
+
+**Current scale (2026-07-11):** ~10,900 live jobs, 296 companies (101 with jobs),
+677 India roles, 179 with logos, 174 with a careers email.
+
+**Emails are UNVERIFIED guesses** (`careers@domain` convention) — starting points
+the user reviews and edits per application before sending (the recipient field
+in the outreach dialog). Not scraped, never from LinkedIn.
+
 ## Roadmap
 
 - **Phase 1b**: /admin/jobs — companies CRUD (add name+slug, toggle,
