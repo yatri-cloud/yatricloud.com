@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Loader2, FileSearch, ArrowRight, Search } from "lucide-react";
+import { Loader2, FileSearch, ArrowRight, Search, MailCheck, ShieldCheck, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -112,8 +112,51 @@ const ExamDumps = () => {
                 Pass on your <span className="gradient-text">first attempt</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Verified, high-quality exam dumps and practice materials — trusted by {learners} Yatris preparing for AWS, Azure & GCP. No guesswork, just confidence.
+                Verified, high-quality exam dumps and practice materials trusted by {learners} Yatris preparing for AWS, Azure & GCP. No guesswork, just confidence.
               </p>
+
+              {/* Trust chips — every claim is real: delivery is automated
+                  email, payments run through Razorpay, learner count comes
+                  from site_stats. */}
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-foreground/80">
+                <span className="inline-flex items-center gap-2">
+                  <MailCheck className="h-4 w-4 text-primary" aria-hidden="true" />
+                  Instant delivery to your email
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
+                  Secure Razorpay checkout
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" aria-hidden="true" />
+                  {learners} Yatris learning with us
+                </span>
+              </div>
+
+              {/* How it works — three quiet numbered steps kill the "what
+                  happens after I pay?" hesitation for a digital product. */}
+              <ol className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-0 text-sm">
+                {[
+                  "Pick your exam",
+                  "Pay securely",
+                  "Files land in your inbox",
+                ].map((step, i) => (
+                  <li key={step} className="flex items-center">
+                    <span className="flex items-center gap-2.5">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                        {i + 1}
+                      </span>
+                      <span className="font-medium text-muted-foreground">{step}</span>
+                    </span>
+                    {i < 2 && (
+                      <span
+                        aria-hidden="true"
+                        className="mx-4 hidden h-px w-10 bg-gradient-to-r from-primary/40 to-primary/10 sm:block"
+                      />
+                    )}
+                  </li>
+                ))}
+              </ol>
             </motion.div>
           </div>
         </section>
@@ -157,7 +200,7 @@ const ExamDumps = () => {
                 </Button>
               ))}
             </div>
-            <CartSheet />
+            <CartSheet openOnBuy />
           </div>
         </section>
 

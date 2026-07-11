@@ -35,6 +35,19 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
     addToCart(cartItem as any);
   };
 
+  // Buy Now means BUY now: add the item, then open the checkout sheet
+  // immediately (the page's CartSheet or the floating pill listens; the
+  // sessionStorage flag covers a lazily mounted listener).
+  const handleBuyNow = () => {
+    handleAddToCart();
+    try {
+      sessionStorage.setItem("yc:open-cart-pending", "1");
+    } catch {
+      /* private mode */
+    }
+    window.setTimeout(() => window.dispatchEvent(new Event("yc:open-cart")), 120);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -148,12 +161,16 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
           </Dialog>
 
           <Button
-            onClick={handleAddToCart}
-            className="w-full group/btn font-semibold"
+            onClick={handleBuyNow}
+            className="w-full group/btn font-semibold shadow-inset-btn"
             size="lg"
           >
             Buy Now
           </Button>
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+            <Download className="h-3 w-3" aria-hidden="true" />
+            Instant delivery to your email after payment
+          </p>
         </CardFooter>
       </Card>
     </motion.div>

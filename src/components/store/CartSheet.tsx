@@ -1,6 +1,7 @@
 import { useState, useEffect, ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle, ShieldCheck, MailCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -19,11 +20,38 @@ import { DEFAULT_CURRENCY, convertFromInr, formatMoney, toSmallestUnit, getIniti
 
 interface CartSheetProps {
   trigger?: ReactNode;
+  /** Open this sheet when a Buy Now button fires the yc:open-cart event.
+      Enable on exactly ONE instance per page or several sheets stack. */
+  openOnBuy?: boolean;
 }
 
-export const CartSheet = ({ trigger }: CartSheetProps) => {
+// One-shot flag so Buy Now still opens the sheet when its CartSheet mounts
+// lazily (e.g. the floating pill's chunk loads after the click).
+const OPEN_PENDING_KEY = "yc:open-cart-pending";
+
+export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!openOnBuy) return;
+    const openNow = () => {
+      try {
+        sessionStorage.removeItem(OPEN_PENDING_KEY);
+      } catch {
+        /* private mode */
+      }
+      setIsOpen(true);
+    };
+    try {
+      if (sessionStorage.getItem(OPEN_PENDING_KEY)) openNow();
+    } catch {
+      /* private mode */
+    }
+    window.addEventListener("yc:open-cart", openNow);
+    return () => window.removeEventListener("yc:open-cart", openNow);
+  }, [openOnBuy]);
   const [guestEmail, setGuestEmail] = useState("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [purchasedDumps, setPurchasedDumps] = useState<any[]>([]);
@@ -61,6 +89,16 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
   const convertedTotal = convertFromInr(effectiveTotalInr, currency);
   const totalLabel = formatMoney(convertedTotal, currency);
   const originalTotalLabel = formatMoney(convertFromInr(totalPrice, currency), currency);
+  // Anchoring, display only: what the strike-through prices add up to vs
+  // what is actually paid (item discounts + any coupon).
+  const anchorInr = items.reduce(
+    (sum, item) => sum + (item.originalPrice || item.discountedPrice) * item.quantity,
+    0
+  );
+  const savedLabel =
+    anchorInr > effectiveTotalInr
+      ? formatMoney(convertFromInr(anchorInr - effectiveTotalInr, currency), currency)
+      : null;
 
   const handleCheckout = async () => {
     if (items.length === 0) {
@@ -195,7 +233,7 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
 
   return (
     <>
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         {trigger || (
           <Button variant="outline" size="icon" className="relative">
@@ -239,6 +277,9 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
               <p className="text-sm text-muted-foreground">
                 Add some certification vouchers to get started!
               </p>
+              <Button asChild className="mt-6" onClick={() => setIsOpen(false)}>
+                <Link to="/examdumps">Browse exam dumps</Link>
+              </Button>
             </div>
           ) : (
             <>
@@ -252,11 +293,11 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                       exit={{ opacity: 0, x: 20 }}
                       className="flex gap-4 p-4 rounded-lg border bg-card"
                     >
-                      <div className="relative w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
+                      <div className="relative flex w-20 h-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/40 p-1.5">
                         <img
                           src={item.image}
                           alt={item.title}
-                          className="w-full h-full object-cover"
+                          className="max-h-full max-w-full object-contain"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -364,6 +405,12 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                     {coupon && <p className="text-xs text-success">{coupon.code} applied — you save {coupon.percentOff}%.</p>}
                     {couponError && <p className="text-xs text-destructive">{couponError}</p>}
                   </div>
+                  {savedLabel && (
+                    <div className="flex justify-between text-sm font-medium text-success">
+                      <span>You save today</span>
+                      <span>{savedLabel}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
                     <span>
@@ -382,12 +429,30 @@ export const CartSheet = ({ trigger }: CartSheetProps) => {
                     Clear Cart
                   </Button>
                   <Button
-                    className="flex-1"
+                    className="flex-[2] font-semibold shadow-inset-btn"
                     onClick={handleCheckout}
                     disabled={isProcessing}
                   >
-                    {isProcessing ? "Processing..." : "Checkout"}
+                    {isProcessing ? (
+                      "Processing..."
+                    ) : (
+                      <>
+                        <ShieldCheck className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                        Pay {totalLabel} securely
+                      </>
+                    )}
                   </Button>
+                </div>
+                {/* Reassurance at the moment of highest hesitation */}
+                <div className="space-y-1 pt-0.5">
+                  <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                    <ShieldCheck className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                    Secured by Razorpay. UPI, cards and netbanking accepted.
+                  </p>
+                  <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                    <MailCheck className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                    Your downloads reach your email within minutes.
+                  </p>
                 </div>
               </div>
             </>

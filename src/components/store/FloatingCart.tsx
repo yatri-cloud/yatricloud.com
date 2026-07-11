@@ -15,6 +15,7 @@ const FloatingCart = () => {
   return (
     <div className="fixed bottom-5 right-5 z-50">
       <CartSheet
+        openOnBuy
         trigger={
           <motion.button
             // Remount on count change so the pill pops again as feedback

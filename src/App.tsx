@@ -113,6 +113,7 @@ const FloatingCartGate = () => {
   if (
     totalItems === 0 ||
     pathname === "/yatristore" ||
+    pathname === "/examdumps" ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/trainer")
   ) {
