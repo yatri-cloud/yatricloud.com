@@ -281,10 +281,8 @@ const AdminCertCatalog = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Keep the selected provider's count exact as certs are added/removed.
-    useEffect(() => {
-        if (selectedSlug) setCertCounts((prev) => ({ ...prev, [selectedSlug]: certs.length }));
-    }, [certs, selectedSlug]);
+    const bumpCount = (slug: string, delta: number) =>
+        setCertCounts((prev) => ({ ...prev, [slug]: Math.max(0, (prev[slug] ?? 0) + delta) }));
 
     useEffect(() => {
         if (!selectedSlug) {
@@ -534,6 +532,7 @@ const AdminCertCatalog = () => {
                 active: data.active !== false,
             },
         ]);
+        bumpCount(selectedSlug, 1);
         setAddCertOpen(false);
         saveDone();
     };
@@ -636,6 +635,7 @@ const AdminCertCatalog = () => {
             return saveFailed();
         }
         setCerts((prev) => prev.filter((c) => c.id !== certToDelete.id));
+        bumpCount(certToDelete.provider_slug, -1);
         setCertToDelete(null);
         toast({
             title: "Certification removed",
@@ -791,7 +791,7 @@ const AdminCertCatalog = () => {
                                     <h2 className="font-display text-base font-bold tracking-tight text-foreground">
                                         {selectedProvider ? selectedProvider.label : "Certifications"}
                                         <span className="ml-1.5 font-sans text-sm font-medium text-muted-foreground">
-                                            {selectedProvider ? `${certs.length} exams` : ""}
+                                            {selectedProvider ? `${certCounts[selectedProvider.slug] ?? certs.length} exams` : ""}
                                         </span>
                                     </h2>
                                 </div>
