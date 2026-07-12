@@ -5,7 +5,7 @@ import { openCalendlyPopup } from "@/lib/third-party";
 
 export const CalendlyPopup = () => {
     // This is a public-site call to action. Keep it off the admin console, where
-    // its fixed bottom-left button would sit on top of the sidebar Sign Out.
+    // its fixed floating button would sit on top of the console chrome.
     const { pathname } = useLocation();
     const isAdmin = pathname.startsWith("/admin");
 
@@ -19,9 +19,9 @@ export const CalendlyPopup = () => {
     if (isAdmin) return null;
 
     return (
-        <div className="fixed bottom-6 left-6 z-40 group flex flex-col items-start">
+        <div className="fixed bottom-6 right-6 z-40 group flex flex-col items-end">
             {/* Tooltip Popup */}
-            <div className="absolute bottom-full left-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                 <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-2.5 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 min-w-max">
                     <div className="text-sm font-bold text-primary mb-0.5">
                         Schedule a Meeting 🕒
@@ -29,7 +29,7 @@ export const CalendlyPopup = () => {
                     <p className="text-xs text-muted-foreground font-medium">Book time to start your exam process</p>
                 </div>
                 {/* Arrow bottom */}
-                <div className="absolute top-full left-6 -mt-1">
+                <div className="absolute top-full right-6 -mt-1">
                     <div className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-white dark:border-t-gray-800" />
                 </div>
             </div>
