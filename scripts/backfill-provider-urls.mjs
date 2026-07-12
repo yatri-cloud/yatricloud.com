@@ -12,7 +12,7 @@ const URLS = {
   salesforce:'https://trailheadacademy.salesforce.com/all-offerings',
   servicenow:'https://www.servicenow.com/services/training-and-certification.html',
   openai:'https://academy.openai.com/',
-  hashicorp:'https://www.hashicorp.com/certification',
+  hashicorp:'https://developer.hashicorp.com/certifications',
   kubernetes:'https://kubernetes.io/training/',
   linux:'https://training.linuxfoundation.org/certification/',
   comptia:'https://www.comptia.org/certifications',
@@ -22,7 +22,7 @@ const URLS = {
   alibaba:'https://www.alibabacloud.com/en/certification',
   cncf:'https://www.cncf.io/training/certification/',
   nvidia:'https://www.nvidia.com/en-in/learn/certification/',
-  terraform:'https://www.hashicorp.com/certification/terraform-associate',
+  terraform:'https://developer.hashicorp.com/certifications/infrastructure-automation',
   docker:'https://www.docker.com/',
 };
 async function ok(url){ try { const r = await fetch(url,{redirect:'follow',headers:{'User-Agent':'Mozilla/5.0'}}); return r.status===200; } catch { return false; } }

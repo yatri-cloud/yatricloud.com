@@ -33,9 +33,21 @@ catalog. **Non-destructive by design:**
   is `ON DELETE CASCADE`).
 - A dated report is written to `scripts/.sync-reports/`.
 
+The launchd agent runs **`scripts/monthly-cert-sync.mjs`**, an orchestrator that
+runs every refresher + URL backfill in order, isolating each step (one vendor
+failing never blocks the rest) and writing a combined report to
+`scripts/.sync-reports/monthly-<date>.txt`:
+
+1. `sync-cert-catalog.mjs` — Microsoft poster (new/retired MS exams)
+2. `refresh-oracle.mjs --apply` — Oracle page fetch (add missing current exams)
+3. `refresh-salesforce.mjs` / `refresh-nvidia.mjs` — re-apply curated lists
+4. `backfill-provider-urls.mjs` — provider hub links
+5. `backfill-cert-urls.mjs` — per-exam URLs (MS/AWS/GCP/GitHub)
+6. `backfill-osn-urls.mjs` — per-exam URLs (Oracle/NVIDIA/Salesforce)
+
 ```bash
-node scripts/sync-cert-catalog.mjs --dry-run   # preview
-node scripts/sync-cert-catalog.mjs             # apply (adds inactive placeholders)
+node scripts/monthly-cert-sync.mjs             # run the whole pipeline now
+node scripts/sync-cert-catalog.mjs --dry-run   # preview just the MS diff
 ```
 
 Install the monthly agent (runs 1st of month, 09:00):
