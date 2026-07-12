@@ -1,0 +1,14 @@
+-- ============================================================
+-- Yatri Cloud — 058_nvidia_catalog_refresh.sql (record)
+-- NVIDIA catalog refreshed to the official program (nvidia.com/learn/certification):
+-- 11 exams — 4 Associate (NCA-*) + 7 Professional (NCP-*), each linked to the
+-- NVIDIA certification hub. Exam codes confirmed from the live page.
+-- Applied via idempotent, non-destructive scripts/refresh-nvidia.mjs.
+--
+-- Oracle was intentionally NOT auto-refreshed: education.oracle.com/certification
+-- is a partially-rendered, transitional catalog (2025 + 2026 versions coexisting,
+-- garbled duplicates) and an incomplete fetch — refreshing from it would remove
+-- valid exams and add duplicates. Refresh Oracle from a pasted authoritative list
+-- or a headless-browser scrape instead. The existing 179 Oracle exams are levelled
+-- (migration 053) and remain intact.
+-- ============================================================
