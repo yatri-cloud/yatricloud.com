@@ -15,6 +15,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -61,9 +68,24 @@ interface CertRow {
     value: string;
     label: string;
     exam_code: string;
+    level: string;
     sort_order: number;
     active: boolean;
 }
+
+/** Level grouping for the certification list — the "table of contents" order. */
+const LEVEL_ORDER = ["fundamentals", "associate", "expert", "specialty", "business"] as const;
+const LEVEL_LABELS: Record<string, string> = {
+    fundamentals: "Fundamentals",
+    associate: "Associate",
+    expert: "Expert",
+    specialty: "Specialty",
+    business: "Business",
+};
+const levelRank = (level: string) => {
+    const i = LEVEL_ORDER.indexOf(level as (typeof LEVEL_ORDER)[number]);
+    return i === -1 ? LEVEL_ORDER.length : i;
+};
 
 interface ProviderFormState {
     slug: string;
@@ -81,6 +103,7 @@ interface CertFormState {
     label: string;
     exam_code: string;
     value: string;
+    level: string;
     valueTouched: boolean;
 }
 
@@ -100,6 +123,7 @@ const EMPTY_CERT_FORM: CertFormState = {
     label: "",
     exam_code: "",
     value: "",
+    level: "",
     valueTouched: false,
 };
 
@@ -138,6 +162,7 @@ const AdminCertCatalog = () => {
     const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
     const [certs, setCerts] = useState<CertRow[]>([]);
     const [search, setSearch] = useState("");
+    const [levelFilter, setLevelFilter] = useState<string>("all");
 
     // Provider dialog (add or edit)
     const [providerDialogOpen, setProviderDialogOpen] = useState(false);
@@ -224,12 +249,14 @@ const AdminCertCatalog = () => {
             setCerts([]);
             return;
         }
+        setSearch("");
+        setLevelFilter("all");
         let cancelled = false;
         const loadCerts = async () => {
             setLoadingCerts(true);
             const { data, error } = await supabase
                 .from("provider_certifications")
-                .select("id, provider_slug, value, label, exam_code, sort_order, active")
+                .select("id, provider_slug, value, label, exam_code, level, sort_order, active")
                 .eq("provider_slug", selectedSlug)
                 .order("sort_order", { ascending: true });
             if (cancelled) return;
@@ -249,6 +276,7 @@ const AdminCertCatalog = () => {
                         value: row.value ?? "",
                         label: row.label ?? "",
                         exam_code: row.exam_code ?? "",
+                        level: row.level ?? "",
                         sort_order: row.sort_order ?? 0,
                         active: row.active !== false,
                     }))
@@ -375,14 +403,36 @@ const AdminCertCatalog = () => {
 
     const filteredCerts = useMemo(() => {
         const query = search.trim().toLowerCase();
-        if (!query) return certs;
-        return certs.filter(
-            (c) =>
+        return certs.filter((c) => {
+            if (levelFilter !== "all" && (c.level || "other") !== levelFilter) return false;
+            if (!query) return true;
+            return (
                 c.label.toLowerCase().includes(query) ||
                 c.exam_code.toLowerCase().includes(query) ||
                 c.value.toLowerCase().includes(query)
-        );
-    }, [certs, search]);
+            );
+        });
+    }, [certs, search, levelFilter]);
+
+    /** Filtered certs grouped into level sections, in TOC order. */
+    const groupedCerts = useMemo(() => {
+        const groups = new Map<string, CertRow[]>();
+        for (const cert of filteredCerts) {
+            const key = cert.level && LEVEL_LABELS[cert.level] ? cert.level : "other";
+            (groups.get(key) ?? groups.set(key, []).get(key)!).push(cert);
+        }
+        return [...groups.entries()].sort((a, b) => levelRank(a[0]) - levelRank(b[0]));
+    }, [filteredCerts]);
+
+    /** Counts per level across the whole provider (for the filter chips). */
+    const levelCounts = useMemo(() => {
+        const counts: Record<string, number> = { all: certs.length };
+        for (const c of certs) {
+            const key = c.level && LEVEL_LABELS[c.level] ? c.level : "other";
+            counts[key] = (counts[key] ?? 0) + 1;
+        }
+        return counts;
+    }, [certs]);
 
     const openAddCert = () => {
         setNewCert(EMPTY_CERT_FORM);
@@ -418,10 +468,11 @@ const AdminCertCatalog = () => {
                 value,
                 label,
                 exam_code: newCert.exam_code.trim() || null,
+                level: newCert.level.trim() || null,
                 sort_order: nextOrder,
                 active: true,
             })
-            .select("id, provider_slug, value, label, exam_code, sort_order, active")
+            .select("id, provider_slug, value, label, exam_code, level, sort_order, active")
             .single();
         setSavingCert(false);
         if (error || !data) return saveFailed();
@@ -433,6 +484,7 @@ const AdminCertCatalog = () => {
                 value: data.value ?? value,
                 label: data.label ?? label,
                 exam_code: data.exam_code ?? "",
+                level: data.level ?? "",
                 sort_order: data.sort_order ?? nextOrder,
                 active: data.active !== false,
             },
@@ -447,6 +499,7 @@ const AdminCertCatalog = () => {
             label: cert.label,
             exam_code: cert.exam_code,
             value: cert.value,
+            level: cert.level,
             valueTouched: true,
         });
     };
@@ -470,6 +523,7 @@ const AdminCertCatalog = () => {
                 label,
                 value,
                 exam_code: editCertForm.exam_code.trim() || null,
+                level: editCertForm.level.trim() || null,
             })
             .eq("id", editingCertId);
         setSavingCert(false);
@@ -477,7 +531,7 @@ const AdminCertCatalog = () => {
         setCerts((prev) =>
             prev.map((c) =>
                 c.id === editingCertId
-                    ? { ...c, label, value, exam_code: editCertForm.exam_code.trim() }
+                    ? { ...c, label, value, exam_code: editCertForm.exam_code.trim(), level: editCertForm.level.trim() }
                     : c
             )
         );
@@ -543,6 +597,8 @@ const AdminCertCatalog = () => {
     };
 
     const isSearching = search.trim().length > 0;
+    // Reordering swaps global neighbours, so only allow it on the full unfiltered list.
+    const reorderLocked = isSearching || levelFilter !== "all";
 
     /* ----------------------------- view --------------------------- */
 
@@ -587,91 +643,83 @@ const AdminCertCatalog = () => {
                 <ScrollReveal delay={0.05}>
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] items-start">
                         {/* ── Providers list ── */}
-                        <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
-                            <div className="-mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 rounded-t-2xl border-b border-brand-100 bg-gradient-to-r from-brand-50 to-transparent px-5 md:px-6 py-4">
-                                <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Catalog</p>
-                                <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">Providers</h2>
-                                <p className="text-sm text-muted-foreground">
-                                    Pick a provider to manage its exams.
-                                </p>
+                        <div className="bg-card border border-brand-100 rounded-2xl shadow-card lg:sticky lg:top-6">
+                            <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+                                <h2 className="font-display text-sm font-bold tracking-tight text-foreground">
+                                    Providers
+                                    <span className="ml-1.5 font-sans text-xs font-medium text-muted-foreground">{providers.length}</span>
+                                </h2>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="max-h-[70vh] overflow-y-auto p-2">
                                 {providers.map((provider) => {
                                     const selected = provider.slug === selectedSlug;
                                     return (
                                         <div
                                             key={provider.id}
-                                            className={`rounded-xl border p-3 transition-colors ${selected
-                                                ? "border-primary/30 bg-primary/5"
-                                                : "border-border bg-background hover:bg-brand-50/50 hover:border-brand-100"
+                                            className={`group relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-colors ${selected
+                                                ? "bg-primary/10"
+                                                : "hover:bg-muted"
                                                 }`}
                                         >
+                                            {selected && <span aria-hidden className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary" />}
                                             <button
                                                 type="button"
                                                 onClick={() => setSelectedSlug(provider.slug)}
-                                                className="flex w-full min-h-[44px] items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+                                                className="flex min-w-0 flex-1 items-center gap-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
                                                 aria-pressed={selected}
                                                 aria-label={`Manage ${provider.label} certifications`}
                                             >
-                                                {provider.logo_url && (
-                                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
-                                                        <img
-                                                            src={provider.logo_url}
-                                                            alt=""
-                                                            className="h-7 w-7 object-contain"
-                                                            loading="lazy"
-                                                        />
-                                                    </span>
-                                                )}
+                                                <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
+                                                    {provider.logo_url ? (
+                                                        <img src={provider.logo_url} alt="" className="h-5 w-5 object-contain" loading="lazy" />
+                                                    ) : (
+                                                        <span className="text-xs font-bold text-muted-foreground">{provider.label.charAt(0)}</span>
+                                                    )}
+                                                </span>
                                                 <span className="min-w-0 flex-1">
-                                                    <span className={`block truncate text-sm font-semibold ${selected ? "text-primary" : ""}`}>
-                                                        {provider.label}
+                                                    <span className="flex items-center gap-1.5">
+                                                        <span className={`truncate text-sm font-semibold ${selected ? "text-primary" : "text-foreground"}`}>
+                                                            {provider.label}
+                                                        </span>
+                                                        {!provider.active && (
+                                                            <span className="rounded bg-muted px-1 py-px text-[10px] font-semibold uppercase text-muted-foreground">off</span>
+                                                        )}
                                                     </span>
                                                     <span className="block truncate text-xs text-muted-foreground">
-                                                        {provider.slug} · {provider.cert_count} certs
+                                                        {provider.cert_count} certs
+                                                        {provider.show_on_home && " · home"}
+                                                        {provider.show_in_forms && " · forms"}
                                                     </span>
                                                 </span>
                                             </button>
 
-                                            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                                                <div className="flex flex-wrap items-center gap-1.5">
-                                                    {provider.show_on_home && (
-                                                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                                                            On homepage
-                                                        </span>
-                                                    )}
-                                                    {provider.show_in_forms && (
-                                                        <span className="inline-flex items-center rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
-                                                            In forms
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Switch
-                                                        checked={provider.active}
-                                                        onCheckedChange={(checked) => toggleProviderActive(provider, checked)}
-                                                        aria-label={`${provider.label} is live in the catalog`}
-                                                    />
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => openEditProvider(provider)}
-                                                        aria-label={`Edit ${provider.label}`}
-                                                        className="h-10 w-10 rounded-xl text-muted-foreground hover:text-primary"
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="icon"
-                                                        onClick={() => setProviderToDelete(provider)}
-                                                        aria-label={`Delete ${provider.label}`}
-                                                        className={deleteIconButtonClass}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
+                                            {/* Actions — quiet until row hover/selection */}
+                                            <div className={`flex shrink-0 items-center gap-0.5 transition-opacity ${selected ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"}`}>
+                                                <Switch
+                                                    checked={provider.active}
+                                                    onCheckedChange={(checked) => toggleProviderActive(provider, checked)}
+                                                    aria-label={`${provider.label} is live in the catalog`}
+                                                    className="scale-90"
+                                                />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => openEditProvider(provider)}
+                                                    aria-label={`Edit ${provider.label}`}
+                                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary"
+                                                >
+                                                    <Pencil className="h-3.5 w-3.5" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => setProviderToDelete(provider)}
+                                                    aria-label={`Delete ${provider.label}`}
+                                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </Button>
                                             </div>
                                         </div>
                                     );
@@ -690,39 +738,65 @@ const AdminCertCatalog = () => {
                         </div>
 
                         {/* ── Selected provider's certifications ── */}
-                        <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
-                            <div className="-mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 flex flex-wrap items-start justify-between gap-3 rounded-t-2xl border-b border-brand-100 bg-gradient-to-r from-brand-50 to-transparent px-5 md:px-6 py-4">
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Catalog</p>
-                                    <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-foreground">
-                                        {selectedProvider ? `${selectedProvider.label} certifications` : "Certifications"}
+                        <div className="bg-card border border-brand-100 rounded-2xl shadow-card">
+                            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 md:px-5">
+                                <div className="min-w-0">
+                                    <h2 className="font-display text-base font-bold tracking-tight text-foreground">
+                                        {selectedProvider ? selectedProvider.label : "Certifications"}
+                                        <span className="ml-1.5 font-sans text-sm font-medium text-muted-foreground">
+                                            {selectedProvider ? `${certs.length} exams` : ""}
+                                        </span>
                                     </h2>
-                                    <p className="text-sm text-muted-foreground">
-                                        {selectedProvider
-                                            ? `${certs.length} exams in this catalog. Search, reorder, or edit any of them.`
-                                            : "Pick a provider on the left to see its exams."}
-                                    </p>
                                 </div>
                                 {selectedProvider && (
-                                    <Button onClick={openAddCert} className={saveButtonClass}>
-                                        <Plus className="mr-2 h-4 w-4" />
+                                    <Button onClick={openAddCert} size="sm" className="rounded-lg bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn">
+                                        <Plus className="mr-1.5 h-4 w-4" />
                                         Add certification
                                     </Button>
                                 )}
                             </div>
 
                             {selectedProvider && (
-                                <div className="relative mb-4">
-                                    <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        placeholder="Search by name, exam code, or value…"
-                                        aria-label="Search certifications"
-                                        className="min-h-[44px] rounded-xl pl-10"
-                                    />
+                                <div className="space-y-3 border-b border-border px-4 py-3 md:px-5">
+                                    <div className="relative">
+                                        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            placeholder="Search by name or exam code…"
+                                            aria-label="Search certifications"
+                                            className="h-10 rounded-lg pl-10"
+                                        />
+                                    </div>
+                                    {/* Level filter chips */}
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {[["all", "All"], ...LEVEL_ORDER.map((l) => [l, LEVEL_LABELS[l]] as const), ["other", "Other"]]
+                                            .filter(([key]) => key === "all" || (levelCounts[key] ?? 0) > 0)
+                                            .map(([key, label]) => {
+                                                const activeChip = levelFilter === key;
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        type="button"
+                                                        onClick={() => setLevelFilter(key)}
+                                                        aria-pressed={activeChip}
+                                                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${activeChip
+                                                            ? "border-primary bg-primary text-primary-foreground"
+                                                            : "border-border bg-background text-muted-foreground hover:border-brand-200 hover:text-foreground"
+                                                            }`}
+                                                    >
+                                                        {label}
+                                                        <span className={activeChip ? "text-primary-foreground/80" : "text-muted-foreground/70"}>
+                                                            {levelCounts[key] ?? 0}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
                                 </div>
                             )}
+
+                            <div className="p-4 md:p-5">
 
                             {loadingCerts ? (
                                 <div className="flex min-h-[200px] items-center justify-center gap-3 text-muted-foreground">
@@ -740,136 +814,118 @@ const AdminCertCatalog = () => {
                                         : "No certifications yet for this provider. Add the first one to get started."}
                                 </p>
                             ) : (
-                                <div className="space-y-2">
-                                    {filteredCerts.map((cert) => {
-                                        const orderedIndex = certs.findIndex((c) => c.id === cert.id);
-                                        const isEditing = editingCertId === cert.id;
-                                        return (
-                                            <div
-                                                key={cert.id}
-                                                className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 hover:bg-brand-50/50 transition-colors p-3 md:p-4"
-                                            >
-                                                {isEditing ? (
-                                                    <div className="space-y-3">
-                                                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                                                            <div className="space-y-1.5 md:col-span-3">
-                                                                <FieldLabel htmlFor={`cert-label-${cert.id}`}>Label</FieldLabel>
-                                                                <Input
-                                                                    id={`cert-label-${cert.id}`}
-                                                                    className="min-h-[44px] rounded-xl"
-                                                                    value={editCertForm.label}
-                                                                    onChange={(e) =>
-                                                                        setEditCertForm((prev) => ({ ...prev, label: e.target.value }))
-                                                                    }
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1.5">
-                                                                <FieldLabel htmlFor={`cert-code-${cert.id}`}>Exam code</FieldLabel>
-                                                                <Input
-                                                                    id={`cert-code-${cert.id}`}
-                                                                    className="min-h-[44px] rounded-xl"
-                                                                    value={editCertForm.exam_code}
-                                                                    onChange={(e) =>
-                                                                        setEditCertForm((prev) => ({ ...prev, exam_code: e.target.value }))
-                                                                    }
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1.5 md:col-span-2">
-                                                                <FieldLabel htmlFor={`cert-value-${cert.id}`}>Value</FieldLabel>
-                                                                <Input
-                                                                    id={`cert-value-${cert.id}`}
-                                                                    className="min-h-[44px] rounded-xl font-mono text-sm"
-                                                                    value={editCertForm.value}
-                                                                    onChange={(e) =>
-                                                                        setEditCertForm((prev) => ({ ...prev, value: e.target.value }))
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Button onClick={saveCertEdit} disabled={savingCert} className={saveButtonClass}>
-                                                                {savingCert && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                                Save
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                onClick={() => setEditingCertId(null)}
-                                                                className="min-h-[44px] rounded-xl"
-                                                            >
-                                                                Cancel
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex flex-wrap items-center gap-3">
-                                                        <div className="min-w-0 flex-1">
-                                                            <p className="truncate text-sm font-semibold">{cert.label}</p>
-                                                            <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                                {cert.exam_code && (
-                                                                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
-                                                                        {cert.exam_code}
-                                                                    </span>
-                                                                )}
-                                                                <span className="truncate font-mono">{cert.value}</span>
-                                                            </p>
-                                                        </div>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Switch
-                                                                checked={cert.active}
-                                                                onCheckedChange={(checked) => toggleCertActive(cert, checked)}
-                                                                aria-label={`${cert.label} is live in the catalog`}
-                                                            />
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                                onClick={() => moveCert(cert, -1)}
-                                                                disabled={isSearching || orderedIndex <= 0}
-                                                                aria-label={`Move ${cert.label} up`}
-                                                                className="h-10 w-10 rounded-xl"
-                                                            >
-                                                                <ArrowUp className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                                onClick={() => moveCert(cert, 1)}
-                                                                disabled={isSearching || orderedIndex === certs.length - 1}
-                                                                aria-label={`Move ${cert.label} down`}
-                                                                className="h-10 w-10 rounded-xl"
-                                                            >
-                                                                <ArrowDown className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => startEditCert(cert)}
-                                                                aria-label={`Edit ${cert.label}`}
-                                                                className="h-10 w-10 rounded-xl text-muted-foreground hover:text-primary"
-                                                            >
-                                                                <Pencil className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                                onClick={() => setCertToDelete(cert)}
-                                                                aria-label={`Delete ${cert.label}`}
-                                                                className={deleteIconButtonClass}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                <div className="space-y-5">
+                                    {groupedCerts.map(([level, rows]) => (
+                                        <section key={level}>
+                                            {/* Level heading — the "table of contents" divider */}
+                                            <div className="mb-1.5 flex items-center gap-2">
+                                                <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                                    {level === "other" ? "Other" : LEVEL_LABELS[level]}
+                                                </h3>
+                                                <span className="text-[11px] font-medium text-muted-foreground/60">{rows.length}</span>
+                                                <div className="h-px flex-1 bg-border" />
                                             </div>
-                                        );
-                                    })}
-                                    {isSearching && (
-                                        <p className="pt-1 text-xs text-muted-foreground">
-                                            Reordering is paused while you search. Clear the search box to move exams around.
+                                            <div className="overflow-hidden rounded-xl border border-border">
+                                                {rows.map((cert, gi) => {
+                                                    const isEditing = editingCertId === cert.id;
+                                                    const name = cert.label.replace(/^[A-Za-z]{2,3}-\d+:\s*/, "");
+                                                    return (
+                                                        <div
+                                                            key={cert.id}
+                                                            className={`group/row border-border transition-colors ${gi > 0 ? "border-t" : ""} ${isEditing ? "bg-muted/40" : "hover:bg-muted/50"} ${!cert.active && !isEditing ? "opacity-60" : ""}`}
+                                                        >
+                                                            {isEditing ? (
+                                                                <div className="space-y-3 p-3">
+                                                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                                        <div className="space-y-1.5 sm:col-span-2">
+                                                                            <FieldLabel htmlFor={`cert-label-${cert.id}`}>Label</FieldLabel>
+                                                                            <Input id={`cert-label-${cert.id}`} className="h-10 rounded-lg" value={editCertForm.label}
+                                                                                onChange={(e) => setEditCertForm((prev) => ({ ...prev, label: e.target.value }))} />
+                                                                        </div>
+                                                                        <div className="space-y-1.5">
+                                                                            <FieldLabel htmlFor={`cert-code-${cert.id}`}>Exam code</FieldLabel>
+                                                                            <Input id={`cert-code-${cert.id}`} className="h-10 rounded-lg" value={editCertForm.exam_code}
+                                                                                onChange={(e) => setEditCertForm((prev) => ({ ...prev, exam_code: e.target.value }))} />
+                                                                        </div>
+                                                                        <div className="space-y-1.5">
+                                                                            <FieldLabel htmlFor={`cert-level-${cert.id}`}>Level</FieldLabel>
+                                                                            <Select value={editCertForm.level || "none"} onValueChange={(v) => setEditCertForm((prev) => ({ ...prev, level: v === "none" ? "" : v }))}>
+                                                                                <SelectTrigger id={`cert-level-${cert.id}`} className="h-10 rounded-lg"><SelectValue placeholder="Level" /></SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value="none">No level</SelectItem>
+                                                                                    {LEVEL_ORDER.map((l) => <SelectItem key={l} value={l}>{LEVEL_LABELS[l]}</SelectItem>)}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </div>
+                                                                        <div className="space-y-1.5 sm:col-span-2">
+                                                                            <FieldLabel htmlFor={`cert-value-${cert.id}`}>Value (slug)</FieldLabel>
+                                                                            <Input id={`cert-value-${cert.id}`} className="h-10 rounded-lg font-mono text-sm" value={editCertForm.value}
+                                                                                onChange={(e) => setEditCertForm((prev) => ({ ...prev, value: e.target.value }))} />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Button onClick={saveCertEdit} disabled={savingCert} size="sm" className="rounded-lg bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn">
+                                                                            {savingCert && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                                            Save
+                                                                        </Button>
+                                                                        <Button variant="outline" size="sm" onClick={() => setEditingCertId(null)} className="rounded-lg">Cancel</Button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-3 px-3 py-2.5">
+                                                                    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                                                                        {cert.exam_code && (
+                                                                            <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 text-xs font-bold tabular-nums text-primary">
+                                                                                {cert.exam_code}
+                                                                            </span>
+                                                                        )}
+                                                                        <span className="min-w-0 truncate text-sm font-medium text-foreground">{name}</span>
+                                                                        {!cert.active && (
+                                                                            <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">off</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex shrink-0 items-center gap-0.5">
+                                                                        <Switch
+                                                                            checked={cert.active}
+                                                                            onCheckedChange={(checked) => toggleCertActive(cert, checked)}
+                                                                            aria-label={`${cert.label} is live in the catalog`}
+                                                                            className="scale-90"
+                                                                        />
+                                                                        <div className="flex items-center opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100">
+                                                                            <Button variant="ghost" size="icon" onClick={() => moveCert(cert, -1)} disabled={reorderLocked || gi <= 0}
+                                                                                aria-label={`Move ${cert.label} up`} className="h-8 w-8 rounded-lg text-muted-foreground">
+                                                                                <ArrowUp className="h-3.5 w-3.5" />
+                                                                            </Button>
+                                                                            <Button variant="ghost" size="icon" onClick={() => moveCert(cert, 1)} disabled={reorderLocked || gi >= rows.length - 1}
+                                                                                aria-label={`Move ${cert.label} down`} className="h-8 w-8 rounded-lg text-muted-foreground">
+                                                                                <ArrowDown className="h-3.5 w-3.5" />
+                                                                            </Button>
+                                                                            <Button variant="ghost" size="icon" onClick={() => startEditCert(cert)}
+                                                                                aria-label={`Edit ${cert.label}`} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary">
+                                                                                <Pencil className="h-3.5 w-3.5" />
+                                                                            </Button>
+                                                                            <Button variant="ghost" size="icon" onClick={() => setCertToDelete(cert)}
+                                                                                aria-label={`Delete ${cert.label}`} className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground">
+                                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </section>
+                                    ))}
+                                    {reorderLocked && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Reordering is paused while filtering. Clear the search and set the level to “All” to move exams.
                                         </p>
                                     )}
                                 </div>
                             )}
+                            </div>
                         </div>
                     </div>
                 </ScrollReveal>
@@ -1034,15 +1090,27 @@ const AdminCertCatalog = () => {
                                 onChange={(e) => updateNewCertLabel(e.target.value)}
                             />
                         </div>
-                        <div className="space-y-2">
-                            <FieldLabel htmlFor="new-cert-code">Exam code (optional)</FieldLabel>
-                            <Input
-                                id="new-cert-code"
-                                className="min-h-[44px] rounded-xl"
-                                placeholder="SAA-C03"
-                                value={newCert.exam_code}
-                                onChange={(e) => setNewCert((prev) => ({ ...prev, exam_code: e.target.value }))}
-                            />
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="space-y-2">
+                                <FieldLabel htmlFor="new-cert-code">Exam code (optional)</FieldLabel>
+                                <Input
+                                    id="new-cert-code"
+                                    className="min-h-[44px] rounded-xl"
+                                    placeholder="SAA-C03"
+                                    value={newCert.exam_code}
+                                    onChange={(e) => setNewCert((prev) => ({ ...prev, exam_code: e.target.value }))}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <FieldLabel htmlFor="new-cert-level">Level (optional)</FieldLabel>
+                                <Select value={newCert.level || "none"} onValueChange={(v) => setNewCert((prev) => ({ ...prev, level: v === "none" ? "" : v }))}>
+                                    <SelectTrigger id="new-cert-level" className="min-h-[44px] rounded-xl"><SelectValue placeholder="Level" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">No level</SelectItem>
+                                        {LEVEL_ORDER.map((l) => <SelectItem key={l} value={l}>{LEVEL_LABELS[l]}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <FieldLabel htmlFor="new-cert-value">Value (filled in from the label, edit if needed)</FieldLabel>
