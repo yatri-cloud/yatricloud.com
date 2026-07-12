@@ -1,0 +1,14 @@
+-- ============================================================
+-- Yatri Cloud — 055_salesforce_catalog_refresh.sql (record)
+-- Salesforce catalog refreshed from the official Trailhead Academy listing
+-- (trailheadacademy.salesforce.com/all-offerings → Certifications): 58 → 86
+-- exams, with `level` derived from the name (foundations→foundational,
+-- architect→expert, consultant/accredited professional→professional,
+-- else→associate).
+--
+-- Because the list is large and generated, it is applied by the checked-in,
+-- idempotent, NON-DESTRUCTIVE script rather than inline SQL here:
+--     node scripts/refresh-salesforce.mjs
+-- (upsert by (provider_slug, value) + prune retired values — surviving exams
+-- keep their id, so linked study_plans/courses are safe.)
+-- ============================================================
