@@ -1,0 +1,10 @@
+-- ============================================================
+-- Yatri Cloud — 059_oracle_catalog_autofetch.sql (record)
+-- Oracle catalog auto-fetched from oracle.com/education/certification (names are
+-- server-rendered in the page HTML, so a plain fetch is more reliable than a
+-- headless browser). 179 → 223 exams: added 44 current certs the catalog lacked
+-- (2026-version exams + SCM certs), with junk/sentence-fragment/generic-tier
+-- names filtered out and levels derived. NON-DESTRUCTIVE — never prunes, so still
+-- offered legacy exams (Java, MySQL, WebLogic, Solaris, EBS…) are kept.
+-- Applied + repeatable via: node scripts/refresh-oracle.mjs --apply
+-- ============================================================

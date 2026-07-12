@@ -17,7 +17,7 @@ How the `cert_providers` / `provider_certifications` catalog is kept current.
 | Microsoft (azure + github) | [Certification poster PDF](https://arch-center.azureedge.net/Credentials/Certification-Poster_en-us.pdf) (aka.ms/CertificationsPoster) | ✅ automated (text-extractable PDF) |
 | AWS | https://aws.amazon.com/certification/ | ⚠️ manual — page is client-rendered |
 | GCP | https://cloud.google.com/learn/certification | ⚠️ manual |
-| Oracle | https://www.oracle.com/education/certification/ | ⚠️ manual |
+| Oracle | https://www.oracle.com/education/certification/ | ✅ `scripts/refresh-oracle.mjs` (names are server-rendered; add-only, never prunes legacy) |
 | Salesforce | https://trailheadacademy.salesforce.com/all-offerings | ⚠️ manual |
 | NVIDIA | https://www.nvidia.com/learn/certification/ | ⚠️ manual |
 
