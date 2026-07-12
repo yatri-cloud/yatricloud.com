@@ -1,0 +1,11 @@
+-- ============================================================
+-- Yatri Cloud — 060_backfill_urls_oracle_nvidia_salesforce.sql (record)
+-- Per-exam official URLs for Oracle, NVIDIA, Salesforce.
+--   • Oracle (223)     → mylearn.oracle.com/ou/exam/<slug>/  (all verified 200)
+--   • NVIDIA (11)      → nvidia.com/en-us/learn/certification/<slug>/ (8 direct,
+--                        3 fall back to the NVIDIA cert hub)
+--   • Salesforce (86)  → trailhead.salesforce.com/credentials/?searchTerm=<name>
+--                        (Trailhead credential search pre-filled — always resolves)
+-- Every candidate page was verified 200 before saving; misses use the vendor hub.
+-- Applied + repeatable via: node scripts/backfill-osn-urls.mjs
+-- ============================================================
