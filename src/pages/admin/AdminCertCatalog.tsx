@@ -73,11 +73,24 @@ interface CertRow {
     active: boolean;
 }
 
-/** Level grouping for the certification list — the "table of contents" order. */
-const LEVEL_ORDER = ["fundamentals", "associate", "expert", "specialty", "business"] as const;
+/** Level grouping for the certification list — the "table of contents" order.
+ *  Superset across providers: Microsoft uses fundamentals/associate/expert,
+ *  AWS uses foundational/associate/professional/specialty. Each provider only
+ *  shows the levels it actually uses. */
+const LEVEL_ORDER = [
+    "fundamentals",
+    "foundational",
+    "associate",
+    "professional",
+    "expert",
+    "specialty",
+    "business",
+] as const;
 const LEVEL_LABELS: Record<string, string> = {
     fundamentals: "Fundamentals",
+    foundational: "Foundational",
     associate: "Associate",
+    professional: "Professional",
     expert: "Expert",
     specialty: "Specialty",
     business: "Business",
@@ -161,6 +174,7 @@ const AdminCertCatalog = () => {
     const [providers, setProviders] = useState<ProviderRow[]>([]);
     const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
     const [certs, setCerts] = useState<CertRow[]>([]);
+    const [certCounts, setCertCounts] = useState<Record<string, number>>({});
     const [search, setSearch] = useState("");
     const [levelFilter, setLevelFilter] = useState<string>("all");
 
@@ -234,15 +248,33 @@ const AdminCertCatalog = () => {
         return rows;
     };
 
+    // Real per-provider certification counts (the cert_providers.cert_count
+    // column is a marketing figure and can be stale; the sidebar shows truth).
+    const loadCertCounts = async () => {
+        const { data, error } = await supabase.from("provider_certifications").select("provider_slug");
+        if (error || !data) return;
+        const counts: Record<string, number> = {};
+        for (const row of data as { provider_slug: string }[]) {
+            counts[row.provider_slug] = (counts[row.provider_slug] ?? 0) + 1;
+        }
+        setCertCounts(counts);
+    };
+
     useEffect(() => {
         const init = async () => {
             const rows = await loadProviders();
             if (rows.length > 0) setSelectedSlug((prev) => prev ?? rows[0].slug);
+            await loadCertCounts();
             setLoadingProviders(false);
         };
         init();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Keep the selected provider's count exact as certs are added/removed.
+    useEffect(() => {
+        if (selectedSlug) setCertCounts((prev) => ({ ...prev, [selectedSlug]: certs.length }));
+    }, [certs, selectedSlug]);
 
     useEffect(() => {
         if (!selectedSlug) {
@@ -687,7 +719,7 @@ const AdminCertCatalog = () => {
                                                         )}
                                                     </span>
                                                     <span className="block truncate text-xs text-muted-foreground">
-                                                        {provider.cert_count} certs
+                                                        {certCounts[provider.slug] ?? provider.cert_count} exams
                                                         {provider.show_on_home && " · home"}
                                                         {provider.show_in_forms && " · forms"}
                                                     </span>
@@ -707,7 +739,7 @@ const AdminCertCatalog = () => {
                                                     size="icon"
                                                     onClick={() => openEditProvider(provider)}
                                                     aria-label={`Edit ${provider.label}`}
-                                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary"
+                                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-primary hover:text-primary-foreground"
                                                 >
                                                     <Pencil className="h-3.5 w-3.5" />
                                                 </Button>
@@ -901,7 +933,7 @@ const AdminCertCatalog = () => {
                                                                                 <ArrowDown className="h-3.5 w-3.5" />
                                                                             </Button>
                                                                             <Button variant="ghost" size="icon" onClick={() => startEditCert(cert)}
-                                                                                aria-label={`Edit ${cert.label}`} className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary">
+                                                                                aria-label={`Edit ${cert.label}`} className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-primary hover:text-primary-foreground">
                                                                                 <Pencil className="h-3.5 w-3.5" />
                                                                             </Button>
                                                                             <Button variant="ghost" size="icon" onClick={() => setCertToDelete(cert)}
