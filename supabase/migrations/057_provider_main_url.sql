@@ -1,0 +1,31 @@
+-- ============================================================
+-- Yatri Cloud — 057_provider_main_url.sql
+-- Add an official "main certification page" URL per provider and backfill the
+-- verified vendor hubs (each checked 200 before saving). Surfaced as an open
+-- link on the provider row + editable in the provider dialog.
+--   DDL applied to live via psql; backfill via scripts/backfill-provider-urls.mjs.
+-- ============================================================
+
+alter table cert_providers add column if not exists url text;
+
+-- Backfilled hubs (record; applied idempotently by the verifying script):
+--   aws        https://aws.amazon.com/certification/
+--   azure      https://learn.microsoft.com/en-us/credentials/
+--   gcp        https://cloud.google.com/learn/certification
+--   github     https://resources.github.com/learn/certifications/
+--   oracle     https://education.oracle.com/certification
+--   salesforce https://trailheadacademy.salesforce.com/all-offerings
+--   servicenow https://www.servicenow.com/services/training-and-certification.html
+--   openai     https://academy.openai.com/
+--   hashicorp  https://developer.hashicorp.com/certifications
+--   terraform  https://developer.hashicorp.com/certifications/infrastructure-automation
+--   kubernetes https://kubernetes.io/training/
+--   linux      https://training.linuxfoundation.org/certification/
+--   comptia    https://www.comptia.org/certifications
+--   cisco      https://www.cisco.com/site/us/en/learn/training-certifications/certifications/index.html
+--   isc2       https://www.isc2.org/certifications
+--   ibm        https://www.ibm.com/training/credentials
+--   alibaba    https://www.alibabacloud.com/en/certification
+--   cncf       https://www.cncf.io/training/certification/
+--   nvidia     https://www.nvidia.com/en-in/learn/certification/
+--   docker     https://www.docker.com/

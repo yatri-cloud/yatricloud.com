@@ -56,6 +56,7 @@ interface ProviderRow {
     logo_light_url: string;
     brand_color: string;
     blurb: string;
+    url: string;
     cert_count: number;
     show_on_home: boolean;
     show_in_forms: boolean;
@@ -109,6 +110,7 @@ interface ProviderFormState {
     logo_light_url: string;
     brand_color: string;
     blurb: string;
+    url: string;
     cert_count: string;
     show_on_home: boolean;
     show_in_forms: boolean;
@@ -130,6 +132,7 @@ const EMPTY_PROVIDER_FORM: ProviderFormState = {
     logo_light_url: "",
     brand_color: "",
     blurb: "",
+    url: "",
     cert_count: "0",
     show_on_home: false,
     show_in_forms: false,
@@ -225,9 +228,7 @@ const AdminCertCatalog = () => {
     const loadProviders = async () => {
         const { data, error } = await supabase
             .from("cert_providers")
-            .select(
-                "id, slug, label, logo_url, logo_light_url, brand_color, blurb, cert_count, show_on_home, show_in_forms, sort_order, active"
-            )
+            .select("*")
             .order("sort_order", { ascending: true });
         if (error) {
             console.error("Failed to load providers", error);
@@ -246,6 +247,7 @@ const AdminCertCatalog = () => {
             logo_light_url: row.logo_light_url ?? "",
             brand_color: row.brand_color ?? "",
             blurb: row.blurb ?? "",
+            url: row.url ?? "",
             cert_count: row.cert_count ?? 0,
             show_on_home: row.show_on_home === true,
             show_in_forms: row.show_in_forms === true,
@@ -349,6 +351,7 @@ const AdminCertCatalog = () => {
             logo_light_url: provider.logo_light_url,
             brand_color: provider.brand_color,
             blurb: provider.blurb,
+            url: provider.url,
             cert_count: String(provider.cert_count ?? 0),
             show_on_home: provider.show_on_home,
             show_in_forms: provider.show_in_forms,
@@ -375,6 +378,7 @@ const AdminCertCatalog = () => {
             logo_light_url: providerForm.logo_light_url.trim() || null,
             brand_color: providerForm.brand_color.trim() || null,
             blurb: providerForm.blurb.trim() || null,
+            url: providerForm.url.trim() || null,
             cert_count: Number.parseInt(providerForm.cert_count, 10) || 0,
             show_on_home: providerForm.show_on_home,
             show_in_forms: providerForm.show_in_forms,
@@ -743,6 +747,18 @@ const AdminCertCatalog = () => {
 
                                             {/* Actions — quiet until row hover/selection */}
                                             <div className={`flex shrink-0 items-center gap-0.5 transition-opacity ${selected ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"}`}>
+                                                {provider.url && (
+                                                    <a
+                                                        href={provider.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        title="Open official certification page"
+                                                        aria-label={`Open official certification page for ${provider.label}`}
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-primary hover:text-primary-foreground"
+                                                    >
+                                                        <ExternalLink className="h-3.5 w-3.5" />
+                                                    </a>
+                                                )}
                                                 <Switch
                                                     checked={provider.active}
                                                     onCheckedChange={(checked) => toggleProviderActive(provider, checked)}
@@ -1050,6 +1066,17 @@ const AdminCertCatalog = () => {
                                 className="min-h-[44px] rounded-xl"
                                 value={providerForm.logo_light_url}
                                 onChange={(e) => setProviderForm({ ...providerForm, logo_light_url: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <FieldLabel htmlFor="provider-url">Official certification page URL</FieldLabel>
+                            <Input
+                                id="provider-url"
+                                type="url"
+                                placeholder="https://aws.amazon.com/certification/"
+                                className="min-h-[44px] rounded-xl"
+                                value={providerForm.url}
+                                onChange={(e) => setProviderForm({ ...providerForm, url: e.target.value })}
                             />
                         </div>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
