@@ -1,0 +1,14 @@
+-- ============================================================
+-- Yatri Cloud — 056_backfill_official_urls.sql (record)
+-- Backfilled provider_certifications.url with official vendor pages for the
+-- curated providers (azure, aws, gcp, github). Every URL was HEAD/GET-verified
+-- to return 200 before saving — no dead links.
+--   • Microsoft : learn.microsoft.com/.../certifications/exams/<code>/
+--                 (5 brand-new beta exams with no live page → credentials search)
+--   • AWS       : aws.amazon.com/certification/certified-<slug>/
+--   • GCP       : cloud.google.com/learn/certification/<slug>
+--   • GitHub    : resources.github.com/learn/certifications/ (hub)
+--
+-- Applied by the idempotent, verifying script (re-run any time):
+--     node scripts/backfill-cert-urls.mjs
+-- ============================================================
