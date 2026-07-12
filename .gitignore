@@ -38,3 +38,6 @@ data/
 
 # cert sync reports (generated)
 scripts/.sync-reports/
+
+# Supabase CLI local cache
+supabase/.temp/
