@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Yatri Cloud — monthly certification-catalog sync (Mac-worker pattern).
+  Runs scripts/sync-cert-catalog.mjs on the 1st of every month at 09:00.
+  Install: see docs/features/cert-catalog-sync.md
+    cp scripts/launchd/com.yatricloud.cert-sync.plist ~/Library/LaunchAgents/
+    launchctl load  ~/Library/LaunchAgents/com.yatricloud.cert-sync.plist
+    launchctl start com.yatricloud.cert-sync   # run once now to verify
+  Edit REPO_DIR below to your absolute checkout path before installing.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yatricloud.cert-sync</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-lc</string>
+        <string>cd "$REPO_DIR" &amp;&amp; node scripts/sync-cert-catalog.mjs &gt;&gt; scripts/.sync-reports/launchd.log 2&gt;&amp;1</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>REPO_DIR</key>
+        <string>/Volumes/Yatri Cloud/org/Yatri Cloud/yatri-practice-hub</string>
+    </dict>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Day</key><integer>1</integer>
+        <key>Hour</key><integer>9</integer>
+        <key>Minute</key><integer>0</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

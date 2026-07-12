@@ -35,3 +35,6 @@ VITE_CANVA_TEMPLATE_ID=your_template_id_here
 claude-master/
 data/
 .env*.bak*
+
+# cert sync reports (generated)
+scripts/.sync-reports/

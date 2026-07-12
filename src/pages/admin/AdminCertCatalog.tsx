@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
     ArrowDown,
     ArrowUp,
+    ExternalLink,
     Loader2,
     Pencil,
     Plus,
@@ -69,6 +70,7 @@ interface CertRow {
     label: string;
     exam_code: string;
     level: string;
+    url: string;
     sort_order: number;
     active: boolean;
 }
@@ -117,6 +119,7 @@ interface CertFormState {
     exam_code: string;
     value: string;
     level: string;
+    url: string;
     valueTouched: boolean;
 }
 
@@ -137,6 +140,7 @@ const EMPTY_CERT_FORM: CertFormState = {
     exam_code: "",
     value: "",
     level: "",
+    url: "",
     valueTouched: false,
 };
 
@@ -175,6 +179,10 @@ const AdminCertCatalog = () => {
     const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
     const [certs, setCerts] = useState<CertRow[]>([]);
     const [certCounts, setCertCounts] = useState<Record<string, number>>({});
+    // Whether the optional provider_certifications.url column exists (migration
+    // 054). Probed once; URL editing stays hidden until it's applied so writes
+    // never fail on databases that haven't run the migration yet.
+    const [urlSupported, setUrlSupported] = useState(false);
     const [search, setSearch] = useState("");
     const [levelFilter, setLevelFilter] = useState<string>("all");
 
@@ -265,6 +273,8 @@ const AdminCertCatalog = () => {
             const rows = await loadProviders();
             if (rows.length > 0) setSelectedSlug((prev) => prev ?? rows[0].slug);
             await loadCertCounts();
+            const probe = await supabase.from("provider_certifications").select("url").limit(1);
+            setUrlSupported(!probe.error);
             setLoadingProviders(false);
         };
         init();
@@ -288,7 +298,7 @@ const AdminCertCatalog = () => {
             setLoadingCerts(true);
             const { data, error } = await supabase
                 .from("provider_certifications")
-                .select("id, provider_slug, value, label, exam_code, level, sort_order, active")
+                .select("*")
                 .eq("provider_slug", selectedSlug)
                 .order("sort_order", { ascending: true });
             if (cancelled) return;
@@ -309,6 +319,7 @@ const AdminCertCatalog = () => {
                         label: row.label ?? "",
                         exam_code: row.exam_code ?? "",
                         level: row.level ?? "",
+                        url: row.url ?? "",
                         sort_order: row.sort_order ?? 0,
                         active: row.active !== false,
                     }))
@@ -503,8 +514,9 @@ const AdminCertCatalog = () => {
                 level: newCert.level.trim() || null,
                 sort_order: nextOrder,
                 active: true,
+                ...(urlSupported ? { url: newCert.url.trim() || null } : {}),
             })
-            .select("id, provider_slug, value, label, exam_code, level, sort_order, active")
+            .select("*")
             .single();
         setSavingCert(false);
         if (error || !data) return saveFailed();
@@ -517,6 +529,7 @@ const AdminCertCatalog = () => {
                 label: data.label ?? label,
                 exam_code: data.exam_code ?? "",
                 level: data.level ?? "",
+                url: data.url ?? "",
                 sort_order: data.sort_order ?? nextOrder,
                 active: data.active !== false,
             },
@@ -532,6 +545,7 @@ const AdminCertCatalog = () => {
             exam_code: cert.exam_code,
             value: cert.value,
             level: cert.level,
+            url: cert.url,
             valueTouched: true,
         });
     };
@@ -556,6 +570,7 @@ const AdminCertCatalog = () => {
                 value,
                 exam_code: editCertForm.exam_code.trim() || null,
                 level: editCertForm.level.trim() || null,
+                ...(urlSupported ? { url: editCertForm.url.trim() || null } : {}),
             })
             .eq("id", editingCertId);
         setSavingCert(false);
@@ -563,7 +578,7 @@ const AdminCertCatalog = () => {
         setCerts((prev) =>
             prev.map((c) =>
                 c.id === editingCertId
-                    ? { ...c, label, value, exam_code: editCertForm.exam_code.trim(), level: editCertForm.level.trim() }
+                    ? { ...c, label, value, exam_code: editCertForm.exam_code.trim(), level: editCertForm.level.trim(), url: editCertForm.url.trim() }
                     : c
             )
         );
@@ -894,6 +909,13 @@ const AdminCertCatalog = () => {
                                                                             <Input id={`cert-value-${cert.id}`} className="h-10 rounded-lg font-mono text-sm" value={editCertForm.value}
                                                                                 onChange={(e) => setEditCertForm((prev) => ({ ...prev, value: e.target.value }))} />
                                                                         </div>
+                                                                        {urlSupported && (
+                                                                            <div className="space-y-1.5 sm:col-span-2">
+                                                                                <FieldLabel htmlFor={`cert-url-${cert.id}`}>Official page URL</FieldLabel>
+                                                                                <Input id={`cert-url-${cert.id}`} type="url" placeholder="https://learn.microsoft.com/…" className="h-10 rounded-lg" value={editCertForm.url}
+                                                                                    onChange={(e) => setEditCertForm((prev) => ({ ...prev, url: e.target.value }))} />
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         <Button onClick={saveCertEdit} disabled={savingCert} size="sm" className="rounded-lg bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn">
@@ -917,6 +939,18 @@ const AdminCertCatalog = () => {
                                                                         )}
                                                                     </div>
                                                                     <div className="flex shrink-0 items-center gap-0.5">
+                                                                        {cert.url && (
+                                                                            <a
+                                                                                href={cert.url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                title="Open official certification page"
+                                                                                aria-label={`Open official page for ${cert.label}`}
+                                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-primary hover:text-primary-foreground"
+                                                                            >
+                                                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                                            </a>
+                                                                        )}
                                                                         <Switch
                                                                             checked={cert.active}
                                                                             onCheckedChange={(checked) => toggleCertActive(cert, checked)}
@@ -1155,6 +1189,19 @@ const AdminCertCatalog = () => {
                                 }
                             />
                         </div>
+                        {urlSupported && (
+                            <div className="space-y-2">
+                                <FieldLabel htmlFor="new-cert-url">Official page URL (optional)</FieldLabel>
+                                <Input
+                                    id="new-cert-url"
+                                    type="url"
+                                    placeholder="https://learn.microsoft.com/…"
+                                    className="min-h-[44px] rounded-xl"
+                                    value={newCert.url}
+                                    onChange={(e) => setNewCert((prev) => ({ ...prev, url: e.target.value }))}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <DialogFooter className="gap-2 sm:gap-0">
