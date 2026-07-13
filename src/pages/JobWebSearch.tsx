@@ -98,6 +98,7 @@ const JobWebSearch = () => {
   const [empType, setEmpType] = useState("any");
   const [remote, setRemote] = useState(false);
   const [source, setSource] = useState("any");
+  const [datePosted, setDatePosted] = useState("any");
   const [showMore, setShowMore] = useState(false);
   const [rows, setRows] = useState<WebJob[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -124,6 +125,25 @@ const JobWebSearch = () => {
     lever: "site:lever.co", ashby: "site:ashbyhq.com",
   };
 
+  // "Date posted" windows (LinkedIn-style). `minutes` filters the parsed
+  // "posted" recency; `days` biases Google via an after: operator.
+  const DATE_WINDOWS: Record<string, { label: string; minutes: number; days: number }> = {
+    any: { label: "Any time", minutes: 0, days: 0 },
+    "30min": { label: "Past 30 minutes", minutes: 30, days: 0 },
+    "1h": { label: "Past hour", minutes: 60, days: 0 },
+    "24h": { label: "Past 24 hours", minutes: 1440, days: 1 },
+    "48h": { label: "Past 48 hours", minutes: 2880, days: 2 },
+    "7d": { label: "Past 7 days", minutes: 10080, days: 7 },
+    "30d": { label: "Past 30 days", minutes: 43200, days: 30 },
+  };
+
+  const afterTerm = () => {
+    if (datePosted === "any") return "";
+    const d = new Date();
+    d.setDate(d.getDate() - (DATE_WINDOWS[datePosted]?.days ?? 0));
+    return `after:${d.toISOString().slice(0, 10)}`;
+  };
+
   const buildQuery = () =>
     [
       title.trim(),
@@ -133,6 +153,7 @@ const JobWebSearch = () => {
       remote ? "remote" : "",
       location.trim() || REGIONS[region] || profile?.locations?.split(",")[0]?.trim() || "",
       SOURCE_SITE[source],
+      afterTerm(),
     ]
       .filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 
@@ -255,6 +276,32 @@ const JobWebSearch = () => {
   const applySourceFilter = (jobs: WebJob[]) =>
     source === "any" ? jobs : jobs.filter((j) => j.source === SOURCE_LABEL[source]);
 
+  // Parse a "posted" string ("5 hours ago", "2 days ago", "12 Jul 2026") into
+  // an age in minutes, or null when it can't be determined.
+  const postedAgeMinutes = (posted: string): number | null => {
+    const rel = posted.match(/(\d+)\s+(minute|hour|day|week|month|year)s?\s+ago/i);
+    if (rel) {
+      const per: Record<string, number> = { minute: 1, hour: 60, day: 1440, week: 10080, month: 43200, year: 525600 };
+      return parseInt(rel[1], 10) * (per[rel[2].toLowerCase()] ?? 0);
+    }
+    const abs = Date.parse(posted);
+    if (!Number.isNaN(abs)) return Math.max(0, Math.round((Date.now() - abs) / 60000));
+    return null;
+  };
+
+  // Keep rows within the chosen window. Rows with no readable date are kept
+  // (we can't confirm they're stale, and the after: bias already favours fresh).
+  const applyDateFilter = (jobs: WebJob[]) => {
+    const win = DATE_WINDOWS[datePosted]?.minutes ?? 0;
+    if (!win) return jobs;
+    return jobs.filter((j) => {
+      const age = postedAgeMinutes(j.posted);
+      return age == null || age <= win;
+    });
+  };
+
+  const applyFilters = (jobs: WebJob[]) => applyDateFilter(applySourceFilter(jobs));
+
   const runSearch = () => {
     const q = buildQuery();
     if (!q) { toast.error("Enter a job title or keyword."); return; }
@@ -262,7 +309,7 @@ const JobWebSearch = () => {
     if (!control) { toast.error("Search is still loading, try again."); return; }
     setBusy(true); setSearched(true); setRows(null); setPage(1);
     control.execute(q);
-    pollParse(({ jobs, pages }) => { setRows(applySourceFilter(jobs)); setMaxPage(pages); setBusy(false); });
+    pollParse(({ jobs, pages }) => { setRows(applyFilters(jobs)); setMaxPage(pages); setBusy(false); });
   };
 
   // Go to a page by clicking the widget's own cursor (fetches just that page).
@@ -272,7 +319,7 @@ const JobWebSearch = () => {
     if (!cursor || !cursor[n - 1]) return;
     setBusy(true); setRows(null);
     cursor[n - 1].click();
-    pollParse(({ jobs, pages }) => { setRows(applySourceFilter(jobs)); setMaxPage(pages); setPage(n); setBusy(false); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    pollParse(({ jobs, pages }) => { setRows(applyFilters(jobs)); setMaxPage(pages); setPage(n); setBusy(false); window.scrollTo({ top: 0, behavior: "smooth" }); });
   };
 
   if (!user) {
@@ -365,6 +412,14 @@ const JobWebSearch = () => {
                   <SelectItem value="internship">Internship</SelectItem>
                   <SelectItem value="contract">Contract</SelectItem>
                   <SelectItem value="parttime">Part-time</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={datePosted} onValueChange={setDatePosted}>
+                <SelectTrigger aria-label="Date posted"><SelectValue placeholder="Date posted" /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(DATE_WINDOWS).map(([key, { label }]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <label className="flex min-h-[40px] cursor-pointer items-center gap-2 rounded-md border border-border px-3 text-sm">
