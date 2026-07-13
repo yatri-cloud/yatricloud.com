@@ -1,0 +1,60 @@
+name: Certification catalog sync
+
+# Always-on "production" version of the monthly cert-catalog self-update.
+# Runs on GitHub's infrastructure (not the owner's Mac), so it fires whether or
+# not any local machine is on. Same pipeline as scripts/monthly-cert-sync.mjs.
+#
+# Requires two repo secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL                — same value as .env
+#   SUPABASE_SERVICE_ROLE_KEY   — same value as .env (write access; keep secret)
+
+on:
+  schedule:
+    - cron: "0 9 1 * *"   # 1st of every month, 09:00 UTC
+  workflow_dispatch: {}   # allow manual "Run workflow" from the Actions tab
+
+# Never run two syncs at once; don't cancel an in-flight run.
+concurrency:
+  group: cert-catalog-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install poppler (pdftotext for the Microsoft poster)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write .env from secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error::Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY repo secrets."
+            exit 1
+          fi
+          printf 'SUPABASE_URL=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\n' "$SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" > .env
+
+      - name: Run monthly catalog sync
+        run: node scripts/monthly-cert-sync.mjs
+
+      - name: Upload sync report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cert-sync-report
+          path: scripts/.sync-reports/
+          if-no-files-found: ignore
+          retention-days: 90

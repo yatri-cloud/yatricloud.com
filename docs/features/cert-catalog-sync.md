@@ -58,9 +58,25 @@ launchctl load  ~/Library/LaunchAgents/com.yatricloud.cert-sync.plist
 launchctl start com.yatricloud.cert-sync       # verify once
 ```
 
-AWS/GCP/Oracle/Salesforce/NVIDIA pages are JavaScript-rendered, so a plain fetch
-can't read them reliably; the sync flags them for manual review. To automate
-those later, add a headless-browser fetch (Playwright) per provider.
+## Production (always-on) schedule — GitHub Actions
+The launchd agent only fires when the owner's Mac is on. For an always-on run
+that doesn't depend on any local machine, `.github/workflows/cert-catalog-sync.yml`
+runs the **same** `monthly-cert-sync.mjs` on GitHub's infrastructure (1st of month,
+09:00 UTC; also runnable on demand via the Actions tab's "Run workflow"). It
+installs `poppler-utils`, runs the pipeline, and uploads the report as an artifact.
+
+One-time setup — add two repo secrets (Settings → Secrets and variables → Actions):
+- `SUPABASE_URL` — same value as `.env`
+- `SUPABASE_SERVICE_ROLE_KEY` — same value as `.env` (write access; keep secret)
+
+Both the Mac agent and the Action write to the same Supabase catalog and are
+idempotent, so running either (or both) is safe — but pick one as the primary to
+avoid redundant monthly runs.
+
+AWS/GCP/Salesforce/NVIDIA pages are JavaScript-rendered, so a plain fetch can't
+read them reliably; those use curated lists (re-applied idempotently). Oracle and
+Microsoft are truly auto-fetched. To auto-fetch the JS-rendered ones later, add a
+headless-browser (Playwright) step per provider.
 
 ## Applying data changes
 - **DML** (insert/update/delete rows): run via a service-role script, e.g.
