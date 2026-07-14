@@ -33,6 +33,10 @@ export interface FeedPost {
   author_name: string;
   author_photo: string | null;
   author_role: string;
+  cert_value: string | null;
+  cert_provider: string | null;
+  cert_label: string | null;
+  cert_code: string | null;
   clap_total: number;
   response_count: number;
   tag_labels: string[];
@@ -55,6 +59,8 @@ export interface MyPost {
   published_at: string | null;
   scheduled_for: string | null;
   updated_at: string;
+  cert_value?: string | null;
+  cert_provider?: string | null;
   tag_labels?: string[];
 }
 
@@ -160,12 +166,13 @@ export async function updateMyWriterProfile(patch: { full_name?: string; bio?: s
 /* ------------------------------------------------------------------ */
 
 const FEED_COLS =
-  "id,slug,title,subtitle,cover_image_url,excerpt,reading_minutes,featured,view_count,access,published_at,created_at,author_id,author_name,author_photo,author_role,clap_total,response_count,tag_labels,tag_slugs";
+  "id,slug,title,subtitle,cover_image_url,excerpt,reading_minutes,featured,view_count,access,published_at,created_at,author_id,author_name,author_photo,author_role,cert_value,cert_provider,cert_label,cert_code,clap_total,response_count,tag_labels,tag_slugs";
 
 export interface FeedQuery {
   tag?: string;
   authorId?: string;
   featured?: boolean;
+  cert?: string;
   search?: string;
   sort?: "new" | "top";
   limit?: number;
@@ -176,6 +183,7 @@ export async function listFeed(q: FeedQuery = {}): Promise<FeedPost[]> {
   let query = supabase.from("blog_feed").select(FEED_COLS);
   if (q.tag) query = query.contains("tag_slugs", [q.tag]);
   if (q.authorId) query = query.eq("author_id", q.authorId);
+  if (q.cert) query = query.eq("cert_value", q.cert);
   if (q.featured) query = query.eq("featured", true);
   if (q.search) query = query.or(`title.ilike.%${q.search}%,subtitle.ilike.%${q.search}%,excerpt.ilike.%${q.search}%`);
   query = q.sort === "top"
@@ -224,6 +232,8 @@ export interface PostInput {
   content?: string;
   cover_image_url?: string;
   access?: "free" | "member";
+  cert_value?: string | null;
+  cert_provider?: string | null;
 }
 
 export async function createPost(input: PostInput): Promise<{ id: string; slug: string } | null> {
@@ -308,6 +318,29 @@ export async function setPostTags(postId: string, labels: string[]): Promise<voi
 export async function popularTags(limit = 12): Promise<{ slug: string; label: string }[]> {
   const { data } = await supabase.from("blog_tags").select("slug,label").order("label").limit(limit);
   return data ?? [];
+}
+
+/* ------------------------------------------------------------------ */
+/* Certification link (the Yatri differentiator: prep stories per exam) */
+/* ------------------------------------------------------------------ */
+
+export interface CertOption { value: string; label: string; provider: string; }
+
+/** Certifications for the writer's "link to a cert" picker (active only). */
+export async function listCertOptions(): Promise<CertOption[]> {
+  const { data, error } = await supabase
+    .from("provider_certifications")
+    .select("value,label,provider_slug")
+    .eq("active", true)
+    .order("provider_slug").order("sort_order");
+  if (error) { console.error("listCertOptions", error); return []; }
+  return (data ?? []).map((r: any) => ({ value: r.value, label: r.label, provider: r.provider_slug }));
+}
+
+/** Does this author hold any public certification? (byline "Certified Yatri" badge) */
+export async function authorIsCertified(authorId: string): Promise<boolean> {
+  const { data } = await supabase.rpc("author_is_certified", { p_author: authorId });
+  return data === true;
 }
 
 /* ------------------------------------------------------------------ */

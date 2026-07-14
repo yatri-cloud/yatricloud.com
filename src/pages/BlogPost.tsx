@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   getPostBySlug, incrementView, getUserId, getMyClap, setClap, isBookmarked, toggleBookmark,
-  isFollowing, toggleFollow, followerCount, listResponses, addResponse, deleteResponse,
+  isFollowing, toggleFollow, followerCount, listResponses, addResponse, deleteResponse, authorIsCertified,
   type FeedPost, type BlogResponse,
 } from "@/lib/blog-api";
+import { BadgeCheck, GraduationCap } from "lucide-react";
 
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }) : "";
@@ -34,6 +35,7 @@ const BlogPost = () => {
   const [saved, setSaved] = useState(false);
   const [following, setFollowing] = useState(false);
   const [followers, setFollowers] = useState(0);
+  const [certified, setCertified] = useState(false);
   const [responses, setResponses] = useState<BlogResponse[]>([]);
   const [reply, setReply] = useState("");
   const [posting, setPosting] = useState(false);
@@ -50,6 +52,7 @@ const BlogPost = () => {
       if (!p) return;
       setTotalClaps(p.clap_total);
       incrementView(slug);
+      authorIsCertified(p.author_id).then((c) => !cancelled && setCertified(c));
       const id = await getUserId();
       if (cancelled) return;
       setUid(id);
@@ -147,7 +150,10 @@ const BlogPost = () => {
           <div className="flex items-center gap-3">
             <Avatar name={post.author_name} photo={post.author_photo} />
             <div className="text-sm">
-              <Link to={`/blog/author/${post.author_id}`} className="font-semibold text-foreground hover:text-primary">{post.author_name}</Link>
+              <span className="flex items-center gap-1.5">
+                <Link to={`/blog/author/${post.author_id}`} className="font-semibold text-foreground hover:text-primary">{post.author_name}</Link>
+                {certified && <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold text-primary" title="Holds a verified certification"><BadgeCheck className="h-3 w-3" /> Certified Yatri</span>}
+              </span>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <span>{fmtDate(post.published_at)}</span><span aria-hidden>·</span>
                 <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {post.reading_minutes} min</span>
@@ -158,6 +164,17 @@ const BlogPost = () => {
             <Button size="sm" variant={following ? "outline" : "default"} onClick={onFollow} className="rounded-full">{following ? "Following" : "Follow"}</Button>
           )}
         </div>
+
+        {post.cert_value && post.cert_label && (
+          <Link to={`/blog?cert=${post.cert_value}`} className="mt-6 flex items-center gap-3 rounded-2xl border border-brand-100 bg-primary/[0.06] p-4 transition-colors hover:bg-primary/[0.1]">
+            <GraduationCap className="h-6 w-6 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">Exam prep</p>
+              <p className="truncate font-semibold text-foreground">{post.cert_label}</p>
+            </div>
+            <span className="shrink-0 text-sm font-medium text-primary">All prep stories →</span>
+          </Link>
+        )}
 
         {post.cover_image_url && <img src={post.cover_image_url} alt="" className="mt-8 w-full rounded-2xl object-cover" />}
 

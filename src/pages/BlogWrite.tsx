@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   getUserId, createPost, getMyPost, updatePost, publishPost, unpublishPost, deletePost, setPostTags,
-  readingMinutes, uploadBlogMedia, setSlugFromTitle, type MyPost,
+  readingMinutes, uploadBlogMedia, setSlugFromTitle, listCertOptions, type MyPost, type CertOption,
 } from "@/lib/blog-api";
 import { supabase } from "@/lib/supabase";
 
@@ -44,6 +44,8 @@ const BlogWrite = () => {
   const [cover, setCover] = useState("");
   const [content, setContent] = useState("");
   const [tagsInput, setTagsInput] = useState("");
+  const [certKey, setCertKey] = useState("");            // "provider:value"
+  const [certOptions, setCertOptions] = useState<CertOption[]>([]);
   const [preview, setPreview] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [publishing, setPublishing] = useState(false);
@@ -55,11 +57,13 @@ const BlogWrite = () => {
       setSignedIn(!!uid);
       setAuthChecked(true);
       if (!uid) return;
+      listCertOptions().then(setCertOptions);
       if (editId) {
         const p = await getMyPost(editId);
         if (p) {
           setPostId(p.id); setStatus(p.status); setTitle(p.title); setSubtitle(p.subtitle ?? "");
           setCover(p.cover_image_url ?? ""); setContent(p.content ?? "");
+          setCertKey(p.cert_provider && p.cert_value ? `${p.cert_provider}:${p.cert_value}` : "");
           const { data } = await supabase.from("blog_post_tags").select("tag:blog_tags(label)").eq("post_id", p.id);
           setTagsInput((data ?? []).map((r: any) => r.tag?.label).filter(Boolean).join(", "));
         } else { toast.error("Draft not found"); navigate("/blog/write"); }
@@ -73,17 +77,18 @@ const BlogWrite = () => {
     setSaveState("saving");
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(async () => {
+      const [cp, cv] = certKey ? certKey.split(":") : [null, null];
       let id = postId;
       if (!id) {
-        const created = await createPost({ title, subtitle, content, cover_image_url: cover });
+        const created = await createPost({ title, subtitle, content, cover_image_url: cover, cert_provider: cp, cert_value: cv });
         if (created) { id = created.id; setPostId(created.id); }
       } else {
-        await updatePost(id, { title, subtitle, content, cover_image_url: cover });
+        await updatePost(id, { title, subtitle, content, cover_image_url: cover, cert_provider: cp, cert_value: cv });
       }
       setSaveState("saved");
     }, 900);
     return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
-  }, [title, subtitle, cover, content, signedIn]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [title, subtitle, cover, content, certKey, signedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Import a .md/.markdown file from the user's system.
   const importMarkdown = (file: File) => {
@@ -128,10 +133,15 @@ const BlogWrite = () => {
     requestAnimationFrame(() => { el.focus(); el.selectionStart = el.selectionEnd = s + wrap[0].length + chosen.length + wrap[1].length; });
   };
 
+  const certFields = () => {
+    const [cp, cv] = certKey ? certKey.split(":") : [null, null];
+    return { cert_provider: cp, cert_value: cv };
+  };
+
   const savePersist = async (): Promise<string | null> => {
     let id = postId;
-    if (!id) { const c = await createPost({ title, subtitle, content, cover_image_url: cover }); id = c?.id ?? null; setPostId(id); }
-    else await updatePost(id, { title, subtitle, content, cover_image_url: cover });
+    if (!id) { const c = await createPost({ title, subtitle, content, cover_image_url: cover, ...certFields() }); id = c?.id ?? null; setPostId(id); }
+    else await updatePost(id, { title, subtitle, content, cover_image_url: cover, ...certFields() });
     if (id) await setPostTags(id, tagsInput.split(",").map((t) => t.trim()).filter(Boolean));
     return id;
   };
@@ -232,6 +242,19 @@ const BlogWrite = () => {
             <div>
               <Input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="Tags — comma separated, up to 5 (e.g. AWS, Career, AZ-104)" className="rounded-xl" />
               <p className="mt-1.5 text-xs text-muted-foreground">Good tags help Yatris discover your story.</p>
+            </div>
+
+            <div>
+              <label htmlFor="cert-link" className="mb-1.5 block text-sm font-medium">📘 Link to a certification <span className="text-muted-foreground">(optional)</span></label>
+              <select id="cert-link" value={certKey} onChange={(e) => setCertKey(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
+                <option value="">— Not linked to an exam —</option>
+                {Object.entries(certOptions.reduce<Record<string, CertOption[]>>((acc, c) => { (acc[c.provider] ??= []).push(c); return acc; }, {})).map(([prov, opts]) => (
+                  <optgroup key={prov} label={prov.toUpperCase()}>
+                    {opts.map((c) => <option key={`${c.provider}:${c.value}`} value={`${c.provider}:${c.value}`}>{c.label}</option>)}
+                  </optgroup>
+                ))}
+              </select>
+              <p className="mt-1.5 text-xs text-muted-foreground">Linked stories surface as prep material for that exam — a Yatri-only feature.</p>
             </div>
           </div>
         )}

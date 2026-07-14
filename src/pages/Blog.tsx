@@ -65,6 +65,7 @@ const Blog = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tag, setTag] = useState<string | null>(new URLSearchParams(window.location.search).get("tag"));
+  const [cert, setCert] = useState<string | null>(new URLSearchParams(window.location.search).get("cert"));
   const [sort, setSort] = useState<"new" | "top">("new");
   const [tags, setTags] = useState<{ slug: string; label: string }[]>([]);
 
@@ -75,12 +76,12 @@ const Blog = () => {
     setLoading(true);
     const q = search.trim();
     const t = setTimeout(() => {
-      listFeed({ tag: tag || undefined, search: q || undefined, sort, limit: 40 }).then((rows) => {
+      listFeed({ tag: tag || undefined, cert: cert || undefined, search: q || undefined, sort, limit: 40 }).then((rows) => {
         if (!cancelled) { setPosts(rows); setLoading(false); }
       });
     }, q ? 300 : 0);
     return () => { cancelled = true; clearTimeout(t); };
-  }, [search, tag, sort]);
+  }, [search, tag, cert, sort]);
 
   const featured = useMemo(() => posts.find((p) => p.featured) ?? null, [posts]);
   const rest = useMemo(() => posts.filter((p) => p.id !== featured?.id), [posts, featured]);
@@ -123,6 +124,14 @@ const Blog = () => {
           </div>
         </div>
 
+        {cert && (
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-brand-100 bg-primary/[0.06] p-4">
+            <Sparkles className="h-5 w-5 shrink-0 text-primary" />
+            <p className="min-w-0 flex-1 text-sm"><span className="font-semibold text-foreground">Exam-prep stories</span>{posts[0]?.cert_label ? ` for ${posts[0].cert_label}` : ""}</p>
+            <button onClick={() => setCert(null)} className="shrink-0 text-sm font-medium text-primary hover:underline">Clear</button>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex min-h-[240px] items-center justify-center gap-3 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin text-primary" /> Loading stories…</div>
         ) : posts.length === 0 ? (
@@ -132,7 +141,7 @@ const Blog = () => {
           </div>
         ) : (
           <div className="mt-4">
-            {featured && !search && !tag && (
+            {featured && !search && !tag && !cert && (
               <ScrollReveal>
                 <Link to={`/blog/${featured.slug}`} className="group mt-4 block overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] to-card">
                   {featured.cover_image_url && <img src={featured.cover_image_url} alt="" className="h-56 w-full object-cover md:h-72" loading="lazy" />}
