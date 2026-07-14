@@ -323,6 +323,21 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         return p ? p.exams : [];
     };
 
+    // Course/Exam Name suggestions come from the certification catalog
+    // (/admin/certifications → certOptions), narrowed to the selected provider
+    // when it matches, plus any exam names already used by existing courses.
+    // Falls back to the whole catalog so the list is never empty.
+    const providerMatches = (slug: string) => {
+        const norm = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const s = norm(slug), p = norm(selectedProvider);
+        return !p || s === p || s.includes(p) || p.includes(s);
+    };
+    const examSuggestions = () => {
+        const filtered = certOptions.filter(o => providerMatches(o.provider)).map(o => o.label);
+        const catalog = filtered.length ? filtered : certOptions.map(o => o.label);
+        return Array.from(new Set([...catalog, ...getExams()])).filter(Boolean);
+    };
+
     const onSubmit = async (data: TrainingForm, status: 'Draft' | 'Published') => {
         if (status === 'Draft') setIsSavingDraft(true);
         else setIsLoading(true);
@@ -622,22 +637,20 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     {selectedType && (
                                         <div>
                                             <Label className="block text-sm font-medium mb-1.5">Course / Exam Name</Label>
-                                            {selectedType === "Certification" && selectedProvider ? (
-                                                <Select onValueChange={(val) => setValue("courseName", val)} value={watch("courseName")}>
-                                                    <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
-                                                        <SelectValue placeholder="Select Exam" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {getExams().map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                            ) : (
-                                                <Input
-                                                    {...register("courseName")}
-                                                    placeholder="e.g. AZ-900"
-                                                    className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
-                                                />
-                                            )}
+                                            {/* Free-text with autocomplete: type any new course name, and reuse
+                                                an existing one from the suggestions when there is a match. (A plain
+                                                dropdown here made the first-ever course impossible, since its only
+                                                options were names of courses that already existed.) */}
+                                            <Input
+                                                {...register("courseName")}
+                                                list="exam-name-suggestions"
+                                                placeholder="e.g. Microsoft Certified: Azure Fundamentals"
+                                                className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
+                                            />
+                                            <datalist id="exam-name-suggestions">
+                                                {examSuggestions().map(e => <option key={e} value={e} />)}
+                                            </datalist>
+                                            <p className="mt-1 text-xs text-muted-foreground">Pick a certification from the list, or type a custom course name.</p>
                                         </div>
                                     )}
                                 </div>
