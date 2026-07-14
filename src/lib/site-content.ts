@@ -442,6 +442,7 @@ export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
   footer_explore: [
     { href: "/examdumps", label: "Exam Dumps" },
     { href: "/training", label: "Training" },
+    { href: "/blog", label: "Blog" },
     { href: "/events", label: "Events" },
     { href: "/yatristore", label: "Yatri Store" },
     { href: "/udemy", label: "Udemy Courses" },
