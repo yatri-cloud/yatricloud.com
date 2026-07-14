@@ -44,6 +44,8 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const BlogWrite = lazy(() => import("./pages/BlogWrite"));
 const BlogAuthor = lazy(() => import("./pages/BlogAuthor"));
 const BlogSettings = lazy(() => import("./pages/BlogSettings"));
+const BlogDashboard = lazy(() => import("./pages/BlogDashboard"));
+const BlogNotifications = lazy(() => import("./pages/BlogNotifications"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const UdemyAdmin = lazy(() => import("./pages/admin/UdemyAdmin"));
@@ -97,6 +99,7 @@ const AdminJobs = lazy(() => import("./pages/admin/AdminJobs"));
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 const AdminAchievements = lazy(() => import("./pages/admin/AdminAchievements"));
 const AdminCertCatalog = lazy(() => import("./pages/admin/AdminCertCatalog"));
+const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const RequestVoucher = lazy(() => import("./pages/RequestVoucher"));
 const MentorshipDirectory = lazy(() => import("./pages/mentorship/MentorshipDirectory"));
 const BecomeMentor = lazy(() => import("./pages/mentorship/BecomeMentor"));
@@ -174,6 +177,8 @@ const App = () => (
               <Route path="/blog/edit/:id" element={<BlogWrite />} />
               <Route path="/blog/author/:id" element={<BlogAuthor />} />
               <Route path="/blog/settings" element={<BlogSettings />} />
+              <Route path="/blog/dashboard" element={<BlogDashboard />} />
+              <Route path="/blog/notifications" element={<BlogNotifications />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/manage-certifications" element={<ManageCertifications />} />
               <Route path="/edit-profile" element={<EditProfile />} />
@@ -245,6 +250,7 @@ const App = () => (
                 <Route index element={<AdminOverview />} />
                 <Route path="site" element={<AdminSiteContent />} />
                 <Route path="certifications" element={<AdminCertCatalog />} />
+                <Route path="blog" element={<AdminBlog />} />
                 <Route path="community" element={<AdminCommunity />} />
                 <Route path="inquiries" element={<AdminInquiries />} />
                 <Route path="resumes" element={<AdminResumes />} />

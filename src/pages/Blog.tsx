@@ -98,7 +98,10 @@ const Blog = () => {
               <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Stories &amp; ideas</h1>
               <p className="mt-2 max-w-xl text-muted-foreground">Career journeys, exam playbooks, and deep dives — written by Yatris, for Yatris.</p>
             </div>
-            <Button asChild className="shadow-inset-btn"><Link to="/blog/write"><PenLine className="mr-2 h-4 w-4" /> Write a story</Link></Button>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" className="rounded-full"><Link to="/blog/dashboard">Your stories</Link></Button>
+              <Button asChild className="rounded-full shadow-inset-btn"><Link to="/blog/write"><PenLine className="mr-2 h-4 w-4" /> Write a story</Link></Button>
+            </div>
           </div>
         </ScrollReveal>
 
