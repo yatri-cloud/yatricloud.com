@@ -12,7 +12,5 @@ Disallow: /manage-certifications
 Disallow: /profile
 Disallow: /api/
 
-# Sitemaps
-Sitemap: https://www.yatricloud.com/sitemap.xml
-Sitemap: https://www.yatricloud.com/sitemap-blog.xml
-Sitemap: https://www.yatricloud.com/sitemap-courses.xml
+# Sitemap index (references the page, blog, and course sitemaps)
+Sitemap: https://www.yatricloud.com/sitemap-index.xml

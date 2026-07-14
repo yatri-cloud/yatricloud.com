@@ -956,6 +956,19 @@ function inputToRow(input: TrainingInput): Record<string, any> {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
+ * Canonical lesson content types. The coarse (TrainingManager) and granular
+ * (TrainerCourseEditor) editors historically wrote different casing ("Video" vs
+ * "video") for the same field; normalize every write to Title-case so the coarse
+ * form's <select> round-trips and reads stay consistent. Reads that compare type
+ * should still lower-case defensively for legacy rows.
+ */
+export const canonLessonType = (t?: string): string => {
+  const k = String(t || "").toLowerCase();
+  const known: Record<string, string> = { video: "Video", reading: "Reading", assignment: "Assignment", quiz: "Quiz" };
+  return known[k] || (t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : "Video");
+};
+
+/**
  * Persist a curriculum (modules + lessons) for a training id-preservingly.
  *
  * This is the coarse editor's save path (TrainingManager), which only knows a
@@ -1014,7 +1027,7 @@ async function saveCurriculum(
       const prev = isExisting ? (contentByLesson.get(l.lessonId!) || {}) : {};
       const content = {
         ...prev,
-        type: l.type || prev.type || "Video",
+        type: canonLessonType(l.type || prev.type),
         duration: l.duration || prev.duration || "",
         ...(l.url !== undefined ? { url: l.url } : {}),
         ...(l.description !== undefined ? { description: l.description } : {}),
@@ -1330,7 +1343,7 @@ export async function getCourseContent(courseId: string): Promise<{
         lessonId: l.id,
         lessonTitle: l.name,
         duration: l.content?.duration || "",
-        contentType: l.content?.type || "video",
+        contentType: canonLessonType(l.content?.type),
         contentUrl: l.content?.url || "",
         description: l.content?.description || "",
         order: l.sort_order ?? li + 1,
@@ -1414,7 +1427,7 @@ export async function saveCourseContent(input: {
       const row = {
         name: l.lessonTitle || `Lesson ${li + 1}`,
         content: {
-          type: l.contentType || "video",
+          type: canonLessonType(l.contentType),
           url: l.contentUrl || "",
           duration: l.duration || "",
           description: l.description || "",

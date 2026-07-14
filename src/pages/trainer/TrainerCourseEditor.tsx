@@ -33,6 +33,7 @@ import {
     saveCourseContent as apiSaveCourseContent,
     submitCourseForApproval as apiSubmitCourseForApproval,
 } from "@/lib/training-api";
+import { fetchMyProfile } from "@/lib/auth";
 
 interface TrainerData {
     trainerId: string;
@@ -113,7 +114,7 @@ export const TrainerCourseEditor = () => {
     const [newLesson, setNewLesson] = useState({
         lessonTitle: "",
         duration: "",
-        contentType: "video",
+        contentType: "Video",
         contentUrl: "",
         description: "",
     });
@@ -125,7 +126,19 @@ export const TrainerCourseEditor = () => {
             return;
         }
         setTrainerData(JSON.parse(storedTrainer));
-        loadCourseContent();
+        // localStorage is only the UX gate; RLS is the real boundary (a trainer
+        // can only write modules/lessons on courses they own). Still, verify the
+        // live Supabase profile role so a stale/forged trainerData can't linger —
+        // mirrors TrainerDashboard.
+        (async () => {
+            const profile = await fetchMyProfile();
+            if (!profile || (profile.role !== "trainer" && profile.role !== "admin")) {
+                localStorage.removeItem("trainerData");
+                navigate("/trainer/login");
+                return;
+            }
+            loadCourseContent();
+        })();
     }, [courseId, navigate]);
 
     const loadCourseContent = async () => {
@@ -189,7 +202,7 @@ export const TrainerCourseEditor = () => {
         
         updatedModules[selectedModuleIndex].lessons.push(lesson);
         setModules(updatedModules);
-        setNewLesson({ lessonTitle: "", duration: "", contentType: "video", contentUrl: "", description: "" });
+        setNewLesson({ lessonTitle: "", duration: "", contentType: "Video", contentUrl: "", description: "" });
     };
 
     const saveCourseContent = async () => {
@@ -424,7 +437,7 @@ const CurriculumEditor = ({ modules, selectedModuleIndex, setSelectedModuleIndex
                                         <div key={lsn.lessonId} className="p-4 rounded-2xl border bg-card/80 flex items-center justify-between group hover:border-primary/30 transition-all shadow-sm">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                                                    {lsn.contentType === "video" ? <Video className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                                                    {lsn.contentType?.toLowerCase() === "video" ? <Video className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                                                 </div>
                                                 <div>
                                                     <h5 className="font-extrabold text-foreground tracking-tight">{lsn.lessonTitle}</h5>
