@@ -1,0 +1,53 @@
+name: Blog sitemap
+
+# Regenerate public/sitemap-blog.xml daily (and on demand) from published posts,
+# committing only when it changes → the commit triggers a Vercel deploy so the
+# live sitemap stays current without any serverless build.
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # daily 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blog-sitemap
+  cancel-in-progress: false
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Write .env from secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error::Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY repo secrets."
+            exit 1
+          fi
+          printf 'SUPABASE_URL=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\n' "$SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" > .env
+      - name: Generate sitemap
+        run: node scripts/gen-blog-sitemap.mjs
+      - name: Commit if changed
+        run: |
+          rm -f .env
+          if git diff --quiet -- public/sitemap-blog.xml; then
+            echo "No sitemap changes."
+          else
+            git config user.name "yatri-bot"
+            git config user.email "bot@yatricloud.com"
+            git add public/sitemap-blog.xml
+            git commit -m "chore(seo): refresh blog sitemap [skip ci]"
+            git push
+          fi
