@@ -623,7 +623,10 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     {/* Training Type */}
                                     <div>
                                         <Label className="block text-sm font-medium mb-1.5">Training Type</Label>
-                                        <Select onValueChange={(v) => setValue("type", v)} defaultValue={watch("type")}>
+                                        {/* key remounts the (uncontrolled) select once the loaded value
+                                            arrives, so it displays the saved type instead of the placeholder —
+                                            controlling it with `value` empties the field on async load. */}
+                                        <Select key={`type-${selectedType || "new"}`} onValueChange={(v) => setValue("type", v)} defaultValue={selectedType}>
                                             <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                 <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
@@ -639,7 +642,9 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             {selectedType === "Certification" ? (
                                                 <>
                                                     <div className="flex h-11 items-center rounded-xl border border-input bg-muted/40 px-3 text-sm">
-                                                        {derivedProviderName || <span className="text-muted-foreground">Set from the certification you choose below</span>}
+                                                        {(derivedProviderName || watch("subType"))
+                                                            ? <span className="font-medium">{derivedProviderName || watch("subType")}</span>
+                                                            : <span className="text-muted-foreground">Set from the certification you choose below</span>}
                                                     </div>
                                                     <p className="mt-1 text-xs text-muted-foreground">Comes from the selected certification — no separate provider step.</p>
                                                 </>
@@ -747,7 +752,8 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     <div>
                                         <Label className="block text-sm font-medium mb-1.5">Certification</Label>
                                         <Select
-                                            value={watch("certificationId") || "none"}
+                                            key={`cert-${watch("certificationId") || "none"}`}
+                                            defaultValue={watch("certificationId") || "none"}
                                             onValueChange={(val) => setValue("certificationId", val === "none" ? "" : val)}
                                         >
                                             <SelectTrigger className="min-h-[44px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
