@@ -371,12 +371,12 @@ export const TrainerDashboard = () => {
                         ) : (
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-primary hover:bg-primary border-b-0">
-                                        <TableHead className="font-semibold text-primary-foreground first:rounded-tl-xl">Course Name</TableHead>
-                                        <TableHead className="font-semibold text-primary-foreground">Category / Provider</TableHead>
-                                        <TableHead className="font-semibold text-primary-foreground">Status</TableHead>
-                                        <TableHead className="font-semibold text-primary-foreground">Last Updated</TableHead>
-                                        <TableHead className="text-right font-semibold text-primary-foreground last:rounded-tr-xl">Actions</TableHead>
+                                    <TableRow>
+                                        <TableHead className="first:rounded-tl-xl">Course Name</TableHead>
+                                        <TableHead>Category / Provider</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Last Updated</TableHead>
+                                        <TableHead className="text-right last:rounded-tr-xl">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
