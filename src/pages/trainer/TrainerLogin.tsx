@@ -129,7 +129,7 @@ export const TrainerLogin = () => {
 
                         <div className="mt-6 text-center text-sm text-muted-foreground">
                             <p>Don't have trainer access?</p>
-                            <a href="/creator" className="text-primary hover:underline">
+                            <a href="/trainer" className="text-primary hover:underline">
                                 Apply to become a trainer
                             </a>
                         </div>

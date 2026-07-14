@@ -131,7 +131,7 @@ const FloatingCartGate = () => {
     pathname === "/yatristore" ||
     pathname === "/examdumps" ||
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/trainer")
+    pathname.startsWith("/trainer/")
   ) {
     return null;
   }
@@ -202,7 +202,8 @@ const App = () => (
               <Route path="/addproduct" element={<AddProduct />} />
               <Route path="/feedback" element={<Review />} />
               <Route path="/reviews" element={<Reviews />} />
-              <Route path="/creator" element={<BecomeTrainer />} />
+              <Route path="/trainer" element={<BecomeTrainer />} />
+              <Route path="/creator" element={<Navigate to="/trainer" replace />} />
               <Route path="/requestvoucher" element={<RequestVoucher />} />
 
               {/* Mentorship Routes — /mentorship/apply and /mentorship/bookings stay above /mentorship/:mentorSlug */}

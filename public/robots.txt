@@ -3,7 +3,9 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /trainer
+Disallow: /trainer/login
+Disallow: /trainer/dashboard
+Disallow: /trainer/course
 Disallow: /reset-password
 Disallow: /edit-profile
 Disallow: /manage-certifications
