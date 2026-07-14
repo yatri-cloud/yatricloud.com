@@ -1,8 +1,8 @@
-name: Blog sitemap
+name: SEO sitemaps
 
-# Regenerate public/sitemap-blog.xml daily (and on demand) from published posts,
-# committing only when it changes → the commit triggers a Vercel deploy so the
-# live sitemap stays current without any serverless build.
+# Regenerate the dynamic sitemaps (blog posts + training courses) daily (and on
+# demand), committing only when they change → the commit triggers a Vercel deploy
+# so the live sitemaps stay current without any serverless build.
 
 on:
   schedule:
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: blog-sitemap
+  group: seo-sitemaps
   cancel-in-progress: false
 
 jobs:
@@ -37,17 +37,19 @@ jobs:
             exit 1
           fi
           printf 'SUPABASE_URL=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\n' "$SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" > .env
-      - name: Generate sitemap
-        run: node scripts/gen-blog-sitemap.mjs
+      - name: Generate sitemaps
+        run: |
+          node scripts/gen-blog-sitemap.mjs
+          node scripts/gen-courses-sitemap.mjs
       - name: Commit if changed
         run: |
           rm -f .env
-          if git diff --quiet -- public/sitemap-blog.xml; then
+          if git diff --quiet -- public/sitemap-blog.xml public/sitemap-courses.xml; then
             echo "No sitemap changes."
           else
             git config user.name "yatri-bot"
             git config user.email "bot@yatricloud.com"
-            git add public/sitemap-blog.xml
-            git commit -m "chore(seo): refresh blog sitemap [skip ci]"
+            git add public/sitemap-blog.xml public/sitemap-courses.xml
+            git commit -m "chore(seo): refresh sitemaps [skip ci]"
             git push
           fi

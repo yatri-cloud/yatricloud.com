@@ -15,3 +15,4 @@ Disallow: /api/
 # Sitemaps
 Sitemap: https://www.yatricloud.com/sitemap.xml
 Sitemap: https://www.yatricloud.com/sitemap-blog.xml
+Sitemap: https://www.yatricloud.com/sitemap-courses.xml

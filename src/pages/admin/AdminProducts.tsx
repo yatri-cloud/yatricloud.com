@@ -11,10 +11,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
-import { listAllProducts, updateProduct, setProductStatus, deleteProduct, type StoreProduct } from "@/lib/store-products";
+import { listAllProducts, updateProduct, setProductStatus, deleteProduct, validateProductPatch, STORE_CATEGORIES, PRODUCT_LEVELS, type StoreProduct } from "@/lib/store-products";
 
-const CATEGORIES: StoreProduct["category"][] = ["AWS", "Azure", "GCP", "Oracle", "Salesforce", "ServiceNow", "GitHub"];
-const LEVELS: StoreProduct["level"][] = ["Practitioner", "Associate", "Professional", "Specialty"];
+const CATEGORIES = STORE_CATEGORIES;
+const LEVELS = PRODUCT_LEVELS;
 const empty = (): StoreProduct => ({ id: "", title: "", category: "AWS", originalPrice: 0, discountedPrice: 0, discount: 0, image: "", description: "", examCode: "", level: "Associate", status: "draft" });
 
 const AdminProducts = () => {
@@ -42,14 +42,16 @@ const AdminProducts = () => {
 
   const save = async () => {
     if (!editing) return;
-    if (!editing.title.trim()) { toast({ title: "Title required", variant: "destructive" }); return; }
+    const patch = {
+      title: editing.title, category: editing.category, examCode: editing.examCode, level: editing.level,
+      originalPrice: Number(editing.originalPrice) || 0, discountedPrice: Number(editing.discountedPrice) || 0,
+      image: editing.image, description: editing.description,
+    };
+    const problem = validateProductPatch(patch);
+    if (problem) { toast({ title: problem, variant: "destructive" }); return; }
     setSaving(true);
     try {
-      await updateProduct(editing.id, {
-        title: editing.title, category: editing.category, examCode: editing.examCode, level: editing.level,
-        originalPrice: Number(editing.originalPrice) || 0, discountedPrice: Number(editing.discountedPrice) || 0,
-        image: editing.image, description: editing.description,
-      });
+      await updateProduct(editing.id, patch);
       toast({ title: "Product saved" }); setEditing(null); load();
     } catch { toast({ title: "Save failed", variant: "destructive" }); } finally { setSaving(false); }
   };

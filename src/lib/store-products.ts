@@ -1,8 +1,52 @@
 /**
  * Store Products — Supabase `products` table (read + admin write).
+ *
+ * Auth model: every write here relies on the `products_admin_write` RLS policy
+ * (is_admin()), the same admin gate AdminDashboard enforces client-side. No
+ * per-call role check is needed. Validation is the single source of truth below,
+ * shared by the create form (AdminAddProduct) and the edit dialog (AdminProducts).
  */
 
+import { z } from "zod";
 import { supabase } from "@/lib/supabase";
+
+/** The store's category + level vocabularies, shared by every product surface. */
+export const STORE_CATEGORIES = ["AWS", "Azure", "GCP", "Oracle", "Salesforce", "ServiceNow", "GitHub"] as const;
+export const PRODUCT_LEVELS = ["Associate", "Practitioner", "Professional", "Specialty"] as const;
+
+/**
+ * Strict create-time schema (used by AdminAddProduct via react-hook-form).
+ * An image URL and a real description are required when adding a new product.
+ */
+export const productSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  category: z.enum(STORE_CATEGORIES),
+  originalPrice: z.number().min(0, "Price must be positive"),
+  discountedPrice: z.number().min(0, "Price must be positive"),
+  discount: z.number().min(0).max(100, "Discount must be between 0-100"),
+  image: z.string().url("Must be a valid URL"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  examCode: z.string().optional(),
+  level: z.enum(PRODUCT_LEVELS),
+});
+
+/**
+ * Edit-time validation for the admin manager. Tolerant of legacy rows (image may
+ * be blank, description may be short) but still catches the mistakes that matter:
+ * a missing title, a non-URL image, negative prices, or an offer price above list.
+ * Returns the first problem as a message, or null when the patch is valid.
+ */
+export function validateProductPatch(patch: Partial<Omit<StoreProduct, "id" | "status">>): string | null {
+  if (patch.title !== undefined && !patch.title.trim()) return "Title is required";
+  if (patch.image !== undefined && patch.image.trim() && !z.string().url().safeParse(patch.image.trim()).success) {
+    return "Image must be a valid URL";
+  }
+  const orig = patch.originalPrice, disc = patch.discountedPrice;
+  if (orig !== undefined && (Number.isNaN(orig) || orig < 0)) return "Original price can't be negative";
+  if (disc !== undefined && (Number.isNaN(disc) || disc < 0)) return "Discounted price can't be negative";
+  if (orig !== undefined && disc !== undefined && disc > orig) return "Discounted price can't be higher than the original price";
+  return null;
+}
 
 /** DB provider enum → display category used across the store UI. */
 const PROVIDER_TO_CATEGORY: Record<string, StoreProduct["category"]> = {

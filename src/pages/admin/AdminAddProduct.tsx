@@ -9,24 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { submitProduct } from "@/lib/store-products";
+import { submitProduct, productSchema } from "@/lib/store-products";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
 
-const productSchema = z.object({
-    title: z.string().min(1, "Title is required"),
-    category: z.enum(["AWS", "Azure", "GCP", "Oracle", "Salesforce", "ServiceNow", "GitHub"]),
-    originalPrice: z.number().min(0, "Price must be positive"),
-    discountedPrice: z.number().min(0, "Price must be positive"),
-    discount: z.number().min(0).max(100, "Discount must be between 0-100"),
-    image: z.string().url("Must be a valid URL"),
-    description: z.string().min(10, "Description must be at least 10 characters"),
-    examCode: z.string().optional(),
-    level: z.enum(["Associate", "Practitioner", "Professional", "Specialty"]),
-});
-
+// The validation rules live in store-products.ts so the create form and the
+// admin edit dialog share one source of truth.
 type ProductFormData = z.infer<typeof productSchema>;
 
 const AdminAddProduct = () => {
@@ -93,7 +82,7 @@ const AdminAddProduct = () => {
             // z.infer marks every field optional, so re-assert the validated shape here.
             await submitProduct(data as Parameters<typeof submitProduct>[0]);
             toast.success("Product added successfully!");
-            // navigate("/admin/products"); // If we had a product list
+            navigate("/admin/products");
         } catch (error) {
             console.error("Error submitting product:", error);
             toast.error(error instanceof Error ? error.message : "Failed to add product");
