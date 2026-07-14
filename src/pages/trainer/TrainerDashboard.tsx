@@ -15,7 +15,12 @@ import {
     Video,
     MapPin,
     Calendar,
-    LayoutDashboard
+    LayoutDashboard,
+    BookOpen,
+    Radio,
+    FilePen,
+    GraduationCap,
+    Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -214,21 +219,27 @@ export const TrainerDashboard = () => {
             
             <div className="w-full max-w-7xl px-4 pt-24 pb-12 flex flex-col gap-6">
                 
-                {/* Clean Header Bar instead of massive hero */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Trainer Dashboard</h1>
-                        <p className="text-muted-foreground mt-1">
-                            Welcome back, <span className="font-medium text-foreground">{trainerData.fullName}</span>. Manage your course curriculum below.
-                        </p>
-                    </div>
-                    <div className="flex gap-3">
-                        <Link to="/trainer/course/create">
-                            <Button className="gap-2 shadow-sm font-semibold">
-                                Create New Course
-                            </Button>
-                        </Link>
-                        <DropdownMenu>
+                {/* Branded header band */}
+                <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/60 to-card p-6 md:p-8">
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                    <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
+                    <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                                <GraduationCap className="h-4 w-4" /> Trainer
+                            </p>
+                            <h1 className="mt-1.5 font-display text-2xl md:text-3xl font-bold tracking-tight">
+                                Welcome back, <span className="gradient-text">{trainerData.fullName}</span>
+                            </h1>
+                            <p className="mt-1 text-muted-foreground">Build and manage your course curriculum, and track what's live.</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <Link to="/trainer/course/create">
+                                <Button className="gap-2 rounded-xl font-semibold shadow-inset-btn">
+                                    <Plus className="h-4 w-4" /> Create New Course
+                                </Button>
+                            </Link>
+                            <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" className="gap-2">
                                     Profile Details
@@ -256,38 +267,38 @@ export const TrainerDashboard = () => {
                                 </div>
                             </DropdownMenuContent>
                         </DropdownMenu>
+                        </div>
                     </div>
                 </div>
 
+                {/* Stat cards — editorial, with the primary blue anchor card */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="border shadow-sm">
-                        <CardHeader className="py-4">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Courses</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{courses.length}</div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border shadow-sm">
-                        <CardHeader className="py-4">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Published Live</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-green-600">
-                                {courses.filter(c => c.status === 'Published').length}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border shadow-sm">
-                        <CardHeader className="py-4">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Drafts / In Review</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-orange-500">
-                                {courses.filter(c => c.status === 'Review' || c.status === 'Draft').length}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary to-brand-600 p-5 text-primary-foreground shadow-card">
+                        <div aria-hidden="true" className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
+                        <div className="relative flex items-center justify-between">
+                            <span className="text-sm font-medium text-primary-foreground/85">Total Courses</span>
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15"><BookOpen className="h-4 w-4" /></span>
+                        </div>
+                        <div className="relative mt-3 font-display text-3xl font-bold tabular-nums">{courses.length}</div>
+                    </div>
+                    <div className="rounded-2xl border border-brand-100 bg-card p-5 shadow-card transition-shadow hover:shadow-lg">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">Published Live</span>
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-success/10 text-success"><Radio className="h-4 w-4" /></span>
+                        </div>
+                        <div className="mt-3 font-display text-3xl font-bold tabular-nums text-success">
+                            {courses.filter(c => c.status === 'Published').length}
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-brand-100 bg-card p-5 shadow-card transition-shadow hover:shadow-lg">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">Drafts / In Review</span>
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500"><FilePen className="h-4 w-4" /></span>
+                        </div>
+                        <div className="mt-3 font-display text-3xl font-bold tabular-nums text-amber-500">
+                            {courses.filter(c => c.status === 'Review' || c.status === 'Draft').length}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Data Table replacing the Card Grid */}
