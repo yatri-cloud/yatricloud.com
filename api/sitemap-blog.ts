@@ -8,7 +8,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
  */
 
 const BASE = "https://www.yatricloud.com";
-const xmlEscape = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c] as string));
+const ENT: Record<string, string> = { "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" };
+const xmlEscape = (s: string) => s.replace(/[<>&'"]/g, (c) => ENT[c] ?? c);
 
 export default async function handler(_req: VercelRequest, res: VercelResponse) {
   const url = process.env.SUPABASE_URL;
