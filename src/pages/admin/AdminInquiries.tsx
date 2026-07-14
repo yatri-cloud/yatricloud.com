@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ListPager } from "@/components/ui/list-pager";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -116,6 +117,19 @@ export default function AdminInquiries() {
         const { error } = await supabase.from("contact_messages").update({ status }).eq("id", row.id);
         if (error) { toast.error("That did not save. Please try again."); return; }
         setContacts((prev) => prev.map((r) => (r.id === row.id ? { ...r, status } : r)));
+    };
+
+    // Delete confirmation: { table, id, label } — one dialog serves both tabs.
+    const [toDelete, setToDelete] = useState<{ table: "consultation_requests" | "contact_messages"; id: string; label: string } | null>(null);
+    const confirmDelete = async () => {
+        if (!toDelete) return;
+        const { table, id } = toDelete;
+        const { error } = await supabase.from(table).delete().eq("id", id);
+        if (error) { toast.error("Could not delete. Please try again."); setToDelete(null); return; }
+        if (table === "consultation_requests") setInquiries((prev) => prev.filter((r) => r.id !== id));
+        else setContacts((prev) => prev.filter((r) => r.id !== id));
+        toast.success("Deleted.");
+        setToDelete(null);
     };
 
     const filteredInquiries = useMemo(() => {
@@ -277,6 +291,9 @@ export default function AdminInquiries() {
                                                     Reopen
                                                 </Button>
                                             )}
+                                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" aria-label="Delete inquiry" onClick={() => setToDelete({ table: "consultation_requests", id: r.id, label: r.name || r.email || "this inquiry" })}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>
@@ -346,6 +363,9 @@ export default function AdminInquiries() {
                                                     Reopen
                                                 </Button>
                                             )}
+                                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" aria-label="Delete message" onClick={() => setToDelete({ table: "contact_messages", id: r.id, label: r.name || r.email || "this message" })}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>
@@ -355,6 +375,23 @@ export default function AdminInquiries() {
                     )}
                 </TabsContent>
             </Tabs>
+
+            <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+                <AlertDialogContent className="rounded-2xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="font-display tracking-tight">Delete this permanently?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {toDelete ? `“${toDelete.label}” will be removed for good. Use “Mark handled” instead if you just want it out of the way.` : ""}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="rounded-xl">Keep it</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
