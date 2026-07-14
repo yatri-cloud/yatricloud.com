@@ -911,7 +911,11 @@ export interface TrainingInput {
   startTime?: string;
   thumbnailBase64?: string;
   thumbnailMimeType?: string;
-  curriculum?: { title: string; lessons: { title: string; type: string; duration: string }[] }[];
+  curriculum?: {
+    moduleId?: string;
+    title: string;
+    lessons: { lessonId?: string; title: string; type: string; duration: string; url?: string; description?: string }[];
+  }[];
   resources?: any[];
   status?: "Draft" | "Published";
   /** 'public' = listed on /training; 'private' = unlisted, reachable only via its direct link. */
@@ -948,30 +952,89 @@ function inputToRow(input: TrainingInput): Record<string, any> {
   return row;
 }
 
-/** Persist a curriculum (modules + lessons) for a training, replacing existing. */
+/** Matches a Postgres UUID — editor-created rows use temp ids (MOD…/LSN…) instead. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Persist a curriculum (modules + lessons) for a training id-preservingly.
+ *
+ * This is the coarse editor's save path (TrainingManager), which only knows a
+ * lesson's title/type/duration — NOT the url/description the granular editor
+ * (saveCourseContent) manages. So for an existing lesson we UPDATE it in place
+ * and MERGE its content: title/type/duration change, but any url/description
+ * already stored survives. Rows carrying a real UUID are matched to the DB and
+ * updated (ids stay stable so lesson_progress FKs and student completion aren't
+ * lost); new rows insert; only rows the editor removed are deleted.
+ */
 async function saveCurriculum(
   trainingId: string,
-  curriculum?: { title: string; lessons: { title: string; type: string; duration: string }[] }[],
+  curriculum?: TrainingInput["curriculum"],
 ): Promise<void> {
   if (!curriculum) return;
-  await supabase.from("course_modules").delete().eq("training_id", trainingId);
+
+  // Snapshot existing modules + their lessons' ids and content to diff + merge.
+  const { data: existingMods } = await supabase
+    .from("course_modules")
+    .select("id, course_lessons(id, content)")
+    .eq("training_id", trainingId);
+  const existingModuleIds = new Set<string>((existingMods || []).map((m: any) => m.id));
+  const existingLessonsByModule = new Map<string, Set<string>>();
+  const contentByLesson = new Map<string, any>();
+  for (const m of existingMods || []) {
+    existingLessonsByModule.set(m.id, new Set((m.course_lessons || []).map((l: any) => l.id)));
+    for (const l of m.course_lessons || []) contentByLesson.set(l.id, l.content || {});
+  }
+
+  const keptModuleIds = new Set<string>();
   let mi = 0;
   for (const mod of curriculum) {
-    const { data: modRow, error } = await supabase
-      .from("course_modules")
-      .insert({ training_id: trainingId, name: mod.title || `Module ${mi + 1}`, sort_order: mi })
-      .select("id")
-      .single();
-    if (error || !modRow) { mi++; continue; }
-    const lessons = (mod.lessons || []).map((l, li) => ({
-      module_id: modRow.id,
-      name: l.title || `Lesson ${li + 1}`,
-      content: { type: l.type || "Video", duration: l.duration || "" },
-      sort_order: li,
-    }));
-    if (lessons.length) await supabase.from("course_lessons").insert(lessons);
+    const name = mod.title || `Module ${mi + 1}`;
+    let moduleId: string;
+
+    if (mod.moduleId && UUID_RE.test(mod.moduleId) && existingModuleIds.has(mod.moduleId)) {
+      moduleId = mod.moduleId;
+      await supabase.from("course_modules").update({ name, sort_order: mi }).eq("id", moduleId);
+    } else {
+      const { data: modRow, error } = await supabase
+        .from("course_modules")
+        .insert({ training_id: trainingId, name, sort_order: mi })
+        .select("id")
+        .single();
+      if (error || !modRow) { mi++; continue; }
+      moduleId = modRow.id;
+    }
+    keptModuleIds.add(moduleId);
+
+    const existingLessonIds = existingLessonsByModule.get(moduleId) || new Set<string>();
+    const keptLessonIds = new Set<string>();
+    let li = 0;
+    for (const l of mod.lessons || []) {
+      const isExisting = !!l.lessonId && UUID_RE.test(l.lessonId) && existingLessonIds.has(l.lessonId);
+      // Preserve url/description the coarse form doesn't manage, from the stored row.
+      const prev = isExisting ? (contentByLesson.get(l.lessonId!) || {}) : {};
+      const content = {
+        ...prev,
+        type: l.type || prev.type || "Video",
+        duration: l.duration || prev.duration || "",
+        ...(l.url !== undefined ? { url: l.url } : {}),
+        ...(l.description !== undefined ? { description: l.description } : {}),
+      };
+      const row = { name: l.title || `Lesson ${li + 1}`, content, sort_order: li };
+      if (isExisting) {
+        await supabase.from("course_lessons").update(row).eq("id", l.lessonId!);
+        keptLessonIds.add(l.lessonId!);
+      } else {
+        await supabase.from("course_lessons").insert({ module_id: moduleId, ...row });
+      }
+      li++;
+    }
+    const removedLessons = [...existingLessonIds].filter((id) => !keptLessonIds.has(id));
+    if (removedLessons.length) await supabase.from("course_lessons").delete().in("id", removedLessons);
     mi++;
   }
+
+  const removedModules = [...existingModuleIds].filter((id) => !keptModuleIds.has(id));
+  if (removedModules.length) await supabase.from("course_modules").delete().in("id", removedModules);
 }
 
 /** Create a training (admin or trainer). Returns the new id. */
@@ -1024,15 +1087,19 @@ export async function getTrainingForEdit(id: string): Promise<any | null> {
 
   const { data: mods } = await supabase
     .from("course_modules")
-    .select("id, name, sort_order, course_lessons(name, content, sort_order)")
+    .select("id, name, sort_order, course_lessons(id, name, content, sort_order)")
     .eq("training_id", id)
     .order("sort_order", { ascending: true });
 
+  // Carry the module/lesson ids into the form so a later save can update rows in
+  // place (preserving student progress) instead of replacing them wholesale.
   const curriculum = (mods || []).map((m: any) => ({
+    moduleId: m.id,
     title: m.name,
     lessons: (m.course_lessons || [])
       .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
       .map((l: any) => ({
+        lessonId: l.id,
         title: l.name,
         type: l.content?.type || "Video",
         duration: l.content?.duration || "",
@@ -1289,9 +1356,6 @@ export async function getCourseContent(courseId: string): Promise<{
     },
   };
 }
-
-/** Matches a Postgres UUID — editor-created rows use temp ids (MOD…/LSN…) instead. */
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Save editor content id-preservingly: update existing modules/lessons in place,

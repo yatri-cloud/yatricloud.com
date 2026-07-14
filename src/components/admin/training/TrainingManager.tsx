@@ -26,12 +26,17 @@ import {
 import { listProviders, listApprovedTrainers, getTrainingForEdit, createTraining, updateTraining, uploadResource, submitCourseForApproval, getCertificationOptions, listQuizzes, saveQuizForTraining, type CertificationOption } from "@/lib/training-api";
 
 interface Lesson {
+    // Present for lessons loaded from an existing course; absent for ones added
+    // here. Carried through a hidden field so the save can update the row in
+    // place (keeping student progress) instead of recreating it.
+    lessonId?: string;
     title: string;
     type: "Video" | "Reading" | "Assignment" | "Quiz";
     duration: string;
 }
 
 interface Module {
+    moduleId?: string;
     title: string;
     lessons: Lesson[];
 }
@@ -1292,6 +1297,8 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
 
     return (
         <div className="border border-border rounded-xl p-4 bg-card transition-shadow hover:shadow-card">
+            {/* Keeps the module's DB id in form state so saving updates it in place. */}
+            <input type="hidden" {...register(`curriculum.${moduleIndex}.moduleId` as const)} />
             <div className="flex items-center gap-3 mb-4">
                 <Badge variant="outline" className="h-8 w-8 flex items-center justify-center rounded-full bg-brand-50 border-primary font-bold tabular-nums">
                     {moduleIndex + 1}
@@ -1311,6 +1318,8 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
             <div className="ml-10 space-y-2">
                 {lessonFields.map((lesson, lessonIndex) => (
                     <div key={lesson.id} className="flex gap-2 items-center">
+                        {/* Keeps the lesson's DB id so saving updates it in place, preserving progress + its content url/description. */}
+                        <input type="hidden" {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.lessonId` as const)} />
                         <div className="grid grid-cols-12 gap-2 flex-1">
                             <div className="col-span-6">
                                 <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.title`)} placeholder="Lesson Title" className="h-8 text-sm" />
