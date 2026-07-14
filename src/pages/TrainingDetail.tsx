@@ -264,26 +264,26 @@ export default function TrainingDetail() {
             />
             <Navbar />
 
-            {/* Header / Hero */}
-            <div className="bg-[#1c1d1f] text-white pt-32 pb-12 md:pb-24 relative overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 bg-[#1c1d1f] z-0"></div>
+            {/* Header / Hero — branded band, theme-aware (light + dark) */}
+            <div className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-background pt-32 pb-12 md:pb-24">
+                <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-brand-200/20 blur-3xl" />
 
                 <div className="container mx-auto px-4 relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-6">
                         <div className="pt-2"></div>
 
-                        <h1 className="text-3xl md:text-5xl font-bold leading-tight">{course.courseName}</h1>
-                        <div className="text-lg text-gray-300 leading-relaxed max-w-3xl prose prose-invert prose-p:text-gray-300 prose-headings:text-white prose-strong:text-white prose-ul:list-disc prose-ul:pl-4">
+                        <h1 className="font-display text-3xl md:text-5xl font-bold leading-tight tracking-tight text-foreground">{course.courseName}</h1>
+                        <div className="text-lg text-muted-foreground leading-relaxed max-w-3xl prose dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:list-disc prose-ul:pl-4">
                             <ReactMarkdown>{displayDescription}</ReactMarkdown>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm mt-4">
                             {(course.reviewCount ?? 0) > 0 && (
-                                <span className="flex items-center gap-2 text-white">
+                                <span className="flex items-center gap-2 text-foreground">
                                     <StarRow rating={course.avgRating ?? 0} />
-                                    <span className="font-semibold text-warning">{(course.avgRating ?? 0).toFixed(1)}</span>
-                                    <span className="text-gray-300">
+                                    <span className="font-semibold text-amber-500">{(course.avgRating ?? 0).toFixed(1)}</span>
+                                    <span className="text-muted-foreground">
                                         ({course.reviewCount} {course.reviewCount === 1 ? "review" : "reviews"})
                                     </span>
                                 </span>
@@ -292,38 +292,38 @@ export default function TrainingDetail() {
                             {course.subType.includes("AWS") ? <Badge variant="secondary" className="bg-[#FF9900] text-black border-none">AWS Certified</Badge> : null}
                             {/* Earned, not claimed: only well-reviewed courses get the badge */}
                             {(course.reviewCount ?? 0) >= 3 && course.avgRating >= 4.5 && (
-                                <Badge variant="outline" className="text-yellow-400 border-yellow-400/50 flex items-center gap-1">
+                                <Badge variant="outline" className="text-amber-500 border-amber-500/50 flex items-center gap-1">
                                     <Award className="w-3 h-3" /> Highly rated
                                 </Badge>
                             )}
-                            <span className="flex items-center gap-1 text-gray-300">
-                                <User className="w-3 h-3" /> Created by <span className="text-blue-300 underline underline-offset-4">{displayInstructor}</span>
+                            <span className="flex items-center gap-1 text-muted-foreground">
+                                <User className="w-3 h-3" /> Created by <span className="font-medium text-primary underline underline-offset-4">{displayInstructor}</span>
                             </span>
                             {course.timestamp && !Number.isNaN(new Date(course.timestamp).getTime()) && (
-                                <span className="flex items-center gap-1 text-gray-300">
+                                <span className="flex items-center gap-1 text-muted-foreground">
                                     <Clock className="w-3 h-3" /> Listed: {new Date(course.timestamp).toLocaleDateString()}
                                 </span>
                             )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-6 text-sm text-white font-medium pt-4">
-                            <span className="flex items-center gap-2"><Globe className="w-4 h-4" /> {course.mode} Format</span>
-                            {course.mode === "On-site" && <span className="flex items-center gap-2 text-amber-400"><MapPin className="w-4 h-4" /> {course.venue}</span>}
-                            <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {displayLevel} Level</span>
+                        <div className="flex flex-wrap items-center gap-6 text-sm text-foreground font-medium pt-4">
+                            <span className="flex items-center gap-2"><Globe className="w-4 h-4 text-primary" /> {course.mode} Format</span>
+                            {course.mode === "On-site" && <span className="flex items-center gap-2 text-amber-500"><MapPin className="w-4 h-4" /> {course.venue}</span>}
+                            <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> {displayLevel} Level</span>
                         </div>
 
                         {course.certificationLabel && (
-                            <div className="mt-4 rounded-xl border border-primary/40 bg-primary/10 p-4">
-                                <p className="text-sm text-gray-200">
+                            <div className="mt-4 rounded-xl border border-primary/30 bg-primary/[0.07] p-4">
+                                <p className="text-sm text-muted-foreground">
                                     Prepares you for{" "}
-                                    <span className="font-semibold text-white">
+                                    <span className="font-semibold text-foreground">
                                         {course.certificationLabel}
                                         {course.certificationExamCode ? ` (${course.certificationExamCode})` : ""}
                                     </span>
                                 </p>
                                 <Link
                                     to="/examdumps"
-                                    className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-blue-300 underline underline-offset-4 hover:text-blue-200"
+                                    className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-primary underline underline-offset-4 hover:text-brand-600"
                                 >
                                     Get practice exam dumps
                                 </Link>
@@ -336,22 +336,22 @@ export default function TrainingDetail() {
                     {/* Sidebar Card - Aligned with Title */}
                     <div className="lg:col-span-1 relative">
                         <div className="lg:sticky lg:top-4 h-fit z-30">
-                            <Card className="shadow-2xl border border-white/10 overflow-hidden rounded-xl bg-[#2d2f31] text-white">
+                            <Card className="shadow-card border border-brand-100 overflow-hidden rounded-2xl bg-card">
                                 <div className="aspect-video bg-muted relative group cursor-pointer">
                                     {course.thumbnailUrl ? (
                                         <img src={course.thumbnailUrl} alt="Preview" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                                            <PlayCircle className="w-16 h-16 text-white opacity-80" />
+                                        <div className="w-full h-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
+                                            <PlayCircle className="w-16 h-16 text-primary/70" />
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute inset-0 bg-foreground/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <PlayCircle className="w-16 h-16 text-white drop-shadow-lg scale-110" />
                                     </div>
                                 </div>
                                 <CardContent className="p-6 space-y-6">
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-3xl font-bold">
+                                        <span className="text-3xl font-bold text-foreground">
                                             {course.paymentType === "Paid" ? course.price : "Free"}
                                         </span>
                                     </div>
@@ -367,7 +367,7 @@ export default function TrainingDetail() {
                                     )}
 
                                     <Button
-                                        className="w-full h-12 text-lg font-bold bg-[#007CFF] hover:bg-[#0066D6] text-white rounded-lg transition-all shadow-lg"
+                                        className="w-full h-12 text-lg font-bold bg-primary hover:bg-brand-600 text-primary-foreground rounded-xl transition-all shadow-inset-btn"
                                         onClick={() => {
                                             if (isEnrolled) {
                                                 navigate(`/training/${course.slug || course.id}/dashboard`);
@@ -381,7 +381,7 @@ export default function TrainingDetail() {
 
                                     {/* Honest, data-driven inclusions — nothing invented */}
                                     <div className="space-y-3 text-sm">
-                                        <h4 className="font-bold">This course includes:</h4>
+                                        <h4 className="font-bold text-foreground">This course includes:</h4>
                                         {displayDuration && (
                                             <div className="flex items-center gap-3 text-muted-foreground"><Clock className="w-4 h-4" /> {displayDuration} of live training</div>
                                         )}
