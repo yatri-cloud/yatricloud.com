@@ -38,6 +38,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Blog", path: "/admin/blog", icon: FilePen, description: "Feature, moderate, and manage blog posts." },
             { name: "Community", path: "/admin/community", icon: Users, description: "Manage the community links shown on the site." },
             { name: "Achievements", path: "/admin/achievements", icon: Award, description: "Moderate the certifications Yatris have shared." },
+            { name: "Reviews wall", path: "/admin/reviews", icon: Star, description: "Moderate the site-wide review wall: hide or delete reviews." },
             { name: "Inquiries", path: "/admin/inquiries", icon: Inbox, description: "Partner requests and contact messages from the site." },
             { name: "Resume requests", path: "/admin/resumes", icon: FilePen, description: "Resume maker queue: retry, download or remove requests." },
             { name: "Job board", path: "/admin/jobs", icon: ClipboardList, description: "Companies whose official boards feed the job board." },
@@ -95,7 +96,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         label: "Store & Catalog",
         icon: ShoppingBag,
         items: [
-            { name: "Store products", path: "/admin/products/add", icon: Plus, description: "Add a product to the store." },
+            { name: "Store products", path: "/admin/products", icon: Plus, description: "List, edit, publish, or remove store products." },
             { name: "Exam dumps", path: "/admin/exam-dumps", icon: List, description: "Manage exam dump listings." },
             { name: "Udemy courses", path: "/admin/udemy", icon: GraduationCap, description: "Manage Udemy course listings." },
         ],

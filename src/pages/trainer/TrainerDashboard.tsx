@@ -31,6 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { fetchMyProfile } from "@/lib/auth";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
     Popover,
@@ -113,17 +114,22 @@ export const TrainerDashboard = () => {
     const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
-        // Check if trainer is logged in
-        const storedTrainer = localStorage.getItem("trainerData");
-        
-        if (!storedTrainer) {
-            navigate("/trainer/login");
-            return;
-        }
-
-        const parsedTrainer = JSON.parse(storedTrainer);
-        setTrainerData(parsedTrainer);
-        fetchCourses(parsedTrainer.trainerId);
+        // Guard: localStorage alone is not trust. Re-verify the live Supabase
+        // session + trainer role on every mount (RLS is the real boundary, but
+        // this keeps the UI honest and bounces non-trainers to login).
+        (async () => {
+            const storedTrainer = localStorage.getItem("trainerData");
+            if (!storedTrainer) { navigate("/trainer/login"); return; }
+            const profile = await fetchMyProfile();
+            if (!profile || (profile.role !== "trainer" && profile.role !== "admin")) {
+                localStorage.removeItem("trainerData");
+                navigate("/trainer/login");
+                return;
+            }
+            const parsedTrainer = JSON.parse(storedTrainer);
+            setTrainerData(parsedTrainer);
+            fetchCourses(parsedTrainer.trainerId);
+        })();
     }, [navigate]);
 
     useEffect(() => {

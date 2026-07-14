@@ -50,6 +50,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const UdemyAdmin = lazy(() => import("./pages/admin/UdemyAdmin"));
 const AdminAddProduct = lazy(() => import("./pages/admin/AdminAddProduct"));
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const CreateEvent = lazy(() => import("./pages/CreateEvent"));
 const UpcomingEventDetail = lazy(() => import("./pages/UpcomingEventDetail"));
 const VenueSubmissionForm = lazy(() => import("./pages/VenueSubmissionForm"));
@@ -100,6 +101,7 @@ const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 const AdminAchievements = lazy(() => import("./pages/admin/AdminAchievements"));
 const AdminCertCatalog = lazy(() => import("./pages/admin/AdminCertCatalog"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const RequestVoucher = lazy(() => import("./pages/RequestVoucher"));
 const MentorshipDirectory = lazy(() => import("./pages/mentorship/MentorshipDirectory"));
 const BecomeMentor = lazy(() => import("./pages/mentorship/BecomeMentor"));
@@ -258,11 +260,13 @@ const App = () => (
                 <Route path="jobs" element={<AdminJobs />} />
                 <Route path="coupons" element={<AdminCoupons />} />
                 <Route path="achievements" element={<AdminAchievements />} />
+                <Route path="reviews" element={<AdminReviews />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
                 <Route path="attendees" element={<AdminAttendees />} />
                 <Route path="udemy" element={<UdemyAdmin />} />
                 <Route path="submissions" element={<AdminSubmissions />} />
+                <Route path="products" element={<AdminProducts />} />
                 <Route path="products/add" element={<AdminAddProduct />} />
                 <Route path="training">
                   <Route index element={<AdminTrainingList />} />
