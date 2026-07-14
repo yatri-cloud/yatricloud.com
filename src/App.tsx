@@ -39,6 +39,10 @@ const JobApplications = lazy(() => import("./pages/JobApplications"));
 const JobSeekerProfile = lazy(() => import("./pages/JobSeekerProfile"));
 const JobReferrals = lazy(() => import("./pages/JobReferrals"));
 const JobWebSearch = lazy(() => import("./pages/JobWebSearch"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const BlogWrite = lazy(() => import("./pages/BlogWrite"));
+const BlogAuthor = lazy(() => import("./pages/BlogAuthor"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const UdemyAdmin = lazy(() => import("./pages/admin/UdemyAdmin"));
@@ -164,6 +168,11 @@ const App = () => (
               <Route path="/jobs/profile" element={<JobSeekerProfile />} />
               <Route path="/jobs/referrals" element={<JobReferrals />} />
               <Route path="/jobs/web" element={<JobWebSearch />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/write" element={<BlogWrite />} />
+              <Route path="/blog/edit/:id" element={<BlogWrite />} />
+              <Route path="/blog/author/:id" element={<BlogAuthor />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/manage-certifications" element={<ManageCertifications />} />
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/achievements" element={<Achievements />} />
