@@ -1297,9 +1297,11 @@ export async function verifyTrainerAccess(email?: string): Promise<{
   if (user.role !== "trainer" && user.role !== "admin") {
     throw new Error("Access denied. You might not be an approved trainer.");
   }
-  if (email && email.trim().toLowerCase() !== (user.email || "").toLowerCase()) {
-    throw new Error("This Google account doesn't match your Yatri Cloud sign-in.");
-  }
+  // Access is decided by the signed-in Yatri Cloud session's role (+ RLS), not by
+  // which Google account the popup picked — so we don't hard-fail on a mismatch
+  // between the two, which only confused approved trainers/admins. The `email`
+  // arg stays for signature compatibility.
+  void email;
 
   // Expertise (best-effort) from the trainer's application.
   let expertise = "";
