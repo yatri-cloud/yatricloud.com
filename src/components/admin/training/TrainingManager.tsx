@@ -82,6 +82,7 @@ const TIME_SLOTS = Array.from({ length: 96 }).map((_, i) => {
 
 interface ProviderData {
     name: string;
+    slug?: string;
     exams: string[];
 }
 
@@ -172,6 +173,26 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     useEffect(() => {
         if (selectedCert) setCertProviderFilter(selectedCert.provider);
     }, [selectedCert]);
+
+    // The provider a certification belongs to (from /admin/providers, matched by
+    // slug; falls back to the catalog slug). This is the single source of the
+    // course's provider — no separate manual pick.
+    const derivedProviderName = selectedCert
+        ? (providers.find(p =>
+                (p.slug || "").toLowerCase() === selectedCert.provider.toLowerCase()
+                || p.name.toLowerCase() === selectedCert.provider.toLowerCase())?.name
+            || selectedCert.provider.toUpperCase())
+        : "";
+
+    // Certification drives the course identity: choosing a cert fills the provider
+    // (read-only) and, if the name is still blank, the course/exam name. Editing a
+    // saved course keeps its own name because we only fill an empty field.
+    useEffect(() => {
+        if (selectedType !== "Certification" || !selectedCert) return;
+        if (derivedProviderName) setValue("subType", derivedProviderName);
+        if (!watch("courseName")) setValue("courseName", selectedCert.label);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedCert?.id, selectedType]);
 
     // Distinct provider slugs present in the certification catalog, sorted.
     const certProviders = Array.from(new Set(certOptions.map(o => o.provider))).sort();
@@ -614,16 +635,14 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                                     {selectedType && (
                                         <div>
-                                            <Label className="block text-sm font-medium mb-1.5">{selectedType === "Certification" ? "Provider Name" : "Role Name"}</Label>
+                                            <Label className="block text-sm font-medium mb-1.5">{selectedType === "Certification" ? "Provider" : "Role Name"}</Label>
                                             {selectedType === "Certification" ? (
-                                                <Select onValueChange={(val) => setValue("subType", val)} value={watch("subType")}>
-                                                    <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
-                                                        <SelectValue placeholder="Select Provider" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {providers.map(p => <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
+                                                <>
+                                                    <div className="flex h-11 items-center rounded-xl border border-input bg-muted/40 px-3 text-sm">
+                                                        {derivedProviderName || <span className="text-muted-foreground">Set from the certification you choose below</span>}
+                                                    </div>
+                                                    <p className="mt-1 text-xs text-muted-foreground">Comes from the selected certification — no separate provider step.</p>
+                                                </>
                                             ) : (
                                                 <Input
                                                     {...register("subType")}
@@ -650,7 +669,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             <datalist id="exam-name-suggestions">
                                                 {examSuggestions().map(e => <option key={e} value={e} />)}
                                             </datalist>
-                                            <p className="mt-1 text-xs text-muted-foreground">Pick a certification from the list, or type a custom course name.</p>
+                                            <p className="mt-1 text-xs text-muted-foreground">{selectedType === "Certification" ? "Auto-filled from the certification — edit if you want a different title." : "Type the course name, or pick one from the suggestions."}</p>
                                         </div>
                                     )}
                                 </div>
@@ -680,11 +699,16 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     </div>
                                 </div>
 
-                                {/* Prepares you for — optional certification link */}
+                                {/* Certification — the single source of the course's provider + name.
+                                    (For non-certification trainings it stays an optional link.) */}
                                 <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
                                     <div>
-                                        <Label className="block text-sm font-medium">Prepares you for</Label>
-                                        <p className="text-sm text-muted-foreground mt-0.5">Link the certification this training gets learners ready for. This is optional. Leave it empty for no certification.</p>
+                                        <Label className="block text-sm font-medium">{selectedType === "Certification" ? "Certification" : "Prepares you for"}</Label>
+                                        <p className="text-sm text-muted-foreground mt-0.5">
+                                            {selectedType === "Certification"
+                                                ? "Choose the certification from the catalog — its provider and course name fill in automatically above."
+                                                : "Link the certification this training gets learners ready for. This is optional. Leave it empty for no certification."}
+                                        </p>
                                     </div>
 
                                     {selectedCert && (
