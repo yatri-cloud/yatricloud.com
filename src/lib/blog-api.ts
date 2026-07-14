@@ -112,6 +112,50 @@ export const getUserId = async (): Promise<string | null> => {
 };
 
 /* ------------------------------------------------------------------ */
+/* Media uploads (Supabase Storage: blog-media bucket)                 */
+/* ------------------------------------------------------------------ */
+
+/** Upload an image (cover or inline) to storage, return its public URL. */
+export async function uploadBlogMedia(file: File): Promise<string | null> {
+  const uid = await getUserId();
+  if (!uid) return null;
+  if (!file.type.startsWith("image/")) { console.error("uploadBlogMedia: not an image"); return null; }
+  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  const path = `${uid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage.from("blog-media").upload(path, file, { cacheControl: "3600", upsert: false });
+  if (error) { console.error("uploadBlogMedia", error); return null; }
+  return supabase.storage.from("blog-media").getPublicUrl(path).data.publicUrl;
+}
+
+/** Give a post a clean slug from its title (used on first publish). */
+export async function setSlugFromTitle(id: string, title: string): Promise<string> {
+  const slug = `${slugify(title) || "post"}-${shortId()}`;
+  await supabase.from("blog_posts").update({ slug }).eq("id", id);
+  return slug;
+}
+
+/* ------------------------------------------------------------------ */
+/* Writer profile (edit your own byline)                               */
+/* ------------------------------------------------------------------ */
+
+export interface WriterProfile { id: string; full_name: string; bio: string | null; photo_url: string | null; }
+
+export async function getMyWriterProfile(): Promise<WriterProfile | null> {
+  const uid = await getUserId();
+  if (!uid) return null;
+  const { data } = await supabase.from("profiles").select("id,full_name,bio,photo_url").eq("id", uid).maybeSingle();
+  return (data as WriterProfile) ?? null;
+}
+
+export async function updateMyWriterProfile(patch: { full_name?: string; bio?: string; photo_url?: string }): Promise<boolean> {
+  const uid = await getUserId();
+  if (!uid) return false;
+  const { error } = await supabase.from("profiles").update(patch).eq("id", uid);
+  if (error) { console.error("updateMyWriterProfile", error); return false; }
+  return true;
+}
+
+/* ------------------------------------------------------------------ */
 /* Public feed (blog_feed view)                                        */
 /* ------------------------------------------------------------------ */
 

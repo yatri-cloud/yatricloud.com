@@ -65,7 +65,11 @@ const BlogAuthor = () => {
             {author.bio && <p className="mt-1 text-muted-foreground">{author.bio}</p>}
             <p className="mt-1 text-sm text-muted-foreground">{followers} follower{followers === 1 ? "" : "s"} · {posts.length} stor{posts.length === 1 ? "y" : "ies"}</p>
           </div>
-          {uid !== id && <Button onClick={onFollow} variant={following ? "outline" : "default"} className="rounded-full">{following ? "Following" : "Follow"}</Button>}
+          {uid === id ? (
+            <Button asChild variant="outline" className="rounded-full"><Link to="/blog/settings">Edit profile</Link></Button>
+          ) : (
+            <Button onClick={onFollow} variant={following ? "outline" : "default"} className="rounded-full">{following ? "Following" : "Follow"}</Button>
+          )}
         </div>
 
         <div className="mt-2">

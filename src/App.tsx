@@ -43,6 +43,7 @@ const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const BlogWrite = lazy(() => import("./pages/BlogWrite"));
 const BlogAuthor = lazy(() => import("./pages/BlogAuthor"));
+const BlogSettings = lazy(() => import("./pages/BlogSettings"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const UdemyAdmin = lazy(() => import("./pages/admin/UdemyAdmin"));
@@ -172,6 +173,7 @@ const App = () => (
               <Route path="/blog/write" element={<BlogWrite />} />
               <Route path="/blog/edit/:id" element={<BlogWrite />} />
               <Route path="/blog/author/:id" element={<BlogAuthor />} />
+              <Route path="/blog/settings" element={<BlogSettings />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/manage-certifications" element={<ManageCertifications />} />
               <Route path="/edit-profile" element={<EditProfile />} />
