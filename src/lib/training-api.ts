@@ -15,7 +15,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import { getCachedUser } from "@/lib/auth";
+import { getCachedUser, fetchMyProfile } from "@/lib/auth";
 import { getFormProviders } from "@/lib/cert-catalog";
 
 // ---------------------------------------------------------------------------
@@ -557,8 +557,9 @@ export async function approveTrainer(email: string): Promise<void> {
   if (appErr) throw appErr;
 
   const { data: profile } = await supabase
-    .from("profiles").select("id").eq("email", e).maybeSingle();
-  if (profile) {
+    .from("profiles").select("id, role").eq("email", e).maybeSingle();
+  // Never downgrade an admin who also holds a trainer application.
+  if (profile && profile.role !== "admin") {
     const { error: roleErr } = await supabase
       .from("profiles").update({ role: "trainer" }).eq("id", profile.id);
     if (roleErr) throw roleErr;
@@ -1286,11 +1287,14 @@ export async function verifyTrainerAccess(email?: string): Promise<{
   trainer: { trainerId: string; fullName: string; email: string; phone: string; expertise: string };
   assignments: any[];
 }> {
-  const user = getCachedUser();
+  // Read the LIVE profile role, not the cached mirror: a trainer approved after
+  // their last sign-in would otherwise be denied because the cache still says
+  // "yatri". Fall back to the cached user only if the live fetch is unavailable.
+  const user = (await fetchMyProfile()) || getCachedUser();
   if (!user || !user.id) {
     throw new Error("Please sign in to Yatri Cloud first, then continue.");
   }
-  if (user.role !== "trainer") {
+  if (user.role !== "trainer" && user.role !== "admin") {
     throw new Error("Access denied. You might not be an approved trainer.");
   }
   if (email && email.trim().toLowerCase() !== (user.email || "").toLowerCase()) {
