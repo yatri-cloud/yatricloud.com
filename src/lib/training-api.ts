@@ -1290,37 +1290,90 @@ export async function getCourseContent(courseId: string): Promise<{
   };
 }
 
-/** Save editor content: replace modules/lessons, update resources + live session. */
+/** Matches a Postgres UUID — editor-created rows use temp ids (MOD…/LSN…) instead. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Save editor content id-preservingly: update existing modules/lessons in place,
+ * insert new ones, and delete only the rows the trainer actually removed.
+ *
+ * Why not delete-and-reinsert: `lesson_progress.lesson_id` FKs to
+ * `course_lessons.id` ON DELETE CASCADE, so wiping every lesson on each save
+ * would silently erase every enrolled student's completion progress. Keeping ids
+ * stable means an edit to one lesson never touches another lesson's progress.
+ */
 export async function saveCourseContent(input: {
   courseId: string;
   modules: any[];
   resources: any[];
   liveSession: { mode: "Online" | "On-site"; startDate: string; startTime: string; meetLink: string };
 }): Promise<void> {
-  // Modules + lessons: replace wholesale.
-  await supabase.from("course_modules").delete().eq("training_id", input.courseId);
+  const courseId = input.courseId;
+
+  // Snapshot existing modules + their lesson ids to diff against the editor state.
+  const { data: existingMods } = await supabase
+    .from("course_modules")
+    .select("id, course_lessons(id)")
+    .eq("training_id", courseId);
+  const existingModuleIds = new Set<string>((existingMods || []).map((m: any) => m.id));
+  const existingLessonsByModule = new Map<string, Set<string>>();
+  for (const m of existingMods || []) {
+    existingLessonsByModule.set(m.id, new Set((m.course_lessons || []).map((l: any) => l.id)));
+  }
+
+  const keptModuleIds = new Set<string>();
   let mi = 0;
   for (const mod of input.modules || []) {
-    const { data: modRow, error } = await supabase
-      .from("course_modules")
-      .insert({ training_id: input.courseId, name: mod.moduleName || `Module ${mi + 1}`, sort_order: mod.order ?? mi })
-      .select("id")
-      .single();
-    if (error || !modRow) { mi++; continue; }
-    const lessons = (mod.lessons || []).map((l: any, li: number) => ({
-      module_id: modRow.id,
-      name: l.lessonTitle || `Lesson ${li + 1}`,
-      content: {
-        type: l.contentType || "video",
-        url: l.contentUrl || "",
-        duration: l.duration || "",
-        description: l.description || "",
-      },
-      sort_order: l.order ?? li,
-    }));
-    if (lessons.length) await supabase.from("course_lessons").insert(lessons);
+    const name = mod.moduleName || `Module ${mi + 1}`;
+    const sortOrder = mod.order ?? mi;
+    let moduleId: string;
+
+    if (UUID_RE.test(mod.moduleId) && existingModuleIds.has(mod.moduleId)) {
+      moduleId = mod.moduleId;
+      await supabase.from("course_modules").update({ name, sort_order: sortOrder }).eq("id", moduleId);
+    } else {
+      const { data: modRow, error } = await supabase
+        .from("course_modules")
+        .insert({ training_id: courseId, name, sort_order: sortOrder })
+        .select("id")
+        .single();
+      if (error || !modRow) { mi++; continue; }
+      moduleId = modRow.id;
+    }
+    keptModuleIds.add(moduleId);
+
+    // Diff lessons within this module.
+    const existingLessonIds = existingLessonsByModule.get(moduleId) || new Set<string>();
+    const keptLessonIds = new Set<string>();
+    let li = 0;
+    for (const l of mod.lessons || []) {
+      const row = {
+        name: l.lessonTitle || `Lesson ${li + 1}`,
+        content: {
+          type: l.contentType || "video",
+          url: l.contentUrl || "",
+          duration: l.duration || "",
+          description: l.description || "",
+        },
+        sort_order: l.order ?? li,
+      };
+      if (UUID_RE.test(l.lessonId) && existingLessonIds.has(l.lessonId)) {
+        await supabase.from("course_lessons").update(row).eq("id", l.lessonId);
+        keptLessonIds.add(l.lessonId);
+      } else {
+        await supabase.from("course_lessons").insert({ module_id: moduleId, ...row });
+      }
+      li++;
+    }
+    // Remove only lessons the trainer deleted from this module.
+    const removedLessons = [...existingLessonIds].filter((id) => !keptLessonIds.has(id));
+    if (removedLessons.length) await supabase.from("course_lessons").delete().in("id", removedLessons);
     mi++;
   }
+
+  // Remove only modules the trainer deleted entirely (cascades their lessons).
+  const removedModules = [...existingModuleIds].filter((id) => !keptModuleIds.has(id));
+  if (removedModules.length) await supabase.from("course_modules").delete().in("id", removedModules);
 
   // Resources + live session on the training row.
   const resources = (input.resources || []).map((r: any) => ({
