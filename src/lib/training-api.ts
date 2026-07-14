@@ -902,6 +902,8 @@ export interface TrainingInput {
   instructor?: string;
   duration?: string;
   mode?: "Online" | "On-site";
+  /** Custom online meeting link for the live session (trainings.meet_link). */
+  meetLink?: string;
   venueName?: string;
   capacityType?: string;
   capacityCount?: string;
@@ -939,6 +941,9 @@ function inputToRow(input: TrainingInput): Record<string, any> {
     duration_hours: isNaN(durHours) ? null : durHours,
     mode: input.mode === "On-site" ? "offline" : "online",
     city: input.mode === "On-site" ? (input.venueName || null) : null,
+    // Only touch meet_link when the caller manages it (the unified editor does),
+    // so a save never wipes an auto-generated link from a caller that omits it.
+    ...(input.meetLink !== undefined ? { meet_link: input.meetLink || null } : {}),
     max_capacity: input.capacityType === "Limited" ? (Number(input.capacityCount) || null) : null,
     price_inr: input.paymentType === "Paid" ? price : 0,
     start_date: input.startDate || null,
@@ -1116,6 +1121,8 @@ export async function getTrainingForEdit(id: string): Promise<any | null> {
         title: l.name,
         type: l.content?.type || "Video",
         duration: l.content?.duration || "",
+        url: l.content?.url || "",
+        description: l.content?.description || "",
       })),
   }));
 
@@ -1133,6 +1140,7 @@ export async function getTrainingForEdit(id: string): Promise<any | null> {
     outcomes: "",
     curriculum,
     mode: data.mode === "online" ? "Online" : "On-site",
+    meetLink: data.meet_link || "",
     venueName: data.mode !== "online" ? (data.city || "") : "",
     venueAddress: "",
     venueMapLink: "",
@@ -1368,106 +1376,6 @@ export async function getCourseContent(courseId: string): Promise<{
       meetLink: training?.meet_link || "",
     },
   };
-}
-
-/**
- * Save editor content id-preservingly: update existing modules/lessons in place,
- * insert new ones, and delete only the rows the trainer actually removed.
- *
- * Why not delete-and-reinsert: `lesson_progress.lesson_id` FKs to
- * `course_lessons.id` ON DELETE CASCADE, so wiping every lesson on each save
- * would silently erase every enrolled student's completion progress. Keeping ids
- * stable means an edit to one lesson never touches another lesson's progress.
- */
-export async function saveCourseContent(input: {
-  courseId: string;
-  modules: any[];
-  resources: any[];
-  liveSession: { mode: "Online" | "On-site"; startDate: string; startTime: string; meetLink: string };
-}): Promise<void> {
-  const courseId = input.courseId;
-
-  // Snapshot existing modules + their lesson ids to diff against the editor state.
-  const { data: existingMods } = await supabase
-    .from("course_modules")
-    .select("id, course_lessons(id)")
-    .eq("training_id", courseId);
-  const existingModuleIds = new Set<string>((existingMods || []).map((m: any) => m.id));
-  const existingLessonsByModule = new Map<string, Set<string>>();
-  for (const m of existingMods || []) {
-    existingLessonsByModule.set(m.id, new Set((m.course_lessons || []).map((l: any) => l.id)));
-  }
-
-  const keptModuleIds = new Set<string>();
-  let mi = 0;
-  for (const mod of input.modules || []) {
-    const name = mod.moduleName || `Module ${mi + 1}`;
-    const sortOrder = mod.order ?? mi;
-    let moduleId: string;
-
-    if (UUID_RE.test(mod.moduleId) && existingModuleIds.has(mod.moduleId)) {
-      moduleId = mod.moduleId;
-      await supabase.from("course_modules").update({ name, sort_order: sortOrder }).eq("id", moduleId);
-    } else {
-      const { data: modRow, error } = await supabase
-        .from("course_modules")
-        .insert({ training_id: courseId, name, sort_order: sortOrder })
-        .select("id")
-        .single();
-      if (error || !modRow) { mi++; continue; }
-      moduleId = modRow.id;
-    }
-    keptModuleIds.add(moduleId);
-
-    // Diff lessons within this module.
-    const existingLessonIds = existingLessonsByModule.get(moduleId) || new Set<string>();
-    const keptLessonIds = new Set<string>();
-    let li = 0;
-    for (const l of mod.lessons || []) {
-      const row = {
-        name: l.lessonTitle || `Lesson ${li + 1}`,
-        content: {
-          type: canonLessonType(l.contentType),
-          url: l.contentUrl || "",
-          duration: l.duration || "",
-          description: l.description || "",
-        },
-        sort_order: l.order ?? li,
-      };
-      if (UUID_RE.test(l.lessonId) && existingLessonIds.has(l.lessonId)) {
-        await supabase.from("course_lessons").update(row).eq("id", l.lessonId);
-        keptLessonIds.add(l.lessonId);
-      } else {
-        await supabase.from("course_lessons").insert({ module_id: moduleId, ...row });
-      }
-      li++;
-    }
-    // Remove only lessons the trainer deleted from this module.
-    const removedLessons = [...existingLessonIds].filter((id) => !keptLessonIds.has(id));
-    if (removedLessons.length) await supabase.from("course_lessons").delete().in("id", removedLessons);
-    mi++;
-  }
-
-  // Remove only modules the trainer deleted entirely (cascades their lessons).
-  const removedModules = [...existingModuleIds].filter((id) => !keptModuleIds.has(id));
-  if (removedModules.length) await supabase.from("course_modules").delete().in("id", removedModules);
-
-  // Resources + live session on the training row.
-  const resources = (input.resources || []).map((r: any) => ({
-    id: r.resourceId || r.id || `RES${Date.now()}`,
-    name: r.title || r.name || "",
-    type: r.type || "link",
-    url: r.url || "",
-    description: r.description || "",
-  }));
-  const ls = input.liveSession;
-  await supabase.from("trainings").update({
-    resources,
-    mode: ls?.mode === "On-site" ? "offline" : "online",
-    start_date: ls?.startDate || null,
-    start_time: ls?.startTime || null,
-    meet_link: ls?.meetLink || null,
-  }).eq("id", input.courseId);
 }
 
 /**

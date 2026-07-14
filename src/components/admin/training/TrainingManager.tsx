@@ -33,6 +33,10 @@ interface Lesson {
     title: string;
     type: "Video" | "Reading" | "Assignment" | "Quiz";
     duration: string;
+    // Rich per-lesson content (merged from the old granular editor). url is the
+    // video/reading link students open; description is a short summary.
+    url?: string;
+    description?: string;
 }
 
 interface Module {
@@ -54,6 +58,7 @@ interface TrainingForm {
     curriculum: Module[];
     // Advanced
     mode: "Online" | "On-site";
+    meetLink?: string;
     venueName?: string;
     venueAddress?: string;
     venueMapLink?: string;
@@ -244,6 +249,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         setValue("outcomes", training.outcomes || "");
         setValue("curriculum", training.curriculum || []);
         setValue("mode", training.mode || "Online");
+        setValue("meetLink", training.meetLink || "");
         setValue("venueName", training.venueName || "");
         setValue("venueAddress", training.venueAddress || "");
         setValue("venueMapLink", training.venueMapLink || "");
@@ -340,6 +346,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                     : approvedTrainers.find(t => t.trainerId === data.instructor)?.fullName || data.instructor,
                 duration: data.duration,
                 mode: data.mode,
+                meetLink: data.meetLink,
                 venueName: data.venueName,
                 capacityType: data.capacityType,
                 capacityCount: data.capacityCount,
@@ -883,8 +890,12 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="col-span-2 text-xs text-muted-foreground flex items-center gap-1">
-                                            <Video className="w-3 h-3" /> A meeting link is created automatically for online trainings so enrolled students can join.
+                                        <div className="col-span-2">
+                                            <Label className="block text-sm font-medium mb-1.5">Meeting link</Label>
+                                            <Input {...register("meetLink")} placeholder="https://meet.google.com/… (optional)" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                            <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                                                <Video className="w-3 h-3" /> Paste the live-session link enrolled students will join. Leave blank to add it later.
+                                            </p>
                                         </div>
                                     </div>
                                 )}
@@ -1317,10 +1328,10 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
 
             <div className="ml-10 space-y-2">
                 {lessonFields.map((lesson, lessonIndex) => (
-                    <div key={lesson.id} className="flex gap-2 items-center">
+                    <div key={lesson.id} className="rounded-lg border border-border/70 bg-background/50 p-2 space-y-2">
                         {/* Keeps the lesson's DB id so saving updates it in place, preserving progress + its content url/description. */}
                         <input type="hidden" {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.lessonId` as const)} />
-                        <div className="grid grid-cols-12 gap-2 flex-1">
+                        <div className="grid grid-cols-12 gap-2 items-center">
                             <div className="col-span-6">
                                 <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.title`)} placeholder="Lesson Title" className="h-8 text-sm" />
                             </div>
@@ -1338,10 +1349,18 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                                 </Button>
                             </div>
                         </div>
+                        <div className="grid grid-cols-12 gap-2">
+                            <div className="col-span-5">
+                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.url`)} placeholder="Content URL (Vimeo / YouTube / Drive)" className="h-8 text-sm" />
+                            </div>
+                            <div className="col-span-7">
+                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.description`)} placeholder="Short description (optional)" className="h-8 text-sm" />
+                            </div>
+                        </div>
                     </div>
                 ))}
                 <div className="pt-2">
-                    <Button type="button" variant="ghost" size="sm" onClick={() => appendLesson({ title: "", type: "Video", duration: "" })} className="text-primary hover:text-primary/80 hover:bg-primary/5">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => appendLesson({ title: "", type: "Video", duration: "", url: "", description: "" })} className="text-primary hover:text-primary/80 hover:bg-primary/5">
                         Add Lesson
                     </Button>
                 </div>

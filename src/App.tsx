@@ -86,7 +86,7 @@ const BecomeTrainer = lazy(() => import("@/pages/BecomeTrainer"));
 const AdminTrainers = lazy(() => import("@/pages/admin/AdminTrainers"));
 const TrainerLogin = lazy(() => import("@/pages/trainer/TrainerLogin"));
 const TrainerDashboard = lazy(() => import("@/pages/trainer/TrainerDashboard"));
-const TrainerCourseEditor = lazy(() => import("@/pages/trainer/TrainerCourseEditor"));
+const TrainerEditCourse = lazy(() => import("@/pages/trainer/TrainerEditCourse"));
 const GuideView = lazy(() => import("@/pages/GuideView"));
 const ExamDumps = lazy(() => import("./pages/ExamDumps"));
 const AdminExamDumps = lazy(() => import("./pages/admin/AdminExamDumps"));
@@ -246,7 +246,7 @@ const App = () => (
               <Route path="/trainer/login" element={<TrainerLogin />} />
               <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
               <Route path="/trainer/course/create" element={<TrainerCreateCourse />} />
-              <Route path="/trainer/course/:courseId/edit" element={<TrainerCourseEditor />} />
+              <Route path="/trainer/course/:courseId/edit" element={<TrainerEditCourse />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />}>
