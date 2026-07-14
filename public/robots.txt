@@ -10,5 +10,6 @@ Disallow: /manage-certifications
 Disallow: /profile
 Disallow: /api/
 
-# Sitemap
+# Sitemaps
 Sitemap: https://www.yatricloud.com/sitemap.xml
+Sitemap: https://www.yatricloud.com/sitemap-blog.xml

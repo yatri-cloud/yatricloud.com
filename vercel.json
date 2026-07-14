@@ -14,6 +14,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/sitemap-blog.xml",
+      "destination": "/api/sitemap-blog"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
