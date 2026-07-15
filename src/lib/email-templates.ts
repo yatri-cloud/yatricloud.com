@@ -83,7 +83,7 @@ const renderDbTemplate = (
 
 export const COLORS = {
   primary: '#007CFF', // Yatri Cloud brand blue (hsl(210 100% 50%))
-  secondary: '#1e3a8a', // blue-900 (deep header band)
+  secondary: '#007CFF', // brand blue — header band + headings (no more navy)
   background: '#f3f4f6', // gray-100
   card: '#ffffff',
   text: '#1f2937', // gray-800
@@ -120,13 +120,13 @@ export const BASE_TEMPLATE = (content: string, title: string) => `
       
       <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="margin-bottom: 10px;">Connect with us:</p>
-        <a href="https://www.youtube.com/@yatricloud?sub_confirmation=1" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/youtube-play.png" alt="YouTube" width="24" height="24" style="vertical-align: middle;"></a>
-        <a href="https://linkedin.com/company/yatricloud" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/linkedin.png" alt="LinkedIn" width="24" height="24" style="vertical-align: middle;"></a>
-        <a href="https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/3b82f6/whatsapp.png" alt="WhatsApp" width="24" height="24" style="vertical-align: middle;"></a>
+        <a href="https://www.youtube.com/@yatricloud?sub_confirmation=1" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/007cff/youtube-play.png" alt="YouTube" width="24" height="24" style="vertical-align: middle;"></a>
+        <a href="https://linkedin.com/company/yatricloud" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/007cff/linkedin.png" alt="LinkedIn" width="24" height="24" style="vertical-align: middle;"></a>
+        <a href="https://whatsapp.com/channel/0029VakdAHIFHWq60yHA1Q0s" style="text-decoration: none; margin: 0 8px;"><img src="https://img.icons8.com/ios-filled/50/007cff/whatsapp.png" alt="WhatsApp" width="24" height="24" style="vertical-align: middle;"></a>
       </div>
 
       <div style="margin-top: 15px;">
-        <p style="margin: 5px 0;">Join Yatri Cloud Community: <a href="https://community.yatricloud.com" style="color: ${COLORS.primary}; text-decoration: none; font-weight: bold;">community.yatricloud.com</a></p>
+        <p style="margin: 5px 0;">Join Yatri Cloud Community: <a href="https://www.yatricloud.com/community" style="color: ${COLORS.primary}; text-decoration: none; font-weight: bold;">yatricloud.com/community</a></p>
         <p style="margin: 5px 0; color: #dc2626; font-weight: bold;">🔥 Special Offer: <a href="https://calendly.com/yatricloud/40min" style="color: #dc2626; text-decoration: underline;">Get 50% OFF on AWS Exam</a></p>
       </div>
     </div>
