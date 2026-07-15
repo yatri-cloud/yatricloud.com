@@ -120,7 +120,9 @@ export default function Training() {
             <Navbar />
 
             {/* Hero Section — warm light-blue tint band, no black */}
-            <div className="band-tint relative overflow-hidden border-b border-border/60">
+            <div className="bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-background relative overflow-hidden border-b border-border/60">
+                <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+                <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-brand-200/20 blur-3xl" />
                 {/* Soft dotted texture + breathing glow */}
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(hsl(var(--primary)/0.12)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_60%,transparent_100%)]" />
                 <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
@@ -251,7 +253,7 @@ export default function Training() {
                                     to={`/training/${createSlug(course.subType)}/${createSlug(course.courseName)}`}
                                     className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 >
-                                    <Card className="flex h-full flex-col overflow-hidden border-border transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-elevated">
+                                    <Card className="flex h-full flex-col overflow-hidden border-brand-100 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-elevated">
                                         <div className="relative aspect-video overflow-hidden bg-muted">
                                             {course.thumbnailUrl ? (
                                                 <img src={course.thumbnailUrl} alt={course.courseName} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />

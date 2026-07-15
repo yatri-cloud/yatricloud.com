@@ -100,15 +100,18 @@ const ExamDumps = () => {
         <Navbar />
 
         {/* Header Section */}
-        <section className="relative pt-28 pb-16 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
+        <section className="relative pt-28 pb-16 overflow-hidden border-b border-border">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-background" />
+          <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-brand-200/20 blur-3xl" />
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-8"
             >
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] mb-4">
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary mb-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Exam Dumps</p>
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] text-foreground mb-4">
                 Pass on your <span className="gradient-text">first attempt</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
