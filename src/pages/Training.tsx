@@ -209,7 +209,7 @@ export default function Training() {
                             <BookOpen className="h-4 w-4 animate-pulse text-primary" aria-hidden="true" />
                             Loading your courses…
                         </p>
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div className="grid justify-center gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),360px))]">
                             {[1, 2, 3, 4].map(i => (
                                 <div key={i} className="h-96 animate-pulse rounded-2xl border border-border bg-muted/60" />
                             ))}
@@ -232,7 +232,7 @@ export default function Training() {
                         </Button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid justify-center gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),360px))]">
                         {filteredCourses.map((course, index) => (
                             <motion.div
                                 key={course.id}

@@ -266,7 +266,7 @@ const Events = () => {
                                 </div>
                             </ScrollReveal>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid justify-center gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),400px))]">
                                 {myRegistrations.map((reg, index) => (
                                     <ScrollReveal key={reg.id} delay={index * 0.1}>
                                         <Link to={`/events/${reg.eventSlug || reg.eventId}`} className="block h-full">
@@ -620,7 +620,7 @@ const Events = () => {
                             </div>
                         </ScrollReveal>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid justify-center gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),400px))]">
                             {upcomingEvents.map((event, index) => (
                                 <EventCard key={event.id} event={event} index={index} />
                             ))}
@@ -645,7 +645,7 @@ const Events = () => {
                                 </div>
                             </ScrollReveal>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid justify-center gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),400px))]">
                                 {pastEvents.map((event, index) => (
                                     <EventCard key={event.id} event={event} index={index} />
                                 ))}
