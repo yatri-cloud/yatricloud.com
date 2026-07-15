@@ -143,6 +143,7 @@ export default function AdminEvents() {
                         </p>
                     </div>
                     <Button
+                        data-testid="events-create"
                         className="flex items-center gap-2 self-start md:self-auto bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 min-h-[44px]"
                         onClick={() => navigate('/createevent')}
                         size="lg"
@@ -189,6 +190,7 @@ export default function AdminEvents() {
                     return (
                         <button
                             key={tab.id}
+                            data-testid={`events-tab-${tab.id}`}
                             onClick={() => setActiveTab(tab.id)}
                             aria-pressed={isActive}
                             className={`inline-flex items-center gap-2 min-h-[40px] px-4 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive
@@ -207,7 +209,7 @@ export default function AdminEvents() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <div className="relative w-full sm:w-64">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events" className="pl-9 h-9" />
+                        <Input data-testid="events-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events" className="pl-9 h-9" />
                     </div>
                     <Select value={sort} onValueChange={setSort}>
                         <SelectTrigger className="h-9 w-full sm:w-[150px]" aria-label="Sort events"><SelectValue /></SelectTrigger>
@@ -223,7 +225,7 @@ export default function AdminEvents() {
             <div className="space-y-4">
                 {filteredEvents.length > 0 ? (
                     pagedEvents.map(event => (
-                        <div key={event.id} className="border border-border rounded-2xl bg-card p-5 md:p-6 hover:border-brand-200 hover:shadow-card transition flex flex-col md:flex-row gap-6 items-start md:items-center">
+                        <div key={event.id} data-testid={`event-row-${event.slug || event.id}`} className="border border-border rounded-2xl bg-card p-5 md:p-6 hover:border-brand-200 hover:shadow-card transition flex flex-col md:flex-row gap-6 items-start md:items-center">
                             <div className="w-full md:w-48 aspect-video rounded-xl overflow-hidden bg-muted flex-shrink-0">
                                 <img src={event.imageUrl} alt={event.name} className="w-full h-full object-cover" />
                             </div>
@@ -255,6 +257,7 @@ export default function AdminEvents() {
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button
+                                            data-testid="event-row-menu"
                                             variant="ghost"
                                             size="sm"
                                             className="h-8 w-8 p-0"
@@ -270,6 +273,7 @@ export default function AdminEvents() {
                                     <DropdownMenuContent align="end" className="w-56">
                                         {(activeTab === 'draft' || activeTab === 'active' || activeTab === 'past') && (
                                             <DropdownMenuItem
+                                                data-testid="event-menu-edit"
                                                 onClick={() => navigate('/createevent', { state: { event } })}
                                             >
                                                 <Pencil className="w-4 h-4 mr-2" />
@@ -278,6 +282,7 @@ export default function AdminEvents() {
                                         )}
 
                                         <DropdownMenuItem
+                                            data-testid="event-menu-registrations"
                                             onClick={() => navigate(`/admin/events/${event.id}/registrations`)}
                                         >
                                             <ClipboardList className="w-4 h-4 mr-2" />
@@ -338,6 +343,7 @@ export default function AdminEvents() {
                                         <DropdownMenuSeparator />
 
                                         <DropdownMenuItem
+                                            data-testid="event-menu-delete"
                                             onClick={() => handleDelete(event.id, event.name, event.driveFolderId)}
                                             className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
                                         >

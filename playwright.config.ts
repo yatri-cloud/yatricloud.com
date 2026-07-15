@@ -30,7 +30,7 @@ export default defineConfig({
       name: "public",
       use: { ...devices["Desktop Chrome"] },
       // Everything except the auth setup and the authenticated admin specs.
-      testIgnore: [/.*\.setup\.ts/, /training-admin\.spec\.ts/],
+      testIgnore: [/.*\.setup\.ts/, /-admin\.spec\.ts/],
     },
     {
       name: "admin",
@@ -39,7 +39,8 @@ export default defineConfig({
         storageState: "e2e/.auth/admin.json",
       },
       dependencies: ["setup"],
-      testMatch: /training-admin\.spec\.ts/,
+      // All authenticated admin specs (training-admin, events-admin, mentorship-admin).
+      testMatch: /-admin\.spec\.ts/,
     },
   ],
   webServer: {

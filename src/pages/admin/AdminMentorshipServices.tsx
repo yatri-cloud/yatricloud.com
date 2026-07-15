@@ -535,7 +535,7 @@ const AdminMentorshipServices = () => {
                                     Calls, packages, digital products and webinars across every mentor. Every save goes live right away.
                                 </p>
                             </div>
-                            <Button onClick={openAdd} disabled={mentors.length === 0} className={saveButtonClass}>
+                            <Button onClick={openAdd} disabled={mentors.length === 0} className={saveButtonClass} data-testid="service-add">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add service
                             </Button>
@@ -562,6 +562,7 @@ const AdminMentorshipServices = () => {
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="Search services by title, slug or mentor"
                                     className="min-h-[44px] rounded-xl pl-9"
+                                    data-testid="services-search"
                                 />
                             </div>
                             <Select value={sort} onValueChange={setSort}>
@@ -638,6 +639,7 @@ const AdminMentorshipServices = () => {
                                     <div
                                         key={service.id}
                                         className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 hover:bg-brand-50/50 transition-colors p-3 md:p-4"
+                                        data-testid={`service-row-${service.id}`}
                                     >
                                         <div className="flex flex-wrap items-center gap-3">
                                             <div className="min-w-0 flex-1">
@@ -694,6 +696,7 @@ const AdminMentorshipServices = () => {
                                                     onClick={() => setServiceToDelete(service)}
                                                     aria-label={`Delete ${service.title}`}
                                                     className={deleteIconButtonClass}
+                                                    data-testid="service-delete"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -775,6 +778,7 @@ const AdminMentorshipServices = () => {
                                         placeholder="1 on 1 Career Guidance Call"
                                         value={form.title}
                                         onChange={(e) => updateTitle(e.target.value)}
+                                        data-testid="service-title"
                                     />
                                 </div>
                                 <div className="space-y-2">

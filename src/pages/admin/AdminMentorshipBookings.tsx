@@ -431,6 +431,7 @@ const AdminMentorshipBookings = () => {
                                         onChange={(e) => setSearch(e.target.value)}
                                         placeholder="Name, email, or service…"
                                         className="min-h-[44px] rounded-xl pl-10"
+                                        data-testid="bookings-search"
                                     />
                                 </div>
                             </div>

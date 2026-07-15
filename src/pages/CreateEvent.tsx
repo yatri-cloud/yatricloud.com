@@ -589,6 +589,7 @@ export default function CreateEvent() {
                                         </Button>
                                     )}
                                     <Button
+                                        data-testid="event-publish"
                                         onClick={handleFinalSubmit}
                                         disabled={isSubmitting}
                                         className="bg-primary text-primary-foreground rounded-xl shadow-inset-btn hover:bg-brand-600 hover:text-primary-foreground min-h-[44px] font-semibold focus-visible:ring-2 focus-visible:ring-ring gap-2"
@@ -652,6 +653,7 @@ export default function CreateEvent() {
                                                 <Label htmlFor="eventName">Event Name <span className="text-destructive">*</span></Label>
                                                 <Input
                                                     id="eventName"
+                                                    data-testid="event-name"
                                                     placeholder="e.g. AWS Cloud Summit 2026"
                                                     value={formData.eventName}
                                                     onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
@@ -939,7 +941,7 @@ export default function CreateEvent() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex justify-end gap-4 pt-4"><Button onClick={handleSaveDetail} size="lg" className="min-w-[150px]">Save Draft</Button></div>
+                                    <div className="flex justify-end gap-4 pt-4"><Button data-testid="event-save-draft" onClick={handleSaveDetail} size="lg" className="min-w-[150px]">Save Draft</Button></div>
                                 </div>
                             )}
 

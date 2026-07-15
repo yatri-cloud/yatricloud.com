@@ -617,7 +617,7 @@ const AdminMentors = () => {
                                     Manage who mentors on Yatri Cloud, their weekly availability, and how they appear in the directory.
                                 </p>
                             </div>
-                            <Button onClick={openAdd} className={saveButtonClass}>
+                            <Button onClick={openAdd} className={saveButtonClass} data-testid="mentor-add">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add mentor
                             </Button>
@@ -662,7 +662,7 @@ const AdminMentors = () => {
                                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                                     <div className="relative w-full sm:w-56">
                                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search mentors" className="pl-9 h-9 rounded-xl" />
+                                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search mentors" className="pl-9 h-9 rounded-xl" data-testid="mentors-search" />
                                     </div>
                                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                                         <SelectTrigger className="h-9 w-full rounded-xl sm:w-[150px]"><SelectValue /></SelectTrigger>

@@ -569,6 +569,7 @@ const AdminMentorApplications = () => {
                                     placeholder="Search by name or email"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
+                                    data-testid="applications-search"
                                 />
                             </div>
                         </div>
@@ -795,10 +796,11 @@ const AdminMentorApplications = () => {
                                     variant="outline"
                                     onClick={() => openReject(selected)}
                                     className="min-h-[44px] rounded-xl text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
+                                    data-testid="application-reject"
                                 >
                                     Decline
                                 </Button>
-                                <Button onClick={() => setApproveTarget(selected)} className={saveButtonClass}>
+                                <Button onClick={() => setApproveTarget(selected)} className={saveButtonClass} data-testid="application-approve">
                                     Approve as mentor
                                 </Button>
                             </>

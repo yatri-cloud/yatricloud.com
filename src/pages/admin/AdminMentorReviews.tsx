@@ -244,6 +244,7 @@ const AdminMentorReviews = () => {
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search by reviewer, text or mentor"
                                 className="min-h-[44px] rounded-xl pl-9"
+                                data-testid="mentor-reviews-search"
                             />
                         </div>
 
@@ -348,6 +349,7 @@ const AdminMentorReviews = () => {
                                                         checked={review.is_public}
                                                         onCheckedChange={(checked) => togglePublic(review, checked)}
                                                         aria-label={`Review by ${review.name || "Anonymous"} is public`}
+                                                        data-testid="mentor-review-public-switch"
                                                     />
                                                 </div>
                                                 <Button
