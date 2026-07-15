@@ -13,6 +13,7 @@ import {
 import { openRazorpayCheckout, createRazorpayOrder } from "@/lib/razorpay";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmail } from "@/lib/email";
+import { getEnrollmentEmail } from "@/lib/email-templates";
 import { getStoredUser, isProfileComplete } from "@/lib/yatris-api";
 import { enroll, createTrainingOrder } from "@/lib/training-api";
 import { validateCoupon, redeemCoupon, discountedInr, type AppliedCoupon } from "@/lib/coupons";
@@ -184,35 +185,23 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
     // Welcome email + success handoff shared by both flows.
     const sendWelcomeAndFinish = async () => {
         try {
-            // Add to calendar link when the training has a scheduled live session.
+            // Add-to-calendar link when the training has a scheduled live session.
             const sessionStartISO = buildSessionStartISO();
-            let calendarBlock = "";
+            let calUrl: string | undefined;
             if (sessionStartISO) {
                 const endISO = new Date(new Date(sessionStartISO).getTime() + 2 * 60 * 60 * 1000).toISOString();
-                const calUrl = googleCalendarUrl({
+                calUrl = googleCalendarUrl({
                     title: courseName,
                     startISO: sessionStartISO,
                     endISO,
                     details: `Your live session for ${courseName}, a Yatri Cloud training.${meetLink ? ` Join at ${meetLink}` : ''}`,
                     location: meetLink || 'Online',
                 });
-                calendarBlock = `<p style="text-align:center;margin:24px 0;"><a href="${calUrl}" style="display:inline-block;padding:12px 24px;background:#007CFF;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;">Add to your calendar</a></p>`;
             }
-            const emailHtml = `
-                <div style="font-family: sans-serif; padding: 20px;">
-                    <h1>Welcome to ${courseName}!</h1>
-                    <p>Hi ${formData.name},</p>
-                    <p>You have successfully enrolled in <strong>${courseName}</strong>.</p>
-                    <p>Our team will contact you shortly with the access details.</p>
-                    ${calendarBlock}
-                    <br/>
-                    <p>Happy Learning,<br/>Yatri Cloud Team</p>
-                </div>
-            `;
             await sendEmail({
                 to: formData.email,
                 subject: `Enrollment Confirmed: ${courseName}`,
-                html: emailHtml,
+                html: getEnrollmentEmail(formData.name, courseName, calUrl),
             });
         } catch (emailErr) {
             console.error("Failed to send enrollment email", emailErr);

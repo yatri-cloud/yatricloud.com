@@ -11,6 +11,7 @@
 import { supabase } from "@/lib/supabase";
 import type { DateOverride } from "@/lib/mentorship-slots";
 import { loadRazorpay } from "@/lib/third-party";
+import { BASE_TEMPLATE, COLORS } from "@/lib/email-templates";
 
 /* ------------------------------------------------------------------ */
 /* Canonical types (other agents import these)                         */
@@ -1252,43 +1253,22 @@ export function buildBookingConfirmationEmail(input: {
     : "Your mentor will share the meeting link before your session. You can always find your booking under My Bookings on Yatri Cloud.";
 
   const content = `
-    <h2 style="color: #1e3a8a; margin-top: 0;">Your booking is confirmed</h2>
+    <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Your booking is confirmed</h2>
     <p>Hello ${input.name},</p>
     <p>Great news. Your mentorship booking with <strong>${input.mentorName}</strong> is confirmed.</p>
-    <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 25px 0; border-radius: 4px;">
+    <div style="background-color: #eff6ff; border-left: 4px solid ${COLORS.primary}; padding: 15px; margin: 25px 0; border-radius: 4px;">
       ${detailRows}
     </div>
     <p>${nextStep}</p>
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://www.yatricloud.com/mentorship/bookings" style="background-color: #3b82f6; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">View my bookings</a>
+      <a href="https://www.yatricloud.com/mentorship/bookings" style="background-color: ${COLORS.primary}; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">View my bookings</a>
     </div>
     <p>Best regards,<br>Team Yatri Cloud</p>
   `;
 
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking confirmed</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; color: #1f2937; line-height: 1.6;">
-    <div style="background-color: #1e3a8a; padding: 30px; text-align: center; border-radius: 0 0 20px 20px;">
-      <h1 style="color: white; margin: 0; font-size: 24px; font-weight: bold;">Yatri Cloud</h1>
-    </div>
-    <div style="background-color: #ffffff; padding: 40px; margin: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-      ${content}
-    </div>
-    <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
-      <p style="margin: 5px 0;">&copy; ${new Date().getFullYear()} Yatri Cloud. All rights reserved.</p>
-      <p style="margin: 5px 0;">Empowering your cloud journey.</p>
-    </div>
-  </div>
-</body>
-</html>
-`;
+  // Reuse the shared branded shell (header, card, social footer) so mentorship
+  // matches enrollment/events exactly instead of a duplicated inline copy.
+  return BASE_TEMPLATE(content, "Booking confirmed");
 }
 
 /* ------------------------------------------------------------------ */

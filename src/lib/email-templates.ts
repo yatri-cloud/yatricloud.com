@@ -81,9 +81,9 @@ const renderDbTemplate = (
   return fillTemplate(row.body_html, vars);
 };
 
-const COLORS = {
-  primary: '#3b82f6', // blue-500
-  secondary: '#1e3a8a', // blue-900
+export const COLORS = {
+  primary: '#007CFF', // Yatri Cloud brand blue (hsl(210 100% 50%))
+  secondary: '#1e3a8a', // blue-900 (deep header band)
   background: '#f3f4f6', // gray-100
   card: '#ffffff',
   text: '#1f2937', // gray-800
@@ -92,7 +92,7 @@ const COLORS = {
 
 const LOGO_URL = "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/logo/yatri_cloud_logo.png"; // Replace with actual logo URL if available
 
-const BASE_TEMPLATE = (content: string, title: string) => `
+export const BASE_TEMPLATE = (content: string, title: string) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -134,6 +134,41 @@ const BASE_TEMPLATE = (content: string, title: string) => `
 </body>
 </html>
 `;
+
+/**
+ * Branded training-enrollment confirmation.
+ * DB template key: `enrollment_confirmed`.
+ * Placeholder mapping: name -> {{name}}, courseName -> {{course_name}},
+ * calendarUrl -> {{calendar_url}} (Add-to-calendar block wrapped in
+ * {{#if calendar_url}}...{{/if}}).
+ */
+export const getEnrollmentEmail = (name: string, courseName: string, calendarUrl?: string) => {
+  const fromDb = renderDbTemplate("enrollment_confirmed", {
+    name,
+    course_name: courseName,
+    calendar_url: calendarUrl,
+  });
+  if (fromDb) return fromDb;
+
+  const content = `
+    <h2 style="color: ${COLORS.secondary}; margin-top: 0;">You're enrolled!</h2>
+    <p>Hello ${name},</p>
+    <p>You have successfully enrolled in <strong>${courseName}</strong>.</p>
+
+    <div style="background-color: #eff6ff; border-left: 4px solid ${COLORS.primary}; padding: 15px; margin: 25px 0; border-radius: 4px;">
+      <p style="margin: 5px 0;">Our team will reach out shortly with your access details and everything you need to get started.</p>
+    </div>
+
+    ${calendarUrl ? `
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${calendarUrl}" style="background-color: ${COLORS.primary}; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Add to your calendar</a>
+    </div>
+    ` : ''}
+
+    <p>Happy learning,<br>Team Yatri Cloud</p>
+  `;
+  return BASE_TEMPLATE(content, `Enrollment Confirmed: ${courseName}`);
+};
 
 /**
  * DB template key: `registration_confirmed`.

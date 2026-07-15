@@ -150,7 +150,7 @@ const MentorServiceDetail = () => {
         });
         html = html.replace(
           "View my bookings</a>",
-          `View my bookings</a><br><a href="${calUrl}" style="color: #3b82f6; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 16px;">Add to your calendar</a>`
+          `View my bookings</a><br><a href="${calUrl}" style="color: #007CFF; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 16px;">Add to your calendar</a>`
         );
       }
 
