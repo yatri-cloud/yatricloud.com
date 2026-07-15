@@ -64,9 +64,6 @@ const AdminExamDumps = () => {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-1.5"
             >
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Exam dumps
-              </p>
               <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Manage Exam Dumps</h1>
               <p className="text-muted-foreground">Add, edit, and organize your certification exam dumps.</p>
             </motion.div>

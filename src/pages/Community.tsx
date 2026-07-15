@@ -141,7 +141,6 @@ const Community = () => {
               transition={{ duration: 0.6, ease: EASE }}
               className="mx-auto max-w-3xl text-center text-white"
             >
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/80 mb-3"><span className="h-1.5 w-1.5 rounded-full bg-white" /> Community</p>
               <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-7xl">
                 You're not doing this alone, Yatri
               </h1>

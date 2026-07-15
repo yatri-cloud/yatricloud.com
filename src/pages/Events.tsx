@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { Calendar, MapPin, Globe, Clock, Layers, Search, X, Filter, Ticket, CalendarX, ArrowRight, Users } from "lucide-react";
+import { MapPin, Globe, Layers, Search, X, Filter, Ticket, ArrowRight } from "lucide-react";
 import { getStoredUser, getRegisteredEvents, EventRegistration, fetchPublishedEvents } from "@/lib/yatris-api";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -168,7 +168,6 @@ const Events = () => {
 
                         {/* Date & Time */}
                         <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                            <Calendar className="w-4 h-4 flex-shrink-0 text-primary" />
                             <span className="text-sm font-medium tabular-nums">
                                 {formatEventDate(event.date, event.timezone)}
                             </span>
@@ -178,7 +177,6 @@ const Events = () => {
                         <div className="flex items-start gap-2 text-muted-foreground mb-4">
                             {event.location.type === 'online' ? (
                                 <>
-                                    <Globe className="w-4 h-4 flex-shrink-0 text-primary mt-0.5" />
                                     <div className="flex-1">
                                         <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                                             Online Event
@@ -187,7 +185,6 @@ const Events = () => {
                                 </>
                             ) : (
                                 <>
-                                    <MapPin className="w-4 h-4 flex-shrink-0 text-primary mt-0.5" />
                                     <div className="flex-1 text-sm">
                                         <div className="font-medium text-foreground">{event.location.venue}</div>
                                         <div className="text-xs text-muted-foreground mt-0.5">
@@ -228,7 +225,6 @@ const Events = () => {
                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                         className="max-w-3xl"
                     >
-                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary mb-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Events</p>
                         <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] text-foreground mb-5">
                             Where Yatris <span className="gradient-text">meet in real life</span>
                         </h1>
@@ -239,13 +235,13 @@ const Events = () => {
                         {/* Trust cues */}
                         <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
                             <span className="inline-flex items-center gap-2">
-                                <Users className="w-4 h-4 text-primary" /> {learners} Yatris in the community
+                                {learners} Yatris in the community
                             </span>
                             <span className="inline-flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-primary" /> Online &amp; in-person, worldwide
+                                Online &amp; in-person, worldwide
                             </span>
                             <span className="inline-flex items-center gap-2">
-                                <Ticket className="w-4 h-4 text-primary" /> Free &amp; paid — always Yatri-friendly
+                                Free &amp; paid — always Yatri-friendly
                             </span>
                         </div>
                     </motion.div>
@@ -300,13 +296,11 @@ const Events = () => {
 
                                                     <div className="space-y-2 text-sm text-muted-foreground mb-4">
                                                         <div className="flex items-center gap-2">
-                                                            <Calendar className="w-4 h-4 text-primary" />
                                                             <span>{new Date(reg.eventDate).toLocaleDateString(undefined, {
                                                                 weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
                                                             })}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <MapPin className="w-4 h-4 text-primary" />
                                                             <span className="truncate">{reg.eventLocation}</span>
                                                         </div>
                                                     </div>
@@ -663,9 +657,6 @@ const Events = () => {
                 {
                     filteredUpcomingCount === 0 && filteredPastCount === 0 && (
                         <div className="text-center py-20 band-tint rounded-3xl border border-brand-100 mt-8">
-                            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                                <CalendarX className="w-8 h-8" />
-                            </div>
                             <h3 className="font-display text-2xl font-bold mb-2">No events match that just yet, Yatri</h3>
                             <p className="text-muted-foreground max-w-md mx-auto">
                                 Fresh meetups and workshops drop often. Loosen the filters, or check back soon — we're always planning the next gathering.

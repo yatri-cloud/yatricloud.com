@@ -118,9 +118,6 @@ export default function AdminResumes() {
             <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
                 <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
                 <div className="relative space-y-1.5">
-                    <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Resume maker
-                    </p>
                     <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Resume requests</h1>
                     <p className="text-muted-foreground">
                         Every request from /resume-maker. The local worker builds them;

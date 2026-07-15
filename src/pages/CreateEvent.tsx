@@ -605,9 +605,6 @@ export default function CreateEvent() {
                     <div className="border-b border-border bg-gradient-to-br from-primary/[0.07] via-brand-50/40 to-card">
                         <div className="container mx-auto px-4 md:px-8 py-6 md:py-8">
                             <div className="mb-7">
-                                <p className="mb-1.5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> {isEditMode ? 'Editing event' : 'New event'}
-                                </p>
                                 <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">{isEditMode ? 'Edit Event' : 'Create New Event'}</h1>
                             </div>
 

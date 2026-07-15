@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { Search, Filter, BookOpen, User, Star, Tag, ArrowRight, Users, MapPin, Wallet, GraduationCap, SearchX } from "lucide-react";
+import { Search, BookOpen, Star, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -109,10 +109,10 @@ export default function Training() {
     /* Trust cue numbers come from Supabase site_stats (seeded identical). */
     const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
     const trustCues = [
-        { icon: Users, label: `${expandK(statValue(siteStats, "learners", "50K+"))} Yatris learning` },
-        { icon: GraduationCap, label: `${statValue(siteStats, "tracks", "6")} cloud tracks` },
-        { icon: Star, label: `${statValue(siteStats, "rating", "4.8")}★ average rating` },
-        { icon: Wallet, label: "Free tracks included" },
+        `${expandK(statValue(siteStats, "learners", "50K+"))} Yatris learning`,
+        `${statValue(siteStats, "tracks", "6")} cloud tracks`,
+        `${statValue(siteStats, "rating", "4.8")}★ average rating`,
+        "Free tracks included",
     ];
 
     return (
@@ -134,12 +134,7 @@ export default function Training() {
                         animate="show"
                         className="mx-auto max-w-3xl text-center"
                     >
-                        <motion.p variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-1.5 text-sm font-medium text-primary shadow-card">
-                            <GraduationCap className="h-4 w-4" aria-hidden="true" />
-                            Yatri Cloud Training
-                        </motion.p>
-
-                        <motion.h1 variants={fadeUp} className="font-display mt-6 text-4xl font-bold leading-[1.08] tracking-tight text-foreground md:text-6xl">
+                        <motion.h1 variants={fadeUp} className="font-display text-4xl font-bold leading-[1.08] tracking-tight text-foreground md:text-6xl">
                             Real cloud skills.
                             <br />
                             <span className="gradient-text">A career you're proud of.</span>
@@ -166,9 +161,8 @@ export default function Training() {
 
                         {/* Trust cues */}
                         <motion.ul variants={fadeUp} className="mx-auto mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
-                            {trustCues.map(({ icon: Icon, label }) => (
+                            {trustCues.map((label) => (
                                 <li key={label} className="inline-flex items-center gap-2">
-                                    <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
                                     <span className="font-medium">{label}</span>
                                 </li>
                             ))}
@@ -190,7 +184,6 @@ export default function Training() {
                 {/* Filters */}
                 <div className="mb-8 flex flex-wrap items-center gap-4 border-b border-border pb-4">
                     <div className="mr-auto flex items-center gap-2 text-foreground">
-                        <Filter className="h-4 w-4 text-primary" aria-hidden="true" />
                         <span className="text-sm font-semibold">Browse by track</span>
                     </div>
 
@@ -225,7 +218,6 @@ export default function Training() {
                 ) : filteredCourses.length === 0 ? (
                     <div className="mx-auto max-w-md py-20 text-center">
                         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-primary">
-                            <SearchX className="h-8 w-8" aria-hidden="true" />
                         </div>
                         <h2 className="font-display text-xl font-bold text-foreground">No matches yet, Yatris</h2>
                         <p className="mt-2 text-muted-foreground">
@@ -265,7 +257,7 @@ export default function Training() {
                                             <div className="absolute left-2 top-2 flex gap-2">
                                                 {course.mode === "On-site" && (
                                                     <Badge className="border-none bg-warning text-white shadow-sm hover:bg-warning/90">
-                                                        <MapPin className="mr-1 h-3 w-3" aria-hidden="true" /> On-site
+                                                        On-site
                                                     </Badge>
                                                 )}
                                                 {course.paymentType === "Free" && (
@@ -279,7 +271,7 @@ export default function Training() {
                                         <CardContent className="flex flex-1 flex-col gap-2 p-4">
                                             <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-primary">
                                                 <span className="flex items-center gap-1">
-                                                    <Tag className="h-3 w-3" aria-hidden="true" /> {course.subType}
+                                                    {course.subType}
                                                 </span>
                                                 {(course.certificationExamCode || course.certificationLabel) && (
                                                     <Badge variant="outline" className="border-primary/30 bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-primary">
@@ -295,7 +287,7 @@ export default function Training() {
 
                                             <div className="mt-4 flex items-center gap-4 border-t border-border pt-4 text-xs text-muted-foreground">
                                                 <span className="flex items-center gap-1">
-                                                    <User className="h-3 w-3" aria-hidden="true" /> {course.instructor || "Yatri Team"}
+                                                    {course.instructor || "Yatri Team"}
                                                 </span>
                                                 {/* Duration removed as it contains long topic list - kept for detail page */}
 

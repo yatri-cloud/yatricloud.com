@@ -225,10 +225,7 @@ export const TrainerDashboard = () => {
                     <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
                     <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                <GraduationCap className="h-4 w-4" /> Trainer
-                            </p>
-                            <h1 className="mt-1.5 font-display text-2xl md:text-3xl font-bold tracking-tight">
+                            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                 Welcome back, <span className="gradient-text">{trainerData.fullName}</span>
                             </h1>
                             <p className="mt-1 text-muted-foreground">Build and manage your course curriculum, and track what's live.</p>

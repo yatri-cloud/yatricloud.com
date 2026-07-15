@@ -65,8 +65,7 @@ const AdminReviews = () => {
       <div className="mx-auto max-w-4xl space-y-6">
         <ScrollReveal>
           <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
-            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Reviews</p>
-            <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight md:text-3xl">Moderate the <span className="gradient-text">review wall</span></h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Moderate the <span className="gradient-text">review wall</span></h1>
             <p className="mt-1 text-muted-foreground">{counts.all} reviews · {counts.public} shown publicly. Hide or delete anything off-brand or abusive.</p>
           </div>
         </ScrollReveal>

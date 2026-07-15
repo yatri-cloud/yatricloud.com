@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, MapPin, Building2, ExternalLink, BriefcaseBusiness, Upload, UserRound } from "lucide-react";
+import { Loader2, Search, MapPin, ExternalLink, Upload, UserRound } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -285,7 +285,6 @@ const JobBoard = () => {
           <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-brand-200/20 blur-3xl" />
           <div className="container relative z-10 mx-auto px-4 md:px-6 text-center">
-            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary mb-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Jobs</p>
             <h1 className="font-display text-4xl md:text-5xl font-bold tracking-[-0.02em] text-foreground mb-4">
               Your next role is <span className="gradient-text">already posted</span>
             </h1>
@@ -472,7 +471,6 @@ const JobBoard = () => {
             </div>
           ) : jobs.length === 0 ? (
             <div className="py-20 text-center">
-              <BriefcaseBusiness className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
               <h2 className="font-display text-2xl font-bold">No openings match</h2>
               <p className="mx-auto mt-2 max-w-md text-muted-foreground">
                 Loosen a filter or two. New roles land every sync.
@@ -510,12 +508,10 @@ const JobBoard = () => {
                         </button>
                         <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                           <span className="inline-flex items-center gap-1.5">
-                            <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
                             {job.job_companies?.name || ""}
                           </span>
                           {job.location && (
                             <span className="inline-flex items-center gap-1.5">
-                              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
                               <span className="truncate max-w-[280px]">{job.location}</span>
                             </span>
                           )}

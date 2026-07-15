@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Loader2, FileSearch, ArrowRight, Search, MailCheck, ShieldCheck, Users } from "lucide-react";
+import { Loader2, ArrowRight, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -110,7 +110,6 @@ const ExamDumps = () => {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-8"
             >
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary mb-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Exam Dumps</p>
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] text-foreground mb-4">
                 Pass on your <span className="gradient-text">first attempt</span>
               </h1>
@@ -123,15 +122,12 @@ const ExamDumps = () => {
                   from site_stats. */}
               <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-foreground/80">
                 <span className="inline-flex items-center gap-2">
-                  <MailCheck className="h-4 w-4 text-primary" aria-hidden="true" />
                   Instant delivery to your email
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
                   Secure Razorpay checkout
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" aria-hidden="true" />
                   {learners} Yatris learning with us
                 </span>
               </div>
@@ -218,7 +214,6 @@ const ExamDumps = () => {
             ) : filteredDumps.length === 0 ? (
               <div className="text-center py-20">
                 <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <FileSearch className="h-8 w-8" />
                 </div>
                 <h3 className="font-display text-2xl font-bold">No dumps here yet, Yatris</h3>
                 <p className="mt-2 max-w-md mx-auto text-muted-foreground">

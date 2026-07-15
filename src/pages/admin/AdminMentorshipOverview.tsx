@@ -65,9 +65,6 @@ const AdminMentorshipOverview = () => {
                         <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
                         <div className="relative space-y-1.5">
-                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Mentorship
-                            </p>
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                 Mentorship <span className="gradient-text">Overview</span>
                             </h1>

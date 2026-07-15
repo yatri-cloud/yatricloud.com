@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { PenLine, Search, Clock, Hand, MessageSquare, Sparkles, Loader2 } from "lucide-react";
+import { PenLine, Search, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -29,9 +29,9 @@ const Byline = ({ post }: { post: FeedPost }) => (
 
 const Meta = ({ post }: { post: FeedPost }) => (
   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-    <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {post.reading_minutes} min read</span>
-    <span className="inline-flex items-center gap-1"><Hand className="h-3.5 w-3.5" /> {post.clap_total}</span>
-    <span className="inline-flex items-center gap-1"><MessageSquare className="h-3.5 w-3.5" /> {post.response_count}</span>
+    <span className="inline-flex items-center gap-1">{post.reading_minutes} min read</span>
+    <span className="inline-flex items-center gap-1">{post.clap_total}</span>
+    <span className="inline-flex items-center gap-1">{post.response_count}</span>
   </div>
 );
 
@@ -95,7 +95,6 @@ const Blog = () => {
         <ScrollReveal>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="mb-1 text-sm font-semibold uppercase tracking-[0.2em] text-primary">Yatri Blog</p>
               <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Stories &amp; ideas</h1>
               <p className="mt-2 max-w-xl text-muted-foreground">Career journeys, exam playbooks, and deep dives — written by Yatris, for Yatris.</p>
             </div>
@@ -126,7 +125,6 @@ const Blog = () => {
 
         {cert && (
           <div className="mt-6 flex items-center gap-3 rounded-2xl border border-brand-100 bg-primary/[0.06] p-4">
-            <Sparkles className="h-5 w-5 shrink-0 text-primary" />
             <p className="min-w-0 flex-1 text-sm"><span className="font-semibold text-foreground">Exam-prep stories</span>{posts[0]?.cert_label ? ` for ${posts[0].cert_label}` : ""}</p>
             <button onClick={() => setCert(null)} className="shrink-0 text-sm font-medium text-primary hover:underline">Clear</button>
           </div>
@@ -146,7 +144,7 @@ const Blog = () => {
                 <Link to={`/blog/${featured.slug}`} className="group mt-4 block overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.06] to-card">
                   {featured.cover_image_url && <img src={featured.cover_image_url} alt="" className="h-56 w-full object-cover md:h-72" loading="lazy" />}
                   <div className="p-6 md:p-8">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary"><Sparkles className="h-3.5 w-3.5" /> Featured</span>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary">Featured</span>
                     <h2 className="mt-2 font-display text-2xl font-bold tracking-tight group-hover:text-primary md:text-3xl">{featured.title}</h2>
                     {featured.subtitle && <p className="mt-2 line-clamp-2 text-muted-foreground">{featured.subtitle}</p>}
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3"><Byline post={featured} /><Meta post={featured} /></div>

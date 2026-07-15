@@ -273,11 +273,6 @@ export default function TrainingDetail() {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="pt-2"></div>
 
-                        {/* Blue eyebrow — provider · level — pairs with the black title */}
-                        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">
-                            {course.subType}{displayLevel ? <span className="text-primary/40"> · {displayLevel}</span> : null}
-                        </p>
-
                         <h1 className="font-display text-3xl md:text-5xl font-bold leading-[1.1] tracking-tight text-foreground">{course.courseName}</h1>
                         <div className="text-lg text-muted-foreground leading-relaxed max-w-3xl prose dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:list-disc prose-ul:pl-4">
                             <ReactMarkdown>{displayDescription}</ReactMarkdown>

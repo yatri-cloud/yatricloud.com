@@ -139,10 +139,7 @@ const BlogPost = () => {
       <div className="noise-overlay" />
       <Navbar />
       <main className="container mx-auto max-w-2xl px-4 pb-24 pt-28 md:px-6">
-        {post.tag_labels?.[0] && (
-          <Link to={`/blog?tag=${post.tag_slugs[0]}`} className="text-sm font-semibold uppercase tracking-wider text-primary">{post.tag_labels[0]}</Link>
-        )}
-        <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">{post.title}</h1>
+        <h1 className="font-display text-3xl font-bold leading-tight tracking-tight md:text-4xl">{post.title}</h1>
         {post.subtitle && <p className="mt-3 text-lg text-muted-foreground md:text-xl">{post.subtitle}</p>}
 
         {/* Author + meta */}
