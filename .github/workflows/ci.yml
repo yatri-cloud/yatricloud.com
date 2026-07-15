@@ -64,6 +64,20 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     needs: gate
+    # Job-level env so the Playwright webServer (`npm run dev`) inherits it and
+    # the app talks to real Supabase instead of falling into legacy mode. URL
+    # comes from the SUPABASE_URL secret (always set) so it's never empty; the
+    # public keys come from repo vars with a secret fallback.
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+      VITE_USE_SUPABASE: "true"
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -78,20 +92,20 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      # The integrity script reads .env directly, and the Playwright config +
-      # Vite dev server both read .env — so materialise one from secrets/vars.
-      - name: Write .env
+      # Fail fast with an actionable message if the app env is missing —
+      # otherwise the dev server runs in legacy mode and every Supabase-backed
+      # test just times out with no obvious cause.
+      - name: Verify app env
         run: |
-          cat > .env <<'EOF'
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          VITE_SUPABASE_URL=${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY=${{ vars.VITE_SUPABASE_ANON_KEY }}
-          VITE_SUPABASE_PUBLISHABLE_KEY=${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
-          E2E_ADMIN_EMAIL=${{ secrets.E2E_ADMIN_EMAIL }}
-          E2E_ADMIN_PASSWORD=${{ secrets.E2E_ADMIN_PASSWORD }}
-          EOF
+          test -n "$VITE_SUPABASE_URL" || { echo "::error::VITE_SUPABASE_URL is empty — set the SUPABASE_URL secret or a VITE_SUPABASE_URL repo variable."; exit 1; }
+          test -n "$VITE_SUPABASE_ANON_KEY$VITE_SUPABASE_PUBLISHABLE_KEY" || { echo "::error::No Supabase anon/publishable key — set a VITE_SUPABASE_ANON_KEY (or _PUBLISHABLE_KEY) repo variable."; exit 1; }
+          test -n "$E2E_ADMIN_EMAIL" || { echo "::error::E2E_ADMIN_EMAIL secret is missing — the admin project needs an email+password admin."; exit 1; }
+          echo "app env OK"
+
+      # The integrity script reads .env directly; everything else comes from the
+      # job env above (the dev server + Playwright inherit it).
+      - name: Write .env (for the integrity script)
+        run: printf 'SUPABASE_URL=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\n' "$SUPABASE_URL" "$SUPABASE_SERVICE_ROLE_KEY" > .env
 
       - name: Curriculum integrity
         run: npm run test:integrity
