@@ -111,7 +111,6 @@ export default function Training() {
     const trustCues = [
         `${expandK(statValue(siteStats, "learners", "50K+"))} Yatris learning`,
         `${statValue(siteStats, "tracks", "6")} cloud tracks`,
-        `${statValue(siteStats, "rating", "4.8")}★ average rating`,
         "Free tracks included",
     ];
 
@@ -250,8 +249,11 @@ export default function Training() {
                                             {course.thumbnailUrl ? (
                                                 <img src={course.thumbnailUrl} alt={course.courseName} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center bg-brand-50">
-                                                    <BookOpen className="h-12 w-12 text-primary/30" aria-hidden="true" />
+                                                // Branded blue cover fallback — matches the course detail page so
+                                                // untitled/image-less courses look intentional, not empty.
+                                                <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-primary via-brand-600 to-brand-700 px-5 text-center transition-transform duration-500 group-hover:scale-105">
+                                                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">{course.subType}</span>
+                                                    <span className="mt-1 font-display text-2xl font-bold leading-tight text-white">{course.certificationExamCode || course.courseName}</span>
                                                 </div>
                                             )}
                                             <div className="absolute left-2 top-2 flex gap-2">
