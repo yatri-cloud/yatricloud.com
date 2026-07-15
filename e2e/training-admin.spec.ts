@@ -20,13 +20,17 @@ const COURSE = `[E2E] Playwright Course ${RUN}`;
 /** Open the builder's ⋮ menu for the row containing `name` and delete it. */
 async function deleteCourseFromList(page: Page, name: string) {
   await page.goto("/admin/training");
+  // Wait for the list to actually load its rows before deciding — row.count()
+  // does not auto-wait, so an early check would miss a row still being fetched.
+  await page.getByTestId("training-search").waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("tbody tr").first().waitFor({ timeout: 15_000 }).catch(() => {});
   const row = page.locator("tr", { hasText: name }).first();
   if ((await row.count()) === 0) return; // already gone
   await row.getByTestId("training-row-menu").click();
+  // handleDelete gates on a native window.confirm — accept it so the delete
+  // actually fires (Playwright dismisses dialogs by default).
+  page.once("dialog", (d) => d.accept());
   await page.getByTestId("training-menu-delete").click();
-  // A confirm dialog may or may not gate the delete — accept it if present.
-  const confirm = page.getByRole("button", { name: /delete|confirm|yes/i });
-  if (await confirm.isVisible().catch(() => false)) await confirm.click();
   await expect(page.locator("tr", { hasText: name })).toHaveCount(0);
 }
 
@@ -43,14 +47,15 @@ test("course builder: create → curriculum → save draft → appears in manage
   await page.goto("/admin/training/create");
 
   // --- Identity tab (default) ---
+  // Pick the Training Type FIRST — the Course/Exam Name field only renders once
+  // a type is selected (Radix Select: click the trigger, then the option).
+  await page.getByTestId("builder-type-trigger").click();
+  await page.getByRole("option", { name: "Certification" }).click();
+
   await page.getByTestId("builder-course-name").fill(COURSE);
   await page
     .getByTestId("builder-description")
     .fill("[E2E] Created by Playwright. Safe to delete.");
-
-  // Radix Select — click the trigger, then pick the option by role.
-  await page.getByTestId("builder-type-trigger").click();
-  await page.getByRole("option", { name: "Certification" }).click();
 
   // --- Details tab ---
   await page.getByTestId("builder-tab-Details").click();
@@ -73,8 +78,8 @@ test("course builder: create → curriculum → save draft → appears in manage
 
   // Lands back on the manager list with the new course present.
   await expect(page).toHaveURL(/\/admin\/training$/);
-  await expect(page.getByText(COURSE)).toBeVisible();
   const row = page.locator("tr", { hasText: COURSE }).first();
+  await expect(row).toBeVisible();
   await expect(row.getByText(/draft/i)).toBeVisible();
 
   // Cleanup (also exercises the row ⋮ DropdownMenu + delete).

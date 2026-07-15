@@ -36,19 +36,30 @@ setup("authenticate as admin", async ({ page }) => {
 
   const result = await page.evaluate(
     async ({ email, password }) => {
-      // Import the app's configured client — same URL/key/storage the app uses.
-      const mod = await import("/src/lib/supabase.ts");
-      const { data, error } = await mod.supabase.auth.signInWithPassword({
-        email: email!,
-        password: password!,
-      });
-      return { ok: Boolean(data?.session), error: error?.message ?? null };
+      // Sign in through the app's OWN admin login (not raw supabase) so it sets
+      // the localStorage `yatri:user` mirror + role that the admin gate reads —
+      // raw signInWithPassword persists the Supabase session but leaves the
+      // app's mirror empty, so the gate still shows the login form.
+      const admin = await import("/src/lib/admin-api.ts");
+      const res = await admin.loginAdmin(email!, password!);
+      // The admin shell is gated by a localStorage `admin_token` that the
+      // AdminDashboard's onLogin handler normally writes — replicate that so the
+      // gate unlocks (the real auth is the Supabase session loginAdmin created).
+      if (res?.token) localStorage.setItem("admin_token", res.token);
+      const sb = await import("/src/lib/supabase.ts");
+      const { data } = await sb.supabase.auth.getUser();
+      return {
+        ok: !res?.error,
+        error: res?.error ?? null,
+        signedInAs: data?.user?.email ?? null,
+      };
     },
     { email, password },
   );
 
   expect(result.error, `Supabase sign-in failed: ${result.error}`).toBeNull();
   expect(result.ok, "No session returned from signInWithPassword").toBeTruthy();
+  console.log(`[auth.setup] signed in as: ${result.signedInAs}`);
 
   // Sanity-check that an admin surface actually renders before saving state.
   await page.goto("/admin/training");
