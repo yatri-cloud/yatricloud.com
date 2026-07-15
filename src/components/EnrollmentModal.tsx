@@ -325,7 +325,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     <DialogTitle className="text-2xl">Enroll in {courseName}</DialogTitle>
                     <DialogDescription>
                         {isPaid ? (
-                            <div className="flex items-center gap-2 text-base mt-2">
+                            <span className="inline-flex items-center gap-2 text-base mt-2">
                                 <CreditCard className="w-5 h-5" />
                                 <span>
                                     Total: <strong>{priceLabel}</strong>
@@ -336,12 +336,12 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                                         </>
                                     )}
                                 </span>
-                            </div>
+                            </span>
                         ) : (
-                            <div className="flex items-center gap-2 text-base mt-2 text-green-600">
+                            <span className="inline-flex items-center gap-2 text-base mt-2 text-green-600">
                                 <CheckCircle2 className="w-5 h-5" />
                                 <span><strong>Free Enrollment</strong></span>
-                            </div>
+                            </span>
                         )}
                     </DialogDescription>
                 </DialogHeader>
