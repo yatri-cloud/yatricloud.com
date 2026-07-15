@@ -15,7 +15,9 @@ import {
     ArrowRight,
     Inbox,
     CalendarX,
-    ImageOff
+    ImageOff,
+    Lock,
+    X
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -35,6 +37,7 @@ import { isAuthenticated, getStoredUser, getRegisteredEvents } from "@/lib/yatri
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
 import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
+import { canViewEventGallery, listEventGalleryMedia, type EventGalleryItem } from "@/lib/events-api";
 import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
@@ -60,6 +63,12 @@ const EventDetail = () => {
     const [isRegistered, setIsRegistered] = useState(false);
     const [capacity, setCapacity] = useState<EventCapacity | null>(null);
     const [waitlistEntry, setWaitlistEntry] = useState<WaitlistEntry | null>(null);
+    // Attendees-only gallery (migration 074): only checked-in attendees + admins
+    // can see a past event's photos, served as short-lived signed URLs.
+    const [galleryItems, setGalleryItems] = useState<EventGalleryItem[]>([]);
+    const [canViewGallery, setCanViewGallery] = useState(false);
+    const [galleryLoaded, setGalleryLoaded] = useState(false);
+    const [galleryLightbox, setGalleryLightbox] = useState<number | null>(null);
 
     // Check if user is logged in
     useEffect(() => {
@@ -168,6 +177,22 @@ const EventDetail = () => {
             else setShowRegistrationModal(true);
         }, 500);
     };
+
+    // Load the attendees-only gallery the first time its tab is opened on a past
+    // event. canViewEventGallery gates on attendance/admin; listEventGalleryMedia
+    // returns signed URLs (empty unless permitted).
+    useEffect(() => {
+        if (!event || event.status !== "past" || activeTab !== "gallery" || galleryLoaded) return;
+        let active = true;
+        (async () => {
+            const can = await canViewEventGallery(event.id);
+            if (!active) return;
+            setCanViewGallery(can);
+            if (can) setGalleryItems(await listEventGalleryMedia(event.id));
+            setGalleryLoaded(true);
+        })();
+        return () => { active = false; };
+    }, [event, activeTab, galleryLoaded]);
 
     if (!event) {
         return null;
@@ -728,43 +753,49 @@ const EventDetail = () => {
                                 <ScrollReveal>
                                     <div>
                                         <h2 className="font-display text-2xl font-bold mb-6">Moments from the day</h2>
-                                        {(event as Event).gallery && (event as Event).gallery!.length > 0 ? (
-                                            <div className="space-y-8">
-                                                {(event as Event).gallery!.map((album) => (
-                                                    <div key={album.id}>
-                                                        <h3 className="text-xl font-semibold mb-4">{album.name}</h3>
-                                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                                            {album.media.map((media, idx) => (
-                                                                <button
-                                                                    key={media.id}
-                                                                    onClick={() => {
-                                                                        setLightboxAlbum(album);
-                                                                        setLightboxIndex(idx);
-                                                                    }}
-                                                                    className="aspect-square bg-muted rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer group relative"
-                                                                >
-                                                                    {media.type === 'photo' ? (
-                                                                        <img src={media.url} alt="" className="w-full h-full object-cover" />
-                                                                    ) : (
-                                                                        <div className="relative w-full h-full">
-                                                                            <video src={media.url} className="w-full h-full object-cover" />
-                                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                                                                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                                                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                                                                                </svg>
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
+                                        {!canViewGallery ? (
+                                            <div className="rounded-2xl border border-border band-tint p-8 text-center" data-testid="gallery-locked">
+                                                <Lock className="w-8 h-8 text-primary mx-auto mb-3" />
+                                                <p className="font-semibold text-foreground mb-1">Photos are shared with attendees</p>
+                                                <p className="text-muted-foreground text-sm">Only Yatris who attended this event can view the gallery. If you were there and checked in, sign in with that account to relive the day.</p>
+                                            </div>
+                                        ) : galleryItems.length > 0 ? (
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="gallery-grid">
+                                                {galleryItems.map((item, idx) => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => setGalleryLightbox(idx)}
+                                                        className="aspect-square bg-muted rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer relative"
+                                                    >
+                                                        {item.mediaType === 'photo' ? (
+                                                            <img src={item.url} alt={item.caption || ''} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="relative w-full h-full">
+                                                                <video src={item.url} className="w-full h-full object-cover" />
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                                                    <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                                                                    </svg>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </button>
                                                 ))}
                                             </div>
                                         ) : (
                                             <div className="rounded-2xl border border-border band-tint p-8 text-center">
                                                 <ImageOff className="w-8 h-8 text-primary mx-auto mb-3" />
                                                 <p className="text-muted-foreground">Photos and highlights from this one are on the way, Yatri — check back soon to relive the day.</p>
+                                            </div>
+                                        )}
+                                        {galleryLightbox !== null && galleryItems[galleryLightbox] && (
+                                            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => setGalleryLightbox(null)}>
+                                                <button className="absolute right-4 top-4 text-white/80 hover:text-white" onClick={() => setGalleryLightbox(null)}><X className="h-7 w-7" /></button>
+                                                {galleryItems[galleryLightbox].mediaType === 'photo' ? (
+                                                    <img src={galleryItems[galleryLightbox].url} alt="" className="max-h-[88vh] max-w-full rounded-lg object-contain" onClick={(e) => e.stopPropagation()} />
+                                                ) : (
+                                                    <video src={galleryItems[galleryLightbox].url} controls autoPlay className="max-h-[88vh] max-w-full rounded-lg" onClick={(e) => e.stopPropagation()} />
+                                                )}
                                             </div>
                                         )}
                                     </div>

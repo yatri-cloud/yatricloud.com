@@ -729,3 +729,100 @@ export async function uploadEventMediaFile(
         return { success: false, error: error?.message || "Upload failed" };
     }
 }
+
+// ---------- attendees-only event gallery (migration 074) ----------
+// Photos live in the PRIVATE `event-gallery` bucket; `event_media` rows and the
+// storage objects are both RLS-gated so only admins and users who ATTENDED the
+// event can read them. Attendees view via short-lived signed URLs (which they
+// can only mint because the storage SELECT policy checks their attendance).
+
+const EVENT_GALLERY_BUCKET = "event-gallery";
+
+export interface EventGalleryItem {
+    id: string;
+    url: string;
+    mediaType: "photo" | "video";
+    caption: string | null;
+    path: string;
+}
+
+/** Admin: upload one or more photos/videos into an event's gallery. */
+export async function uploadEventGalleryMedia(
+    eventId: string,
+    files: File[],
+): Promise<{ uploaded: number; error?: string }> {
+    try {
+        const { data: last } = await supabase
+            .from("event_media")
+            .select("sort_order")
+            .eq("event_id", eventId)
+            .order("sort_order", { ascending: false })
+            .limit(1);
+        let sort = (last?.[0]?.sort_order ?? -1) + 1;
+        let uploaded = 0;
+        for (const file of files) {
+            const safe = file.name.replace(/[^\w.-]+/g, "_");
+            const path = `${eventId}/${Date.now()}-${sort}-${safe}`;
+            const { error: upErr } = await supabase.storage
+                .from(EVENT_GALLERY_BUCKET)
+                .upload(path, file, { contentType: file.type, upsert: false });
+            if (upErr) { console.error("[events-api] gallery upload", upErr.message); continue; }
+            const media_type = file.type.startsWith("video") ? "video" : "photo";
+            const { error: rowErr } = await supabase
+                .from("event_media")
+                .insert({ event_id: eventId, path, media_type, sort_order: sort });
+            if (rowErr) {
+                // Roll back the orphaned object if the row insert failed.
+                await supabase.storage.from(EVENT_GALLERY_BUCKET).remove([path]);
+                console.error("[events-api] gallery row", rowErr.message);
+                continue;
+            }
+            uploaded++; sort++;
+        }
+        return { uploaded };
+    } catch (e: any) {
+        return { uploaded: 0, error: e?.message || "Upload failed" };
+    }
+}
+
+/**
+ * The event's gallery as signed URLs. Returns items only for admins + attendees
+ * (RLS on `event_media` and the storage object both enforce this); everyone else
+ * gets an empty list.
+ */
+export async function listEventGalleryMedia(eventId: string): Promise<EventGalleryItem[]> {
+    const { data, error } = await supabase
+        .from("event_media")
+        .select("id, path, media_type, caption")
+        .eq("event_id", eventId)
+        .order("sort_order", { ascending: true });
+    if (error || !data?.length) return [];
+    const items: EventGalleryItem[] = [];
+    for (const row of data as any[]) {
+        const { data: signed } = await supabase.storage
+            .from(EVENT_GALLERY_BUCKET)
+            .createSignedUrl(row.path, 3600);
+        if (signed?.signedUrl) {
+            items.push({ id: row.id, url: signed.signedUrl, mediaType: row.media_type, caption: row.caption, path: row.path });
+        }
+    }
+    return items;
+}
+
+/** Whether the current user may see this event's gallery (attended it, or admin). */
+export async function canViewEventGallery(eventId: string): Promise<boolean> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { data: attended } = await supabase.rpc("attended_event", { evt: eventId });
+    if (attended === true) return true;
+    const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    return (prof as { role?: string } | null)?.role === "admin";
+}
+
+/** Admin: remove a gallery item (storage object + row). */
+export async function deleteEventGalleryMedia(id: string, path: string): Promise<{ ok: boolean; error?: string }> {
+    await supabase.storage.from(EVENT_GALLERY_BUCKET).remove([path]);
+    const { error } = await supabase.from("event_media").delete().eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+}

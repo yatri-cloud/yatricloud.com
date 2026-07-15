@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, Mic, Layers, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon } from "lucide-react";
+import { Calendar, Users, Mic, Layers, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -277,7 +277,16 @@ export default function AdminEvents() {
                                                 onClick={() => navigate('/createevent', { state: { event } })}
                                             >
                                                 <Pencil className="w-4 h-4 mr-2" />
-                                                {activeTab === 'past' ? 'Manage Gallery' : 'Edit Event'}
+                                                Edit Event
+                                            </DropdownMenuItem>
+                                        )}
+                                        {activeTab === 'past' && (
+                                            <DropdownMenuItem
+                                                data-testid="event-menu-gallery"
+                                                onClick={() => navigate(`/event/${event.slug || event.id}/media`)}
+                                            >
+                                                <ImageIcon className="w-4 h-4 mr-2" />
+                                                Manage Gallery
                                             </DropdownMenuItem>
                                         )}
 
