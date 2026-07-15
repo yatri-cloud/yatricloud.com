@@ -5,10 +5,18 @@ name: CI
 #  2. undefined-JSX  — the class of bug tsc misses (a removed import whose
 #                      component is still rendered once white-screened prod)
 #  3. vite build     — the real production build
+#  4. unit tests     — vitest (hermetic; Supabase degrades to placeholders)
+#
+# The `e2e` job (Playwright + curriculum integrity) is separate because it hits
+# the REAL Supabase and mutates it (creating + deleting throwaway rows that it
+# cleans up). It therefore runs only on pushes to main and manual dispatch —
+# never on pull requests (fork PRs have no secrets, and we don't touch prod from
+# untrusted PRs).
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   gate:
@@ -36,6 +44,9 @@ jobs:
       - name: Undefined-JSX guard
         run: node scripts/check-undefined-jsx.mjs
 
+      - name: Unit tests (vitest)
+        run: npm run test:unit
+
       - name: Build
         run: npm run build
         env:
@@ -44,3 +55,54 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+
+  # End-to-end + integrity — hits the real Supabase, so keep it off PRs.
+  # Requires repo SECRETS: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
+  # E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD (an admin that signs in with email+pw),
+  # and repo VARS: VITE_SUPABASE_* + VITE_GOOGLE_CLIENT_ID (as used by `gate`).
+  e2e:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs: gate
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # The integrity script reads .env directly, and the Playwright config +
+      # Vite dev server both read .env — so materialise one from secrets/vars.
+      - name: Write .env
+        run: |
+          cat > .env <<'EOF'
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          VITE_SUPABASE_URL=${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY=${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_PUBLISHABLE_KEY=${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
+          E2E_ADMIN_EMAIL=${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD=${{ secrets.E2E_ADMIN_PASSWORD }}
+          EOF
+
+      - name: Curriculum integrity
+        run: npm run test:integrity
+
+      - name: Playwright (public + admin)
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
