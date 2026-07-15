@@ -19,7 +19,11 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
-  reporter: [["list"]],
+  // In CI: `github` surfaces each failing test as a GitHub annotation (readable
+  // without downloading logs) and `html` writes the report the CI job uploads.
+  reporter: process.env.CI
+    ? [["list"], ["github"], ["html", { open: "never" }]]
+    : [["list"]],
   use: {
     baseURL: "http://localhost:8080",
     trace: "on-first-retry",
