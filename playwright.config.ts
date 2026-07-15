@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+// Load the git-ignored .env so E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD (used by
+// auth.setup.ts) can live there like the other secrets — never exported by hand.
+import "dotenv/config";
 
 /**
  * E2E config. Tests hit the running dev server (reused if already up, else
