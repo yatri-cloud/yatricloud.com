@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { UserPlus, GraduationCap, Users, Award, Upload, LogIn, CheckCircle, Link2, Trash2 } from "lucide-react";
+import { UserPlus, Upload, LogIn, CheckCircle, Link2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -191,10 +191,7 @@ export const BecomeTrainer = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6">
-                            <GraduationCap className="w-10 h-10 text-primary" />
-                        </div>
-                        <h1 className="text-4xl md:text-5xl font-bold mb-6">
+                        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight mb-6">
                             Become a Yatri Trainer
                         </h1>
                         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -210,23 +207,20 @@ export const BecomeTrainer = () => {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="grid md:grid-cols-3 gap-6 mt-12"
                     >
-                        <div className="bg-card border border-border rounded-xl p-6">
-                            <Users className="w-8 h-8 text-primary mb-4 mx-auto" />
-                            <h3 className="font-semibold mb-2">Reach Students Globally</h3>
+                        <div className="rounded-2xl border border-brand-100 bg-card p-6 shadow-card">
+                            <h3 className="font-display font-semibold tracking-tight mb-2">Reach Students Globally</h3>
                             <p className="text-sm text-muted-foreground">
                                 Connect with learners from around the world
                             </p>
                         </div>
-                        <div className="bg-card border border-border rounded-xl p-6">
-                            <Award className="w-8 h-8 text-primary mb-4 mx-auto" />
-                            <h3 className="font-semibold mb-2">Build Your Brand</h3>
+                        <div className="rounded-2xl border border-brand-100 bg-card p-6 shadow-card">
+                            <h3 className="font-display font-semibold tracking-tight mb-2">Build Your Brand</h3>
                             <p className="text-sm text-muted-foreground">
                                 Establish yourself as an industry expert
                             </p>
                         </div>
-                        <div className="bg-card border border-border rounded-xl p-6">
-                            <GraduationCap className="w-8 h-8 text-primary mb-4 mx-auto" />
-                            <h3 className="font-semibold mb-2">Flexible Schedule</h3>
+                        <div className="rounded-2xl border border-brand-100 bg-card p-6 shadow-card">
+                            <h3 className="font-display font-semibold tracking-tight mb-2">Flexible Schedule</h3>
                             <p className="text-sm text-muted-foreground">
                                 Create content on your own time
                             </p>

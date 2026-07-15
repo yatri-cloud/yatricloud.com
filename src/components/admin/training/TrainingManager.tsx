@@ -581,13 +581,15 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     };
 
     return (
-        <Card className="w-full max-w-6xl mx-auto rounded-2xl border border-border">
-            <CardHeader className="pb-6 border-b border-border flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-                <div>
-                    <CardTitle className="font-display text-2xl md:text-3xl font-bold tracking-tight">
+        <Card className="w-full max-w-6xl mx-auto rounded-2xl border border-brand-100 shadow-card overflow-hidden">
+            <CardHeader className="relative overflow-hidden pb-6 border-b border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+                <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+                <div className="relative">
+                    <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Training</p>
+                    <CardTitle className="mt-1 font-display text-2xl md:text-3xl font-bold tracking-tight">
                         {editId ? "Edit Training" : "Curriculum Builder"}
                     </CardTitle>
-                    <p className="text-muted-foreground mt-1.5">
+                    <p className="text-muted-foreground mt-1">
                         {editId ? "Update your training details" : "Design your course structure."}
                     </p>
                 </div>
