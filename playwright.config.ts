@@ -2,8 +2,15 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * E2E config. Tests hit the running dev server (reused if already up, else
- * started). Public blog flows need no auth; add authenticated projects later
- * with a storageState fixture.
+ * started with `npm run dev`).
+ *
+ * Projects:
+ *  - `setup`  — signs in as admin once and saves the session to
+ *               e2e/.auth/admin.json (see e2e/auth.setup.ts). Needs
+ *               E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD env vars.
+ *  - `public` — unauthenticated specs (e.g. blog). No storageState.
+ *  - `admin`  — authenticated specs (training admin). Reuses the saved
+ *               session; depends on `setup`.
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -14,7 +21,24 @@ export default defineConfig({
     baseURL: "http://localhost:8080",
     trace: "on-first-retry",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "setup", testMatch: /.*\.setup\.ts/ },
+    {
+      name: "public",
+      use: { ...devices["Desktop Chrome"] },
+      // Everything except the auth setup and the authenticated admin specs.
+      testIgnore: [/.*\.setup\.ts/, /training-admin\.spec\.ts/],
+    },
+    {
+      name: "admin",
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "e2e/.auth/admin.json",
+      },
+      dependencies: ["setup"],
+      testMatch: /training-admin\.spec\.ts/,
+    },
+  ],
   webServer: {
     command: "npm run dev",
     url: "http://localhost:8080",

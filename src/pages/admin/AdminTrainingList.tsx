@@ -216,7 +216,7 @@ export default function AdminTrainingList() {
                         </p>
                     </div>
                     <Link to="/admin/training/create" className="self-start md:self-auto">
-                        <Button className="gap-2 rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
+                        <Button data-testid="training-create-new" className="gap-2 rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                             Create New
                         </Button>
                     </Link>
@@ -229,6 +229,7 @@ export default function AdminTrainingList() {
                         <div className="relative flex-1 max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
+                                data-testid="training-search"
                                 placeholder="Search courses, providers..."
                                 className="pl-9 min-h-[44px]"
                                 value={searchTerm}
@@ -237,6 +238,7 @@ export default function AdminTrainingList() {
                         </div>
                         <div className="flex gap-2">
                             <Button
+                                data-testid="training-filter-all"
                                 variant={statusFilter === "All" ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setStatusFilter("All")}
@@ -245,6 +247,7 @@ export default function AdminTrainingList() {
                                 All
                             </Button>
                             <Button
+                                data-testid="training-filter-published"
                                 variant={statusFilter === "Published" ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setStatusFilter("Published")}
@@ -253,6 +256,7 @@ export default function AdminTrainingList() {
                                 Published
                             </Button>
                             <Button
+                                data-testid="training-filter-drafts"
                                 variant={statusFilter === "Draft" ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setStatusFilter("Draft")}
@@ -261,6 +265,7 @@ export default function AdminTrainingList() {
                                 Drafts
                             </Button>
                             <Button
+                                data-testid="training-filter-review"
                                 variant={statusFilter === "Review" ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setStatusFilter("Review")}
@@ -308,7 +313,7 @@ export default function AdminTrainingList() {
                             </TableHeader>
                             <TableBody className="divide-y divide-border">
                                 {filteredCourses.map((course) => (
-                                    <TableRow key={course.id} className="text-sm hover:bg-brand-50">
+                                    <TableRow key={course.id} data-testid={`training-row-${course.slug}`} className="text-sm hover:bg-brand-50">
                                         <TableCell className="font-medium px-4 py-3">
                                             <div className="flex flex-col">
                                                 <span className="flex items-center gap-2">
@@ -337,12 +342,12 @@ export default function AdminTrainingList() {
                                         <TableCell className="px-4 py-3 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" aria-label="Open course actions" className="focus-visible:ring-2 focus-visible:ring-ring">
+                                                    <Button data-testid="training-row-menu" variant="ghost" size="icon" aria-label="Open course actions" className="focus-visible:ring-2 focus-visible:ring-ring">
                                                         <MoreVertical className="w-4 h-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="w-48">
-                                                    <DropdownMenuItem asChild>
+                                                    <DropdownMenuItem asChild data-testid="training-menu-edit">
                                                         <Link to={`/admin/training/edit/${course.id}`} className="cursor-pointer">
                                                             <Edit className="w-4 h-4 mr-2" /> Edit Details
                                                         </Link>
@@ -364,7 +369,7 @@ export default function AdminTrainingList() {
                                                     </DropdownMenuItem>
                                                     {course.status === "Review" && (
                                                         <>
-                                                            <DropdownMenuItem onClick={() => handleApprove(course.id)}>
+                                                            <DropdownMenuItem data-testid="training-menu-approve" onClick={() => handleApprove(course.id)}>
                                                                 <CheckCircle2 className="w-4 h-4 mr-2 text-success" /> Approve and Publish
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleReject(course.id)}>
@@ -373,6 +378,7 @@ export default function AdminTrainingList() {
                                                         </>
                                                     )}
                                                     <DropdownMenuItem
+                                                        data-testid="training-menu-delete"
                                                         className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
                                                         onClick={() => handleDelete(course.id)}
                                                     >

@@ -277,6 +277,7 @@ const AdminTrainingReviews = () => {
                                 {pagedReviews.map((review) => (
                                     <div
                                         key={review.id}
+                                        data-testid={`review-row-${review.id}`}
                                         className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 hover:bg-brand-50/50 transition-colors p-3 md:p-4"
                                     >
                                         <div className="flex flex-wrap items-start gap-3">
@@ -314,6 +315,7 @@ const AdminTrainingReviews = () => {
                                                         Public
                                                     </Label>
                                                     <Switch
+                                                        data-testid="review-public-switch"
                                                         id={`review-public-${review.id}`}
                                                         checked={review.is_public}
                                                         onCheckedChange={(checked) => togglePublic(review, checked)}
@@ -321,6 +323,7 @@ const AdminTrainingReviews = () => {
                                                     />
                                                 </div>
                                                 <Button
+                                                    data-testid="review-delete"
                                                     variant="outline"
                                                     size="icon"
                                                     onClick={() => setReviewToDelete(review)}

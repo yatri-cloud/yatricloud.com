@@ -47,3 +47,6 @@ supabase/.temp/
 /playwright-report/
 /blob-report/
 /.playwright/
+
+# Playwright saved auth state (never commit sessions)
+e2e/.auth/

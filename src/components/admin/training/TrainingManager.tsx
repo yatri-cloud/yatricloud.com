@@ -593,7 +593,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleSubmit((d) => onSubmit(d, 'Draft'))} disabled={isSavingDraft || isLoading} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
+                    <Button data-testid="builder-save-draft" variant="outline" onClick={handleSubmit((d) => onSubmit(d, 'Draft'))} disabled={isSavingDraft || isLoading} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
                         {isSavingDraft && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Save Draft
                     </Button>
@@ -604,7 +604,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
                     <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 h-auto gap-1 mb-8">
                         {STEPS.map((step) => (
-                            <TabsTrigger key={step} value={step} className="rounded-lg">{step}</TabsTrigger>
+                            <TabsTrigger key={step} value={step} data-testid={`builder-tab-${step}`} className="rounded-lg">{step}</TabsTrigger>
                         ))}
                     </TabsList>
 
@@ -628,7 +628,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             arrives, so it displays the saved type instead of the placeholder —
                                             controlling it with `value` empties the field on async load. */}
                                         <Select key={`type-${selectedType || "new"}`} onValueChange={(v) => setValue("type", v)} defaultValue={selectedType}>
-                                            <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                            <SelectTrigger data-testid="builder-type-trigger" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                 <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -652,6 +652,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             ) : (
                                                 <Input
                                                     {...register("subType")}
+                                                    data-testid="builder-subtype"
                                                     placeholder="e.g. DevOps Engineer"
                                                     className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
                                                 />
@@ -668,6 +669,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                 options were names of courses that already existed.) */}
                                             <Input
                                                 {...register("courseName")}
+                                                data-testid="builder-course-name"
                                                 list="exam-name-suggestions"
                                                 placeholder="e.g. Microsoft Certified: Azure Fundamentals"
                                                 className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
@@ -757,7 +759,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             defaultValue={watch("certificationId") || "none"}
                                             onValueChange={(val) => setValue("certificationId", val === "none" ? "" : val)}
                                         >
-                                            <SelectTrigger className="min-h-[44px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                            <SelectTrigger data-testid="builder-cert-trigger" className="min-h-[44px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                 <SelectValue placeholder="Select a certification" />
                                             </SelectTrigger>
                                             <SelectContent className="max-h-72">
@@ -774,7 +776,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                                 <div>
                                     <Label className="block text-sm font-medium mb-1.5">Brief Description</Label>
-                                    <Textarea {...register("description")} placeholder="Course overview..." rows={3} className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                    <Textarea {...register("description")} data-testid="builder-description" placeholder="Course overview..." rows={3} className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                 </div>
 
                                 <div>
@@ -823,7 +825,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             value={isTrainerMode && trainerData ? trainerData.trainerId : watch("instructor")}
                                             disabled={isTrainerMode}
                                         >
-                                            <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                            <SelectTrigger data-testid="builder-instructor-trigger" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                 <SelectValue placeholder="Select Instructor" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -841,12 +843,12 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                     </div>
                                     <div>
                                         <Label className="flex items-center gap-1.5 text-sm font-medium mb-1.5"><Clock className="w-3.5 h-3.5" /> Total Duration</Label>
-                                        <Input {...register("duration")} placeholder="e.g. 5 hours" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                        <Input {...register("duration")} data-testid="builder-duration" placeholder="e.g. 5 hours" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                     </div>
                                     <div>
                                         <Label className="block text-sm font-medium mb-1.5">Level</Label>
                                         <Select onValueChange={(val) => setValue("level", val)} value={watch("level")}>
-                                            <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
+                                            <SelectTrigger data-testid="builder-level-trigger" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                 <SelectValue placeholder="Select Level" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -857,11 +859,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
                                 <div>
                                     <Label className="block text-sm font-medium mb-1.5">Skills Gained (Comma separated)</Label>
-                                    <Input {...register("skills")} placeholder="e.g. Python, Data Analysis, SQL" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                    <Input {...register("skills")} data-testid="builder-skills" placeholder="e.g. Python, Data Analysis, SQL" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                 </div>
                                 <div>
                                     <Label className="block text-sm font-medium mb-1.5">Learning Outcomes</Label>
-                                    <Textarea {...register("outcomes")} placeholder="e.g. • Write effective prompts..." rows={4} className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                    <Textarea {...register("outcomes")} data-testid="builder-outcomes" placeholder="e.g. • Write effective prompts..." rows={4} className="min-h-[110px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                 </div>
                             </div>
                             <div className="flex justify-between pt-2 mt-auto">
@@ -1296,7 +1298,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                             <div className="flex justify-between pt-2 mt-auto">
                                 <Button type="button" variant="ghost" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">Back</Button>
-                                <Button type="submit" disabled={isLoading} size="lg" className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
+                                <Button type="submit" data-testid="builder-publish" disabled={isLoading} size="lg" className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                     {isLoading ? (
                                         <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1328,7 +1330,7 @@ function CurriculumEditor({ control, register }: { control: Control<TrainingForm
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex justify-between items-center">
                 <h3 className="font-display text-lg font-semibold">Modules & Lessons</h3>
-                <Button type="button" size="sm" onClick={() => appendModule({ title: "New Module", lessons: [] })} variant="secondary" className="min-h-[44px] rounded-xl">
+                <Button type="button" data-testid="builder-add-module" size="sm" onClick={() => appendModule({ title: "New Module", lessons: [] })} variant="secondary" className="min-h-[44px] rounded-xl">
                     Add Module
                 </Button>
             </div>
@@ -1361,11 +1363,12 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                 <div className="flex-1">
                     <Input
                         {...register(`curriculum.${moduleIndex}.title` as const)}
+                        data-testid={`module-${moduleIndex}-title`}
                         placeholder="Module Title (e.g. Introduction to AI)"
                         className="font-semibold text-lg border-none shadow-none focus-visible:ring-0 px-0 h-auto rounded-none border-b focus-visible:border-primary"
                     />
                 </div>
-                <Button type="button" variant="ghost" size="sm" onClick={() => removeModule(moduleIndex)} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                <Button type="button" data-testid={`module-${moduleIndex}-remove`} variant="ghost" size="sm" onClick={() => removeModule(moduleIndex)} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
                     Remove
                 </Button>
             </div>
@@ -1377,15 +1380,15 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                         <input type="hidden" {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.lessonId` as const)} />
                         <div className="grid grid-cols-12 gap-2 items-center">
                             <div className="col-span-6">
-                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.title`)} placeholder="Lesson Title" className="h-8 text-sm" />
+                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.title`)} data-testid={`module-${moduleIndex}-lesson-${lessonIndex}-title`} placeholder="Lesson Title" className="h-8 text-sm" />
                             </div>
                             <div className="col-span-3">
-                                <select {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.type`)} className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+                                <select {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.type`)} data-testid={`module-${moduleIndex}-lesson-${lessonIndex}-type`} className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
                                     {LESSON_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                             </div>
                             <div className="col-span-2">
-                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.duration`)} placeholder="Dur." className="h-8 text-sm" />
+                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.duration`)} data-testid={`module-${moduleIndex}-lesson-${lessonIndex}-duration`} placeholder="Dur." className="h-8 text-sm" />
                             </div>
                             <div className="col-span-1 flex justify-end">
                                 <Button type="button" variant="ghost" size="sm" onClick={() => removeLesson(lessonIndex)} className="h-8 px-2 text-xs text-muted-foreground hover:bg-destructive hover:text-destructive-foreground">
@@ -1395,16 +1398,16 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                         </div>
                         <div className="grid grid-cols-12 gap-2">
                             <div className="col-span-5">
-                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.url`)} placeholder="Content URL (Vimeo / YouTube / Drive)" className="h-8 text-sm" />
+                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.url`)} data-testid={`module-${moduleIndex}-lesson-${lessonIndex}-url`} placeholder="Content URL (Vimeo / YouTube / Drive)" className="h-8 text-sm" />
                             </div>
                             <div className="col-span-7">
-                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.description`)} placeholder="Short description (optional)" className="h-8 text-sm" />
+                                <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.description`)} data-testid={`module-${moduleIndex}-lesson-${lessonIndex}-desc`} placeholder="Short description (optional)" className="h-8 text-sm" />
                             </div>
                         </div>
                     </div>
                 ))}
                 <div className="pt-2">
-                    <Button type="button" variant="ghost" size="sm" onClick={() => appendLesson({ title: "", type: "Video", duration: "", url: "", description: "" })} className="text-primary hover:text-primary/80 hover:bg-primary/5">
+                    <Button type="button" data-testid={`module-${moduleIndex}-add-lesson`} variant="ghost" size="sm" onClick={() => appendLesson({ title: "", type: "Video", duration: "", url: "", description: "" })} className="text-primary hover:text-primary/80 hover:bg-primary/5">
                         Add Lesson
                     </Button>
                 </div>
