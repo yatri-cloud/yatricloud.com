@@ -1,6 +1,26 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import nodemailer from 'nodemailer';
 
+/** Best-effort HTML → plain text for the email's text/plain alternative. */
+function htmlToText(html: string): string {
+    return String(html || '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<head[\s\S]*?<\/head>/gi, '')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/(p|div|h[1-6]|li|tr|table)>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/&#39;/gi, "'")
+        .replace(/&quot;/gi, '"')
+        .replace(/\n[ \t]+/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]{2,}/g, ' ')
+        .trim();
+}
+
 export default async function handler(
     request: VercelRequest,
     response: VercelResponse
@@ -54,6 +74,8 @@ export default async function handler(
             to,
             subject,
             html,
+            // Plain-text alternative (improves deliverability + accessibility).
+            text: (request.body?.text as string) || htmlToText(html),
         });
 
         console.log('✅ Email sent:', info.messageId);

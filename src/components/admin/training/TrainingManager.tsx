@@ -360,6 +360,16 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
     };
 
     const onSubmit = async (data: TrainingForm, status: 'Draft' | 'Published') => {
+        // Going live (or submitting for review) requires a real title, otherwise
+        // the course shows on the site as a generic, untitled "Training". Drafts
+        // stay lenient so work-in-progress can always be saved.
+        if (status === 'Published' && !data.courseName?.trim() && !data.certificationId) {
+            setActiveTab("Identity");
+            toast.error("Add a course name before publishing", {
+                description: "Give the course a name, or pick a certification, so it doesn't go live as an untitled “Training”.",
+            });
+            return;
+        }
         if (status === 'Draft') setIsSavingDraft(true);
         else setIsLoading(true);
 
@@ -370,6 +380,19 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
             // course as a draft and sends it for admin review; admins publish.
             const trainerSubmitting = isTrainerMode && status === 'Published';
             const effectiveStatus: 'Draft' | 'Published' = trainerSubmitting ? 'Draft' : status;
+
+            // On publish, drop modules that have no lessons — they render as a
+            // hollow "0 LESSONS" section on the live page. Drafts keep every
+            // module so work-in-progress is never lost.
+            let curriculum = data.curriculum || [];
+            if (status === 'Published') {
+                const before = curriculum.length;
+                curriculum = curriculum.filter((m) => (m.lessons?.length ?? 0) > 0);
+                const dropped = before - curriculum.length;
+                if (dropped > 0) {
+                    toast.info(`Removed ${dropped} empty module${dropped > 1 ? "s" : ""} (no lessons).`);
+                }
+            }
 
             const payload = {
                 subType: data.subType,
@@ -392,7 +415,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 startTime: data.startTime,
                 thumbnailBase64: thumbnailBase64,
                 thumbnailMimeType: thumbnailMimeType,
-                curriculum: data.curriculum,
+                curriculum: curriculum,
                 resources: resources,
                 status: effectiveStatus,
                 visibility: visibility,

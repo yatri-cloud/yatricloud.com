@@ -252,6 +252,14 @@ export async function enroll(input: {
   paymentStatus?: "pending" | "paid" | "failed" | "free";
   /** Our orders.id row backing this enrollment (paid flows). */
   orderId?: string | null;
+  /** Attendee contact details captured on the enrollment form (persisted so
+   *  admins/trainers can reach the learner instead of being discarded). */
+  fullName?: string;
+  phone?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  linkedin?: string;
 }): Promise<{ id: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Please sign in to enroll.");
@@ -263,6 +271,14 @@ export async function enroll(input: {
   if (input.currency) fields.currency = input.currency;
   if (input.paymentStatus) fields.payment_status = input.paymentStatus;
   if (input.orderId !== undefined && input.orderId !== null) fields.order_id = input.orderId;
+  // Attendee contact details — only set the ones we actually received so a
+  // retried paid attempt never blanks values captured on the first pass.
+  if (input.fullName) fields.full_name = input.fullName;
+  if (input.phone) fields.phone = input.phone;
+  if (input.city) fields.city = input.city;
+  if (input.state) fields.state = input.state;
+  if (input.country) fields.country = input.country;
+  if (input.linkedin) fields.linkedin = input.linkedin;
 
   // Reuse an existing row for this (training, email) so a retried paid attempt
   // does not hit the unique constraint — mirrors the events flow.
@@ -348,15 +364,20 @@ export async function createTrainingOrder(input: {
 export async function checkEnrollment(trainingId: string): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
+  // Fetch ALL of the user's rows for this training — a user can legitimately
+  // have more than one (e.g. a settled `free`/`paid` row plus a stale `pending`
+  // row from an abandoned checkout, or enrolments under two emails). Using
+  // .maybeSingle() here erroed on 2+ rows and locked the learner out entirely.
   const { data, error } = await supabase
     .from("training_enrollments")
-    .select("id,payment_status")
+    .select("payment_status")
     .eq("training_id", trainingId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (error || !data) return false;
-  // A pending or failed payment does not grant access to a paid course.
-  return data.payment_status !== "pending" && data.payment_status !== "failed";
+    .eq("user_id", user.id);
+  if (error || !data?.length) return false;
+  // Access if ANY row is settled (free/paid). This also grandfathers learners
+  // when a course later flips free -> paid: their existing `free` row still
+  // grants access. A lone pending/failed row does not.
+  return data.some((r) => r.payment_status !== "pending" && r.payment_status !== "failed");
 }
 
 /** The current user's enrollments + a map of their trainings (My Trainings). */
@@ -404,10 +425,12 @@ export async function listAllEnrollments(): Promise<any[]> {
     rowIndex: e.id,
     timestamp: e.enrolled_at,
     trainingName: e.trainings ? (e.trainings.course_title || e.trainings.name) : "",
-    userName: e.profiles?.full_name || e.email,
+    // Prefer what the learner entered on THIS enrollment (now persisted);
+    // fall back to their profile for older rows / incomplete forms.
+    userName: e.full_name || e.profiles?.full_name || e.email,
     userEmail: e.email,
-    userPhone: e.profiles?.phone_number || "",
-    city: e.profiles?.city || "",
+    userPhone: e.phone || e.profiles?.phone_number || "",
+    city: e.city || e.profiles?.city || "",
     status: e.status === "enrolled" ? "Enrolled"
       : e.status ? e.status.charAt(0).toUpperCase() + e.status.slice(1) : "",
     paymentStatus: e.payment_id ? "Paid" : "Free",

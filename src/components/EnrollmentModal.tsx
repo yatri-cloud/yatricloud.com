@@ -215,6 +215,16 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
     // paid trainings, or a direct free enrollment otherwise.
     const startEnrollment = async () => {
         setIsSubmitting(true);
+        // Contact details the learner entered — persisted with the enrollment
+        // (previously collected as required fields but silently discarded).
+        const contact = {
+            fullName: formData.name.trim() || undefined,
+            phone: formData.phone.trim() || undefined,
+            city: formData.city.trim() || undefined,
+            state: formData.state.trim() || undefined,
+            country: formData.country.trim() || undefined,
+            linkedin: formData.linkedIn.trim() || undefined,
+        };
         try {
             if (isPaid && inrPrice > 0) {
                 const smallest = toSmallestUnit(convertedPrice, payCurrency);
@@ -235,6 +245,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     currency: payCurrency.code,
                     paymentStatus: "pending",
                     orderId,
+                    ...contact,
                 });
 
                 const razorpayOrderId = await createRazorpayOrder({
@@ -270,7 +281,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     },
                 });
             } else {
-                await enroll({ trainingId: courseId, email: formData.email, paymentStatus: "free" });
+                await enroll({ trainingId: courseId, email: formData.email, paymentStatus: "free", ...contact });
                 await sendWelcomeAndFinish();
                 setIsSubmitting(false);
             }

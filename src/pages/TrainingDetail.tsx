@@ -568,15 +568,27 @@ export default function TrainingDetail() {
                     <div className="space-y-6">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <h2 className="text-2xl font-bold">What learners say</h2>
-                            {(course.reviewCount ?? 0) > 0 && (
-                                <span className="flex items-center gap-2 text-sm">
-                                    <StarRow rating={course.avgRating ?? 0} />
-                                    <span className="font-semibold">{(course.avgRating ?? 0).toFixed(1)}</span>
-                                    <span className="text-muted-foreground">
-                                        · {course.reviewCount} {course.reviewCount === 1 ? "review" : "reviews"}
+                            <div className="flex flex-wrap items-center gap-4">
+                                {(course.reviewCount ?? 0) > 0 && (
+                                    <span className="flex items-center gap-2 text-sm">
+                                        <StarRow rating={course.avgRating ?? 0} />
+                                        <span className="font-semibold">{(course.avgRating ?? 0).toFixed(1)}</span>
+                                        <span className="text-muted-foreground">
+                                            · {course.reviewCount} {course.reviewCount === 1 ? "review" : "reviews"}
+                                        </span>
                                     </span>
-                                </span>
-                            )}
+                                )}
+                                {isEnrolled && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="rounded-full"
+                                        onClick={() => navigate(`/training/${course.slug || course.id}/dashboard`)}
+                                    >
+                                        Write a review
+                                    </Button>
+                                )}
+                            </div>
                         </div>
 
                         {reviews.length === 0 ? (

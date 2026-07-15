@@ -111,6 +111,27 @@ app.post('/api/razorpay/verify', async (req, res) => {
 });
 
 // ── Transactional email (Office 365 SMTP) ───────────────────────────────
+
+/** Best-effort HTML → plain text for the email's text/plain alternative. */
+function htmlToText(html) {
+  return String(html || '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<head[\s\S]*?<\/head>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|h[1-6]|li|tr|table)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
 app.post('/api/send-email', async (req, res) => {
   try {
     const { to, subject, html } = req.body || {};
@@ -138,6 +159,8 @@ app.post('/api/send-email', async (req, res) => {
       to,
       subject,
       html,
+      // Plain-text alternative (improves deliverability + accessibility).
+      text: req.body.text || htmlToText(html),
     });
     return res.json({ success: true, messageId: info.messageId });
   } catch (error) {
