@@ -273,12 +273,17 @@ export default function TrainingDetail() {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="pt-2"></div>
 
-                        <h1 className="font-display text-3xl md:text-5xl font-bold leading-tight tracking-tight text-foreground">{course.courseName}</h1>
+                        {/* Blue eyebrow — provider · level — pairs with the black title */}
+                        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">
+                            {course.subType}{displayLevel ? <span className="text-primary/40"> · {displayLevel}</span> : null}
+                        </p>
+
+                        <h1 className="font-display text-3xl md:text-5xl font-bold leading-[1.1] tracking-tight text-foreground">{course.courseName}</h1>
                         <div className="text-lg text-muted-foreground leading-relaxed max-w-3xl prose dark:prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:list-disc prose-ul:pl-4">
                             <ReactMarkdown>{displayDescription}</ReactMarkdown>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 text-sm mt-4">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                             {(course.reviewCount ?? 0) > 0 && (
                                 <span className="flex items-center gap-2 text-foreground">
                                     <StarRow rating={course.avgRating ?? 0} />
@@ -292,24 +297,18 @@ export default function TrainingDetail() {
                             {course.subType.includes("AWS") ? <Badge variant="secondary" className="bg-[#FF9900] text-black border-none">AWS Certified</Badge> : null}
                             {/* Earned, not claimed: only well-reviewed courses get the badge */}
                             {(course.reviewCount ?? 0) >= 3 && course.avgRating >= 4.5 && (
-                                <Badge variant="outline" className="text-amber-500 border-amber-500/50 flex items-center gap-1">
-                                    <Award className="w-3 h-3" /> Highly rated
-                                </Badge>
+                                <Badge variant="outline" className="text-amber-500 border-amber-500/50">Highly rated</Badge>
                             )}
-                            <span className="flex items-center gap-1 text-muted-foreground">
-                                <User className="w-3 h-3" /> Created by <span className="font-medium text-primary underline underline-offset-4">{displayInstructor}</span>
-                            </span>
+                            <span className="text-muted-foreground">Created by <span className="font-medium text-primary">{displayInstructor}</span></span>
                             {course.timestamp && !Number.isNaN(new Date(course.timestamp).getTime()) && (
-                                <span className="flex items-center gap-1 text-muted-foreground">
-                                    <Clock className="w-3 h-3" /> Listed: {new Date(course.timestamp).toLocaleDateString()}
-                                </span>
+                                <span className="text-muted-foreground">Updated {new Date(course.timestamp).toLocaleDateString()}</span>
                             )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-6 text-sm text-foreground font-medium pt-4">
-                            <span className="flex items-center gap-2"><Globe className="w-4 h-4 text-primary" /> {course.mode} Format</span>
-                            {course.mode === "On-site" && <span className="flex items-center gap-2 text-amber-500"><MapPin className="w-4 h-4" /> {course.venue}</span>}
-                            <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> {displayLevel} Level</span>
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                            <span className="inline-flex items-center rounded-full border border-brand-100 bg-brand-50/60 px-3 py-1 text-xs font-medium text-foreground">{course.mode} format</span>
+                            {course.mode === "On-site" && course.venue && <span className="inline-flex items-center rounded-full border border-brand-100 bg-brand-50/60 px-3 py-1 text-xs font-medium text-foreground">{course.venue}</span>}
+                            <span className="inline-flex items-center rounded-full border border-brand-100 bg-brand-50/60 px-3 py-1 text-xs font-medium text-foreground">{displayLevel} level</span>
                         </div>
 
                         {course.certificationLabel && (
@@ -337,17 +336,18 @@ export default function TrainingDetail() {
                     <div className="lg:col-span-1 relative">
                         <div className="lg:sticky lg:top-4 h-fit z-30">
                             <Card className="shadow-card border border-brand-100 overflow-hidden rounded-2xl bg-card">
-                                <div className="aspect-video bg-muted relative group cursor-pointer">
+                                {/* Course cover — the thumbnail image, or a branded panel with the
+                                    exam code (no fake video-play control, since there is no preview). */}
+                                <div className="aspect-video relative">
                                     {course.thumbnailUrl ? (
-                                        <img src={course.thumbnailUrl} alt="Preview" className="w-full h-full object-cover" />
+                                        <img src={course.thumbnailUrl} alt={course.courseName} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
-                                            <PlayCircle className="w-16 h-16 text-primary/70" />
+                                        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-primary via-brand-600 to-brand-700 flex flex-col items-center justify-center text-center px-5">
+                                            <span aria-hidden="true" className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
+                                            <span className="relative text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">{course.subType}</span>
+                                            <span className="relative mt-1 font-display text-2xl font-bold leading-tight text-white">{course.certificationExamCode || course.courseName}</span>
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 bg-foreground/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <PlayCircle className="w-16 h-16 text-white drop-shadow-lg scale-110" />
-                                    </div>
                                 </div>
                                 <CardContent className="p-6 space-y-6">
                                     <div className="flex items-baseline gap-2">
@@ -356,15 +356,19 @@ export default function TrainingDetail() {
                                         </span>
                                     </div>
 
-                                    {/* Countdown to the first session — decide before it starts */}
-                                    {!isEnrolled && course.startDate && (
-                                        <div>
-                                            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">Batch starts in</p>
-                                            <CountdownTimer
-                                                targetDate={new Date(`${course.startDate}T${course.startTime || "09:00"}`)}
-                                            />
-                                        </div>
-                                    )}
+                                    {/* Countdown to the first session — only for a real, upcoming start
+                                        date (don't show an empty "Batch starts in" for undated courses). */}
+                                    {(() => {
+                                        if (isEnrolled || !course.startDate) return null;
+                                        const target = new Date(`${course.startDate}T${course.startTime || "09:00"}`);
+                                        if (Number.isNaN(target.getTime()) || target.getTime() <= Date.now()) return null;
+                                        return (
+                                            <div>
+                                                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">Batch starts in</p>
+                                                <CountdownTimer targetDate={target} />
+                                            </div>
+                                        );
+                                    })()}
 
                                     <Button
                                         className="w-full h-12 text-lg font-bold bg-primary hover:bg-brand-600 text-primary-foreground rounded-xl transition-all shadow-inset-btn"
@@ -380,22 +384,22 @@ export default function TrainingDetail() {
                                     </Button>
 
                                     {/* Honest, data-driven inclusions — nothing invented */}
-                                    <div className="space-y-3 text-sm">
+                                    <div className="space-y-2.5 text-sm">
                                         <h4 className="font-bold text-foreground">This course includes:</h4>
                                         {displayDuration && (
-                                            <div className="flex items-center gap-3 text-muted-foreground"><Clock className="w-4 h-4" /> {displayDuration} of live training</div>
+                                            <div className="flex items-start gap-2.5 text-muted-foreground"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" /> {displayDuration} of live training</div>
                                         )}
-                                        <div className="flex items-center gap-3 text-muted-foreground">
-                                            {course.mode === "Online" ? <Globe className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
+                                        <div className="flex items-start gap-2.5 text-muted-foreground">
+                                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
                                             {course.mode === "Online" ? "Live online sessions" : `In-person sessions${course.venue ? ` in ${course.venue}` : ""}`}
                                         </div>
                                         {modules.length > 0 && (
-                                            <div className="flex items-center gap-3 text-muted-foreground"><PlayCircle className="w-4 h-4" /> {modules.length} module{modules.length === 1 ? "" : "s"} of curriculum</div>
+                                            <div className="flex items-start gap-2.5 text-muted-foreground"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" /> {modules.length} module{modules.length === 1 ? "" : "s"} of curriculum</div>
                                         )}
                                         {Array.isArray(course.resources) && course.resources.length > 0 && (
-                                            <div className="flex items-center gap-3 text-muted-foreground"><Share2 className="w-4 h-4" /> {course.resources.length} downloadable resource{course.resources.length === 1 ? "" : "s"}</div>
+                                            <div className="flex items-start gap-2.5 text-muted-foreground"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" /> {course.resources.length} downloadable resource{course.resources.length === 1 ? "" : "s"}</div>
                                         )}
-                                        <div className="flex items-center gap-3 text-muted-foreground"><Award className="w-4 h-4" /> Certificate of completion</div>
+                                        <div className="flex items-start gap-2.5 text-muted-foreground"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" /> Certificate of completion</div>
                                     </div>
                                 </CardContent>
                             </Card>
