@@ -1061,7 +1061,19 @@ async function saveCurriculum(
         ...(l.url !== undefined ? { url: l.url } : {}),
         ...(l.description !== undefined ? { description: l.description } : {}),
       };
-      const row = { name: l.title || `Lesson ${li + 1}`, content, sort_order: li };
+      // Keep the typed mirror columns (migration 073) in sync with the content
+      // blob so lesson metadata is queryable/aggregatable in SQL. content stays
+      // the source the app reads; these just mirror it.
+      const durationDigits = String(content.duration ?? "").replace(/\D/g, "");
+      const row = {
+        name: l.title || `Lesson ${li + 1}`,
+        content,
+        sort_order: li,
+        lesson_type: content.type || null,
+        duration_minutes: durationDigits ? parseInt(durationDigits, 10) : null,
+        content_url: content.url ?? null,
+        description: content.description ?? null,
+      };
       if (isExisting) {
         await supabase.from("course_lessons").update(row).eq("id", l.lessonId!);
         keptLessonIds.add(l.lessonId!);

@@ -118,6 +118,8 @@
 
 - **D70 — TRAINING UI TWEAKS (2026-07-15, commit 9636271).** Dropped the "4.8★ average rating" hero trust cue (per request). Course LIST cards now fall back to the SAME blue gradient cover as the detail page (`from-primary via-brand-600 to-brand-700` + provider label + `certificationExamCode || courseName`) instead of a generic book icon — image-less courses look intentional. Design-only.
 
+- **D71 — TRAINING DEFERRED REFACTORS (2026-07-15, commits 229a645 + <this>, migration 073 APPLIED).** (1) Split the 1,440-line `TrainingManager.tsx`: extracted `training-form.ts` (types + TYPES/LEVELS/LESSON_TYPES/STEPS/TIME_SLOTS) and `CurriculumEditor.tsx` (the modules/lessons field-array editor) → main file 1,279 lines. Left the state-coupled form tabs (Identity/Details/Logistics/Review) in place ON PURPOSE — a FormProvider decomposition threads ~15 local-state pieces for single-use JSX = high-risk churn on a critical flow, not worth it. (2) Typed lesson columns: migration 073 adds `lesson_type/duration_minutes/content_url/description` to `course_lessons` + backfills from the `content` jsonb; `saveCurriculum` now writes them in sync with `content` (additive — `content` stays the read source, so no read-path/id-preserving-merge changes). `duration_minutes` = leading digits of the free-text duration ("5 mins"→5). Enables SQL aggregation (e.g. total course duration). Verified: typecheck+build, backfill (AZ-900 3 lessons), and a row accepts the new write shape.
+
 ## Inspiration sources
 awwwards.com · motionsites.ai · 21st.dev · getdesign.md · aitmpl.com · `npx getdesign@latest add lovable`.
 
