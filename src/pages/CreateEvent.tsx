@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { saveEvent, Event, Sponsor, EventSpeaker, GalleryAlbum, GalleryMedia, Ticket as EventTicket } from "@/lib/events-store";
 import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4;
 
 const generateTimeSlots = () => {
     const slots = [];
@@ -87,8 +87,8 @@ export default function CreateEvent() {
             // Skip collaboration selector for edit mode or past events
             setShowCollaborationSelector(false);
 
-            // If it's a past event, default to the Gallery step (5) for easier management
-            if (isPast) setStep(5);
+            // Past-event photos are managed separately via the attendees-only
+            // gallery (AdminEvents → "Manage Gallery"), not in this wizard.
 
             setVisibility(editEvent.visibility === 'private' ? 'private' : 'public');
             setExistingPrivateSlug(editEvent.visibility === 'private' ? (editEvent.slug || null) : null);
@@ -613,7 +613,7 @@ export default function CreateEvent() {
                                 {(() => {
                                     const currentEventStatus = formData.startDate ? (new Date(formData.startDate) < new Date() ? 'past' : 'upcoming') : 'upcoming';
                                     const isPastEvent = currentEventStatus === 'past';
-                                    const maxSteps = isPastEvent ? 5 : 4;
+                                    const maxSteps = 4;
 
                                     return Array.from({ length: maxSteps }, (_, i) => i + 1).map((s) => (
                                         <div key={s} className="flex items-center gap-2">
@@ -625,7 +625,7 @@ export default function CreateEvent() {
                                                     {s}
                                                 </div>
                                                 <span className="font-medium">
-                                                    {s === 1 ? 'Details' : s === 2 ? 'Tickets' : s === 3 ? 'Speakers' : s === 4 ? 'Sponsors' : 'Gallery'}
+                                                    {s === 1 ? 'Details' : s === 2 ? 'Tickets' : s === 3 ? 'Speakers' : 'Sponsors'}
                                                 </span>
                                             </button>
                                             {s < maxSteps && <div className="w-8 h-0.5 bg-border sm:block hidden" />}
@@ -1446,157 +1446,6 @@ export default function CreateEvent() {
                                 </div>
                             )}
 
-                            {step === 5 && (
-                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
-                                        <div className="mb-6 flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-start sm:justify-between">
-                                            <div className="flex items-start gap-3">
-                                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
-                                                <div className="min-w-0">
-                                                    <h2 className="font-display text-lg font-semibold tracking-tight">Event Gallery</h2>
-                                                    <p className="text-sm text-muted-foreground">Group event photos and videos into albums to showcase highlights.</p>
-                                                </div>
-                                            </div>
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button className="gap-2">
-                                                        Create Album
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="max-w-2xl">
-                                                    <DialogHeader>
-                                                        <DialogTitle>Create Gallery Album</DialogTitle>
-                                                    </DialogHeader>
-                                                    <form
-                                                        onSubmit={(e) => {
-                                                            e.preventDefault();
-                                                            const formEl = e.target as HTMLFormElement;
-                                                            const albumName = (formEl.elements.namedItem('albumName') as HTMLInputElement).value;
-                                                            const filesInput = formEl.elements.namedItem('files') as HTMLInputElement;
-
-                                                            if (!filesInput.files || filesInput.files.length === 0) {
-                                                                toast({ title: "No Files", description: "Please select at least one file to upload.", variant: "destructive" });
-                                                                return;
-                                                            }
-
-                                                            // Create new album
-                                                            const newAlbum: GalleryAlbum = {
-                                                                id: crypto.randomUUID(),
-                                                                name: albumName,
-                                                                media: [],
-                                                                createdAt: new Date().toISOString()
-                                                            };
-
-                                                            // Process files and create media items
-                                                            const files = Array.from(filesInput.files);
-                                                            let processedCount = 0;
-
-                                                            files.forEach((file) => {
-                                                                const reader = new FileReader();
-                                                                reader.onload = (evt) => {
-                                                                    const mediaItem: GalleryMedia = {
-                                                                        id: crypto.randomUUID(),
-                                                                        type: file.type.startsWith('video/') ? 'video' : 'photo',
-                                                                        url: evt.target?.result as string,
-                                                                        uploadedAt: new Date().toISOString()
-                                                                    };
-                                                                    newAlbum.media.push(mediaItem);
-                                                                    processedCount++;
-
-                                                                    if (processedCount === files.length) {
-                                                                        setFormData({
-                                                                            ...formData,
-                                                                            gallery: [...formData.gallery, newAlbum]
-                                                                        });
-                                                                        toast({ title: "Album Created", description: `${albumName} created with ${files.length} items.` });
-                                                                    }
-                                                                };
-                                                                reader.readAsDataURL(file);
-                                                            });
-                                                        }}
-                                                        className="space-y-4"
-                                                    >
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="albumName">Album Name *</Label>
-                                                            <Input name="albumName" required placeholder="Opening Ceremony" />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="files">Upload Photos/Videos *</Label>
-                                                            <Input name="files" type="file" accept="image/*,video/*" multiple required />
-                                                            <p className="text-xs text-muted-foreground">Select multiple files (photos and videos)</p>
-                                                        </div>
-                                                        <DialogFooter>
-                                                            <Button type="submit">Create Album</Button>
-                                                        </DialogFooter>
-                                                    </form>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-
-                                        {/* Album List */}
-                                        {formData.gallery.length === 0 ? (
-                                            <div className="text-center py-16 border-2 border-dashed rounded-xl bg-muted/20">
-                                                <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                                                <h3 className="font-display text-lg font-semibold mb-2">No Albums Yet</h3>
-                                                <p className="text-sm text-muted-foreground mb-4">Create your first album to showcase event photos and videos</p>
-                                            </div>
-                                        ) : (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                                {formData.gallery.map((album, albumIndex) => (
-                                                    <div key={album.id} className="border rounded-lg overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow group">
-                                                        {/* Album Thumbnail Grid */}
-                                                        <div className="aspect-video bg-muted relative overflow-hidden">
-                                                            {album.media.length > 0 ? (
-                                                                <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-full">
-                                                                    {album.media.slice(0, 4).map((media, idx) => (
-                                                                        <div key={media.id} className="relative bg-muted">
-                                                                            {media.type === 'photo' ? (
-                                                                                <img src={media.url} alt="" className="w-full h-full object-cover" />
-                                                                            ) : (
-                                                                                <div className="w-full h-full flex items-center justify-center bg-black/80">
-                                                                                    <Upload className="w-6 h-6 text-white/60" />
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center">
-                                                                    <ImageIcon className="w-8 h-8 text-muted-foreground/30" />
-                                                                </div>
-                                                            )}
-                                                            <button
-                                                                onClick={() => {
-                                                                    const newGallery = [...formData.gallery];
-                                                                    newGallery.splice(albumIndex, 1);
-                                                                    setFormData({ ...formData, gallery: newGallery });
-                                                                    toast({ title: "Album Deleted", description: `${album.name} has been removed.` });
-                                                                }}
-                                                                className="absolute top-2 right-2 p-2 bg-destructive/90 text-destructive-foreground rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-
-                                                        <div className="p-4">
-                                                            <h4 className="font-semibold mb-1">{album.name}</h4>
-                                                            <p className="text-xs text-muted-foreground">{album.media.length} {album.media.length === 1 ? 'item' : 'items'}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex justify-end gap-4 pt-4">
-                                        <Button onClick={() => {
-                                            toast({ title: "Gallery Saved", description: "Gallery albums saved successfully." });
-                                        }} size="lg">
-                                            Save Gallery
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         <div className="hidden lg:block space-y-6">

@@ -233,6 +233,19 @@ export const createEvent = saveEvent;
 export const updateEvent = saveEvent;
 
 export async function deleteEvent(id: string): Promise<void> {
+    // Remove the event's gallery files from the private bucket first — the
+    // event_media rows cascade on delete, but the storage objects would not,
+    // leaving orphans behind.
+    try {
+        const { data: media } = await supabase
+            .from("event_media")
+            .select("path")
+            .eq("event_id", id);
+        const paths = (media || []).map((m: { path: string }) => m.path);
+        if (paths.length) await supabase.storage.from("event-gallery").remove(paths);
+    } catch (e: any) {
+        console.error("[events-api] deleteEvent gallery cleanup", e?.message);
+    }
     const { error } = await supabase.from("events").delete().eq("id", id);
     if (error) {
         console.error("[events-api] deleteEvent", error.message);
