@@ -115,9 +115,13 @@ test("a Yatri reply on a resolved ticket reopens it automatically", async ({ pag
   await expect(page.getByTestId("ticket-status")).toHaveText(/^Open$/i, { timeout: 10_000 });
 });
 
-test("the Yatri closes their own ticket as solved", async ({ page }) => {
+test("the Yatri closes their own ticket as solved and gets a closing email", async ({ page }) => {
+  const sent = await interceptEmails(page);
   await page.goto(`/support/${ticketNumber}`);
   await page.getByTestId("ticket-close").click();
   await expect(page.getByText(/This ticket is closed/i)).toBeVisible({ timeout: 10_000 });
   await expect(page.getByTestId("ticket-status")).toHaveText(/Closed/i);
+  await expect
+    .poll(() => sent.some((e) => e.subject === `Closed: [${ticketNumber}] ${SUBJECT}`), { timeout: 10_000 })
+    .toBe(true);
 });

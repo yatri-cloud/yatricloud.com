@@ -236,14 +236,33 @@ export async function replyAsUser(
   return { ok: true, error: null };
 }
 
-/** Yatri marks their own ticket solved. */
+function sendClosedEmail(ticket: SupportTicket, intro: string) {
+  void emailQuietly(
+    ticket.email,
+    `Closed: [${ticket.ticketNumber}] ${ticket.subject}`,
+    ticketEmail(
+      `Ticket ${ticket.ticketNumber} is closed`,
+      `<p>${intro}</p><p>If anything comes up again, open a fresh ticket any time — it takes a minute.</p>`,
+      ticket.ticketNumber
+    )
+  );
+}
+
+/** Yatri marks their own ticket solved — confirmed with a closing email. */
 export async function closeMyTicket(ticket: SupportTicket): Promise<boolean> {
   const { error } = await supabase
     .from("support_tickets")
     .update({ status: "closed", closed_at: new Date().toISOString(), last_activity_at: new Date().toISOString() })
     .eq("id", ticket.id);
-  if (error) console.error("[support] closeMyTicket", error.message);
-  return !error;
+  if (error) {
+    console.error("[support] closeMyTicket", error.message);
+    return false;
+  }
+  sendClosedEmail(
+    ticket,
+    `Glad it's sorted! You marked <strong>${ticket.ticketNumber}</strong> — <em>${ticket.subject}</em> — as solved, so we closed it.`
+  );
+  return true;
 }
 
 /* ---------------- admin side ---------------- */
@@ -319,6 +338,12 @@ export async function setTicketStatus(ticket: SupportTicket, status: TicketStatu
         `<p>We believe <strong>${ticket.ticketNumber}</strong> — <em>${ticket.subject}</em> — is sorted. If anything still feels off, just reply on the ticket and it reopens automatically.</p>`,
         ticket.ticketNumber
       )
+    );
+  }
+  if (status === "closed") {
+    sendClosedEmail(
+      ticket,
+      `Your ticket <strong>${ticket.ticketNumber}</strong> — <em>${ticket.subject}</em> — is finished and closed.`
     );
   }
   return true;
