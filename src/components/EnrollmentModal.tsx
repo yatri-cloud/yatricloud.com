@@ -78,7 +78,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
     const applyCoupon = async () => {
         setCouponChecking(true);
         setCouponError("");
-        const result = await validateCoupon(couponInput, "training");
+        const result = await validateCoupon(couponInput, "training", [courseId]);
         setCouponChecking(false);
         if (result) {
             setCoupon(result);

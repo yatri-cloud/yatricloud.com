@@ -24,11 +24,21 @@ interface Coupon {
     expires_at: string | null;
     active: boolean;
     created_at: string;
+    entity_type: string | null;
+    entity_id: string | null;
+    entity_label: string | null;
 }
 
 const SCOPE_LABELS: Record<string, string> = { all: "Everything", training: "Trainings", event: "Events", store: "Store" };
 
-const EMPTY = { code: "", percent_off: "10", applies_to: "all", max_uses: "", expires_at: "" };
+/** Which table feeds the "pin to one item" picker for each scope. */
+const SCOPE_ITEMS: Record<string, { table: string; nameCol: string; entityType: string }> = {
+    event: { table: "events", nameCol: "name", entityType: "event" },
+    training: { table: "trainings", nameCol: "course_title", entityType: "training" },
+    store: { table: "products", nameCol: "title", entityType: "product" },
+};
+
+const EMPTY = { code: "", percent_off: "10", applies_to: "all", max_uses: "", expires_at: "", entity_id: "", entity_label: "" };
 
 export default function AdminCoupons() {
     const [rows, setRows] = useState<Coupon[]>([]);
@@ -67,6 +77,23 @@ export default function AdminCoupons() {
     const currentPage = Math.min(page, pageCount);
     const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+    // Items for the optional "pin to one item" picker, fetched per scope.
+    const [scopeItems, setScopeItems] = useState<{ id: string; label: string }[]>([]);
+    useEffect(() => {
+        const src = SCOPE_ITEMS[form.applies_to];
+        if (!src || !dialogOpen) { setScopeItems([]); return; }
+        let alive = true;
+        supabase
+            .from(src.table)
+            .select(`id, ${src.nameCol}`)
+            .order(src.nameCol, { ascending: true })
+            .then(({ data }) => {
+                if (!alive) return;
+                setScopeItems(((data || []) as any[]).map((r) => ({ id: r.id, label: r[src.nameCol] || "(untitled)" })));
+            });
+        return () => { alive = false; };
+    }, [form.applies_to, dialogOpen]);
+
     const openAdd = () => { setEditId(null); setForm({ ...EMPTY }); setDialogOpen(true); };
     const openEdit = (c: Coupon) => {
         setEditId(c.id);
@@ -76,6 +103,8 @@ export default function AdminCoupons() {
             applies_to: c.applies_to,
             max_uses: c.max_uses ? String(c.max_uses) : "",
             expires_at: c.expires_at ? c.expires_at.slice(0, 10) : "",
+            entity_id: c.entity_id || "",
+            entity_label: c.entity_label || "",
         });
         setDialogOpen(true);
     };
@@ -86,12 +115,17 @@ export default function AdminCoupons() {
         if (!code) { toast.error("Give the coupon a code."); return; }
         if (!percent || percent < 1 || percent > 100) { toast.error("Percent off must be between 1 and 100."); return; }
         setSaving(true);
+        const src = SCOPE_ITEMS[form.applies_to];
+        const pinned = src && form.entity_id ? form.entity_id : null;
         const payload = {
             code,
             percent_off: percent,
             applies_to: form.applies_to,
             max_uses: form.max_uses.trim() ? Number(form.max_uses) || null : null,
             expires_at: form.expires_at ? new Date(`${form.expires_at}T23:59:59`).toISOString() : null,
+            entity_type: pinned ? src.entityType : null,
+            entity_id: pinned,
+            entity_label: pinned ? form.entity_label || null : null,
         };
         const { error } = editId
             ? await supabase.from("coupons").update(payload).eq("id", editId)
@@ -181,7 +215,14 @@ export default function AdminCoupons() {
                                         <TableRow key={c.id}>
                                             <TableCell className="font-mono font-semibold">{c.code}</TableCell>
                                             <TableCell>{c.percent_off}% off</TableCell>
-                                            <TableCell className="text-muted-foreground">{SCOPE_LABELS[c.applies_to] || c.applies_to}</TableCell>
+                                            <TableCell className="text-muted-foreground">
+                                                {SCOPE_LABELS[c.applies_to] || c.applies_to}
+                                                {c.entity_label && (
+                                                    <span className="ml-1.5 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-primary">
+                                                        {c.entity_label}
+                                                    </span>
+                                                )}
+                                            </TableCell>
                                             <TableCell className="tabular-nums text-muted-foreground">{usageLabel(c)}</TableCell>
                                             <TableCell className="text-muted-foreground">
                                                 {c.expires_at ? new Date(c.expires_at).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "Never"}
@@ -241,6 +282,29 @@ export default function AdminCoupons() {
                                 </Select>
                             </div>
                         </div>
+                        {SCOPE_ITEMS[form.applies_to] && (
+                            <div className="space-y-1.5">
+                                <Label>Limit to one item (optional)</Label>
+                                <Select
+                                    value={form.entity_id || "any"}
+                                    onValueChange={(v) => {
+                                        if (v === "any") setForm({ ...form, entity_id: "", entity_label: "" });
+                                        else setForm({ ...form, entity_id: v, entity_label: scopeItems.find((i) => i.id === v)?.label || "" });
+                                    }}
+                                >
+                                    <SelectTrigger data-testid="cp-entity"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="max-h-64">
+                                        <SelectItem value="any">Whole {SCOPE_LABELS[form.applies_to].toLowerCase()} scope</SelectItem>
+                                        {scopeItems.map((i) => (
+                                            <SelectItem key={i.id} value={i.id}>{i.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">
+                                    Pinned codes only work when that exact item is in the checkout, and the discount applies to it alone.
+                                </p>
+                            </div>
+                        )}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
                                 <Label htmlFor="cp-max">Max uses (empty = unlimited)</Label>

@@ -79,13 +79,22 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
   const applyCoupon = async () => {
     setCouponChecking(true);
     setCouponError("");
-    const result = await validateCoupon(couponInput, "store");
+    const result = await validateCoupon(couponInput, "store", items.map((i) => i.id));
     setCouponChecking(false);
     if (result) setCoupon(result);
     else { setCoupon(null); setCouponError("That code did not work. Check the spelling or try another."); }
   };
 
-  const effectiveTotalInr = discountedInr(totalPrice, coupon);
+  // Item-pinned coupons discount only their matching line; universal and
+  // store-wide codes discount the whole total, as before.
+  const effectiveTotalInr = (() => {
+    if (!coupon) return totalPrice;
+    if (!coupon.entityId) return discountedInr(totalPrice, coupon);
+    const line = items.find((i) => i.id === coupon.entityId);
+    if (!line) return totalPrice;
+    const lineInr = line.discountedPrice * line.quantity;
+    return Math.max(0, totalPrice - lineInr + discountedInr(lineInr, coupon));
+  })();
   const convertedTotal = convertFromInr(effectiveTotalInr, currency);
   const totalLabel = formatMoney(convertedTotal, currency);
   const originalTotalLabel = formatMoney(convertFromInr(totalPrice, currency), currency);

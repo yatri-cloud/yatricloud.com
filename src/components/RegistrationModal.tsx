@@ -80,7 +80,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     const applyCoupon = async () => {
         setCouponChecking(true);
         setCouponError("");
-        const result = await validateCoupon(couponInput, "event");
+        const result = await validateCoupon(couponInput, "event", [event.id]);
         setCouponChecking(false);
         if (result) {
             setCoupon(result);

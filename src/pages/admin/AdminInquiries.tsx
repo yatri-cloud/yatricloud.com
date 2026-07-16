@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Trash2 } from "lucide-react";
+import { Loader2, Reply, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ListPager } from "@/components/ui/list-pager";
 import { supabase } from "@/lib/supabase";
+import { sendEmail } from "@/lib/email";
+import { BASE_TEMPLATE } from "@/lib/email-templates";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 10;
@@ -25,6 +30,8 @@ interface PartnerInquiry {
     state: string | null;
     status: string;
     created_at: string;
+    admin_reply: string | null;
+    replied_at: string | null;
 }
 
 interface ContactMessage {
@@ -35,6 +42,8 @@ interface ContactMessage {
     message: string;
     status: string;
     created_at: string;
+    admin_reply: string | null;
+    replied_at: string | null;
 }
 
 const KIND_LABELS: Record<string, string> = {
@@ -90,11 +99,11 @@ export default function AdminInquiries() {
             const [consult, contact] = await Promise.all([
                 supabase
                     .from("consultation_requests")
-                    .select("id, name, email, company_name, kind, role, phone, headcount, focus, message, state, status, created_at")
+                    .select("id, name, email, company_name, kind, role, phone, headcount, focus, message, state, status, created_at, admin_reply, replied_at")
                     .order("created_at", { ascending: false }),
                 supabase
                     .from("contact_messages")
-                    .select("id, name, email, subject, message, status, created_at")
+                    .select("id, name, email, subject, message, status, created_at, admin_reply, replied_at")
                     .order("created_at", { ascending: false }),
             ]);
             if (consult.error || contact.error) {
@@ -117,6 +126,56 @@ export default function AdminInquiries() {
         const { error } = await supabase.from("contact_messages").update({ status }).eq("id", row.id);
         if (error) { toast.error("That did not save. Please try again."); return; }
         setContacts((prev) => prev.map((r) => (r.id === row.id ? { ...r, status } : r)));
+    };
+
+    // Reply by email: one dialog serves both tabs. Sends through
+    // /api/send-email on the branded template, records the reply on the row,
+    // and marks the inquiry handled.
+    const [replyTo, setReplyTo] = useState<{
+        table: "consultation_requests" | "contact_messages";
+        id: string;
+        name: string;
+        email: string;
+        subject: string;
+    } | null>(null);
+    const [replyText, setReplyText] = useState("");
+    const [replySending, setReplySending] = useState(false);
+
+    const openReply = (table: "consultation_requests" | "contact_messages", row: { id: string; name: string; email: string }, subject: string) => {
+        setReplyText("");
+        setReplyTo({ table, id: row.id, name: row.name, email: row.email, subject });
+    };
+
+    const sendReply = async () => {
+        if (!replyTo || !replyText.trim()) {
+            toast.error("Write a reply first.");
+            return;
+        }
+        setReplySending(true);
+        try {
+            const html = BASE_TEMPLATE(
+                `<h2 style="margin:0 0 16px;">Hi ${replyTo.name || "there"},</h2>
+                 <p style="white-space:pre-line;">${replyText.trim()}</p>
+                 <p style="color:#667085;">— The Yatri Cloud team</p>`,
+                replyTo.subject
+            );
+            await sendEmail({ to: replyTo.email, subject: replyTo.subject, html });
+        } catch {
+            setReplySending(false);
+            toast.error("The email did not send. Please try again.");
+            return;
+        }
+        const patch = { admin_reply: replyText.trim(), replied_at: new Date().toISOString(), status: "approved" };
+        const { error } = await supabase.from(replyTo.table).update(patch).eq("id", replyTo.id);
+        setReplySending(false);
+        if (error) { toast.error("Sent, but recording the reply failed."); return; }
+        if (replyTo.table === "consultation_requests") {
+            setInquiries((prev) => prev.map((r) => (r.id === replyTo.id ? { ...r, ...patch } : r)));
+        } else {
+            setContacts((prev) => prev.map((r) => (r.id === replyTo.id ? { ...r, ...patch } : r)));
+        }
+        toast.success(`Reply sent to ${replyTo.email}`);
+        setReplyTo(null);
     };
 
     // Delete confirmation: { table, id, label } — one dialog serves both tabs.
@@ -276,9 +335,24 @@ export default function AdminInquiries() {
                                                 {` · ${formatDate(r.created_at)}`}
                                             </p>
                                             {r.message && <p className="text-sm text-foreground">{r.message}</p>}
+                                            {r.replied_at && (
+                                                <p className="rounded-lg border border-success/20 bg-success/5 px-3 py-2 text-xs text-muted-foreground">
+                                                    <span className="font-semibold text-success">Replied {formatDate(r.replied_at)}:</span>{" "}
+                                                    {r.admin_reply}
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="flex shrink-0 items-center gap-3">
                                             <StatusPill status={r.status} />
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="rounded-xl"
+                                                data-testid="inquiry-reply"
+                                                onClick={() => openReply("consultation_requests", r, "Re: your partnership inquiry to Yatri Cloud")}
+                                            >
+                                                <Reply className="mr-1.5 h-3.5 w-3.5" /> Reply
+                                            </Button>
                                             {r.status === "pending" ? (
                                                 <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setInquiryStatus(r, "approved")}>
                                                     Mark handled
@@ -348,9 +422,24 @@ export default function AdminInquiries() {
                                                 {` · ${formatDate(r.created_at)}`}
                                             </p>
                                             <p className="text-sm text-foreground">{r.message}</p>
+                                            {r.replied_at && (
+                                                <p className="rounded-lg border border-success/20 bg-success/5 px-3 py-2 text-xs text-muted-foreground">
+                                                    <span className="font-semibold text-success">Replied {formatDate(r.replied_at)}:</span>{" "}
+                                                    {r.admin_reply}
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="flex shrink-0 items-center gap-3">
                                             <StatusPill status={r.status} />
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="rounded-xl"
+                                                data-testid="contact-reply"
+                                                onClick={() => openReply("contact_messages", r, `Re: ${r.subject || "your message to Yatri Cloud"}`)}
+                                            >
+                                                <Reply className="mr-1.5 h-3.5 w-3.5" /> Reply
+                                            </Button>
                                             {r.status === "pending" ? (
                                                 <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setContactStatus(r, "approved")}>
                                                     Mark handled
@@ -389,6 +478,53 @@ export default function AdminInquiries() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <Dialog open={!!replyTo} onOpenChange={(o) => !o && setReplyTo(null)}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="font-display tracking-tight">
+                            Reply to {replyTo?.name || replyTo?.email}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Sends a branded email to {replyTo?.email} and marks the inquiry handled.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        <div className="space-y-1.5">
+                            <Label>Subject</Label>
+                            <Input value={replyTo?.subject || ""} readOnly className="bg-muted/50" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="inquiry-reply-text">Your reply</Label>
+                            <Textarea
+                                id="inquiry-reply-text"
+                                data-testid="inquiry-reply-text"
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                placeholder="Thanks for reaching out…"
+                                className="min-h-[140px]"
+                                disabled={replySending}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" className="rounded-xl" onClick={() => setReplyTo(null)} disabled={replySending}>
+                            Cancel
+                        </Button>
+                        <Button className="rounded-xl" onClick={sendReply} disabled={replySending} data-testid="inquiry-reply-send">
+                            {replySending ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending
+                                </>
+                            ) : (
+                                <>
+                                    <Reply className="mr-2 h-4 w-4" /> Send reply
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
