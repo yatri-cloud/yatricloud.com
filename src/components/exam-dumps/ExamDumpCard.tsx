@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ShoppingCart, ExternalLink, Download } from "lucide-react";
+import { EntityReviews } from "@/components/reviews/EntityReviews";
 import { ExamDump } from "@/lib/exam-dumps";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -155,6 +156,14 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
                   <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                     {dump.description}
                   </p>
+                </div>
+                <div className="border-t border-border pt-4">
+                  <h3 className="font-display font-semibold mb-3">Ratings & reviews</h3>
+                  <EntityReviews
+                    entityType="exam_dump"
+                    entityId={dump.id}
+                    entityName={dump.title}
+                  />
                 </div>
               </div>
             </DialogContent>

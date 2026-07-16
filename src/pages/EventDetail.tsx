@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
 import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
 import { canViewEventGallery, listEventGalleryMedia, type EventGalleryItem } from "@/lib/events-api";
+import { EntityReviews } from "@/components/reviews/EntityReviews";
 import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
@@ -53,7 +54,7 @@ const EventDetail = () => {
     const reduceMotion = useReducedMotion();
     const [event, setEvent] = useState<Event | null>(null);
     const [allEvents, setAllEvents] = useState<Event[]>([]);
-    const [activeTab, setActiveTab] = useState<'about' | 'tickets' | 'speakers' | 'attendees' | 'community' | 'gallery'>('about');
+    const [activeTab, setActiveTab] = useState<'about' | 'tickets' | 'speakers' | 'attendees' | 'community' | 'gallery' | 'reviews'>('about');
     const [lightboxAlbum, setLightboxAlbum] = useState<GalleryAlbum | null>(null);
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const [showLoginModal, setShowLoginModal] = useState(false);
@@ -244,6 +245,7 @@ const EventDetail = () => {
         { id: 'attendees', label: 'Attendees' },
         { id: 'community', label: 'Join Community' },
         ...(isPastEvent ? [{ id: 'gallery', label: 'Gallery' }] : []),
+        { id: 'reviews', label: 'Reviews' },
     ];
 
     return (
@@ -745,6 +747,20 @@ const EventDetail = () => {
                                                 Join the Yatris on Discord
                                             </a>
                                         )}
+                                    </div>
+                                </ScrollReveal>
+                            )}
+
+                            {activeTab === 'reviews' && (
+                                <ScrollReveal>
+                                    <div>
+                                        <h2 className="font-display text-2xl font-bold mb-6">What Yatris say about this event</h2>
+                                        <EntityReviews
+                                            entityType="event"
+                                            entityId={event.id}
+                                            entityName={event.name}
+                                            gateHint="Reviews are open to Yatris registered for this event."
+                                        />
                                     </div>
                                 </ScrollReveal>
                             )}

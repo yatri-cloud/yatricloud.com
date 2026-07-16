@@ -67,7 +67,11 @@ export async function createFixtureEvent(opts: {
 }
 
 /** Fills a seat directly in the DB (e.g. to make a capacity-1 event sold out). */
-export async function seedRegistration(eventId: string, email: string): Promise<string> {
+export async function seedRegistration(
+  eventId: string,
+  email: string,
+  userId?: string
+): Promise<string> {
   const code = `E2E${Date.now()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
   const { error } = await admin().from("event_registrations").insert({
     event_id: eventId,
@@ -75,9 +79,52 @@ export async function seedRegistration(eventId: string, email: string): Promise<
     name: "E2E Seat Filler",
     email,
     status: "registered",
+    ...(userId ? { user_id: userId } : {}),
   });
   if (error) throw new Error(`fixture registration insert failed: ${error.message}`);
   return code;
+}
+
+/** Look up a profile id by email (e.g. the e2e admin, to own a registration). */
+export async function getUserIdByEmail(email: string): Promise<string | undefined> {
+  const { data } = await admin().from("profiles").select("id").eq("email", email).maybeSingle();
+  return (data as { id?: string } | null)?.id;
+}
+
+/** Remove polymorphic reviews left on a fixture entity (no FK — explicit cleanup). */
+export async function deleteEntityReviewsFor(entityId: string | undefined): Promise<void> {
+  if (!entityId) return;
+  await admin().from("entity_reviews").delete().eq("entity_id", entityId);
+}
+
+export interface FixtureProduct {
+  id: string;
+  title: string;
+}
+
+/** A published throwaway store product for review-flow tests. */
+export async function createFixtureProduct(): Promise<FixtureProduct> {
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const { data, error } = await admin()
+    .from("products")
+    .insert({
+      title: `E2E Throwaway Voucher ${stamp}`,
+      provider: "AWS",
+      level: "Associate",
+      original_price_inr: 1000,
+      discounted_price_inr: 500,
+      description: "Throwaway product created by the e2e suite. Safe to delete.",
+      status: "published",
+    })
+    .select("id, title")
+    .single();
+  if (error) throw new Error(`fixture product insert failed: ${error.message}`);
+  return data as FixtureProduct;
+}
+
+export async function deleteFixtureProduct(id: string | undefined): Promise<void> {
+  if (!id) return;
+  await admin().from("products").delete().eq("id", id);
 }
 
 export async function deleteFixtureEvent(id: string | undefined): Promise<void> {

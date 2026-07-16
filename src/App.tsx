@@ -102,6 +102,7 @@ const AdminAchievements = lazy(() => import("./pages/admin/AdminAchievements"));
 const AdminCertCatalog = lazy(() => import("./pages/admin/AdminCertCatalog"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
+const AdminContentReviews = lazy(() => import("./pages/admin/AdminContentReviews"));
 const RequestVoucher = lazy(() => import("./pages/RequestVoucher"));
 const MentorshipDirectory = lazy(() => import("./pages/mentorship/MentorshipDirectory"));
 const BecomeMentor = lazy(() => import("./pages/mentorship/BecomeMentor"));
@@ -261,6 +262,7 @@ const App = () => (
                 <Route path="coupons" element={<AdminCoupons />} />
                 <Route path="achievements" element={<AdminAchievements />} />
                 <Route path="reviews" element={<AdminReviews />} />
+                <Route path="content-reviews" element={<AdminContentReviews />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
                 <Route path="attendees" element={<AdminAttendees />} />

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Tag } from "lucide-react";
 import { Product } from "@/data/store-products";
+import { EntityReviews } from "@/components/reviews/EntityReviews";
 import { StoreProduct } from "@/lib/store-products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -200,6 +201,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                   <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                     {product.description}
                   </p>
+                </div>
+                <div className="border-t border-border pt-4">
+                  <h3 className="font-display font-semibold mb-3">Ratings & reviews</h3>
+                  <EntityReviews
+                    entityType="product"
+                    entityId={product.id}
+                    entityName={product.title}
+                  />
                 </div>
               </div>
             </DialogContent>

@@ -39,6 +39,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Community", path: "/admin/community", icon: Users, description: "Manage the community links shown on the site." },
             { name: "Achievements", path: "/admin/achievements", icon: Award, description: "Moderate the certifications Yatris have shared." },
             { name: "Reviews wall", path: "/admin/reviews", icon: Star, description: "Moderate the site-wide review wall: hide or delete reviews." },
+            { name: "Content reviews", path: "/admin/content-reviews", icon: Star, description: "Moderate reviews on events, store products, Udemy courses and exam dumps." },
             { name: "Inquiries", path: "/admin/inquiries", icon: Inbox, description: "Partner requests and contact messages from the site." },
             { name: "Resume requests", path: "/admin/resumes", icon: FilePen, description: "Resume maker queue: retry, download or remove requests." },
             { name: "Job board", path: "/admin/jobs", icon: ClipboardList, description: "Companies whose official boards feed the job board." },
