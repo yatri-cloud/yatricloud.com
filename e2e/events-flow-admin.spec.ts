@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 import {
   createFixtureEvent,
   deleteFixtureEvent,
@@ -42,12 +43,45 @@ test.beforeAll(async () => {
   await seedRegistration(soldOut.id, `e2e-seat-${Date.now()}@example.com`);
 });
 
+const UI_EVENT = `E2E UI Publish ${Date.now()}`;
+
 test.afterAll(async () => {
   await Promise.all([
     deleteFixtureEvent(upcoming?.id),
     deleteFixtureEvent(past?.id),
     deleteFixtureEvent(soldOut?.id),
   ]);
+  // The UI-published event has no captured id — clean it up by name.
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  if (url && key) await createClient(url, key).from("events").delete().eq("name", UI_EVENT);
+});
+
+test("an event publishes end to end through the builder UI", async ({ page }) => {
+  // Regression: a free event once published as price_inr = null and every
+  // UI publish failed on the NOT NULL constraint. Drive the real builder.
+  await page.goto("/createevent");
+  await page.getByRole("button", { name: /Continue to Event Details/i }).click();
+
+  await page.getByTestId("event-name").fill(UI_EVENT);
+  await page.locator("#description").fill("Throwaway UI-published event. Safe to delete.");
+  await page.locator("#aboutEvent").fill("Created by the e2e suite to prove the publish path works.");
+  await page.getByTestId("event-category").click();
+  await page.getByRole("option", { name: "Workshop" }).click();
+
+  // Date: hop to next month so the picked day is always in the future.
+  await page.getByRole("button", { name: /Pick a date/i }).first().click();
+  await page.getByRole("button", { name: /next month/i }).click();
+  await page.getByRole("gridcell", { name: "15", exact: true }).last().click();
+  await page.getByText("Select time", { exact: true }).first().click();
+  await page.getByRole("option", { name: /10:00 AM/ }).first().click();
+
+  await page.locator("#city").fill("Bengaluru");
+  await page.locator("#location").fill("E2E Hall, Koramangala");
+
+  await page.getByTestId("event-publish").click();
+  await expect(page.getByText(/Event Published!/i).first()).toBeVisible({ timeout: 20_000 });
+  await expect(page).toHaveURL(/\/admin\/events/, { timeout: 15_000 });
 });
 
 test("a signed-in Yatri registers and the confirmation email is composed", async ({ page }) => {

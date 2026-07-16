@@ -28,9 +28,11 @@ function isPaidPrice(price: Event["price"]): boolean {
 
 function eventToRow(event: Event): EventRow {
     const paid = isPaidPrice(event.price);
+    // price_inr is NOT NULL (default 0) — a free event must write 0, not null,
+    // or the insert fails and publishing breaks entirely.
     const priceNum = paid
         ? (typeof event.price === "number" ? event.price : parseFloat(String(event.price)))
-        : null;
+        : 0;
 
     // Everything the flat columns can't hold — stored in the `details` jsonb
     // column (a real object) and rebuilt on read. The plain-text summary now
