@@ -24,16 +24,16 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
 const toastVariants = cva(
-  // Premium glass card: translucent bg + blur, rounded-2xl, layered shadow,
-  // 3px accent seam on the left (via ::before). Enters with a corner spring,
-  // carries a one-off light sweep and a lifetime meter (see index.css).
-  "group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-2xl border border-border/80 bg-card/95 p-4 pr-12 text-card-foreground shadow-toast backdrop-blur-xl transition-all before:absolute before:inset-y-0 before:left-0 before:w-[3px] data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-toast-in data-[state=closed]:animate-toast-out data-[swipe=end]:animate-toast-out",
+  // Signature blue statement card: brand gradient, white content, corner
+  // spring entrance, one-off light sweep and a lifetime meter (index.css).
+  // Destructive keeps its own deep red so danger still reads instantly.
+  "group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-2xl border p-4 pr-12 text-white shadow-toast-brand transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-toast-in data-[state=closed]:animate-toast-out data-[swipe=end]:animate-toast-out",
   {
     variants: {
       variant: {
-        default: "before:bg-primary",
-        success: "success before:bg-success",
-        destructive: "destructive before:bg-destructive",
+        default: "border-white/15 bg-gradient-to-br from-primary via-primary to-brand-600",
+        success: "success border-white/15 bg-gradient-to-br from-primary via-primary to-brand-600",
+        destructive: "destructive border-white/15 bg-gradient-to-br from-destructive to-[hsl(0_72%_42%)] !shadow-toast-danger",
       },
     },
     defaultVariants: {
@@ -43,13 +43,13 @@ const toastVariants = cva(
 );
 
 const toastProgressVariants = cva(
-  "pointer-events-none absolute inset-x-0 bottom-0 h-[2.5px] animate-toast-progress group-hover:[animation-play-state:paused]",
+  "pointer-events-none absolute inset-x-0 bottom-0 h-[2.5px] animate-toast-progress bg-gradient-to-r from-white/50 to-white/90 group-hover:[animation-play-state:paused]",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-primary/70 to-primary",
-        success: "bg-gradient-to-r from-success/70 to-success",
-        destructive: "bg-gradient-to-r from-destructive/70 to-destructive",
+        default: "",
+        success: "",
+        destructive: "",
       },
     },
     defaultVariants: {
@@ -62,9 +62,9 @@ const toastProgressVariants = cva(
 const toastIconChipVariants = cva("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", {
   variants: {
     variant: {
-      default: "bg-primary/10 text-primary",
-      success: "bg-success/10 text-success",
-      destructive: "bg-destructive/10 text-destructive",
+      default: "bg-white/15 text-white",
+      success: "bg-white/15 text-white",
+      destructive: "bg-white/15 text-white",
     },
   },
   defaultVariants: {
@@ -108,7 +108,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      "inline-flex h-9 shrink-0 items-center justify-center self-center rounded-xl border border-border bg-transparent px-3 text-sm font-medium transition-colors hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-destructive/30 group-[.destructive]:text-destructive group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus-visible:ring-destructive",
+      "inline-flex h-9 shrink-0 items-center justify-center self-center rounded-xl border border-white/30 bg-white/10 px-3 text-sm font-medium text-white transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:pointer-events-none disabled:opacity-50",
       className,
     )}
     {...props}
@@ -124,7 +124,7 @@ const ToastClose = React.forwardRef<
     ref={ref}
     className={cn(
       // 44px touch target; always visible on touch, revealed on hover/focus on desktop
-      "absolute right-1 top-1 inline-flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground/70 transition-opacity hover:bg-muted/50 hover:text-foreground focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100 sm:opacity-0",
+      "absolute right-1 top-1 inline-flex h-11 w-11 items-center justify-center rounded-xl text-white/70 transition-opacity hover:bg-white/10 hover:text-white focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 group-hover:opacity-100 sm:opacity-0",
       className,
     )}
     toast-close=""
@@ -141,7 +141,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
-    className={cn("text-sm font-semibold leading-5 tracking-tight text-foreground", className)}
+    className={cn("text-sm font-semibold leading-5 tracking-tight text-white", className)}
     {...props}
   />
 ));
@@ -153,7 +153,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Description
     ref={ref}
-    className={cn("text-sm leading-5 text-muted-foreground", className)}
+    className={cn("text-sm leading-5 text-white/85", className)}
     {...props}
   />
 ));

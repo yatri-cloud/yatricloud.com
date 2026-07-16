@@ -13,20 +13,22 @@ const Toaster = ({ ...props }: ToasterProps) => {
       position="top-right"
       toastOptions={{
         classNames: {
+          // Same signature blue statement card as the Radix toasts.
           toast:
-            "group toast group-[.toaster]:rounded-2xl group-[.toaster]:border group-[.toaster]:border-border group-[.toaster]:bg-card group-[.toaster]:p-4 group-[.toaster]:text-card-foreground group-[.toaster]:shadow-toast",
-          title: "group-[.toast]:text-sm group-[.toast]:font-semibold group-[.toast]:tracking-tight",
-          description: "group-[.toast]:text-sm group-[.toast]:text-muted-foreground",
+            "group toast group-[.toaster]:rounded-2xl group-[.toaster]:border group-[.toaster]:border-white/15 group-[.toaster]:bg-gradient-to-br group-[.toaster]:from-primary group-[.toaster]:via-primary group-[.toaster]:to-brand-600 group-[.toaster]:p-4 group-[.toaster]:text-white group-[.toaster]:shadow-toast-brand",
+          title: "group-[.toast]:text-sm group-[.toast]:font-semibold group-[.toast]:tracking-tight group-[.toast]:text-white",
+          description: "group-[.toast]:text-sm group-[.toast]:text-white/85",
           actionButton:
-            "group-[.toast]:rounded-xl group-[.toast]:bg-primary group-[.toast]:font-medium group-[.toast]:text-primary-foreground",
+            "group-[.toast]:rounded-xl group-[.toast]:bg-white/15 group-[.toast]:font-medium group-[.toast]:text-white group-[.toast]:hover:bg-white/25",
           cancelButton:
-            "group-[.toast]:rounded-xl group-[.toast]:bg-muted group-[.toast]:font-medium group-[.toast]:text-muted-foreground",
+            "group-[.toast]:rounded-xl group-[.toast]:bg-white/10 group-[.toast]:font-medium group-[.toast]:text-white/80",
           closeButton:
-            "group-[.toast]:border-border group-[.toast]:bg-card group-[.toast]:text-muted-foreground group-[.toast]:hover:text-foreground",
-          success: "[&_[data-icon]]:text-success",
-          error: "[&_[data-icon]]:text-destructive",
-          warning: "[&_[data-icon]]:text-warning",
-          info: "[&_[data-icon]]:text-primary",
+            "group-[.toast]:border-white/20 group-[.toast]:bg-white/10 group-[.toast]:text-white/80 group-[.toast]:hover:text-white",
+          success: "[&_[data-icon]]:text-white",
+          error:
+            "group-[.toaster]:!from-destructive group-[.toaster]:!via-destructive group-[.toaster]:!to-[hsl(0_72%_42%)] [&_[data-icon]]:text-white",
+          warning: "[&_[data-icon]]:text-white",
+          info: "[&_[data-icon]]:text-white",
         },
       }}
       {...props}
