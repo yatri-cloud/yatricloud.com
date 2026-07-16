@@ -6,8 +6,14 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.yatricloud.com/training/az-900-azure-fundamentals-mrkpqcxx</loc>
-    <lastmod>2026-07-14</lastmod>
+    <loc>https://www.yatricloud.com/training/aws-saa-c03-solutions-architect-mrnaf4mr</loc>
+    <lastmod>2026-07-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.yatricloud.com/training/az-900-microsoft-azure-fundamentals-mrnaf4mr</loc>
+    <lastmod>2026-07-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
