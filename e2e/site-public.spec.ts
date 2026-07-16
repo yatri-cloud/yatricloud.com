@@ -160,6 +160,16 @@ test.describe("Homepage & global search", () => {
   });
 });
 
+test.describe("Support (signed out)", () => {
+  test("support page renders and gates ticket history behind sign-in", async ({ page }) => {
+    await page.goto("/support");
+    await expect(page.getByRole("heading", { name: /We've got your back, Yatri/i })).toBeVisible();
+    await expect(page.getByText(/Please sign in first/i)).toBeVisible();
+    await page.getByTestId("ticket-new").click();
+    await expect(page.getByText(/Welcome Back!/i)).toBeVisible();
+  });
+});
+
 test.describe("Personal pages (signed out)", () => {
   test("my receipts shows empty state, store CTA goes to a real route", async ({ page }) => {
     await page.goto("/profile/purchases");

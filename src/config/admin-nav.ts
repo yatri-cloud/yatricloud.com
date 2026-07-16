@@ -41,6 +41,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Reviews wall", path: "/admin/reviews", icon: Star, description: "Moderate the site-wide review wall: hide or delete reviews." },
             { name: "Content reviews", path: "/admin/content-reviews", icon: Star, description: "Moderate reviews on events, store products, Udemy courses and exam dumps." },
             { name: "Inquiries", path: "/admin/inquiries", icon: Inbox, description: "Partner requests and contact messages from the site." },
+            { name: "Support tickets", path: "/admin/tickets", icon: Inbox, description: "The support queue: reply, prioritise and resolve Yatri tickets." },
             { name: "Resume requests", path: "/admin/resumes", icon: FilePen, description: "Resume maker queue: retry, download or remove requests." },
             { name: "Job board", path: "/admin/jobs", icon: ClipboardList, description: "Companies whose official boards feed the job board." },
         ],

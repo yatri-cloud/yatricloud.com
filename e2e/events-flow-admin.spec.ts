@@ -233,9 +233,11 @@ test("a venue proposal flows from the public form to admin approval", async ({ p
   await page.getByRole("button", { name: /Submit/i }).click();
   await expect(page.getByText(/Venue Proposal Submitted/i).first()).toBeVisible({ timeout: 15_000 });
 
-  // Admin reviews and approves it.
+  // Admin reviews and approves it. The console auto-selects the first
+  // upcoming event, so explicitly pick the fixture event first.
   await page.goto("/admin/submissions");
   await expect(page.getByRole("heading", { name: /Event Submissions/i })).toBeVisible();
+  await page.locator("select").selectOption({ label: upcoming!.name });
   await expect(page.getByText(venueName).first()).toBeVisible({ timeout: 10_000 });
   await page.getByRole("button", { name: /Approve Only/i }).first().click();
   await expect(page.getByText(/Approved!/i).first()).toBeVisible({ timeout: 15_000 });

@@ -46,3 +46,17 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           EVENT_TRAINING_REMINDERS_URL: ${{ secrets.EVENT_TRAINING_REMINDERS_URL }}
+
+      - name: Call the support auto-close endpoint
+        run: |
+          URL="${SUPPORT_AUTO_CLOSE_URL:-https://www.yatricloud.com/api/cron/support-auto-close}"
+          echo "Calling support auto-close endpoint"
+          code=$(curl -s -o /tmp/out-support.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" "$URL")
+          echo "HTTP $code"
+          cat /tmp/out-support.json || true
+          # Do not fail the workflow on a transient non 200; the sweep retries next hour.
+          if [ "$code" != "200" ]; then echo "Non 200 response, will try again next hour"; fi
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SUPPORT_AUTO_CLOSE_URL: ${{ secrets.SUPPORT_AUTO_CLOSE_URL }}

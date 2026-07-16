@@ -24,6 +24,8 @@ const YatriProfile = lazy(() => import("./pages/YatriProfile"));
 const Events = lazy(() => import("./pages/Events"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
 const Community = lazy(() => import("./pages/Community"));
+const Support = lazy(() => import("./pages/Support"));
+const SupportTicket = lazy(() => import("./pages/SupportTicket"));
 const Partners = lazy(() => import("./pages/Partners"));
 const PartnerApply = lazy(() => import("./pages/PartnerApply"));
 const Udemy = lazy(() => import("./pages/Udemy"));
@@ -103,6 +105,7 @@ const AdminCertCatalog = lazy(() => import("./pages/admin/AdminCertCatalog"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminContentReviews = lazy(() => import("./pages/admin/AdminContentReviews"));
+const AdminTickets = lazy(() => import("./pages/admin/AdminTickets"));
 const RequestVoucher = lazy(() => import("./pages/RequestVoucher"));
 const MentorshipDirectory = lazy(() => import("./pages/mentorship/MentorshipDirectory"));
 const BecomeMentor = lazy(() => import("./pages/mentorship/BecomeMentor"));
@@ -191,6 +194,8 @@ const App = () => (
               <Route path="/events" element={<Events />} />
               <Route path="/events/:slug" element={<EventDetail />} />
               <Route path="/community" element={<Community />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/support/:ticketNumber" element={<SupportTicket />} />
               <Route path="/partners" element={<Partners />} />
               <Route path="/partners/:kind" element={<PartnerApply />} />
               <Route path="/udemy" element={<Udemy />} />
@@ -263,6 +268,7 @@ const App = () => (
                 <Route path="achievements" element={<AdminAchievements />} />
                 <Route path="reviews" element={<AdminReviews />} />
                 <Route path="content-reviews" element={<AdminContentReviews />} />
+                <Route path="tickets" element={<AdminTickets />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
                 <Route path="attendees" element={<AdminAttendees />} />

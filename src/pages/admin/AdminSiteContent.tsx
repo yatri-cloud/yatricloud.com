@@ -704,6 +704,7 @@ const OPTION_LISTS: ContentFieldOption[] = [
     { value: "store_category", label: "Store categories" },
     { value: "product_level", label: "Product levels" },
     { value: "event_category", label: "Event categories" },
+    { value: "support_category", label: "Support ticket topics" },
     { value: "sponsor_tier", label: "Sponsor tiers" },
     { value: "sponsorship_area", label: "Sponsorship areas" },
 ];

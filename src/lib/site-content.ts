@@ -504,6 +504,15 @@ export const FALLBACK_OPTION_LISTS: Record<string, OptionItem[]> = {
     { value: "Professional", label: "Professional" },
     { value: "Specialty", label: "Specialty" },
   ],
+  support_category: [
+    { value: "account", label: "Account & sign in" },
+    { value: "payments", label: "Payments & refunds" },
+    { value: "events", label: "Events" },
+    { value: "training", label: "Training & courses" },
+    { value: "store", label: "Store & vouchers" },
+    { value: "technical", label: "Something is broken" },
+    { value: "other", label: "Something else" },
+  ],
   event_category: [
     { value: "Concert", label: "Concert" },
     { value: "Conference", label: "Conference" },
