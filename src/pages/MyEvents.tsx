@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { LoginModal } from "@/components/LoginModal";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -76,6 +77,7 @@ export default function MyEvents() {
     const { toast } = useToast();
 
     const [signedIn, setSignedIn] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -217,8 +219,8 @@ export default function MyEvents() {
                                 Your event registrations live with your Yatri Cloud account. Sign in to
                                 see everything you have booked.
                             </p>
-                            <Button asChild className="min-h-[44px]">
-                                <Link to="/login">Sign in to continue</Link>
+                            <Button className="min-h-[44px]" onClick={() => setShowLoginModal(true)}>
+                                Sign in to continue
                             </Button>
                         </div>
                     ) : loading ? (
@@ -462,6 +464,16 @@ export default function MyEvents() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <LoginModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+                onSuccess={() => {
+                    setShowLoginModal(false);
+                    setSignedIn(true);
+                    load();
+                }}
+            />
 
             <Footer />
         </div>

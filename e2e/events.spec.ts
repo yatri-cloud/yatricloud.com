@@ -44,7 +44,9 @@ test.describe("Events — public listing", () => {
   test("my-events prompts sign-in when logged out", async ({ page }) => {
     await page.goto("/profile/my-events");
     await expect(page.getByText(/Please sign in first/i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /Sign in to continue/i })).toBeVisible();
+    // The CTA opens the in-app login modal (a /login route does not exist).
+    await page.getByRole("button", { name: /Sign in to continue/i }).click();
+    await expect(page.getByText(/Welcome Back!/i)).toBeVisible();
   });
 });
 

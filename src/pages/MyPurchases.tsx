@@ -138,7 +138,7 @@ export default function MyPurchases() {
                             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                                 When you buy a course, join a paid event, or pick up something from the store, your receipt will show up here.
                             </p>
-                            <Button onClick={() => navigate("/store")}>Visit the store</Button>
+                            <Button onClick={() => navigate("/yatristore")}>Visit the store</Button>
                         </div>
                     ) : filteredInvoices.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">

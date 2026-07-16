@@ -14,7 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { EnrollmentModal } from "@/components/EnrollmentModal";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { SEO } from "@/components/SEO";
-import { listPublishedTrainings, listInstructorProfiles, getCourseContent, getTrainingReviews, type TrainingReview } from "@/lib/training-api";
+import { listPublishedTrainings, listInstructorProfiles, getCourseContent, getTrainingReviews, checkEnrollment, type TrainingReview } from "@/lib/training-api";
 
 interface Course {
     id: string;
@@ -97,6 +97,17 @@ export default function TrainingDetail() {
             fetchCourse();
         }
     }, [id, courseSlug]);
+
+    // Reflect an existing enrollment on load — otherwise a refreshed page
+    // shows "Enroll for Free" to learners who already enrolled.
+    useEffect(() => {
+        if (!course?.id) return;
+        let active = true;
+        checkEnrollment(course.id).then((enrolled) => {
+            if (active && enrolled) setIsEnrolled(true);
+        });
+        return () => { active = false; };
+    }, [course?.id]);
 
     // Trigger instructor profile fetch when course changes/is loaded
     useEffect(() => {
