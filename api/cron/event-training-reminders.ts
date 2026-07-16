@@ -200,6 +200,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     events: { day: 0, soon: 0 },
     training: { day: 0, soon: 0 },
     priceAlerts: 0,
+    supportClosed: 0,
     errors: [] as string[],
   };
 
@@ -536,6 +537,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (err: any) {
     summary.errors.push(`price alerts query: ${err?.message || String(err)}`);
+  }
+
+  // ── Support auto-close: resolved tickets quiet for 7 days get closed with
+  // a friendly email. Lives here (not its own function) because the Vercel
+  // Hobby plan caps a deployment at 12 serverless functions.
+  try {
+    const QUIET_DAYS = 7;
+    const cutoff = new Date(now.getTime() - QUIET_DAYS * 24 * H).toISOString();
+    const resp = await fetch(
+      `${supabaseUrl}/rest/v1/support_tickets?select=id,ticket_number,subject,name,email` +
+        `&status=eq.resolved&last_activity_at=lt.${encodeURIComponent(cutoff)}`,
+      { headers: authHeaders }
+    );
+    if (!resp.ok) throw new Error(`query ${resp.status}`);
+    const tickets = (await resp.json()) as {
+      id: string; ticket_number: string; subject: string | null;
+      name: string | null; email: string | null;
+    }[];
+    for (const t of tickets) {
+      try {
+        await patch('support_tickets', t.id, {
+          status: 'closed',
+          closed_at: new Date().toISOString(),
+          last_activity_at: new Date().toISOString(),
+        });
+        if (t.email) {
+          const html = `
+            <h2 style="margin:0 0 16px;color:${INK};">Ticket ${t.ticket_number} is closed</h2>
+            <p style="color:${MUTED};">Hi ${t.name || 'Yatri'}, your resolved ticket <em>${t.subject || ''}</em> stayed quiet for ${QUIET_DAYS} days, so we closed it to keep your list tidy. If anything comes up again, just open a fresh ticket.</p>
+            <p style="text-align:center;margin:28px 0 8px;">
+              <a href="https://www.yatricloud.com/support" style="display:inline-block;padding:12px 24px;background:${BLUE};color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;">Go to support</a>
+            </p>`;
+          await sendEmail(t.email, `Closed: [${t.ticket_number}] ${t.subject || 'your support ticket'}`, html);
+        }
+        summary.supportClosed += 1;
+      } catch (err: any) {
+        summary.errors.push(`support close ${t.ticket_number}: ${err?.message || String(err)}`);
+      }
+    }
+  } catch (err: any) {
+    summary.errors.push(`support close query: ${err?.message || String(err)}`);
   }
 
   return res.status(200).json(summary);
