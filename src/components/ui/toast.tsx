@@ -24,14 +24,32 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
 const toastVariants = cva(
-  // Premium card: bg-card, rounded-2xl, soft layered shadow, 3px accent bar on the left (via ::before)
-  "group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-2xl border border-border bg-card p-4 pr-12 text-card-foreground shadow-toast transition-all before:absolute before:inset-y-0 before:left-0 before:w-[3px] data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-toast-in data-[state=closed]:animate-toast-out data-[swipe=end]:animate-toast-out",
+  // Premium glass card: translucent bg + blur, rounded-2xl, layered shadow,
+  // 3px accent seam on the left (via ::before). Enters with a corner spring,
+  // carries a one-off light sweep and a lifetime meter (see index.css).
+  "group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-2xl border border-border/80 bg-card/95 p-4 pr-12 text-card-foreground shadow-toast backdrop-blur-xl transition-all before:absolute before:inset-y-0 before:left-0 before:w-[3px] data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-toast-in data-[state=closed]:animate-toast-out data-[swipe=end]:animate-toast-out",
   {
     variants: {
       variant: {
         default: "before:bg-primary",
         success: "success before:bg-success",
         destructive: "destructive before:bg-destructive",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+);
+
+const toastProgressVariants = cva(
+  "pointer-events-none absolute inset-x-0 bottom-0 h-[2.5px] animate-toast-progress group-hover:[animation-play-state:paused]",
+  {
+    variants: {
+      variant: {
+        default: "bg-gradient-to-r from-primary/70 to-primary",
+        success: "bg-gradient-to-r from-success/70 to-success",
+        destructive: "bg-gradient-to-r from-destructive/70 to-destructive",
       },
     },
     defaultVariants: {
@@ -67,10 +85,17 @@ const Toast = React.forwardRef<
   const Icon = toastIcons[variant ?? "default"];
   return (
     <ToastPrimitives.Root ref={ref} className={cn(toastVariants({ variant }), className)} {...props}>
+      {/* One-off light sweep across the fresh card */}
+      <span
+        aria-hidden="true"
+        className="animate-toast-shine pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+      />
       <span aria-hidden="true" className={toastIconChipVariants({ variant })}>
         <Icon className="h-5 w-5" strokeWidth={2} />
       </span>
       {children}
+      {/* Lifetime meter — pauses with Radix's own hover pause */}
+      <span aria-hidden="true" className={toastProgressVariants({ variant })} />
     </ToastPrimitives.Root>
   );
 });

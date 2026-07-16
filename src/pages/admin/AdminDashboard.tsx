@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import AdminLogin from "./AdminLogin";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -69,7 +70,18 @@ const AdminDashboard = () => {
 
     return (
         <AdminLayout onLogout={handleLogout}>
-            <Outlet />
+            {/* Local boundary so lazy admin pages swap INSIDE the layout —
+                without it the app-level Suspense unmounts the whole shell and
+                the sidebar loses its scroll position on every navigation. */}
+            <Suspense
+                fallback={
+                    <div className="flex min-h-[50vh] items-center justify-center gap-3 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" /> Loading…
+                    </div>
+                }
+            >
+                <Outlet />
+            </Suspense>
         </AdminLayout>
     );
 };

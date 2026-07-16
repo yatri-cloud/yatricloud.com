@@ -69,8 +69,12 @@
     /* 38% (was 45%): 45% failed 4.5:1 on the blue band tints (3.7:1). */
     --muted-foreground: 0 0% 38%;
 
-    --accent: 210 100% 44%;
-    --accent-foreground: 0 0% 100%;
+    /* Hover/focus wash for ghost+outline controls and menu items. Was a
+       saturated blue (210 100% 44%) that swallowed icons and read as a hard
+       flash on every hover — now a light brand tint with readable blue text,
+       matching the D20 "light-bg controls" convention. */
+    --accent: 210 100% 96%;
+    --accent-foreground: 210 100% 32%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -426,32 +430,68 @@
   @keyframes toast-in {
     0% {
       opacity: 0;
-      transform: translateY(-16px) scale(0.97);
+      transform: translateX(calc(100% + 24px)) scale(0.96);
     }
-    60% {
+    55% {
       opacity: 1;
-      transform: translateY(3px) scale(1.005);
+      transform: translateX(-6px) scale(1.005);
+    }
+    75% {
+      transform: translateX(2px) scale(1);
     }
     100% {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translateX(0) scale(1);
     }
   }
   @keyframes toast-out {
     0% {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translateX(0) scale(1);
     }
     100% {
       opacity: 0;
-      transform: translateY(-8px) scale(0.95);
+      transform: translateX(32px) scale(0.96);
     }
   }
   .animate-toast-in {
-    animation: toast-in 0.42s var(--ease-out) both;
+    animation: toast-in 0.55s var(--ease-out) both;
   }
   .animate-toast-out {
-    animation: toast-out 0.18s var(--ease-in) both;
+    animation: toast-out 0.22s var(--ease-in) both;
+  }
+
+  /* One-off diagonal light sweep across a fresh toast — pure transform/opacity. */
+  @keyframes toast-shine {
+    0% {
+      opacity: 0;
+      transform: translateX(-150%) skewX(-18deg);
+    }
+    25% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(250%) skewX(-18deg);
+    }
+  }
+  .animate-toast-shine {
+    animation: toast-shine 1.1s var(--ease-out) 0.25s both;
+  }
+
+  /* Lifetime meter along the bottom edge — matches the 5s Radix default and
+     pauses while the pointer rests on the toast (Radix pauses the timer too). */
+  @keyframes toast-progress {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+  .animate-toast-progress {
+    transform-origin: left;
+    animation: toast-progress 5s linear both;
   }
 
   /* Soft layered shadow for floating surfaces (toasts) — additive */
