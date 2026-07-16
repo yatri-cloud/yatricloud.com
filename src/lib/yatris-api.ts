@@ -423,9 +423,15 @@ export async function registerForEvent(
  */
 export async function getRegisteredEvents(): Promise<EventRegistration[]> {
   if (!hasSession()) return [];
+  // Scope to the signed-in Yatri explicitly: RLS lets ADMINS read every
+  // registration, so without this filter an admin's "My Events" showed all
+  // Yatris' registrations and EventDetail marked them registered everywhere.
+  const uid = getCachedUser()?.id;
+  if (!uid) return [];
   const { data, error } = await supabase
     .from('event_registrations')
     .select('id,registration_code,name,email,phone,status,created_at,events(id,slug,name,event_date,location,city,country,image_url)')
+    .eq('user_id', uid)
     .order('created_at', { ascending: false });
   if (error) {
     console.error('Error fetching registrations:', error.message);

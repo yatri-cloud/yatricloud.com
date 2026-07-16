@@ -64,6 +64,12 @@ export default function CreateEvent() {
         () => getOptionList("sponsor_tier"),
         FALLBACK_OPTION_LISTS.sponsor_tier
     );
+    /* Event categories are the same global list the public /events filter
+     * chips read — admins add, edit, or remove entries at /admin/site. */
+    const eventCategories = useSiteContent(
+        () => getOptionList("event_category"),
+        FALLBACK_OPTION_LISTS.event_category
+    );
     const [showCollaborationSelector, setShowCollaborationSelector] = useState(true);
     const [step, setStep] = useState<Step>(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -881,13 +887,30 @@ export default function CreateEvent() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border rounded-lg bg-muted/20 md:col-span-2">
                                                 <div className="space-y-2">
                                                     <Label htmlFor="category">Category <span className="text-destructive">*</span></Label>
-                                                    <Input
-                                                        id="category"
-                                                        placeholder="e.g. Workshop, Hackathon, Webinar"
+                                                    <Select
                                                         value={formData.category}
-                                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                                        className="h-11 border-input"
-                                                    />
+                                                        onValueChange={(value) => setFormData({ ...formData, category: value })}
+                                                    >
+                                                        <SelectTrigger id="category" className="h-11 border-input" data-testid="event-category">
+                                                            <SelectValue placeholder="Pick a category" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {/* Keep a legacy category visible when editing an older event
+                                                                whose value has since been removed from the global list. */}
+                                                            {formData.category &&
+                                                                !eventCategories.some((option) => option.value === formData.category) && (
+                                                                    <SelectItem value={formData.category}>{formData.category}</SelectItem>
+                                                                )}
+                                                            {eventCategories.map((option) => (
+                                                                <SelectItem key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Manage this list under Admin → Site Content → Dropdown Options.
+                                                    </p>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label htmlFor="techStack">Tech Stack</Label>
