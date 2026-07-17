@@ -89,6 +89,7 @@ const AdminTrainers = lazy(() => import("@/pages/admin/AdminTrainers"));
 const TrainerLogin = lazy(() => import("@/pages/trainer/TrainerLogin"));
 const TrainerDashboard = lazy(() => import("@/pages/trainer/TrainerDashboard"));
 const TrainerEditCourse = lazy(() => import("@/pages/trainer/TrainerEditCourse"));
+const Unsubscribe = lazy(() => import("@/pages/Unsubscribe"));
 const GuideView = lazy(() => import("@/pages/GuideView"));
 const ExamDumps = lazy(() => import("./pages/ExamDumps"));
 const AdminExamDumps = lazy(() => import("./pages/admin/AdminExamDumps"));
@@ -106,6 +107,9 @@ const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminContentReviews = lazy(() => import("./pages/admin/AdminContentReviews"));
 const AdminTickets = lazy(() => import("./pages/admin/AdminTickets"));
+const AdminNewsletters = lazy(() => import("./pages/admin/AdminNewsletters"));
+const AdminNewsletterCompose = lazy(() => import("./pages/admin/AdminNewsletterCompose"));
+const AdminSubscribers = lazy(() => import("./pages/admin/AdminSubscribers"));
 const RequestVoucher = lazy(() => import("./pages/RequestVoucher"));
 const MentorshipDirectory = lazy(() => import("./pages/mentorship/MentorshipDirectory"));
 const BecomeMentor = lazy(() => import("./pages/mentorship/BecomeMentor"));
@@ -269,6 +273,10 @@ const App = () => (
                 <Route path="reviews" element={<AdminReviews />} />
                 <Route path="content-reviews" element={<AdminContentReviews />} />
                 <Route path="tickets" element={<AdminTickets />} />
+                <Route path="newsletters" element={<AdminNewsletters />} />
+                <Route path="newsletters/new" element={<AdminNewsletterCompose />} />
+                <Route path="newsletters/edit/:id" element={<AdminNewsletterCompose />} />
+                <Route path="subscribers" element={<AdminSubscribers />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="events/:eventId/registrations" element={<EventRegistrationsList />} />
                 <Route path="attendees" element={<AdminAttendees />} />
@@ -302,6 +310,7 @@ const App = () => (
               </Route>
 
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

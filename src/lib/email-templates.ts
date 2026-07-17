@@ -368,3 +368,46 @@ export const getExamDumpPurchaseEmail = (name: string, dumpTitle: string, amount
   `;
   return BASE_TEMPLATE(content, "Your Exam Dump Download Link - Yatri Cloud");
 };
+
+/**
+ * Newsletter email template.
+ * DB template key: `newsletter_welcome` (welcome only).
+ * The newsletter body is the admin-composed HTML.
+ * Adds an unsubscribe footer with the token link.
+ */
+export const getNewsletterEmail = (
+  subject: string,
+  bodyHtml: string,
+  unsubscribeUrl: string,
+  name?: string
+) => {
+  const greeting = name ? `<p style="margin:0 0 16px;color:${COLORS.text};font-size:16px;line-height:1.6;">Hey ${name},</p>` : "";
+  const content = `
+    ${greeting}
+    <div style="margin-bottom:24px;">${bodyHtml}</div>
+    <div style="border-top:1px solid #e5e7eb;padding-top:16px;margin-top:24px;text-align:center;">
+      <p style="margin:0;font-size:13px;color:${COLORS.textMuted};">You received this because you're subscribed to the Yatri Cloud newsletter.</p>
+      <a href="${unsubscribeUrl}" style="display:inline-block;margin-top:8px;font-size:13px;color:${COLORS.textMuted};text-decoration:underline;">Unsubscribe</a>
+    </div>
+  `;
+  return BASE_TEMPLATE(content, subject);
+};
+
+/**
+ * Subscriber welcome email sent after newsletter signup.
+ * DB template key: `newsletter_welcome`.
+ * Placeholder mapping: name -> {{name}}, email -> {{email}}.
+ */
+export const getSubscriberWelcomeEmail = (name: string, email: string) => {
+  const fromDb = renderDbTemplate("newsletter_welcome", { name, email });
+  if (fromDb) return fromDb;
+
+  const content = `
+    <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Welcome to the newsletter!</h2>
+    <p>Hey ${name},</p>
+    <p>Welcome to the Yatri Cloud newsletter. You'll receive updates on new certification dumps, upcoming events, exclusive discounts, and learning resources to help you ace your cloud exams.</p>
+    <p>We're glad to have you with us, Yatri.</p>
+    <p style="color: ${COLORS.textMuted}; font-size: 14px;">The Yatri Cloud Team</p>
+  `;
+  return BASE_TEMPLATE(content, "Welcome to the Yatri Cloud newsletter");
+};

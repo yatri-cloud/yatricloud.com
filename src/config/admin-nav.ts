@@ -2,7 +2,7 @@ import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
     CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag,
-    FilePen, type LucideIcon,
+    FilePen, Mail, type LucideIcon,
 } from "lucide-react";
 
 /**
@@ -44,6 +44,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Support tickets", path: "/admin/tickets", icon: Inbox, description: "The support queue: reply, prioritise and resolve Yatri tickets." },
             { name: "Resume requests", path: "/admin/resumes", icon: FilePen, description: "Resume maker queue: retry, download or remove requests." },
             { name: "Job board", path: "/admin/jobs", icon: ClipboardList, description: "Companies whose official boards feed the job board." },
+            { name: "Newsletters", path: "/admin/newsletters", icon: Mail, description: "Compose and send newsletter campaigns to subscribers." },
+            { name: "Subscribers", path: "/admin/subscribers", icon: Users, description: "Manage newsletter subscribers and exports." },
         ],
     },
     {

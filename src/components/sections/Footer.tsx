@@ -16,6 +16,7 @@ export const Footer = () => {
   const reduce = useReducedMotion();
   const { toast } = useToast();
   const [subscribing, setSubscribing] = useState(false);
+  const [subName, setSubName] = useState("");
 
   /* Social links + brand tagline come from Supabase site_settings
    * (seeded identical to the fallbacks, so nothing visibly changes). */
@@ -27,10 +28,12 @@ export const Footer = () => {
   const handleSubscribe = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    const email = String(new FormData(form).get("email") || "").trim().toLowerCase();
+    const fd = new FormData(form);
+    const email = String(fd.get("email") || "").trim().toLowerCase();
+    const name = String(fd.get("name") || "").trim();
     if (!email.includes("@")) return;
     setSubscribing(true);
-    const { error } = await supabase.from("subscribers").insert({ email });
+    const { error } = await supabase.from("subscribers").insert({ email, name: name || null });
     setSubscribing(false);
     if (error && !error.message.includes("duplicate")) {
       toast({ title: "Couldn't subscribe", description: "Please try again in a moment.", variant: "destructive" });
@@ -38,6 +41,15 @@ export const Footer = () => {
     }
     toast({ title: "You're in, Yatri! 🎉", description: "We'll keep you posted on new dumps, events, and offers." });
     form.reset();
+    setSubName("");
+    // Fire welcome email (non-blocking)
+    if (name) {
+      import("@/lib/email").then(({ sendEmail }) =>
+        import("@/lib/email-templates").then(({ getSubscriberWelcomeEmail }) =>
+          sendEmail({ to: email, subject: "Welcome to the Yatri Cloud newsletter", html: getSubscriberWelcomeEmail(name, email) })
+        )
+      ).catch(() => { /* best effort */ });
+    }
   };
 
   /* Footer link columns come from Supabase `nav_links` (seeded identical
@@ -144,24 +156,36 @@ export const Footer = () => {
               {brandTagline}
             </p>
             {/* Newsletter — saves to Supabase `subscribers` */}
-            <form onSubmit={handleSubscribe} className="flex max-w-xs items-center gap-2">
-              <label htmlFor="footer-subscribe" className="sr-only">Email address</label>
-              <input
-                id="footer-subscribe"
-                name="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
-              />
-              <button
-                type="submit"
-                disabled={subscribing}
-                aria-label="Subscribe for updates"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-inset-btn transition-colors hover:bg-brand-600"
-              >
-                {subscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-              </button>
+            <form onSubmit={handleSubscribe} className="flex max-w-xs flex-col gap-2">
+              <div className="grid grid-cols-[auto_1fr_auto] gap-2">
+                <label htmlFor="footer-name" className="sr-only">Name</label>
+                <input
+                  id="footer-name"
+                  name="name"
+                  type="text"
+                  placeholder="Name (optional)"
+                  value={subName}
+                  onChange={(e) => setSubName(e.target.value)}
+                  className="h-11 w-full max-w-[120px] rounded-xl border border-border bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <label htmlFor="footer-subscribe" className="sr-only">Email address</label>
+                <input
+                  id="footer-subscribe"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <button
+                  type="submit"
+                  disabled={subscribing}
+                  aria-label="Subscribe for updates"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-inset-btn transition-colors hover:bg-brand-600"
+                >
+                  {subscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                </button>
+              </div>
             </form>
             <div className="flex items-center gap-3 pt-1">
               {socialLinks.map((social, index) => (
