@@ -6,7 +6,7 @@ import {
   useReducedMotion,
   type Variants,
 } from "framer-motion";
-import { ArrowRight, Users, Star, Layers } from "lucide-react";
+import { ArrowRight, Users, Star, Layers, TrendingUp } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { YatriGreeting } from "@/components/YatriGreeting";
 import {
@@ -21,6 +21,7 @@ import {
 } from "@/lib/site-content";
 import { FALLBACK_CERT_TRACKS } from "@/lib/cert-catalog";
 import { openCalendlyPopup } from "@/lib/third-party";
+import { supabase } from "@/lib/supabase";
 
 const EASE_EDITORIAL = [0.16, 1, 0.3, 1] as const;
 
@@ -134,6 +135,18 @@ const parseStatValue = (raw: string) => {
 
 export const HeroSection = () => {
   const reduceMotion = useReducedMotion();
+  const [weeklyJoins, setWeeklyJoins] = useState<number | null>(null);
+
+  useEffect(() => {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    supabase
+      .from("subscribers")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", weekAgo)
+      .then(({ count }) => {
+        if (count && count > 0) setWeeklyJoins(count);
+      });
+  }, []);
 
   /* Live site content — renders the exact fallback first, then swaps in
    * Supabase values (seeded identical, so nothing visibly changes). */
@@ -246,10 +259,29 @@ export const HeroSection = () => {
           {/* Subheadline — lives in site_settings under the `hero` key,
            * with the exact live copy as the hardcoded fallback. */}
           <ScrollReveal delay={0.35} instant={instantHero}>
-            <p className="mb-9 max-w-2xl text-lg text-muted-foreground md:text-xl">
+            <p className="mb-4 max-w-2xl text-lg text-muted-foreground md:text-xl">
               {settings.hero?.subheadline || FALLBACK_SETTINGS.hero.subheadline}
             </p>
           </ScrollReveal>
+
+          {/* Social-proof badge — live weekly join count */}
+          {weeklyJoins !== null && (
+            <ScrollReveal delay={0.4} instant={instantHero}>
+              <motion.div
+                initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: EASE_EDITORIAL }}
+                className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </span>
+                <span className="tabular-nums">{weeklyJoins}</span>
+                <span className="text-muted-foreground">Yatris joined this week</span>
+              </motion.div>
+            </ScrollReveal>
+          )}
 
           {/* CTAs */}
           <ScrollReveal delay={0.45} instant={instantHero}>
@@ -282,7 +314,7 @@ export const HeroSection = () => {
 
           {/* Count-up stat cards — creative bento tiles */}
           <ScrollReveal delay={0.55}>
-            <dl className="mt-14 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
+            <dl className="mt-14 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {STATS.map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -316,6 +348,35 @@ export const HeroSection = () => {
                   </dd>
                 </motion.div>
               ))}
+              {weeklyJoins !== null && (
+                <motion.div
+                  initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ delay: 0.1 + STATS.length * 0.08, duration: 0.5, ease: EASE_EDITORIAL }}
+                  whileHover={reduceMotion ? undefined : { y: -4 }}
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-colors duration-base hover:border-brand-200 hover:shadow-card"
+                >
+                  <dt className="sr-only">Weekly joins</dt>
+                  <dd className="m-0">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/15 blur-2xl opacity-0 transition-opacity duration-slow group-hover:opacity-100"
+                    />
+                    <span className="block font-display text-4xl font-black tracking-tight gradient-text md:text-5xl">
+                      <CountUp
+                        value={weeklyJoins}
+                        decimals={0}
+                        suffix="+"
+                        ariaLabel={`${weeklyJoins} Yatris joined this week`}
+                      />
+                    </span>
+                    <span aria-hidden="true" className="mt-1 block text-sm font-medium text-muted-foreground">
+                      Yatris joined this week
+                    </span>
+                  </dd>
+                </motion.div>
+              )}
             </dl>
           </ScrollReveal>
         </div>

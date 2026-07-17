@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CalendlyPopup } from "@/components/CalendlyPopup";
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { CartProvider, useCart } from "@/contexts/CartContext";
 import Index from "./pages/Index";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -316,6 +317,7 @@ const App = () => (
             </Routes>
             </Suspense>
             <CalendlyPopup />
+            <ExitIntentPopup />
             <FloatingCartGate />
           </BrowserRouter>
         </CartProvider>

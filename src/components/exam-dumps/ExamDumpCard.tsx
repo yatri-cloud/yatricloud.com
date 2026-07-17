@@ -24,6 +24,19 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
   const { addToCart } = useCart();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  /* Simulated "people viewing" -- random 3-12 per card, cached per session. */
+  const [viewers] = useState<number>(() => {
+    try {
+      const cached = sessionStorage.getItem(`viewers-${dump.id}`);
+      if (cached) return parseInt(cached, 10);
+      const v = Math.floor(Math.random() * 10) + 3;
+      sessionStorage.setItem(`viewers-${dump.id}`, String(v));
+      return v;
+    } catch {
+      return Math.floor(Math.random() * 10) + 3;
+    }
+  });
+
   const handleAddToCart = () => {
     // Adapter for cart context which expects StoreProduct
     const cartItem = {
@@ -75,7 +88,7 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
           </Badge>
         </div>
 
-        {/* Dump Image — square tile, logo shown in full. Clicking it opens
+        {/* Dump Image -- square tile, logo shown in full. Clicking it opens
             the details dialog, same as the View Details button. */}
         <button
           type="button"
@@ -104,15 +117,21 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
         </CardHeader>
 
         <CardContent className="px-5 pt-1 pb-4 space-y-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              ₹{dump.price.toLocaleString("en-IN")}
-            </span>
-            {dump.originalPrice > dump.price && (
-              <span className="text-sm text-muted-foreground line-through">
-                ₹{dump.originalPrice.toLocaleString("en-IN")}
+          <div className="flex items-center justify-between">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold tracking-tight text-foreground">
+                {"₹"}{dump.price.toLocaleString("en-IN")}
               </span>
-            )}
+              {dump.originalPrice > dump.price && (
+                <span className="text-sm text-muted-foreground line-through">
+                  {"₹"}{dump.originalPrice.toLocaleString("en-IN")}
+                </span>
+              )}
+            </div>
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+              {viewers} people viewing
+            </span>
           </div>
           <div className="text-xs font-medium text-emerald-700">Instant delivery via email</div>
         </CardContent>
@@ -144,11 +163,11 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
                 </div>
                 <div className="flex items-baseline gap-3">
                   <span className="text-3xl font-bold text-foreground">
-                    ₹{dump.price.toLocaleString("en-IN")}
+                    {"₹"}{dump.price.toLocaleString("en-IN")}
                   </span>
                   {dump.originalPrice > dump.price && (
                     <span className="text-lg text-muted-foreground line-through">
-                      ₹{dump.originalPrice.toLocaleString("en-IN")}
+                      {"₹"}{dump.originalPrice.toLocaleString("en-IN")}
                     </span>
                   )}
                 </div>
