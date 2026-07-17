@@ -379,12 +379,18 @@ export const getNewsletterEmail = (
   subject: string,
   bodyHtml: string,
   unsubscribeUrl: string,
-  name?: string
+  name?: string,
+  newsletterId?: string,
+  subscriberId?: string
 ) => {
   const greeting = name ? `<p style="margin:0 0 16px;color:${COLORS.text};font-size:16px;line-height:1.6;">Hey ${name},</p>` : "";
+  const trackingPixel = newsletterId && subscriberId
+    ? `<img src="https://www.yatricloud.com/api/send-email?type=open&nl=${newsletterId}&sub=${subscriberId}" width="1" height="1" style="display:none" alt="" />`
+    : "";
   const content = `
     ${greeting}
     <div style="margin-bottom:24px;">${bodyHtml}</div>
+    ${trackingPixel}
     <div style="border-top:1px solid #e5e7eb;padding-top:16px;margin-top:24px;text-align:center;">
       <p style="margin:0;font-size:13px;color:${COLORS.textMuted};">You received this because you're subscribed to the Yatri Cloud newsletter.</p>
       <a href="${unsubscribeUrl}" style="display:inline-block;margin-top:8px;font-size:13px;color:${COLORS.textMuted};text-decoration:underline;">Unsubscribe</a>

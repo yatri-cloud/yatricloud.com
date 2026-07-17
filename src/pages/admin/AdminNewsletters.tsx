@@ -14,6 +14,7 @@ import {
   Edit,
   Mail,
   ScrollText,
+  Copy,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -36,6 +37,7 @@ import {
   fetchNewsletters,
   deleteNewsletter,
   sendNewsletter,
+  createNewsletter,
   type Newsletter,
 } from "@/lib/newsletter";
 
@@ -113,6 +115,7 @@ export default function AdminNewsletters() {
   const [toDelete, setToDelete] = useState<Newsletter | null>(null);
   const [toSend, setToSend] = useState<Newsletter | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -242,6 +245,28 @@ export default function AdminNewsletters() {
 
     // Refresh list to pick up status change
     load();
+  };
+
+  const handleDuplicate = async (nl: Newsletter) => {
+    setDuplicatingId(nl.id);
+    const result = await createNewsletter({
+      title: `Copy of ${nl.title}`,
+      subject: nl.subject,
+      body_html: nl.body_html,
+    });
+    setDuplicatingId(null);
+
+    if (!result.ok || !result.id) {
+      toast({
+        title: "Error",
+        description: result.error || "Duplicate failed.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({ title: "Duplicated", description: `"Copy of ${nl.title}" created as draft.` });
+    navigate(`/admin/newsletters/edit/${result.id}`);
   };
 
   if (loading) {
@@ -439,6 +464,21 @@ export default function AdminNewsletters() {
                               </Button>
                             </>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-lg"
+                            onClick={() => handleDuplicate(nl)}
+                            disabled={duplicatingId === nl.id}
+                            data-testid="newsletter-duplicate"
+                            aria-label={`Duplicate ${nl.title}`}
+                          >
+                            {duplicatingId === nl.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"

@@ -27,6 +27,7 @@ import {
   updateNewsletter,
   getNewsletter,
   sendNewsletter,
+  countSubscribers,
 } from "@/lib/newsletter";
 import { sendEmail } from "@/lib/email";
 import { getNewsletterEmail } from "@/lib/email-templates";
@@ -48,6 +49,7 @@ export default function AdminNewsletterCompose() {
   const [sendProgress, setSendProgress] = useState("");
   const [toSendAll, setToSendAll] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [activeCount, setActiveCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -69,6 +71,10 @@ export default function AdminNewsletterCompose() {
     };
     load();
   }, [id, navigate, toast]);
+
+  useEffect(() => {
+    countSubscribers().then((c) => setActiveCount(c.active));
+  }, []);
 
   const handleSaveDraft = async () => {
     if (!title.trim() || !subject.trim() || !body.trim()) {
@@ -265,6 +271,12 @@ export default function AdminNewsletterCompose() {
                     className="h-10 rounded-xl"
                     data-testid="newsletter-subject"
                   />
+                  <div className={`text-xs ${subject.length > 60 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                    {subject.length}/60 characters
+                    {subject.length > 60 && (
+                      <span className="ml-1.5">May be truncated in some email clients</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -331,6 +343,26 @@ export default function AdminNewsletterCompose() {
                   )}
                   Send to All Subscribers
                 </Button>
+                {activeCount !== null && (
+                  <p className="w-full text-xs text-muted-foreground mt-1">
+                    This will be sent to {activeCount} active subscribers
+                  </p>
+                )}
+                {activeCount !== null && (
+                  <p className="w-full text-xs text-muted-foreground mt-1">
+                    This will be sent to {activeCount} active subscribers
+                  </p>
+                )}
+                {activeCount !== null && (
+                  <span className="text-sm text-muted-foreground">
+                    This will be sent to {activeCount} active subscriber{activeCount !== 1 ? "s" : ""}
+                  </span>
+                )}
+                {activeCount !== null && (
+                  <span className="text-sm text-muted-foreground">
+                    This will be sent to {activeCount} active subscriber{activeCount !== 1 ? "s" : ""}
+                  </span>
+                )}
               </div>
 
               {sendProgress && (

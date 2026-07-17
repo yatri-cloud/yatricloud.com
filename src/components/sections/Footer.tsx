@@ -42,14 +42,12 @@ export const Footer = () => {
     toast({ title: "You're in, Yatri! 🎉", description: "We'll keep you posted on new dumps, events, and offers." });
     form.reset();
     setSubName("");
-    // Fire welcome email (non-blocking)
-    if (name) {
-      import("@/lib/email").then(({ sendEmail }) =>
-        import("@/lib/email-templates").then(({ getSubscriberWelcomeEmail }) =>
-          sendEmail({ to: email, subject: "Welcome to the Yatri Cloud newsletter", html: getSubscriberWelcomeEmail(name, email) })
-        )
-      ).catch(() => { /* best effort */ });
-    }
+    // Fire welcome email (non-blocking, always)
+    import("@/lib/email").then(({ sendEmail }) =>
+      import("@/lib/email-templates").then(({ getSubscriberWelcomeEmail }) =>
+        sendEmail({ to: email, subject: "Welcome to the Yatri Cloud newsletter", html: getSubscriberWelcomeEmail(name || "Yatri", email) })
+      )
+    ).catch(() => { /* best effort */ });
   };
 
   /* Footer link columns come from Supabase `nav_links` (seeded identical

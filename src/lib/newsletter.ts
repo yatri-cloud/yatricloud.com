@@ -34,6 +34,7 @@ export interface Newsletter {
   sent_at: string | null;
   sent_by: string | null;
   recipient_count: number;
+  scheduled_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -291,7 +292,9 @@ export async function sendNewsletter(
       nl.subject,
       nl.body_html,
       unsubscribeUrl,
-      sub.name || undefined
+      sub.name || undefined,
+      newsletterId,
+      sub.id
     );
 
     try {
@@ -354,4 +357,56 @@ export function exportSubscribersCsv(subscribers: Subscriber[]): string {
       .join(",")
   );
   return [header, ...rows].join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// Admin — Schedule
+// ---------------------------------------------------------------------------
+
+/**
+ * Schedule a newsletter for later sending.
+ * Only draft newsletters can be scheduled.
+ */
+export async function scheduleNewsletter(
+  id: string,
+  scheduledAt: string
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase
+    .from("newsletters")
+    .update({ scheduled_at: scheduledAt, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("status", "draft");
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/**
+ * Fetch newsletters that are due to be sent (for cron/worker).
+ * Returns draft newsletters whose scheduled_at has passed.
+ */
+export async function fetchDueNewsletters(): Promise<Newsletter[]> {
+  const { data, error } = await supabase
+    .from("newsletters")
+    .select("*")
+    .eq("status", "draft")
+    .not("scheduled_at", "is", null)
+    .lte("scheduled_at", new Date().toISOString());
+  if (error) return [];
+  return (data || []) as Newsletter[];
+}
+
+// ---------------------------------------------------------------------------
+// Tracking URL helpers
+// ---------------------------------------------------------------------------
+
+// Build a tracking pixel URL for open tracking
+export function getTrackingPixelUrl(newsletterId: string, subscriberId: string): string {
+  const base = typeof window !== "undefined" ? window.location.origin : "https://www.yatricloud.com";
+  return `${base}/api/send-email?type=open&nl=${newsletterId}&sub=${subscriberId}`;
+}
+
+// Build a click-tracking redirect URL
+export function getTrackingClickUrl(newsletterId: string, subscriberId: string, targetUrl: string): string {
+  const base = typeof window !== "undefined" ? window.location.origin : "https://www.yatricloud.com";
+  return `${base}/api/send-email?type=click&nl=${newsletterId}&sub=${subscriberId}&url=${encodeURIComponent(targetUrl)}`;
 }

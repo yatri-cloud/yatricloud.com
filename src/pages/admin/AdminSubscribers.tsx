@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ListPager } from "@/components/ui/list-pager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import {
   Search,
@@ -12,6 +13,8 @@ import {
   Users,
   UserCheck,
   UserX,
+  Plus,
+  RotateCcw,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -23,6 +26,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -37,6 +48,7 @@ import {
   countSubscribers,
   type Subscriber,
 } from "@/lib/newsletter";
+import { supabase } from "@/lib/supabase";
 
 const PAGE_SIZE = 15;
 
@@ -85,6 +97,10 @@ export default function AdminSubscribers() {
   const [sort, setSort] = useState<SortKey>("newest");
   const [page, setPage] = useState(1);
   const [toDelete, setToDelete] = useState<Subscriber | null>(null);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newName, setNewName] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -198,6 +214,52 @@ export default function AdminSubscribers() {
     setToDelete(null);
   };
 
+  const handleAdd = async () => {
+    if (!newEmail.trim()) {
+      toast({ title: "Error", description: "Email is required.", variant: "destructive" });
+      return;
+    }
+    setAdding(true);
+    const { error } = await supabase.from("subscribers").insert({
+      email: newEmail.trim(),
+      name: newName.trim() || null,
+    });
+    setAdding(false);
+
+    if (error) {
+      toast({ title: "Error", description: error.message || "Could not add subscriber.", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Done", description: `${newEmail} added as subscriber.` });
+    setNewEmail("");
+    setNewName("");
+    setShowAddDialog(false);
+    load();
+  };
+
+  const handleReactivate = async (sub: Subscriber) => {
+    const { error } = await supabase
+      .from("subscribers")
+      .update({ status: "active", unsubscribed_at: null })
+      .eq("id", sub.id);
+
+    if (error) {
+      toast({ title: "Error", description: error.message || "Reactivate failed.", variant: "destructive" });
+      return;
+    }
+
+    setSubscribers((prev) =>
+      prev.map((s) => (s.id === sub.id ? { ...s, status: "active" as const, unsubscribed_at: null } : s))
+    );
+    setCounts((prev) => ({
+      ...prev,
+      active: prev.active + 1,
+      unsubscribed: prev.unsubscribed - 1,
+    }));
+    toast({ title: "Done", description: `${sub.email} reactivated.` });
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center gap-3 text-muted-foreground">
@@ -302,6 +364,15 @@ export default function AdminSubscribers() {
             <Button
               variant="outline"
               className="h-10 rounded-xl"
+              onClick={() => setShowAddDialog(true)}
+              data-testid="add-subscriber-trigger"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Subscriber
+            </Button>
+            <Button
+              variant="outline"
+              className="h-10 rounded-xl"
               onClick={handleExport}
               data-testid="subscribers-export"
             >
@@ -397,16 +468,30 @@ export default function AdminSubscribers() {
                         {fmt(sub.created_at)}
                       </td>
                       <td className="h-12 px-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground rounded-lg"
-                          onClick={() => setToDelete(sub)}
-                          data-testid="subscriber-delete"
-                          aria-label={`Delete ${sub.email}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          {sub.status === "unsubscribed" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-muted-foreground hover:bg-green-50 hover:text-green-600 rounded-lg"
+                              onClick={() => handleReactivate(sub)}
+                              data-testid="subscriber-reactivate"
+                              aria-label={`Reactivate ${sub.email}`}
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground rounded-lg"
+                            onClick={() => setToDelete(sub)}
+                            data-testid="subscriber-delete"
+                            aria-label={`Delete ${sub.email}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -450,6 +535,71 @@ export default function AdminSubscribers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Subscriber dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-display tracking-tight">
+              Add Subscriber
+            </DialogTitle>
+            <DialogDescription>
+              Add a new subscriber to your newsletter list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="add-subscriber-email" className="text-sm font-medium">
+                Email <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="add-subscriber-email"
+                type="email"
+                placeholder="subscriber@example.com"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                className="h-10 rounded-xl"
+                data-testid="add-subscriber-email"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="add-subscriber-name" className="text-sm font-medium">
+                Name <span className="text-muted-foreground text-xs">(optional)</span>
+              </Label>
+              <Input
+                id="add-subscriber-name"
+                placeholder="John Doe"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="h-10 rounded-xl"
+                data-testid="add-subscriber-name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="rounded-xl"
+              onClick={() => {
+                setShowAddDialog(false);
+                setNewEmail("");
+                setNewName("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAdd}
+              disabled={adding || !newEmail.trim()}
+              className="rounded-xl bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn"
+              data-testid="add-subscriber-submit"
+            >
+              {adding && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Subscribe
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
