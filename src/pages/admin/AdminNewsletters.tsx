@@ -119,9 +119,12 @@ export default function AdminNewsletters() {
 
   const load = async () => {
     setLoading(true);
-    const list = await fetchNewsletters();
-    setNewsletters(list);
-    setLoading(false);
+    try {
+      const list = await fetchNewsletters();
+      setNewsletters(list);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -243,8 +246,18 @@ export default function AdminNewsletters() {
       }.`,
     });
 
-    // Refresh list to pick up status change
-    load();
+    setNewsletters((prev) =>
+      prev.map((nl) =>
+        nl.id === toSend.id
+          ? {
+              ...nl,
+              status: "sent",
+              recipient_count: result.sent,
+              sent_at: new Date().toISOString(),
+            }
+          : nl
+      )
+    );
   };
 
   const handleDuplicate = async (nl: Newsletter) => {

@@ -6,7 +6,7 @@ import {
   useReducedMotion,
   type Variants,
 } from "framer-motion";
-import { ArrowRight, Users, Star, Layers, TrendingUp } from "lucide-react";
+import { ArrowRight, Users, Star, Layers } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { YatriGreeting } from "@/components/YatriGreeting";
 import {

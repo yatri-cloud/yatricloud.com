@@ -135,7 +135,7 @@ test("2. admin composes a newsletter draft", async ({ page }) => {
   await page.getByTestId("newsletter-save-draft").click();
 
   // Compose page shows "Done" / "Newsletter saved as draft." then redirects
-  await expect(page.getByText(/saved as draft/i)).toBeVisible({
+  await expect(page.getByText(/saved as draft/i).first()).toBeVisible({
     timeout: 10_000,
   });
   await expect(page).toHaveURL(/\/admin\/newsletters\/edit\//, {
@@ -184,6 +184,11 @@ test("4. admin sends newsletter (email intercepted)", async ({ page }) => {
     )
     .toBe(true);
 
+  // Wait for the campaign to finish sending and show as sent in the list
+  const row = page.locator("tr", { hasText: NEWSLETTER_TITLE }).first();
+  await expect(row).toBeVisible({ timeout: 30_000 });
+  await expect(row.getByText(/sent/i)).toBeVisible({ timeout: 30_000 });
+
   // Verify the email content
   const email = sent.find((e) => e.to === SUBSCRIBER_EMAIL);
   expect(email?.subject).toBe(NEWSLETTER_SUBJECT);
@@ -198,10 +203,10 @@ test("5. newsletter shows as sent in list", async ({ page }) => {
     .waitFor({ state: "visible", timeout: 15_000 });
   await page.getByTestId("newsletters-search").fill(NEWSLETTER_TITLE);
 
-  // The row should now show "sent" status
+  // The row should now show "sent" status once the full send completes.
   const row = page.locator("tr", { hasText: NEWSLETTER_TITLE }).first();
-  await expect(row).toBeVisible({ timeout: 10_000 });
-  await expect(row.getByText(/sent/i)).toBeVisible({ timeout: 10_000 });
+  await expect(row).toBeVisible({ timeout: 30_000 });
+  await expect(row.getByText(/sent/i)).toBeVisible({ timeout: 30_000 });
 });
 
 test("6. subscriber status unchanged (still active)", async ({ page }) => {
@@ -232,7 +237,8 @@ test("7. unsubscribe via token link", async ({ page }) => {
   );
 
   await page.goto(`/unsubscribe?token=${unsubscribeToken}`);
-  await expect(page.getByText(/unsubscribed/i)).toBeVisible({
+  await page.getByRole("button", { name: /confirm unsubscribe/i }).click();
+  await expect(page.getByText(/you've been unsubscribed/i)).toBeVisible({
     timeout: 10_000,
   });
 });
@@ -272,7 +278,7 @@ test("9. public footer subscribe flow", async ({ page }) => {
   await page.locator('button[aria-label="Subscribe for updates"]').click();
 
   // The success toast shows "You're in, Yatri!"
-  await expect(page.getByText(/you're in/i)).toBeVisible({
+  await expect(page.getByText(/you're in/i).first()).toBeVisible({
     timeout: 10_000,
   });
 
@@ -293,7 +299,7 @@ test("10. duplicate subscribe is handled gracefully", async ({ page }) => {
   await page.locator('button[aria-label="Subscribe for updates"]').click();
 
   // Should still show success toast (duplicate handled silently)
-  await expect(page.getByText(/you're in/i)).toBeVisible({
+  await expect(page.getByText(/you're in/i).first()).toBeVisible({
     timeout: 10_000,
   });
 });

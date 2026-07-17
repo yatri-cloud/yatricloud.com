@@ -298,36 +298,57 @@ export async function sendNewsletter(
     );
 
     try {
-      await sendEmail({ to: sub.email, subject: nl.subject, html });
-      await supabase.from("newsletter_sends").insert({
-        newsletter_id: newsletterId,
-        subscriber_id: sub.id,
-        status: "sent",
-        sent_at: new Date().toISOString(),
-      });
+      const emailResult = await sendEmail({ to: sub.email, subject: nl.subject, html });
+      if (!emailResult.success) {
+        throw new Error(emailResult.error || "Email send failed");
+      }
+
+      try {
+        await supabase.from("newsletter_sends").insert({
+          newsletter_id: newsletterId,
+          subscriber_id: sub.id,
+          status: "sent",
+          sent_at: new Date().toISOString(),
+        });
+      } catch {
+        // Non-blocking: continue even if tracking row write fails.
+      }
+
       sent++;
     } catch {
-      await supabase.from("newsletter_sends").insert({
-        newsletter_id: newsletterId,
-        subscriber_id: sub.id,
-        status: "failed",
-      });
+      try {
+        await supabase.from("newsletter_sends").insert({
+          newsletter_id: newsletterId,
+          subscriber_id: sub.id,
+          status: "failed",
+        });
+      } catch {
+        // Non-blocking: continue even if tracking row write fails.
+      }
       failed++;
     }
 
     onProgress?.(sent + failed, activeSubscribers.length);
   }
 
-  // 5. Mark as sent with final counts
-  await supabase
-    .from("newsletters")
-    .update({
-      status: "sent",
-      sent_at: new Date().toISOString(),
-      recipient_count: sent,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", newsletterId);
+  // 5. Mark as sent with final counts (best-effort; don't let tracking issues block the UI)
+  try {
+    const { error } = await supabase
+      .from("newsletters")
+      .update({
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        recipient_count: sent,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", newsletterId);
+
+    if (error) {
+      console.error("[newsletter] failed to mark newsletter as sent", error);
+    }
+  } catch (error) {
+    console.error("[newsletter] failed to mark newsletter as sent", error);
+  }
 
   return { ok: true, sent, failed };
 }
