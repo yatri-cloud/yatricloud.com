@@ -20,6 +20,13 @@ export interface AdminOverview {
     receipts: number;
     inrRevenue: number;
     otherRevenue: Record<string, number>; // currency -> summed amount (non INR)
+    // Phase-2 additions
+    products: number;
+    jobPostings: number;
+    supportTickets: number;
+    mentorApplications: number;
+    subscribers: number;
+    coupons: number;
 }
 
 async function countOf(table: string): Promise<number> {
@@ -110,6 +117,72 @@ export async function getRecentActivity(limit = 6): Promise<RecentActivity> {
     return { receipts, yatris };
 }
 
+/* ── Pending-action alerts for the overview ── */
+
+export interface PendingAlerts {
+    openTickets: number;
+    pendingMentorApps: number;
+    unverifiedAchievements: number;
+    pendingInquiries: number;
+}
+
+/** Counts of items that need admin attention. Never throws. */
+export async function getPendingAlerts(): Promise<PendingAlerts> {
+    const [tickets, mentorApps, achievements, inquiries] = await Promise.all([
+        (async () => {
+            try {
+                const { count } = await supabase.from("support_tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
+                return count ?? 0;
+            } catch { return 0; }
+        })(),
+        (async () => {
+            try {
+                const { count } = await supabase.from("mentor_applications").select("*", { count: "exact", head: true }).eq("status", "pending");
+                return count ?? 0;
+            } catch { return 0; }
+        })(),
+        (async () => {
+            try {
+                const { count } = await supabase.from("certifications").select("*", { count: "exact", head: true }).eq("is_public", false);
+                return count ?? 0;
+            } catch { return 0; }
+        })(),
+        (async () => {
+            try {
+                const { count } = await supabase.from("consultation_requests").select("*", { count: "exact", head: true }).eq("status", "pending");
+                return count ?? 0;
+            } catch { return 0; }
+        })(),
+    ]);
+    return { openTickets: tickets, pendingMentorApps: mentorApps, unverifiedAchievements: achievements, pendingInquiries: inquiries };
+}
+
+/* ── Recent enrollments feed ── */
+
+export interface RecentEnrollment {
+    name: string;
+    course: string;
+    status: string;
+    createdAt: string;
+}
+
+export async function getRecentEnrollments(limit = 6): Promise<RecentEnrollment[]> {
+    try {
+        const { data, error } = await supabase
+            .from("training_enrollments")
+            .select("user_name, training_name, status, created_at")
+            .order("created_at", { ascending: false })
+            .limit(limit);
+        if (error || !Array.isArray(data)) return [];
+        return data.map((r: any) => ({
+            name: String(r.user_name || "Yatri"),
+            course: String(r.training_name || "Course"),
+            status: String(r.status || "enrolled"),
+            createdAt: String(r.created_at || ""),
+        }));
+    } catch { return []; }
+}
+
 export interface Trend {
     thisMonth: number;
     lastMonth: number;
@@ -177,6 +250,7 @@ export async function getGrowthTrends(): Promise<GrowthTrends> {
 export async function getAdminOverview(): Promise<AdminOverview> {
     const [
         yatris, events, trainings, enrollments, eventRegistrations, mentorshipBookings, rev,
+        products, jobPostings, supportTickets, mentorApplications, subscribers, coupons,
     ] = await Promise.all([
         countOf("profiles"),
         countOf("events"),
@@ -185,6 +259,12 @@ export async function getAdminOverview(): Promise<AdminOverview> {
         countOf("event_registrations"),
         countOf("mentorship_bookings"),
         revenue(),
+        countOf("products"),
+        countOf("job_postings"),
+        countOf("support_tickets"),
+        countOf("mentor_applications"),
+        countOf("subscribers"),
+        countOf("coupons"),
     ]);
 
     return {
@@ -197,5 +277,11 @@ export async function getAdminOverview(): Promise<AdminOverview> {
         receipts: rev.receipts,
         inrRevenue: rev.inr,
         otherRevenue: rev.other,
+        products,
+        jobPostings,
+        supportTickets,
+        mentorApplications,
+        subscribers,
+        coupons,
     };
 }

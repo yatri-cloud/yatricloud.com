@@ -66,6 +66,7 @@ const AdminTickets = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | TicketStatus>("all");
+  const [priorityFilter, setPriorityFilter] = useState<"all" | TicketPriority>("all");
 
   const [active, setActive] = useState<SupportTicket | null>(null);
   const [thread, setThread] = useState<SupportMessage[]>([]);
@@ -129,6 +130,7 @@ const AdminTickets = () => {
     const q = search.trim().toLowerCase();
     return rows.filter((t) => {
       if (statusFilter !== "all" && t.status !== statusFilter) return false;
+      if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
       if (
         q &&
         !(
@@ -141,7 +143,7 @@ const AdminTickets = () => {
         return false;
       return true;
     });
-  }, [rows, search, statusFilter]);
+  }, [rows, search, statusFilter, priorityFilter]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: rows.length };
@@ -194,6 +196,16 @@ const AdminTickets = () => {
                 </button>
               ))}
             </div>
+            <Select value={priorityFilter} onValueChange={(v) => setPriorityFilter(v as any)}>
+              <SelectTrigger className="h-9 w-32 rounded-lg"><SelectValue placeholder="Priority" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All priority</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="divide-y divide-border">
             {shown.length === 0 ? (

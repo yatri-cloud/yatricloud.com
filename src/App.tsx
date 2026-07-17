@@ -111,6 +111,7 @@ const AdminTickets = lazy(() => import("./pages/admin/AdminTickets"));
 const AdminNewsletters = lazy(() => import("./pages/admin/AdminNewsletters"));
 const AdminNewsletterCompose = lazy(() => import("./pages/admin/AdminNewsletterCompose"));
 const AdminSubscribers = lazy(() => import("./pages/admin/AdminSubscribers"));
+const AdminYatris = lazy(() => import("./pages/admin/AdminYatris"));
 const RequestVoucher = lazy(() => import("./pages/RequestVoucher"));
 const MentorshipDirectory = lazy(() => import("./pages/mentorship/MentorshipDirectory"));
 const BecomeMentor = lazy(() => import("./pages/mentorship/BecomeMentor"));
@@ -262,6 +263,7 @@ const App = () => (
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />}>
                 <Route index element={<AdminOverview />} />
+                <Route path="yatris" element={<AdminYatris />} />
                 <Route path="site" element={<AdminSiteContent />} />
                 <Route path="certifications" element={<AdminCertCatalog />} />
                 <Route path="blog" element={<AdminBlog />} />

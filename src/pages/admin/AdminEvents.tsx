@@ -28,9 +28,10 @@ export default function AdminEvents() {
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState("date");
+    const [visFilter, setVisFilter] = useState<"all" | "public" | "private">("all");
     const [page, setPage] = useState(1);
 
-    useEffect(() => { setPage(1); }, [activeTab, search, sort]);
+    useEffect(() => { setPage(1); }, [activeTab, search, sort, visFilter]);
 
     const PAGE_SIZE = 10;
 
@@ -46,6 +47,7 @@ export default function AdminEvents() {
             : activeTab === 'past' ? computedStatus === 'past'
             : computedStatus === 'draft';
         if (!matchesTab) return false;
+        if (visFilter !== "all" && event.visibility !== visFilter) return false;
         if (!q) return true;
         const city = event.location?.type === 'online' ? 'online' : (event.location?.city || '');
         return event.name.toLowerCase().includes(q)
@@ -116,6 +118,7 @@ export default function AdminEvents() {
         totalEvents: events.length,
         pastEvents: events.filter(e => getEventStatus(e) === 'past').length,
         draftEvents: events.filter(e => getEventStatus(e) === 'draft').length,
+        totalRegistrations: 0, // would need a separate count query; kept as placeholder
     };
 
     const tabs: { id: TabType; label: string }[] = [
@@ -216,6 +219,14 @@ export default function AdminEvents() {
                         <SelectContent>
                             <SelectItem value="date">Event date</SelectItem>
                             <SelectItem value="name">Name: A to Z</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={visFilter} onValueChange={(v) => setVisFilter(v as "all" | "public" | "private")}>
+                        <SelectTrigger className="h-9 w-full sm:w-[140px]" aria-label="Visibility filter"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All visibility</SelectItem>
+                            <SelectItem value="public">Public only</SelectItem>
+                            <SelectItem value="private">Private only</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

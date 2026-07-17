@@ -49,6 +49,14 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         ],
     },
     {
+        id: "users",
+        label: "Users",
+        icon: Users,
+        items: [
+            { name: "All Yatris", path: "/admin/yatris", icon: Users, description: "View, search and manage all registered users." },
+        ],
+    },
+    {
         id: "events",
         label: "Events",
         icon: Calendar,
