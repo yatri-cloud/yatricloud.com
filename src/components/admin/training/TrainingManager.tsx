@@ -274,27 +274,6 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         }
     };
 
-    // Helper to get exams for selected provider
-    const getExams = () => {
-        const p = providers.find(p => p.name === selectedProvider);
-        return p ? p.exams : [];
-    };
-
-    // Course/Exam Name suggestions come from the certification catalog
-    // (/admin/certifications → certOptions), narrowed to the selected provider
-    // when it matches, plus any exam names already used by existing courses.
-    // Falls back to the whole catalog so the list is never empty.
-    const providerMatches = (slug: string) => {
-        const norm = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        const s = norm(slug), p = norm(selectedProvider);
-        return !p || s === p || s.includes(p) || p.includes(s);
-    };
-    const examSuggestions = () => {
-        const filtered = certOptions.filter(o => providerMatches(o.provider)).map(o => o.label);
-        const catalog = filtered.length ? filtered : certOptions.map(o => o.label);
-        return Array.from(new Set([...catalog, ...getExams()])).filter(Boolean);
-    };
-
     const onSubmit = async (data: TrainingForm, status: 'Draft' | 'Published') => {
         // Going live (or submitting for review) requires a real title, otherwise
         // the course shows on the site as a generic, untitled "Training". Drafts
@@ -586,7 +565,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                         {/* key remounts the (uncontrolled) select once the loaded value
                                             arrives, so it displays the saved type instead of the placeholder —
                                             controlling it with `value` empties the field on async load. */}
-                                        <Select key={`type-${selectedType || "new"}`} onValueChange={(v) => setValue("type", v)} defaultValue={selectedType}>
+                                        <Select key={`type-${selectedType || "new"}`} onValueChange={(v) => {
+                                            setValue("type", v);
+                                            // Role-based trainings don't link a certification — clear any stale pick so it doesn't linger in the (now disabled) cert field.
+                                            if (v === "Role-based") setValue("certificationId", "");
+                                        }} defaultValue={selectedType}>
                                             <SelectTrigger data-testid="builder-type-trigger" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                 <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
@@ -629,13 +612,9 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             <Input
                                                 {...register("courseName")}
                                                 data-testid="builder-course-name"
-                                                list="exam-name-suggestions"
                                                 placeholder="e.g. Microsoft Certified: Azure Fundamentals"
                                                 className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
                                             />
-                                            <datalist id="exam-name-suggestions">
-                                                {examSuggestions().map(e => <option key={e} value={e} />)}
-                                            </datalist>
                                             <p className="mt-1 text-xs text-muted-foreground">{selectedType === "Certification" ? "Auto-filled from the certification — edit if you want a different title." : "Type the course name, or pick one from the suggestions."}</p>
                                         </div>
                                     )}
@@ -678,17 +657,10 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                         </p>
                                     </div>
 
-                                    {selectedCert && (
-                                        <p className="text-sm">
-                                            <span className="text-muted-foreground">Selected: </span>
-                                            <span className="font-medium">{selectedCert.label}{selectedCert.examCode ? ` (${selectedCert.examCode})` : ""}</span>
-                                        </p>
-                                    )}
-
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <Label className="block text-sm font-medium mb-1.5">Provider</Label>
-                                            <Select value={certProviderFilter} onValueChange={setCertProviderFilter}>
+                                            <Select value={certProviderFilter} onValueChange={setCertProviderFilter} disabled={selectedType === "Role-based"}>
                                                 <SelectTrigger className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                     <SelectValue placeholder="All providers" />
                                                 </SelectTrigger>
@@ -705,6 +677,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             <Input
                                                 value={certSearch}
                                                 onChange={(e) => setCertSearch(e.target.value)}
+                                                disabled={selectedType === "Role-based"}
                                                 placeholder="Search by name or exam code"
                                                 className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary"
                                             />
@@ -717,6 +690,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             key={`cert-${watch("certificationId") || "none"}`}
                                             defaultValue={watch("certificationId") || "none"}
                                             onValueChange={(val) => setValue("certificationId", val === "none" ? "" : val)}
+                                            disabled={selectedType === "Role-based"}
                                         >
                                             <SelectTrigger data-testid="builder-cert-trigger" className="min-h-[44px] rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary">
                                                 <SelectValue placeholder="Select a certification" />
