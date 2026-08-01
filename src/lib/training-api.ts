@@ -433,8 +433,8 @@ export async function listAllEnrollments(): Promise<any[]> {
     city: e.city || e.profiles?.city || "",
     status: e.status === "enrolled" ? "Enrolled"
       : e.status ? e.status.charAt(0).toUpperCase() + e.status.slice(1) : "",
-    paymentStatus: e.payment_id ? "Paid" : "Free",
-    amount: "",
+    paymentStatus: e.payment_status || (e.payment_id ? "Paid" : "Free"),
+    amount: e.amount ? `${e.currency || "INR"} ${e.amount}` : "",
   }));
 }
 
@@ -1107,6 +1107,14 @@ export async function createTraining(input: TrainingInput): Promise<string> {
   const { data, error } = await supabase.from("trainings").insert(row).select("id").single();
   if (error || !data) throw error || new Error("Create failed");
   await saveCurriculum(data.id, input.curriculum);
+  const auditPrice = input.paymentType === "Paid" ? `Paid · ₹${Number(input.price) || 0}` : "Free";
+  await logAudit({
+    training_id: data.id,
+    action: "created",
+    field: "course_title",
+    new_value: input.courseName || input.subType || "",
+    note: auditPrice,
+  });
   return data.id;
 }
 
@@ -1117,6 +1125,11 @@ export async function updateTraining(id: string, input: TrainingInput): Promise<
     try { row.image_url = await uploadThumbnail(input.thumbnailBase64, input.thumbnailMimeType); }
     catch { /* image optional */ }
   }
+  // Capture the pre-save price so a change can be flagged for price integrity.
+  const { data: before } = await supabase
+    .from("trainings").select("price_inr, status, review_status, course_title, name").eq("id", id).maybeSingle();
+  const beforePrice = Number(before?.price_inr) || 0;
+  const afterPrice = Number(row.price_inr) || 0;
   // Switching public → private regenerates the link: the old URL was public
   // knowledge, so it must not remain the private one. An already-private slug
   // is kept stable so links already shared keep working.
@@ -1130,6 +1143,14 @@ export async function updateTraining(id: string, input: TrainingInput): Promise<
   const { error } = await supabase.from("trainings").update(row).eq("id", id);
   if (error) throw error;
   if (input.curriculum) await saveCurriculum(id, input.curriculum);
+  // Price integrity: log any change to the list price, plus a generic edit record.
+  if (beforePrice !== afterPrice) {
+    await logAudit({
+      training_id: id, action: "price_changed", field: "price_inr",
+      old_value: String(beforePrice), new_value: String(afterPrice),
+    });
+  }
+  await logAudit({ training_id: id, action: "updated", field: "course_title", new_value: input.courseName || input.subType || "" });
 }
 
 /** Load a training into the admin/trainer edit-form shape (populateForm). */
@@ -1252,6 +1273,17 @@ export async function listTrainerTrainings(trainerId: string): Promise<Course[]>
 
 /** Delete a training (RLS: admins only). */
 export async function deleteTraining(id: string): Promise<void> {
+  const { data: cur } = await supabase
+    .from("trainings").select("id, course_title, name").eq("id", id).maybeSingle();
+  // Log the deletion FIRST so the audit row exists before the course row is
+  // removed; the FK (ON DELETE SET NULL) then keeps the history instead of
+  // cascading it away.
+  if (cur) {
+    await logAudit({
+      training_id: id, action: "deleted", field: "course_title",
+      new_value: cur.course_title || cur.name || "", note: "Course removed by admin",
+    });
+  }
   const { error } = await supabase.from("trainings").delete().eq("id", id);
   if (error) throw error;
 }
@@ -1297,6 +1329,7 @@ export async function approveCourse(courseId: string): Promise<void> {
     .update({ status: "published", review_status: "approved" })
     .eq("id", courseId);
   if (error) throw error;
+  await logAudit({ training_id: courseId, action: "approved", field: "status", new_value: "published" });
 }
 
 /** Admin: reject a pending course — mark the review rejected (stays a draft). */
@@ -1306,6 +1339,159 @@ export async function rejectCourse(courseId: string): Promise<void> {
     .update({ review_status: "rejected" })
     .eq("id", courseId);
   if (error) throw error;
+  await logAudit({ training_id: courseId, action: "rejected", field: "review_status", new_value: "rejected" });
+}
+
+// ---------------------------------------------------------------------------
+// Audit trail (migration 080) — transparency / anti-cheat
+// ---------------------------------------------------------------------------
+
+interface AuditEntry {
+  training_id: string;
+  action: string;
+  field?: string;
+  old_value?: string;
+  new_value?: string;
+  note?: string;
+}
+
+/** Resolve the current caller's role for the audit trail. */
+async function currentActorRole(): Promise<"admin" | "trainer" | "system"> {
+  try {
+    const profile = await fetchMyProfile();
+    if (profile?.role === "admin") return "admin";
+    if (profile?.role === "trainer") return "trainer";
+  } catch { /* fall through */ }
+  return "system";
+}
+
+/**
+ * Append an audit entry. Best-effort on purpose: a course action must never
+ * fail because the audit write did — history is the record, not the gate.
+ */
+async function logAudit(entry: AuditEntry): Promise<void> {
+  try {
+    const { data: me } = await supabase.auth.getUser();
+    await supabase.from("training_audit_log").insert({
+      ...entry,
+      actor_id: me?.user?.id ?? null,
+      actor_role: await currentActorRole(),
+    });
+  } catch { /* best-effort */ }
+}
+
+/** Admin: the full audit trail, newest first. */
+export async function listAllTrainingAudits(): Promise<any[]> {
+  const { data, error } = await supabase
+    .from("training_audit_log")
+    .select("*, trainings(course_title, name), profiles(full_name, email)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    trainingId: r.training_id,
+    trainingName: r.trainings ? (r.trainings.course_title || r.trainings.name) : "",
+    actorId: r.actor_id,
+    actorName: r.profiles?.full_name || r.profiles?.email || "",
+    actorRole: r.actor_role,
+    action: r.action,
+    field: r.field,
+    oldValue: r.old_value,
+    newValue: r.new_value,
+    note: r.note,
+    createdAt: r.created_at,
+  }));
+}
+
+/** Admin: the audit trail for one training, newest first. */
+export async function listTrainingAudits(trainingId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from("training_audit_log")
+    .select("*, profiles(full_name, email)")
+    .eq("training_id", trainingId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    trainingId: r.training_id,
+    actorId: r.actor_id,
+    actorName: r.profiles?.full_name || r.profiles?.email || "",
+    actorRole: r.actor_role,
+    action: r.action,
+    field: r.field,
+    oldValue: r.old_value,
+    newValue: r.new_value,
+    note: r.note,
+    createdAt: r.created_at,
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// Training finance (revenue per course / per trainer)
+// ---------------------------------------------------------------------------
+
+export interface TrainingFinanceRow {
+  trainingId: string;
+  courseName: string;
+  trainerId: string | null;
+  trainerName: string;
+  price: number;          // list price (INR)
+  currency: string;
+  enrollments: number;    // all enrollment rows
+  paidEnrollments: number; // rows with payment_status = 'paid'
+  freeEnrollments: number;
+  revenue: number;        // sum of amount where payment_status = 'paid' (INR)
+  status: string;
+  reviewStatus: string;
+  visibility: string;
+}
+
+/**
+ * Admin: per-training revenue built by aggregating paid enrollments. Pricing is
+ * INR-denominated today (only price_inr is persisted), so revenue sums in INR.
+ */
+export async function listTrainingFinance(): Promise<TrainingFinanceRow[]> {
+  const { data: trainings, error } = await supabase
+    .from("trainings")
+    .select("id, course_title, name, trainer_id, trainer_name, price_inr, status, review_status, visibility");
+  if (error) throw error;
+
+  const { data: enrollments, error: enrErr } = await supabase
+    .from("training_enrollments")
+    .select("training_id, amount, payment_status, currency");
+  if (enrErr) throw enrErr;
+
+  const byTraining = new Map<string, { count: number; paid: number; free: number; revenue: number; currency: string }>();
+  for (const e of (enrollments || [])) {
+    const agg = byTraining.get(e.training_id) || { count: 0, paid: 0, free: 0, revenue: 0, currency: e.currency || "INR" };
+    agg.count += 1;
+    if (e.payment_status === "paid") {
+      agg.paid += 1;
+      agg.revenue += Number(e.amount) || 0;
+    } else if (e.payment_status === "free") {
+      agg.free += 1;
+    }
+    byTraining.set(e.training_id, agg);
+  }
+
+  return ((trainings as any[]) || []).map((t) => {
+    const agg = byTraining.get(t.id) || { count: 0, paid: 0, free: 0, revenue: 0, currency: "INR" };
+    return {
+      trainingId: t.id,
+      courseName: t.course_title || t.name || "",
+      trainerId: t.trainer_id,
+      trainerName: t.trainer_name || "",
+      price: Number(t.price_inr) || 0,
+      currency: agg.currency,
+      enrollments: agg.count,
+      paidEnrollments: agg.paid,
+      freeEnrollments: agg.free,
+      revenue: agg.revenue,
+      status: t.status,
+      reviewStatus: t.review_status || "none",
+      visibility: t.visibility || "public",
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1429,6 +1615,7 @@ export async function submitCourseForApproval(input: { courseId: string }): Prom
     .update({ status: "draft", review_status: "pending" })
     .eq("id", input.courseId);
   if (error) throw error;
+  await logAudit({ training_id: input.courseId, action: "submitted", field: "review_status", new_value: "pending" });
 }
 
 /** Upload a resource file to the public product-images bucket; returns its URL. */

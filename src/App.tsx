@@ -82,6 +82,7 @@ const MyCertificates = lazy(() => import("./pages/MyCertificates"));
 const Training = lazy(() => import("./pages/Training"));
 const TrainingDetail = lazy(() => import("./pages/TrainingDetail"));
 const AdminTrainingList = lazy(() => import("@/pages/admin/AdminTrainingList"));
+const AdminTrainingReview = lazy(() => import("@/pages/admin/AdminTrainingReview"));
 const MyTrainings = lazy(() => import("@/pages/MyTrainings"));
 const StudentTrainingDashboard = lazy(() => import("@/pages/StudentTrainingDashboard"));
 const CertificateView = lazy(() => import("@/pages/CertificateView"));
@@ -289,6 +290,7 @@ const App = () => (
                 <Route path="products/add" element={<AdminAddProduct />} />
                 <Route path="training">
                   <Route index element={<AdminTrainingList />} />
+                  <Route path="review" element={<AdminTrainingReview />} />
                   <Route path="create" element={<AdminTraining />} />
                   <Route path="edit/:id" element={<AdminEditTraining />} />
                   <Route path="reviews" element={<AdminTrainingReviews />} />

@@ -72,6 +72,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: GraduationCap,
         items: [
             { name: "Course list", path: "/admin/training", icon: ClipboardList, description: "All training courses at a glance." },
+            { name: "Review & Finance", path: "/admin/training/review", icon: LayoutDashboard, description: "Audited, grouped overview of trainer courses with pricing control and revenue." },
             { name: "Create Course", path: "/admin/training/create", icon: BookOpen, description: "Add a new training course." },
             { name: "Enrollments", path: "/admin/enrollments", icon: Users, description: "See who enrolled and their payment status." },
             { name: "Reviews", path: "/admin/training/reviews", icon: Star, description: "Moderate learner reviews for trainings." },
