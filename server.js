@@ -169,11 +169,22 @@ app.post('/api/send-email', async (req, res) => {
   }
 });
 
+// ── Admin role & credential management ─────────────────────────────────
+app.post('/api/admin-users', async (req, res) => {
+  try {
+    const { handleAdminUsers } = await import('./api/admin-users-lib.mjs');
+    return handleAdminUsers(req, res);
+  } catch (error) {
+    console.error('❌ admin-users:', error);
+    return res.status(500).json({ ok: false, message: 'Server error', message_detail: error.message });
+  }
+});
+
 // ── Health ──────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
 app.listen(PORT, () => {
   console.log(`🚀 Yatri Cloud dev server on http://localhost:${PORT}`);
   console.log(`   💳 /api/razorpay/create-order · /api/razorpay/verify`);
-  console.log(`   📧 /api/send-email   💚 /health`);
+  console.log(`   📧 /api/send-email   💚 /health   👑 /api/admin-users`);
 });

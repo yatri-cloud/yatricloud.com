@@ -83,6 +83,7 @@ const Training = lazy(() => import("./pages/Training"));
 const TrainingDetail = lazy(() => import("./pages/TrainingDetail"));
 const AdminTrainingList = lazy(() => import("@/pages/admin/AdminTrainingList"));
 const AdminTrainingReview = lazy(() => import("@/pages/admin/AdminTrainingReview"));
+const AdminRoleManagement = lazy(() => import("@/pages/admin/AdminRoleManagement"));
 const MyTrainings = lazy(() => import("@/pages/MyTrainings"));
 const StudentTrainingDashboard = lazy(() => import("@/pages/StudentTrainingDashboard"));
 const CertificateView = lazy(() => import("@/pages/CertificateView"));
@@ -265,6 +266,7 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />}>
                 <Route index element={<AdminOverview />} />
                 <Route path="yatris" element={<AdminYatris />} />
+                <Route path="roles" element={<AdminRoleManagement />} />
                 <Route path="site" element={<AdminSiteContent />} />
                 <Route path="certifications" element={<AdminCertCatalog />} />
                 <Route path="blog" element={<AdminBlog />} />

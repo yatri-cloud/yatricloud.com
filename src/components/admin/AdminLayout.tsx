@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { LogOut, Menu, X, PanelLeftClose, PanelLeftOpen, ChevronRight, LayoutDashboard, ExternalLink } from "lucide-react";
 import { ADMIN_NAV_GROUPS } from "@/config/admin-nav";
 import { Button } from "@/components/ui/button";
+import { usePermissions } from "@/lib/permissions-context";
 import {
     Accordion,
     AccordionContent,
@@ -25,7 +26,11 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
     );
 
     // Grouped menu items — shared with the auto generated Admin Sitemap.
-    const menuGroups = ADMIN_NAV_GROUPS;
+    // Filtered by the signed-in admin's page permissions (full-access roles see all).
+    const { canAccess } = usePermissions();
+    const menuGroups = ADMIN_NAV_GROUPS
+        .map((g) => ({ ...g, items: g.items.filter((i) => canAccess(i.path)) }))
+        .filter((g) => g.items.length > 0);
 
     // Only ONE item should light up. A plain prefix match makes a parent path
     // (e.g. /admin/training) stay active on a sibling child route

@@ -2,7 +2,7 @@ import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
     CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag,
-    FilePen, Mail, type LucideIcon,
+    FilePen, Mail, ShieldCheck, type LucideIcon,
 } from "lucide-react";
 
 /**
@@ -54,6 +54,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: Users,
         items: [
             { name: "All Yatris", path: "/admin/yatris", icon: Users, description: "View, search and manage all registered users." },
+            { name: "Admin Roles", path: "/admin/roles", icon: ShieldCheck, description: "Manage admins, managers, roles and page permissions." },
         ],
     },
     {
