@@ -169,31 +169,9 @@ const Review = () => {
                           {p.label}
                         </option>
                       ))}
+                      <option value="linkedin">LinkedIn</option>
                       <option value="Other">Other</option>
                     </select>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {PROVIDERS.map((p) => (
-                        <div
-                          key={p.id}
-                          className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1.5 text-sm text-foreground"
-                        >
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0A66C2] text-white">
-                            <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
-                              <path d="M6.94 8.5A1.56 1.56 0 1 0 6.94 5.38a1.56 1.56 0 0 0 0 3.12ZM5.5 9.75h2.88V18H5.5zM10.6 9.75h2.76v1.12h.04c.38-.72 1.32-1.48 2.72-1.48 2.9 0 3.43 1.91 3.43 4.39V18h-2.87v-7.36c0-1.76-.03-4.02-2.45-4.02-2.45 0-2.82 1.91-2.82 3.88V18H10.6z" />
-                            </svg>
-                          </span>
-                          <span>{p.label}</span>
-                        </div>
-                      ))}
-                      <div className="flex items-center gap-2 rounded-full border border-dashed border-border bg-background px-3 py-1.5 text-sm text-muted-foreground">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0A66C2] text-white">
-                          <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
-                            <path d="M6.94 8.5A1.56 1.56 0 1 0 6.94 5.38a1.56 1.56 0 0 0 0 3.12ZM5.5 9.75h2.88V18H5.5zM10.6 9.75h2.76v1.12h.04c.38-.72 1.32-1.48 2.72-1.48 2.9 0 3.43 1.91 3.43 4.39V18h-2.87v-7.36c0-1.76-.03-4.02-2.45-4.02-2.45 0-2.82 1.91-2.82 3.88V18H10.6z" />
-                          </svg>
-                        </span>
-                        <span>Other</span>
-                      </div>
-                    </div>
                     {errors.provider && (
                       <p className="text-sm text-destructive">{errors.provider.message}</p>
                     )}

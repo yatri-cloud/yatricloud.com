@@ -119,6 +119,7 @@ export const FALLBACK_PROVIDER_COLORS: Record<string, string> = {
   terraform: "#844FBA",
   docker: "#2496ED",
   github: "#181717",
+  linkedin: "#0A66C2",
   salesforce: "#00A1E0",
   oracle: "#F80000",
   servicenow: "#00A82E",
@@ -133,6 +134,7 @@ export const FALLBACK_REVIEW_PROVIDERS: ReviewProvider[] = [
   { id: "terraform", label: "Terraform", color: "#844FBA" },
   { id: "docker", label: "Docker", color: "#2496ED" },
   { id: "github", label: "GitHub", color: "#181717" },
+  { id: "linkedin", label: "LinkedIn", color: "#0A66C2" },
   { id: "salesforce", label: "Salesforce", color: "#00A1E0" },
   { id: "oracle", label: "Oracle", color: "#F80000" },
   { id: "servicenow", label: "ServiceNow", color: "#00A82E" },
@@ -180,6 +182,10 @@ export const FALLBACK_CERTIFICATION_PROVIDER_LOGOS: Record<string, Certification
     label: "GitHub",
     logo: "https://cdn.simpleicons.org/github/white",
     logoLight: "https://cdn.simpleicons.org/github/000000",
+  },
+  linkedin: {
+    label: "LinkedIn",
+    logo: "https://cdn.simpleicons.org/linkedin/0A66C2",
   },
   salesforce: {
     label: "Salesforce",

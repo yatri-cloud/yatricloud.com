@@ -40,6 +40,8 @@ export const HomeReviewsSection = () => {
       r.provider && providerInfo
         ? getCertificationLogoUrl(r.provider, resolvedTheme)
         : undefined;
+    const isLinkedinProvider =
+      r.provider?.toLowerCase() === "linkedin" || providerInfo?.label?.toLowerCase() === "linkedin";
     return (
       <article
         key={`${keyPrefix}-${r.id ?? Math.random()}`}
@@ -62,7 +64,9 @@ export const HomeReviewsSection = () => {
             {/* Provider on left */}
             {providerInfo && (
               <div className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm w-fit">
-                {logoUrl && (
+                {isLinkedinProvider ? (
+                  <Linkedin className="w-5 h-5 text-[#0A66C2] flex-shrink-0" aria-hidden="true" />
+                ) : logoUrl ? (
                   <img
                     src={logoUrl}
                     alt=""
@@ -70,7 +74,7 @@ export const HomeReviewsSection = () => {
                     width={20}
                     height={20}
                   />
-                )}
+                ) : null}
                 <span className="text-foreground">
                   {providerInfo.label}
                 </span>

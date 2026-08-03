@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Linkedin, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTheme } from "@/components/ThemeProvider";
@@ -68,6 +68,26 @@ const Reviews = () => {
   const pageCount = Math.max(1, Math.ceil(filteredReviews.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
   const pagedReviews = filteredReviews.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const renderProviderIcon = (providerId: string, className = "w-5 h-5") => {
+    const isLinkedInProvider = providerId.toLowerCase() === "linkedin";
+    if (isLinkedInProvider) {
+      return <Linkedin className={`${className} text-[#0A66C2] flex-shrink-0`} aria-hidden="true" />;
+    }
+
+    const logoUrl = getCertificationLogoUrl(providerId, resolvedTheme);
+    if (!logoUrl) return null;
+
+    return (
+      <img
+        src={logoUrl}
+        alt=""
+        className={`${className} object-contain flex-shrink-0`}
+        width={20}
+        height={20}
+      />
+    );
+  };
 
   // Only show known certificate providers in the filter (exclude "web" / source)
   const providers = Array.from(
@@ -189,12 +209,9 @@ const Reviews = () => {
                               <>
                                 {(() => {
                                   const info = CERTIFICATION_PROVIDER_LOGOS[selectedProvider];
-                                  const logoUrl = getCertificationLogoUrl(selectedProvider, resolvedTheme);
                                   return (
                                     <>
-                                      {logoUrl && (
-                                        <img src={logoUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" width={20} height={20} />
-                                      )}
+                                      {renderProviderIcon(selectedProvider)}
                                       {info?.label ?? selectedProvider}
                                     </>
                                   );
@@ -214,14 +231,11 @@ const Reviews = () => {
                         {providers.map((p) => {
                           const count = reviews.filter((r) => r.provider === p).length;
                           const providerInfo = CERTIFICATION_PROVIDER_LOGOS[p];
-                          const logoUrl = getCertificationLogoUrl(p, resolvedTheme);
                           if (!providerInfo) return null;
                           return (
                             <DropdownMenuItem key={p} onClick={() => setSelectedProvider(p)}>
                               <span className="flex items-center gap-2 flex-1">
-                                {logoUrl && (
-                                  <img src={logoUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" width={20} height={20} />
-                                )}
+                                {renderProviderIcon(p)}
                                 <span className={selectedProvider === p ? "font-semibold" : ""}>
                                   {providerInfo.label}
                                 </span>
