@@ -31,7 +31,7 @@ export interface MyPermissions {
 export async function listAdminUsers(): Promise<AdminUserRow[]> {
   const { data, error } = await supabase
     .from("admin_users")
-    .select("id, role, permissions, is_active, created_at, profiles(full_name, email)");
+    .select("id, role, permissions, is_active, created_at, profiles!admin_users_id_fkey(full_name, email)");
   if (error) throw error;
   return ((data || []) as any[]).map((r) => ({
     id: r.id,
