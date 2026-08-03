@@ -57,7 +57,7 @@ async function handleTracking(req: VercelRequest, res: VercelResponse) {
             subscriber_id: sub,
             user_agent: req.headers['user-agent'] || '',
         }).then();
-        const { data } = await sb().from('newsletters').select('open_count').eq('id', nl).single();
+        const { data } = await (sb().from('newsletters') as any).select('open_count').eq('id', nl).single();
         if (data) {
             await (sb().from('newsletters') as any).update({ open_count: (data.open_count || 0) + 1 }).eq('id', nl);
         }
@@ -74,7 +74,7 @@ async function handleTracking(req: VercelRequest, res: VercelResponse) {
             subscriber_id: sub,
             url: targetUrl,
         }).then();
-        const { data } = await sb().from('newsletters').select('click_count').eq('id', nl).single();
+        const { data } = await (sb().from('newsletters') as any).select('click_count').eq('id', nl).single();
         if (data) {
             await (sb().from('newsletters') as any).update({ click_count: (data.click_count || 0) + 1 }).eq('id', nl);
         }
