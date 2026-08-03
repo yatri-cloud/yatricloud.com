@@ -33,15 +33,21 @@ export const HomeReviewsSection = () => {
     r: (typeof displayReviews)[number],
     keyPrefix: string,
   ) => {
-    const providerInfo = r.provider
-      ? CERTIFICATION_PROVIDER_LOGOS[r.provider]
+    const providerKey = r.provider?.trim().toLowerCase();
+    const providerInfo = providerKey
+      ? CERTIFICATION_PROVIDER_LOGOS[providerKey] ||
+        Object.values(CERTIFICATION_PROVIDER_LOGOS).find(
+          (info) => info.label.toLowerCase() === providerKey
+        )
       : null;
+    const providerId = providerKey === "linkedin" || providerInfo?.label?.toLowerCase() === "linkedin"
+      ? "linkedin"
+      : providerKey || "";
     const logoUrl =
-      r.provider && providerInfo
-        ? getCertificationLogoUrl(r.provider, resolvedTheme)
+      providerId && providerInfo
+        ? getCertificationLogoUrl(providerId, resolvedTheme)
         : undefined;
-    const isLinkedinProvider =
-      r.provider?.toLowerCase() === "linkedin" || providerInfo?.label?.toLowerCase() === "linkedin";
+    const isLinkedinProvider = providerId === "linkedin";
     return (
       <article
         key={`${keyPrefix}-${r.id ?? Math.random()}`}

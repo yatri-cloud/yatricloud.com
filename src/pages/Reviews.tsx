@@ -313,13 +313,21 @@ const Reviews = () => {
                 <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {pagedReviews.map((r) => {
-                    const providerInfo = r.provider
-                      ? CERTIFICATION_PROVIDER_LOGOS[r.provider]
+                    const providerKey = r.provider?.trim().toLowerCase();
+                    const providerInfo = providerKey
+                      ? CERTIFICATION_PROVIDER_LOGOS[providerKey] ||
+                        Object.values(CERTIFICATION_PROVIDER_LOGOS).find(
+                          (info) => info.label.toLowerCase() === providerKey
+                        )
                       : null;
+                    const providerId = providerKey === "linkedin" || providerInfo?.label?.toLowerCase() === "linkedin"
+                      ? "linkedin"
+                      : providerKey || "";
                     const logoUrl =
-                      r.provider && providerInfo
-                        ? getCertificationLogoUrl(r.provider, resolvedTheme)
+                      providerId && providerInfo
+                        ? getCertificationLogoUrl(providerId, resolvedTheme)
                         : undefined;
+                    const isLinkedinProvider = providerId === "linkedin";
                     return (
                       <article key={r.id ?? Math.random()} className="bg-card border border-border rounded-2xl p-6 shadow hover:shadow-lg transition">
                         <div className="mb-2">
@@ -346,9 +354,11 @@ const Reviews = () => {
                             <div>
                               {providerInfo && (
                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm w-fit">
-                                  {logoUrl && (
+                                  {isLinkedinProvider ? (
+                                    <Linkedin className="w-5 h-5 text-[#0A66C2] flex-shrink-0" aria-hidden="true" />
+                                  ) : logoUrl ? (
                                     <img src={logoUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" width={20} height={20} />
-                                  )}
+                                  ) : null}
                                   <span>{providerInfo.label}</span>
                                 </div>
                               )}
