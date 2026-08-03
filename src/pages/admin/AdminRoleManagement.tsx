@@ -215,7 +215,7 @@ export default function AdminRoleManagement() {
                     This role can open every admin page. Page-level permissions don't apply.
                 </p>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-72 overflow-auto pr-1">
+                <div className="grid h-[326px] grid-cols-1 gap-4 overflow-y-auto pr-2 md:grid-cols-2">
                     {PERM_GROUPS.map((g) => (
                         <div key={g.label} className="rounded-xl border border-border bg-muted/20 p-3">
                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{g.label}</p>
@@ -341,14 +341,14 @@ export default function AdminRoleManagement() {
 
                 {/* Add dialog */}
                 <Dialog open={addOpen} onOpenChange={(o) => { if (!o) setAddOpen(false); }}>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
-                        <DialogHeader>
-                            <DialogTitle>Add Admin</DialogTitle>
-                            <DialogDescription>
-                                The admin logs in with this email on the normal login page. A temporary password is generated and shown once.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
+                    <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col overflow-hidden p-0">
+                        <div className="space-y-4 overflow-y-auto px-6 pt-6 pb-4">
+                            <DialogHeader>
+                                <DialogTitle>Add Admin</DialogTitle>
+                                <DialogDescription>
+                                    The admin logs in with this email on the normal login page. A temporary password is generated and shown once.
+                                </DialogDescription>
+                            </DialogHeader>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <Label className="text-sm font-medium mb-1.5 block">Email (login username)</Label>
@@ -361,7 +361,7 @@ export default function AdminRoleManagement() {
                             </div>
                             <PermPicker perms={form.permissions} onToggle={togglePerm} role={form.role} onRoleChange={setRole} />
                         </div>
-                        <DialogFooter className="gap-2">
+                        <DialogFooter className="gap-2 border-t border-border bg-background px-6 py-4">
                             <Button variant="outline" onClick={() => setAddOpen(false)} className="rounded-xl min-h-[44px]">Cancel</Button>
                             <Button onClick={handleCreate} disabled={isSubmitting} className="gap-2 rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn">
                                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />} Create Admin
@@ -373,18 +373,20 @@ export default function AdminRoleManagement() {
                 {/* Edit dialog */}
                 {editing && editForm && (
                     <Dialog open onOpenChange={(o) => { if (!o) setEditing(null); }}>
-                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
-                            <DialogHeader>
-                                <DialogTitle>Edit {editing.fullName || editing.email}</DialogTitle>
-                                <DialogDescription>Change the role and which admin pages this user can open.</DialogDescription>
-                            </DialogHeader>
-                            <PermPicker
-                                perms={editForm.permissions}
-                                onToggle={toggleEditPerm}
-                                role={editForm.role}
-                                onRoleChange={(r) => setEditForm((f) => f ? { ...f, role: r, permissions: new Set(defaultPermissionsForRole(r)) } : f)}
-                            />
-                            <DialogFooter className="gap-2">
+                        <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col overflow-hidden p-0">
+                            <div className="space-y-4 overflow-y-auto px-6 pt-6 pb-4">
+                                <DialogHeader>
+                                    <DialogTitle>Edit {editing.fullName || editing.email}</DialogTitle>
+                                    <DialogDescription>Change the role and which admin pages this user can open.</DialogDescription>
+                                </DialogHeader>
+                                <PermPicker
+                                    perms={editForm.permissions}
+                                    onToggle={toggleEditPerm}
+                                    role={editForm.role}
+                                    onRoleChange={(r) => setEditForm((f) => f ? { ...f, role: r, permissions: new Set(defaultPermissionsForRole(r)) } : f)}
+                                />
+                            </div>
+                            <DialogFooter className="gap-2 border-t border-border bg-background px-6 py-4">
                                 <Button variant="outline" onClick={() => setEditing(null)} className="rounded-xl min-h-[44px]">Cancel</Button>
                                 <Button onClick={handleUpdate} disabled={isSubmitting} className="gap-2 rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn">
                                     {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />} Save
