@@ -52,18 +52,22 @@ export const Footer = () => {
 
   /* Footer link columns come from Supabase `nav_links` (seeded identical
    * to the fallbacks, so nothing visibly changes). */
-  const exploreLinks = useSiteContent(
-    () => getNavLinks("footer_explore"),
-    FALLBACK_NAV_LINKS.footer_explore
-  );
-  const quickLinks = useSiteContent(
-    () => getNavLinks("footer_quick"),
-    FALLBACK_NAV_LINKS.footer_quick
-  );
   const legalLinks = useSiteContent(
     () => getNavLinks("footer_legal"),
     FALLBACK_NAV_LINKS.footer_legal
   );
+
+  // TEMPORARY: hide Mentorship, Udemy Courses, Yatri Store, Practice Tests from
+  // the footer (applies whether links come from Supabase or the fallback).
+  const HIDDEN_FOOTER_HREFS = new Set(["/mentorship", "/udemy", "/yatristore", "#courses"]);
+  const exploreLinks = useSiteContent(
+    () => getNavLinks("footer_explore"),
+    FALLBACK_NAV_LINKS.footer_explore
+  ).filter((l) => !HIDDEN_FOOTER_HREFS.has(l.href));
+  const quickLinks = useSiteContent(
+    () => getNavLinks("footer_quick"),
+    FALLBACK_NAV_LINKS.footer_quick
+  ).filter((l) => !HIDDEN_FOOTER_HREFS.has(l.href));
 
   const socialLinks = [
     { name: "YouTube", href: social.youtube || FALLBACK_SETTINGS.social.youtube, icon: <Youtube className="w-5 h-5" /> },
