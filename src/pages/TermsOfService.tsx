@@ -53,7 +53,7 @@ const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
-        title="Terms of Service · Yatri Cloud"
+        title="Terms and Conditions · Yatri Cloud"
         description="The simple terms for using Yatri Cloud practice tests, exam dumps, vouchers, courses and community events."
       />
       <Navbar />
@@ -63,7 +63,7 @@ const TermsOfService = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{page.title}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Terms and Conditions</h1>
           <p className="text-muted-foreground mb-8">Last updated: {new Date().toLocaleDateString()}</p>
 
           <div className="prose prose-invert max-w-none space-y-6">

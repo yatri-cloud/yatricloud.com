@@ -18,6 +18,9 @@ const Review = lazy(() => import("./pages/Review"));
 const Reviews = lazy(() => import("./pages/Reviews"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const CancellationRefundPolicy = lazy(() => import("./pages/CancellationRefundPolicy"));
+const ShippingExchangePolicy = lazy(() => import("./pages/ShippingExchangePolicy"));
+const ContactUs = lazy(() => import("./pages/ContactUs"));
 const CertifiedYatris = lazy(() => import("./pages/CertifiedYatris"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const CertificationPaths = lazy(() => import("./pages/CertificationPaths"));
@@ -178,7 +181,11 @@ const App = () => (
               {/* ... all routes ... */}
               <Route path="/" element={<Index />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-and-conditions" element={<TermsOfService />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/cancellation-and-refund" element={<CancellationRefundPolicy />} />
+              <Route path="/shipping-and-exchange" element={<ShippingExchangePolicy />} />
+              <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/certifiedyatris" element={<CertifiedYatris />} />
               <Route path="/resume-maker" element={<ResumeMaker />} />
               <Route path="/jobs" element={<JobBoard />} />

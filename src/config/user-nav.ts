@@ -1,7 +1,7 @@
 import {
     Home, BookOpen, Calendar, FileText, GraduationCap, ShoppingBag, Handshake,
     Users, Award, Building2, Star, UserCog, CalendarCheck, Receipt, BadgeCheck,
-    Info, Map, Shield, ScrollText, type LucideIcon,
+    Info, Map, Shield, ScrollText, Mail, Truck, type LucideIcon,
 } from "lucide-react";
 
 /**
@@ -78,7 +78,10 @@ export const USER_NAV_GROUPS: UserNavGroup[] = [
         icon: ScrollText,
         items: [
             { name: "Privacy Policy", path: "/privacy-policy", icon: Shield, description: "How we handle your data." },
-            { name: "Terms of Service", path: "/terms-of-service", icon: ScrollText, description: "The terms of using Yatri Cloud." },
+            { name: "Terms and Conditions", path: "/terms-and-conditions", icon: ScrollText, description: "The terms of using Yatri Cloud." },
+            { name: "Cancellation and Refund", path: "/cancellation-and-refund", icon: Receipt, description: "Refunds, cancellations, and support terms." },
+            { name: "Shipping and Exchange", path: "/shipping-and-exchange", icon: Truck, description: "Delivery, shipping, and exchange details." },
+            { name: "Contact Us", path: "/contact-us", icon: Mail, description: "Reach us for support or partnership questions." },
         ],
     },
 ];

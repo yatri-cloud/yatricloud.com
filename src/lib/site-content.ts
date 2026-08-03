@@ -460,7 +460,10 @@ export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
   ],
   footer_legal: [
     { href: "/privacy-policy", label: "Privacy Policy" },
-    { href: "/terms-of-service", label: "Terms of Service" },
+    { href: "/terms-and-conditions", label: "Terms and Conditions" },
+    { href: "/cancellation-and-refund", label: "Cancellation and Refund" },
+    { href: "/shipping-and-exchange", label: "Shipping and Exchange" },
+    { href: "/contact-us", label: "Contact Us" },
     { href: "/reviews", label: "Reviews" },
   ],
 };
