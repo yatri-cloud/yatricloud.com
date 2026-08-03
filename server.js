@@ -174,7 +174,7 @@ app.post('/api/razorpay/admin', async (req, res) => {
   try {
     const action = req.body?.action;
     if (typeof action === 'string' && action.startsWith('adminUsers.')) {
-      const { handleAdminUsers } = await import('./api/admin-users-lib.mjs');
+      const { handleAdminUsers } = await import('./lib/admin-users-lib.mjs');
       req.body = { ...(req.body || {}), action: action.slice('adminUsers.'.length) };
       return handleAdminUsers(req, res);
     }

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 // @ts-ignore - shared plain-ESM core (no TS declaration)
-import { handleAdminUsers } from '../admin-users-lib.mjs';
+import { handleAdminUsers } from '../../lib/admin-users-lib.mjs';
 
 /**
  * Admin gateway to the Razorpay API.
