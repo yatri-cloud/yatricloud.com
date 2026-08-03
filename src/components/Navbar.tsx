@@ -68,6 +68,9 @@ export const Navbar = () => {
    * fallback, so nothing visibly changes). */
   const navLinks = useSiteContent(() => getNavLinks("navbar"), FALLBACK_NAV_LINKS.navbar);
 
+  // TEMPORARY: hide the Jobs link from the nav (both desktop + mobile).
+  const visibleNavLinks = navLinks.filter((l) => l.href !== "/jobs");
+
   return (
     <>
       <motion.nav
@@ -99,7 +102,7 @@ export const Navbar = () => {
                 logo · nav · actions header; md keeps left-align so the
                 scrollable overflow never clips the first link. */}
             <div className="hidden md:flex min-w-0 flex-1 items-center gap-4 lg:gap-8 overflow-x-auto scrollbar-hide lg:justify-center">
-              {navLinks.map((link) => (
+              {visibleNavLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
@@ -259,7 +262,7 @@ export const Navbar = () => {
             className="fixed inset-0 z-40 bg-background/95 backdrop-blur-xl pt-20 md:hidden"
           >
             <div className="flex flex-col items-center gap-6 p-8">
-              {navLinks.map((link) => (
+              {visibleNavLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}

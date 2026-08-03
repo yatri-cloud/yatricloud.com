@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/sections/HeroSection";
-import CurriculumSection from "@/components/sections/CurriculumSection";
+// TEMPORARILY HIDDEN (whole Practice Tests / Curriculum section).
+// import CurriculumSection from "@/components/sections/CurriculumSection";
 import { LatestExamDumpsSection } from "@/components/sections/LatestExamDumpsSection";
 import CertificationFlowSection from "@/components/sections/CertificationFlowSection";
 import { IndustryLeadersSection } from "@/components/sections/IndustryLeadersSection";
@@ -36,7 +37,8 @@ const Index = () => {
         <TrustSection />
         <CertificationFlowSection />
         <VoucherPromoSection />
-        <CurriculumSection />
+        {/* TEMPORARILY HIDDEN: entire Practice Tests / Curriculum section. */}
+        {/* <CurriculumSection /> */}
         <LatestExamDumpsSection />
         <IndustryLeadersSection />
         <InstructorSection />
