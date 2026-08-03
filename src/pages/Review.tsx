@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,8 @@ const Review = () => {
   const rating = watch("rating");
   const selectedProvider = watch("provider");
 
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
   const onSubmit = async (data: ReviewFormData) => {
     setIsSubmitting(true);
     try {
@@ -80,10 +83,7 @@ const Review = () => {
       });
       if (error) throw new Error(error.message);
 
-      toast({
-        title: "Thank you for your feedback!",
-        description: "Your review has been submitted — it'll appear on the wall shortly.",
-      });
+      setHasSubmitted(true);
       reset();
     } catch (error: any) {
       console.error("Error submitting review:", error);
@@ -107,20 +107,42 @@ const Review = () => {
       <main className="pt-24 pb-16">
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-            <ScrollReveal>
-              <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                  Add Your <span className="gradient-text">Review</span>
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  Share your experience with us!
+            {hasSubmitted ? (
+              <div className="min-h-[55vh] flex flex-col items-center justify-center rounded-3xl bg-card border border-border p-10 text-center shadow-xl">
+                <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">Thanks for your review!</h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mb-8">
+                  Your feedback has been submitted and will appear on the review wall shortly. We appreciate your support and the time you took to share your experience.
                 </p>
+                <div className="grid gap-4 sm:grid-cols-2 w-full max-w-xl">
+                  <Button asChild className="w-full py-5">
+                    <Link to="/reviews">Explore reviews</Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full py-5">
+                    <Link to="/">Back to home</Link>
+                  </Button>
+                </div>
               </div>
-            </ScrollReveal>
+            ) : (
+              <>
+                <ScrollReveal>
+                  <div className="text-center mb-12">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                      Add Your <span className="gradient-text">Review</span>
+                    </h1>
+                    <p className="text-lg text-muted-foreground">
+                      Share your experience with us!
+                    </p>
+                  </div>
+                </ScrollReveal>
 
-            <ScrollReveal delay={0.2}>
-              <div className="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-xl">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <ScrollReveal delay={0.2}>
+                  <div className="bg-card border border-border rounded-2xl p-8 md:p-10 shadow-xl">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* Name */}
                   <div className="space-y-2">
                     <Label htmlFor="name">
@@ -298,6 +320,8 @@ const Review = () => {
                 </form>
               </div>
             </ScrollReveal>
+              </>
+            )}
           </div>
         </section>
       </main>
