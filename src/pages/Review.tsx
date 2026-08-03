@@ -24,6 +24,7 @@ type ReviewFormData = {
   rating: string;
   linkedinProfile?: string;
   provider?: string;
+  customProvider?: string;
   country?: string;
 };
 
@@ -48,15 +49,21 @@ const Review = () => {
       rating: "",
       linkedinProfile: "",
       provider: "",
+      customProvider: "",
       country: "",
     },
   });
 
   const rating = watch("rating");
+  const selectedProvider = watch("provider");
 
   const onSubmit = async (data: ReviewFormData) => {
     setIsSubmitting(true);
     try {
+      const resolvedProvider = data.provider === "Other"
+        ? (data.customProvider || "").trim()
+        : data.provider || "";
+
       // Public review submit → Supabase `reviews` (RLS: anyone may insert).
       // Extra context lives in `context` JSON so the review wall can show it.
       const { error } = await supabase.from("reviews").insert({
@@ -64,7 +71,7 @@ const Review = () => {
         review: data.feedback,
         rating: Number(data.rating) || null,
         context: JSON.stringify({
-          provider: data.provider || "",
+          provider: resolvedProvider,
           country: data.country || "",
           linkedin: data.linkedinProfile || "",
           source: "web",
@@ -146,14 +153,14 @@ const Review = () => {
                     )}
                   </div>
 
-                  {/* Certificate Provider */}
+                  {/* Provider */}
                   <div className="space-y-2">
                     <Label htmlFor="provider">
-                      Certificate Provider <span className="text-destructive">*</span>
+                      Provider <span className="text-destructive">*</span>
                     </Label>
                     <select
                       id="provider"
-                      {...register("provider", { required: "Please select a certificate provider" })}
+                      {...register("provider", { required: "Please select a provider" })}
                       className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="">-- Select a provider --</option>
@@ -162,9 +169,29 @@ const Review = () => {
                           {p.label}
                         </option>
                       ))}
+                      <option value="Other">Other</option>
                     </select>
                     {errors.provider && (
                       <p className="text-sm text-destructive">{errors.provider.message}</p>
+                    )}
+
+                    {selectedProvider === "Other" && (
+                      <div className="space-y-2 pt-2">
+                        <Label htmlFor="customProvider">
+                          Enter provider <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="customProvider"
+                          {...register("customProvider", {
+                            required: selectedProvider === "Other" ? "Please enter your provider" : false,
+                          })}
+                          placeholder="e.g. Microsoft, Google, etc."
+                          className="w-full"
+                        />
+                        {errors.customProvider && (
+                          <p className="text-sm text-destructive">{errors.customProvider.message}</p>
+                        )}
+                      </div>
                     )}
                   </div>
 
