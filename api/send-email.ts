@@ -52,14 +52,14 @@ async function handleTracking(req: VercelRequest, res: VercelResponse) {
 
     if (type === 'open') {
         // Record open — fire-and-forget insert + counter bump
-        sb().from('newsletter_opens').insert({
+        (sb().from('newsletter_opens') as any).insert({
             newsletter_id: nl,
             subscriber_id: sub,
             user_agent: req.headers['user-agent'] || '',
         }).then();
         const { data } = await sb().from('newsletters').select('open_count').eq('id', nl).single();
         if (data) {
-            await sb().from('newsletters').update({ open_count: (data.open_count || 0) + 1 }).eq('id', nl);
+            await (sb().from('newsletters') as any).update({ open_count: (data.open_count || 0) + 1 }).eq('id', nl);
         }
         res.setHeader('Content-Type', 'image/gif');
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -69,14 +69,14 @@ async function handleTracking(req: VercelRequest, res: VercelResponse) {
 
     if (type === 'click') {
         const targetUrl = Array.isArray(url) ? url[0] : url || 'https://www.yatricloud.com';
-        sb().from('newsletter_clicks').insert({
+        (sb().from('newsletter_clicks') as any).insert({
             newsletter_id: nl,
             subscriber_id: sub,
             url: targetUrl,
         }).then();
         const { data } = await sb().from('newsletters').select('click_count').eq('id', nl).single();
         if (data) {
-            await sb().from('newsletters').update({ click_count: (data.click_count || 0) + 1 }).eq('id', nl);
+            await (sb().from('newsletters') as any).update({ click_count: (data.click_count || 0) + 1 }).eq('id', nl);
         }
         res.setHeader('Cache-Control', 'no-store');
         return res.redirect(302, targetUrl);
