@@ -105,10 +105,12 @@ async function adminRequest<T extends AdminResult = AdminResult>(action: string,
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
   if (!token) throw new Error("You must be signed in as an admin.");
-  const res = await fetch("/api/admin-users", {
+  // Admin-role ops are served by the /api/razorpay/admin gateway (one function,
+  // many actions) to stay within the serverless-function budget.
+  const res = await fetch("/api/razorpay/admin", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ access_token: token, action, ...payload }),
+    body: JSON.stringify({ access_token: token, action: `adminUsers.${action}`, ...payload }),
   });
   const data = (await res.json().catch(() => ({}))) as T;
   if (!res.ok || data.ok === false) {

@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+// @ts-ignore - shared plain-ESM core (no TS declaration)
+import { handleAdminUsers } from '../admin-users-lib.mjs';
 
 /**
  * Admin gateway to the Razorpay API.
@@ -106,6 +108,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const p = req.body || {};
+
+    // Admin role & credential management — folded into this gateway to stay
+    // within the serverless-function budget (one function, many actions).
+    // Delegate adminUsers.* actions to the shared lib (which re-checks the
+    // caller's admin_users role, incl. super_admin protection).
+    if (typeof action === 'string' && action.startsWith('adminUsers.')) {
+      req.body = { ...(req.body || {}), action: action.slice('adminUsers.'.length) };
+      return handleAdminUsers(req, res);
+    }
 
     if (action === 'invoices.list') {
       const count = Math.min(Math.max(Number(p.count) || 25, 1), 100);
