@@ -50,3 +50,5 @@ supabase/.temp/
 
 # Playwright saved auth state (never commit sessions)
 e2e/.auth/
+
+.env*.local
