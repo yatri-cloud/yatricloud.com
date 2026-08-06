@@ -301,6 +301,9 @@ export interface RegistrationWithEvent extends EventRegistration {
 function regRowToRegistration(row: EventRow): RegistrationWithEvent {
     // A to-one embed returns an object; guard for the array shape too.
     const ev = Array.isArray(row.events) ? row.events[0] : row.events;
+    const rawStatus = row.payment_status ?? (row.payment_id ? "paid" : undefined);
+    const paymentStatus = rawStatus === "paid" ? "completed" : rawStatus;
+    const isPaidTicket = rawStatus && rawStatus !== "free";
     return {
         id: row.id,
         userId: row.user_id || "",
@@ -323,9 +326,12 @@ function regRowToRegistration(row: EventRow): RegistrationWithEvent {
             country: row.country || "",
             linkedIn: row.linkedin_url || undefined,
         },
-        ticketType: row.payment_id ? "paid" : "free",
-        paymentStatus: row.payment_id ? "completed" : undefined,
+        ticketType: isPaidTicket ? "paid" : "free",
+        paymentStatus: paymentStatus || undefined,
         paymentId: row.payment_id || undefined,
+        orderId: row.order_id || undefined,
+        currency: row.currency || undefined,
+        paymentAmount: typeof row.amount === 'number' ? row.amount : undefined,
     };
 }
 

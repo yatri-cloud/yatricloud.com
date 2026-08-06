@@ -33,7 +33,7 @@ import {
     type EventCapacity,
     type WaitlistEntry,
 } from "@/lib/events-api";
-import { isAuthenticated, getStoredUser, getRegisteredEvents } from "@/lib/yatris-api";
+import { isAuthenticated, getStoredUser, getRegisteredEvents, type EventRegistration } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
 import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
@@ -62,6 +62,7 @@ const EventDetail = () => {
     const [showWaitlistModal, setShowWaitlistModal] = useState(false);
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const [isRegistered, setIsRegistered] = useState(false);
+    const [registrationCode, setRegistrationCode] = useState<string | null>(null);
     const [capacity, setCapacity] = useState<EventCapacity | null>(null);
     const [waitlistEntry, setWaitlistEntry] = useState<WaitlistEntry | null>(null);
     // Attendees-only gallery (migration 074): only checked-in attendees + admins
@@ -99,8 +100,9 @@ const EventDetail = () => {
             // Check registration status against the resolved event id
             if (isAuthenticated() && resolvedId) {
                 getRegisteredEvents().then((regs) => {
-                    const isReg = regs.some(r => r.eventId === resolvedId && r.status === 'confirmed');
-                    setIsRegistered(isReg);
+                    const registration = regs.find(r => r.eventId === resolvedId && r.status === 'confirmed');
+                    setIsRegistered(Boolean(registration));
+                    setRegistrationCode(registration?.attendees?.[0]?.ticketId ?? null);
                 });
             }
 
@@ -162,8 +164,9 @@ const EventDetail = () => {
         }
     };
 
-    const handleRegistrationSuccess = () => {
+    const handleRegistrationSuccess = (registration: EventRegistration) => {
         setIsRegistered(true);
+        setRegistrationCode(registration.attendees?.[0]?.ticketId ?? null);
     };
 
     const handleLoginSuccess = (user: any) => {
@@ -458,9 +461,19 @@ const EventDetail = () => {
 
                                     {/* Registration Button */}
                                     {isRegistered ? (
-                                        <div className="w-full bg-success/10 text-success border border-success/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
-                                            <CheckCircle2 className="w-5 h-5" />
-                                            <span>You're in, Yatri — see you there!</span>
+                                        <div className="space-y-4">
+                                            <div className="w-full bg-success/10 text-success border border-success/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
+                                                <CheckCircle2 className="w-5 h-5" />
+                                                <span>You're in, Yatri — see you there!</span>
+                                            </div>
+                                            {registrationCode && (
+                                                <div className="rounded-2xl border border-success/20 bg-success/5 p-4">
+                                                    <p className="text-xs text-success/80 uppercase tracking-[0.18em] font-semibold mb-2">Registration code</p>
+                                                    <p className="font-mono text-lg font-semibold text-success tracking-[0.18em]">
+                                                        {registrationCode}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     ) : onWaitlist ? (
                                         <div className="space-y-2">
@@ -888,11 +901,7 @@ const EventDetail = () => {
                     open={showRegistrationModal}
                     onClose={() => setShowRegistrationModal(false)}
                     event={event}
-                    onSuccess={(registration) => {
-                        setIsRegistered(true);
-                        // Reuse existing success logic or adapt if needed
-                        handleRegistrationSuccess();
-                    }}
+                    onSuccess={handleRegistrationSuccess}
                 />
             )}
 

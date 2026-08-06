@@ -363,7 +363,7 @@ export interface EventRegistration {
   registrationDate: string;
   attendees: Attendee[];
   totalAmount: number;
-  status: 'confirmed' | 'cancelled';
+  status: 'confirmed' | 'cancelled' | 'pending';
   /** Raw registration status from the database, so the UI can detect 'attended'. */
   rawStatus: 'registered' | 'attended' | 'cancelled';
 }
@@ -430,27 +430,30 @@ export async function getRegisteredEvents(): Promise<EventRegistration[]> {
   if (!uid) return [];
   const { data, error } = await supabase
     .from('event_registrations')
-    .select('id,registration_code,name,email,phone,status,created_at,events(id,slug,name,event_date,location,city,country,image_url)')
+    .select('id,registration_code,name,email,phone,status,payment_status,payment_id,amount,currency,created_at,events(id,slug,name,event_date,location,city,country,image_url)')
     .eq('user_id', uid)
     .order('created_at', { ascending: false });
   if (error) {
     console.error('Error fetching registrations:', error.message);
     return [];
   }
-  return (data || []).map((r: any) => ({
-    id: r.id,
-    eventId: r.events?.id ?? '',
-    eventSlug: r.events?.slug,
-    eventName: r.events?.name ?? '',
-    eventDate: r.events?.event_date ?? '',
-    eventLocation: [r.events?.location, r.events?.city, r.events?.country].filter(Boolean).join(', '),
-    eventImage: r.events?.image_url ?? '',
-    registrationDate: r.created_at,
-    attendees: [{ name: r.name, email: r.email, phone: r.phone || undefined, ticketId: r.registration_code }],
-    totalAmount: 0,
-    status: r.status === 'cancelled' ? 'cancelled' : 'confirmed',
-    rawStatus: r.status === 'attended' ? 'attended' : r.status === 'cancelled' ? 'cancelled' : 'registered',
-  }));
+  return (data || []).map((r: any) => {
+    const confirmed = r.status !== 'cancelled' && (r.payment_status === undefined || r.payment_status === 'free' || r.payment_status === 'paid' || r.payment_status === 'completed');
+    return {
+      id: r.id,
+      eventId: r.events?.id ?? '',
+      eventSlug: r.events?.slug,
+      eventName: r.events?.name ?? '',
+      eventDate: r.events?.event_date ?? '',
+      eventLocation: [r.events?.location, r.events?.city, r.events?.country].filter(Boolean).join(', '),
+      eventImage: r.events?.image_url ?? '',
+      registrationDate: r.created_at,
+      attendees: [{ name: r.name, email: r.email, phone: r.phone || undefined, ticketId: r.registration_code }],
+      totalAmount: typeof r.amount === 'number' ? r.amount : 0,
+      status: r.status === 'cancelled' ? 'cancelled' : confirmed ? 'confirmed' : 'pending',
+      rawStatus: r.status === 'attended' ? 'attended' : r.status === 'cancelled' ? 'cancelled' : 'registered',
+    };
+  });
 }
 
 /**

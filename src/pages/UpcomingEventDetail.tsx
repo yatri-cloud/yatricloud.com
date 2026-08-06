@@ -137,33 +137,91 @@ export default function UpcomingEventDetail() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground pt-20 md:pt-24">
             <Navbar />
 
             {/* Event Banner */}
-            <div className="relative h-[400px] overflow-hidden">
-                <img
-                    src={event.imageUrl}
-                    alt={event.name}
-                    className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-8 container mx-auto">
-                    <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold mb-4 ${viewState.showPublishedState ? 'bg-emerald-500 text-emerald-950' : 'bg-yellow-500 text-yellow-900'}`}>
-                        {viewState.showPublishedState ? '✨ Event Published' : '🚀 Upcoming Event - Help Needed!'}
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">{event.name}</h1>
-                    <p className="text-lg text-muted-foreground max-w-3xl">{event.description}</p>
-                    {/* Tech Stack Tags */}
-                    {event.techStack && event.techStack.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            {event.techStack.map((tech, i) => (
-                                <span key={i} className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-semibold backdrop-blur-sm border border-primary/20">
-                                    {tech}
+            <div className="relative">
+                <div className="h-[380px] sm:h-[460px] lg:h-[560px] overflow-hidden rounded-b-[2rem] border-b border-border shadow-xl shadow-slate-900/5">
+                    <img
+                        src={event.imageUrl}
+                        alt={event.name}
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent" />
+                </div>
+
+                <div className="container mx-auto px-4 md:px-6 -mt-24 md:-mt-28 relative z-10">
+                    <div className="rounded-[2rem] border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-xl">
+                        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="max-w-3xl space-y-4">
+                                <span className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold ${viewState.showPublishedState ? 'bg-emerald-500 text-emerald-950' : 'bg-yellow-500 text-yellow-950'}`}>
+                                    {viewState.showPublishedState ? '✨ Event Published' : '🚀 Upcoming Event - Help Needed!'}
                                 </span>
-                            ))}
+                                <h1 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground">
+                                    {event.name}
+                                </h1>
+                                <p className="text-base leading-7 text-muted-foreground">
+                                    {event.description}
+                                </p>
+                                {event.techStack && event.techStack.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {event.techStack.map((tech, i) => (
+                                            <span key={i} className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                                {tech}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid gap-4 min-w-[260px] max-w-full lg:max-w-[320px]">
+                                <div className="rounded-3xl border border-border bg-background/90 p-5 shadow-sm">
+                                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Event details</p>
+                                    <div className="mt-4 space-y-3 text-sm text-foreground">
+                                        <div>
+                                            <p className="font-medium">When</p>
+                                            <p className="text-muted-foreground">{formattedDate} · {formattedTime}</p>
+                                        </div>
+                                        {event.location?.venue ? (
+                                            <div>
+                                                <p className="font-medium">Where</p>
+                                                <p className="text-muted-foreground">{event.location.venue}, {event.location.city}, {event.location.state}</p>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <p className="font-medium">Where</p>
+                                                <p className="text-muted-foreground">{event.location?.type === 'online' ? 'Online event' : 'Location details coming soon'}</p>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="font-medium">Organized by</p>
+                                            <p className="text-muted-foreground">{event.organizer?.name || 'Yatri Cloud'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-3xl border border-border bg-background/90 p-5 shadow-sm">
+                                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Next action</p>
+                                    <div className="mt-4 space-y-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            {viewState.showPublishedState
+                                                ? 'This event is now live for registrations and community updates.'
+                                                : 'Share your expertise and help shape this event before it launches.'}
+                                        </p>
+                                        <Button className="w-full" onClick={handleRegister}>
+                                            {isRegistered ? 'Already registered' : isFull ? 'Register / Join waitlist' : 'Register now'}
+                                        </Button>
+                                        {isFull && !onWaitlist && (
+                                            <Button variant="outline" className="w-full" onClick={handleJoinWaitlist}>
+                                                Join waitlist
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 

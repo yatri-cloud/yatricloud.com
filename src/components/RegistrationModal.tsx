@@ -171,10 +171,11 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     // Creates or reuses the registration row (pending before a paid checkout,
     // 'free' for a free event). Returns the code + id for the UI and verify notes.
     const persistRegistration = async (opts: {
-        paymentStatus: "pending" | "free";
+        paymentStatus: "pending" | "paid" | "free";
         amountInr: number;
         currencyCode: string;
         orderId?: string | null;
+        paymentId?: string;
     }): Promise<{ registrationCode: string; id: string }> => {
         return apiCreateRegistration({
             eventId: event.id,
@@ -193,6 +194,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
             currency: opts.currencyCode,
             paymentStatus: opts.paymentStatus,
             orderId: opts.orderId ?? undefined,
+            paymentId: opts.paymentId ?? undefined,
         });
     };
 
@@ -297,21 +299,11 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                 });
                 if (orderErr || !orderId) throw new Error(orderErr || "Could not start your order. Please try again.");
 
-                // Pending registration before payment (reused on retry).
-                // Store the actual charged amount in the chosen currency so the
-                // amount and currency always agree with the order and invoice.
-                const { id: registrationId, registrationCode } = await persistRegistration({
-                    paymentStatus: "pending",
-                    amountInr: convertedPrice,
-                    currencyCode: currency.code,
-                    orderId,
-                });
-
                 const razorpayOrderId = await createRazorpayOrder({
                     amount: smallest,
                     currency: currency.code,
                     receipt: `evt_${Date.now()}`,
-                    notes: { kind: "event", registration_id: registrationId, order_id: orderId },
+                    notes: { kind: "event", order_id: orderId },
                 });
 
                 openRazorpayCheckout({
@@ -323,13 +315,19 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                     ourOrderId: orderId,
                     verifyExtra: {
                         kind: "event",
-                        registration_id: registrationId,
                         buyer_name: formData.name,
                         buyer_email: formData.email,
                         item: event.name,
                     },
                     onSuccess: async (paymentId) => {
                         if (coupon) void redeemCoupon(coupon.code);
+                        const { registrationCode } = await persistRegistration({
+                            paymentStatus: "paid",
+                            amountInr: convertedPrice,
+                            currencyCode: currency.code,
+                            orderId,
+                            paymentId,
+                        });
                         const registration = buildRegistrationPayload(registrationCode, { paymentId, orderId });
                         await finishSuccess(registration);
                     },
