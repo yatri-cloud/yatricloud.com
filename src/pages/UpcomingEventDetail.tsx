@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { Calendar, MapPin, Clock, ArrowLeft, Users, Building2, Mic, Handshake, TicketCheck, Mail, CheckCircle2 } from "lucide-react";
+import { Calendar, MapPin, Clock, ArrowLeft, Users, Building2, Mic, Handshake, TicketCheck, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getEventBySlug, Event } from "@/lib/events-store";
 import { motion } from "framer-motion";
@@ -236,25 +236,6 @@ export default function UpcomingEventDetail() {
                                             </div>
                                         </div>
                                     )}
-                                    {registrations.length > 0 && (
-                                        <div>
-                                            <h3 className="font-semibold mb-2">Registered Attendees</h3>
-                                            <div className="space-y-2">
-                                                {registrations.slice(0, 6).map((registration) => (
-                                                    <div key={registration.id} className="rounded-lg border bg-muted/30 p-3 flex items-center justify-between gap-3">
-                                                        <div>
-                                                            <p className="font-medium">{registration.userDetails?.name || registration.userDetails?.email}</p>
-                                                            <p className="text-sm text-muted-foreground">{registration.userDetails?.email}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                            <Mail className="w-4 h-4" />
-                                                            <span>{registration.registrationCode}</span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             </motion.div>
                         )}
@@ -350,7 +331,7 @@ export default function UpcomingEventDetail() {
                                 <div className="space-y-3">
                                     <div className="rounded-lg border bg-muted/30 p-3">
                                         <p className="font-semibold">Registration status</p>
-                                        <p className="text-sm text-muted-foreground">{registrations.length} attendee{registrations.length === 1 ? '' : 's'} already joined</p>
+                                        <p className="text-sm text-muted-foreground">Registration is open for this event.</p>
                                     </div>
                                     <div className="rounded-lg border bg-muted/30 p-3">
                                         <p className="font-semibold">Community support</p>

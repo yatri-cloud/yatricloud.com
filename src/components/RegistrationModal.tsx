@@ -470,17 +470,31 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 {couponError && <p className="text-sm text-destructive">{couponError}</p>}
                             </div>
 
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 p-3">
-                                <div className="text-sm">
-                                    <span className="text-muted-foreground">You pay </span>
-                                    <span className="font-semibold text-foreground">{priceLabel}</span>
-                                    {coupon && <s className="ml-2 text-muted-foreground">{originalLabel}</s>}
-                                    {feeLabel && (
-                                        <div className="mt-0.5 text-xs text-muted-foreground">
-                                            Base {originalLabel}{coupon ? ` − ${coupon.percentOff}% off` : ""} + Platform fee ({feePct}%) {feeLabel}
+                            <div className="rounded-xl border border-border bg-secondary/30 p-4">
+                                <div className="grid gap-3 text-sm text-muted-foreground">
+                                    <div className="flex items-center justify-between">
+                                        <span>Base ticket price</span>
+                                        <span className="font-semibold text-foreground">{originalLabel}</span>
+                                    </div>
+                                    {coupon ? (
+                                        <div className="flex items-center justify-between text-success">
+                                            <span>Coupon discount</span>
+                                            <span>-{formatMoney(convertFromInr(inrPrice - effectiveInr, currency), currency)}</span>
                                         </div>
-                                    )}
+                                    ) : null}
+                                    {feeLabel ? (
+                                        <div className="flex items-center justify-between">
+                                            <span>Platform fee ({feePct}%)</span>
+                                            <span className="font-semibold text-foreground">{feeLabel}</span>
+                                        </div>
+                                    ) : null}
+                                    <div className="border-t pt-3 flex items-center justify-between text-base font-semibold text-foreground">
+                                        <span>Total to pay</span>
+                                        <span>{priceLabel}</span>
+                                    </div>
                                 </div>
+                            </div>
+                            <div className="pt-3 flex justify-end">
                                 <CurrencySelect
                                     value={currency.code}
                                     onChange={(code, option) => { setCurrency(option); setPreferredCurrency(code); }}
