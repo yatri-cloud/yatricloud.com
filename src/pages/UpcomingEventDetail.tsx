@@ -13,17 +13,20 @@ export default function UpcomingEventDetail() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (slug) {
-            getEventBySlug(slug).then((foundEvent) => {
-                if (foundEvent && foundEvent.isUpcoming) {
-                    setEvent(foundEvent);
-                } else {
-                    // Redirect if not found or not an upcoming event
-                    navigate('/events');
-                }
-                setLoading(false);
-            });
+        if (!slug) {
+            setLoading(false);
+            return;
         }
+
+        getEventBySlug(slug).then((foundEvent) => {
+            const canShowEvent = foundEvent && (foundEvent.visibility === "private" || foundEvent.status !== "draft");
+            if (canShowEvent) {
+                setEvent(foundEvent);
+            } else {
+                navigate('/events');
+            }
+            setLoading(false);
+        });
     }, [slug, navigate]);
 
     if (loading) {

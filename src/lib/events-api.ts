@@ -147,7 +147,7 @@ function rowToEvent(row: EventRow): Event {
         category: ext.category || "",
         status: computedStatus,
         visibility: row.visibility === "private" ? "private" : "public",
-        isUpcoming: ext.isUpcoming,
+        isUpcoming: ext.isUpcoming ?? (computedStatus === "upcoming"),
         lookingForVenue: ext.lookingForVenue,
         lookingForSpeakers: ext.lookingForSpeakers,
         lookingForSponsors: ext.lookingForSponsors,
