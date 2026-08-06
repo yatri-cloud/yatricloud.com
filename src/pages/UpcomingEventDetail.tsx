@@ -13,6 +13,8 @@ import { RegistrationModal } from "@/components/RegistrationModal";
 import { WaitlistModal } from "@/components/WaitlistModal";
 import { isAuthenticated, getRegisteredEvents } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
+import { Footer } from "@/components/sections/Footer";
 
 export default function UpcomingEventDetail() {
     const { slug } = useParams<{ slug: string }>();
@@ -135,8 +137,8 @@ export default function UpcomingEventDetail() {
     };
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* Header Removed as per request */}
+        <div className="min-h-screen bg-background text-foreground">
+            <Navbar />
 
             {/* Event Banner */}
             <div className="relative h-[400px] overflow-hidden">
@@ -373,6 +375,7 @@ export default function UpcomingEventDetail() {
             <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} onSuccess={handleLoginSuccess} />
             <RegistrationModal event={event} open={showRegistrationModal} onClose={() => setShowRegistrationModal(false)} onSuccess={handleRegistrationSuccess} />
             <WaitlistModal event={event} open={showWaitlistModal} onClose={() => setShowWaitlistModal(false)} onSuccess={handleWaitlistSuccess} />
+            <Footer />
         </div>
     );
 }

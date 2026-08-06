@@ -76,6 +76,22 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
     const [couponChecking, setCouponChecking] = useState(false);
     const [couponError, setCouponError] = useState("");
+    const [step, setStep] = useState<1 | 2>(1);
+
+    useEffect(() => {
+        if (!open) return;
+        const user = getCachedUser();
+        setFormData((prev) => ({
+            name: user?.fullName || prev.name,
+            email: user?.email || prev.email,
+            phone: user?.phoneNumber || prev.phone,
+            city: user?.city || prev.city,
+            state: user?.stateProvince || prev.state,
+            country: user?.country || prev.country,
+            linkedIn: user?.linkedinUrl || prev.linkedIn,
+        }));
+        setStep(1);
+    }, [open]);
 
     const applyCoupon = async () => {
         setCouponChecking(true);
@@ -136,6 +152,11 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
             return false;
         }
         return true;
+    };
+
+    const goToCheckout = () => {
+        if (!validateForm()) return;
+        setStep(2);
     };
 
     // Registration code prefix: specific tech stack > category > name > "EVENT".
@@ -249,6 +270,11 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     };
 
     const handleSubmit = async () => {
+        if (step === 1) {
+            goToCheckout();
+            return;
+        }
+
         if (!validateForm()) return;
         if (alreadyRegistered) {
             toast({ title: "Already Registered", description: "You are already registered for this event", variant: "destructive" });
@@ -361,89 +387,122 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Full Name *</Label>
-                                <Input
-                                    id="name"
-                                    value={formData.name}
-                                    onChange={(e) => handleInputChange('name', e.target.value)}
-                                    placeholder="John Doe"
-                                    disabled={isSubmitting}
-                                />
+                        {step === 1 ? (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Full Name *</Label>
+                                    <Input
+                                        id="name"
+                                        value={formData.name}
+                                        onChange={(e) => handleInputChange('name', e.target.value)}
+                                        placeholder="John Doe"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email Address *</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => handleInputChange('email', e.target.value)}
+                                        placeholder="john@example.com"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Phone Number *</Label>
+                                    <Input
+                                        id="phone"
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                                        placeholder="+91 9876543210"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="city">City *</Label>
+                                    <Input
+                                        id="city"
+                                        value={formData.city}
+                                        onChange={(e) => handleInputChange('city', e.target.value)}
+                                        placeholder="Bangalore"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="state">State *</Label>
+                                    <Input
+                                        id="state"
+                                        value={formData.state}
+                                        onChange={(e) => handleInputChange('state', e.target.value)}
+                                        placeholder="Karnataka"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="country">Country *</Label>
+                                    <Input
+                                        id="country"
+                                        value={formData.country}
+                                        onChange={(e) => handleInputChange('country', e.target.value)}
+                                        placeholder="India"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="linkedIn">LinkedIn Profile (Optional)</Label>
+                                    <Input
+                                        id="linkedIn"
+                                        value={formData.linkedIn}
+                                        onChange={(e) => handleInputChange('linkedIn', e.target.value)}
+                                        placeholder="linkedin.com/in/johndoe"
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email Address *</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => handleInputChange('email', e.target.value)}
-                                    placeholder="john@example.com"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="phone">Phone Number *</Label>
-                                <Input
-                                    id="phone"
-                                    type="tel"
-                                    value={formData.phone}
-                                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                                    placeholder="+91 9876543210"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="city">City *</Label>
-                                <Input
-                                    id="city"
-                                    value={formData.city}
-                                    onChange={(e) => handleInputChange('city', e.target.value)}
-                                    placeholder="Bangalore"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="state">State *</Label>
-                                <Input
-                                    id="state"
-                                    value={formData.state}
-                                    onChange={(e) => handleInputChange('state', e.target.value)}
-                                    placeholder="Karnataka"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="country">Country *</Label>
-                                <Input
-                                    id="country"
-                                    value={formData.country}
-                                    onChange={(e) => handleInputChange('country', e.target.value)}
-                                    placeholder="India"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="linkedIn">LinkedIn Profile (Optional)</Label>
-                                <Input
-                                    id="linkedIn"
-                                    value={formData.linkedIn}
-                                    onChange={(e) => handleInputChange('linkedIn', e.target.value)}
-                                    placeholder="linkedin.com/in/johndoe"
-                                    disabled={isSubmitting}
-                                />
+                            <div className="rounded-xl border border-border bg-secondary/30 p-4">
+                                <p className="text-sm text-muted-foreground">
+                                    Complete your details first. On the next step, you'll review pricing and complete checkout.
+                                </p>
                             </div>
                         </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="rounded-xl border border-border bg-secondary/30 p-4">
+                                <div className="grid gap-3 text-sm text-muted-foreground">
+                                    <div className="flex items-center justify-between">
+                                        <span>Base ticket price</span>
+                                        <span className="font-semibold text-foreground">{originalLabel}</span>
+                                    </div>
+                                    {coupon ? (
+                                        <div className="flex items-center justify-between text-success">
+                                            <span>Coupon discount</span>
+                                            <span>-{formatMoney(convertFromInr(inrPrice - effectiveInr, currency), currency)}</span>
+                                        </div>
+                                    ) : null}
+                                    {feeLabel ? (
+                                        <div className="flex items-center justify-between">
+                                            <span>Platform fee ({feePct}%)</span>
+                                            <span className="font-semibold text-foreground">{feeLabel}</span>
+                                        </div>
+                                    ) : null}
+                                    <div className="border-t pt-3 flex items-center justify-between text-base font-semibold text-foreground">
+                                        <span>Total to pay</span>
+                                        <span>{priceLabel}</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                        {isPaid && (
-                            <>
                             <div className="space-y-1.5">
                                 <Label htmlFor="event-coupon">Coupon code (optional)</Label>
                                 <div className="flex gap-2">
@@ -470,30 +529,6 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 {couponError && <p className="text-sm text-destructive">{couponError}</p>}
                             </div>
 
-                            <div className="rounded-xl border border-border bg-secondary/30 p-4">
-                                <div className="grid gap-3 text-sm text-muted-foreground">
-                                    <div className="flex items-center justify-between">
-                                        <span>Base ticket price</span>
-                                        <span className="font-semibold text-foreground">{originalLabel}</span>
-                                    </div>
-                                    {coupon ? (
-                                        <div className="flex items-center justify-between text-success">
-                                            <span>Coupon discount</span>
-                                            <span>-{formatMoney(convertFromInr(inrPrice - effectiveInr, currency), currency)}</span>
-                                        </div>
-                                    ) : null}
-                                    {feeLabel ? (
-                                        <div className="flex items-center justify-between">
-                                            <span>Platform fee ({feePct}%)</span>
-                                            <span className="font-semibold text-foreground">{feeLabel}</span>
-                                        </div>
-                                    ) : null}
-                                    <div className="border-t pt-3 flex items-center justify-between text-base font-semibold text-foreground">
-                                        <span>Total to pay</span>
-                                        <span>{priceLabel}</span>
-                                    </div>
-                                </div>
-                            </div>
                             <div className="pt-3 flex justify-end">
                                 <CurrencySelect
                                     value={currency.code}
@@ -501,8 +536,8 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                     disabled={isSubmitting}
                                 />
                             </div>
-                            </>
-                        )}
+                        </div>
+                    )}
 
                         <div className="flex gap-3 pt-4">
                             <Button
@@ -521,11 +556,13 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        {isPaid ? 'Processing...' : 'Registering...'}
+                                        {step === 1 ? 'Validating...' : isPaid ? 'Processing...' : 'Registering...'}
                                     </>
                                 ) : (
                                     <>
-                                        {isPaid ? (
+                                        {step === 1 ? (
+                                            'Next: Checkout'
+                                        ) : isPaid ? (
                                             <>Pay {priceLabel}</>
                                         ) : (
                                             'Complete Registration'
