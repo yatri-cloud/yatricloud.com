@@ -445,7 +445,7 @@ export default function EventRegistrationsList() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="px-4 py-3 text-right">
-                                            <div className="flex items-center justify-end gap-1">
+                                            <div className="flex flex-wrap items-center justify-end gap-2">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -471,10 +471,18 @@ export default function EventRegistrationsList() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => setSelectedRegistration(reg)}
-                                                    className="focus-visible:ring-2 focus-visible:ring-ring"
+                                                    onClick={() => selectedRegistration !== reg && setSelectedRegistration(reg)}
+                                                    className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
                                                 >
                                                     View
+                                                </Button>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => handleDeletePermanent(reg)}
+                                                    className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
+                                                >
+                                                    Delete
                                                 </Button>
                                             </div>
                                         </TableCell>
