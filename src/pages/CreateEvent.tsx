@@ -419,9 +419,9 @@ export default function CreateEvent() {
         setIsSubmitting(true);
 
         try {
-            // Create event as "upcoming" with isUpcoming flag
-            const upcomingEvent = constructEventObject('draft'); // Status is draft until confirmed, but we use isUpcoming flag
-            upcomingEvent.isUpcoming = true; // Mark as upcoming event
+            // Create event as a published upcoming event so the public page can be opened immediately.
+            const upcomingEvent = constructEventObject('upcoming');
+            upcomingEvent.isUpcoming = true;
 
             await saveEvent(upcomingEvent);
 

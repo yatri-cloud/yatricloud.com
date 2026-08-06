@@ -1,16 +1,21 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { Calendar, MapPin, Clock, ArrowLeft, Users, Building2, Mic, Handshake } from "lucide-react";
+import { Calendar, MapPin, Clock, ArrowLeft, Users, Building2, Mic, Handshake, TicketCheck, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getEventBySlug, Event } from "@/lib/events-store";
 import { motion } from "framer-motion";
+import { getAllSubmissionsForEvent } from "@/lib/event-submissions-api";
+import { getEventRegistrations } from "@/lib/events-api";
+import { getUpcomingEventViewState } from "@/lib/upcoming-event-view";
 
 export default function UpcomingEventDetail() {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
+    const [submissions, setSubmissions] = useState({ venues: [], speakers: [], sponsors: [] as any[] });
+    const [registrations, setRegistrations] = useState<any[]>([]);
 
     useEffect(() => {
         if (!slug) {
@@ -18,10 +23,18 @@ export default function UpcomingEventDetail() {
             return;
         }
 
-        getEventBySlug(slug).then((foundEvent) => {
-            const canShowEvent = foundEvent && (foundEvent.visibility === "private" || foundEvent.status !== "draft");
+        getEventBySlug(slug).then(async (foundEvent) => {
+            const canShowEvent = foundEvent && (foundEvent.isUpcoming || foundEvent.visibility === "private" || foundEvent.status !== "draft");
             if (canShowEvent) {
                 setEvent(foundEvent);
+                if (foundEvent.id) {
+                    const [allSubmissions, eventRegistrations] = await Promise.all([
+                        getAllSubmissionsForEvent(foundEvent.id),
+                        getEventRegistrations(foundEvent.id),
+                    ]);
+                    setSubmissions(allSubmissions);
+                    setRegistrations(eventRegistrations);
+                }
             } else {
                 navigate('/events');
             }
@@ -47,6 +60,7 @@ export default function UpcomingEventDetail() {
     const eventDate = new Date(event.date);
     const formattedDate = format(eventDate, "EEEE, MMMM d, yyyy");
     const formattedTime = format(eventDate, "h:mm a");
+    const viewState = getUpcomingEventViewState(event, submissions, registrations);
 
     return (
         <div className="min-h-screen bg-background">
@@ -61,8 +75,8 @@ export default function UpcomingEventDetail() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-8 container mx-auto">
-                    <div className="inline-block px-3 py-1 bg-yellow-500 text-yellow-900 rounded-full text-sm font-semibold mb-4">
-                        🚀 Upcoming Event - Help Needed!
+                    <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold mb-4 ${viewState.showPublishedState ? 'bg-emerald-500 text-emerald-950' : 'bg-yellow-500 text-yellow-900'}`}>
+                        {viewState.showPublishedState ? '✨ Event Published' : '🚀 Upcoming Event - Help Needed!'}
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">{event.name}</h1>
                     <p className="text-lg text-muted-foreground max-w-3xl">{event.description}</p>
@@ -99,6 +113,80 @@ export default function UpcomingEventDetail() {
                             </div>
                         </motion.div>
 
+                        {viewState.showPublishedState && (
+                            <motion.div
+                                className="bg-card rounded-xl p-6 shadow-sm border"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                <div className="flex items-center gap-2 mb-4">
+                                    <TicketCheck className="w-5 h-5 text-primary" />
+                                    <h2 className="text-2xl font-bold">Community Highlights</h2>
+                                </div>
+                                <div className="space-y-4">
+                                    {submissions.venues.filter((venue) => venue.status === 'approved').length > 0 && (
+                                        <div>
+                                            <h3 className="font-semibold mb-2">Approved Venue Proposals</h3>
+                                            <div className="space-y-2">
+                                                {submissions.venues.filter((venue) => venue.status === 'approved').map((venue) => (
+                                                    <div key={venue.id} className="rounded-lg border bg-muted/30 p-3">
+                                                        <p className="font-medium">{venue.venueName}</p>
+                                                        <p className="text-sm text-muted-foreground">{venue.address}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {submissions.speakers.filter((speaker) => speaker.status === 'approved').length > 0 && (
+                                        <div>
+                                            <h3 className="font-semibold mb-2">Approved Speakers</h3>
+                                            <div className="space-y-2">
+                                                {submissions.speakers.filter((speaker) => speaker.status === 'approved').map((speaker) => (
+                                                    <div key={speaker.id} className="rounded-lg border bg-muted/30 p-3">
+                                                        <p className="font-medium">{speaker.fullName}</p>
+                                                        <p className="text-sm text-muted-foreground">{speaker.talkTitle}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {submissions.sponsors.filter((sponsor) => sponsor.status === 'approved').length > 0 && (
+                                        <div>
+                                            <h3 className="font-semibold mb-2">Approved Sponsors</h3>
+                                            <div className="space-y-2">
+                                                {submissions.sponsors.filter((sponsor) => sponsor.status === 'approved').map((sponsor) => (
+                                                    <div key={sponsor.id} className="rounded-lg border bg-muted/30 p-3">
+                                                        <p className="font-medium">{sponsor.companyName}</p>
+                                                        <p className="text-sm text-muted-foreground">{sponsor.sponsorshipTier || 'Sponsor'}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {registrations.length > 0 && (
+                                        <div>
+                                            <h3 className="font-semibold mb-2">Registered Attendees</h3>
+                                            <div className="space-y-2">
+                                                {registrations.slice(0, 6).map((registration) => (
+                                                    <div key={registration.id} className="rounded-lg border bg-muted/30 p-3 flex items-center justify-between gap-3">
+                                                        <div>
+                                                            <p className="font-medium">{registration.userDetails?.name || registration.userDetails?.email}</p>
+                                                            <p className="text-sm text-muted-foreground">{registration.userDetails?.email}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                            <Mail className="w-4 h-4" />
+                                                            <span>{registration.registrationCode}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+
                         {/* Date & Location */}
                         <motion.div
                             className="bg-card rounded-xl p-6 shadow-sm border"
@@ -130,59 +218,74 @@ export default function UpcomingEventDetail() {
                         </motion.div>
                     </div>
 
-                    {/* Sidebar - Help Needed */}
+                    {/* Sidebar */}
                     <div className="space-y-6">
                         <motion.div
-                            className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-xl p-6 shadow-lg border-2 border-primary/20 sticky top-8"
+                            className={`rounded-xl p-6 shadow-lg border-2 sticky top-8 ${viewState.showPublishedState ? 'bg-card border-border' : 'bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20'}`}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
                         >
                             <div className="flex items-center gap-2 mb-4">
                                 <Users className="w-5 h-5 text-primary" />
-                                <h3 className="text-lg font-bold">We Need Your Help!</h3>
+                                <h3 className="text-lg font-bold">{viewState.showPublishedState ? 'Event Details' : 'We Need Your Help!'}</h3>
                             </div>
                             <p className="text-sm text-muted-foreground mb-6">
-                                Want to contribute to making this event amazing? We're looking for support in the following areas:
+                                {viewState.showPublishedState
+                                    ? 'This event is now live with community-backed details and attendee registrations.'
+                                    : 'Want to contribute to making this event amazing? We\'re looking for support in the following areas:'}
                             </p>
 
-                            <div className="space-y-3">
-                                {event.lookingForVenue && (
-                                    <Link to={`/upcoming-event/${event.slug}/venue`}>
-                                        <Button className="w-full justify-start gap-3 h-auto py-4" variant="outline">
-                                            <Building2 className="w-5 h-5 text-primary" />
-                                            <div className="text-left">
-                                                <div className="font-semibold">Propose a Venue</div>
-                                                <div className="text-xs text-muted-foreground">Help us find the perfect location</div>
-                                            </div>
-                                        </Button>
-                                    </Link>
-                                )}
+                            {viewState.showHelpNeeded ? (
+                                <div className="space-y-3">
+                                    {event.lookingForVenue && (
+                                        <Link to={`/upcoming-event/${event.slug}/venue`}>
+                                            <Button className="w-full justify-start gap-3 h-auto py-4" variant="outline">
+                                                <Building2 className="w-5 h-5 text-primary" />
+                                                <div className="text-left">
+                                                    <div className="font-semibold">Propose a Venue</div>
+                                                    <div className="text-xs text-muted-foreground">Help us find the perfect location</div>
+                                                </div>
+                                            </Button>
+                                        </Link>
+                                    )}
 
-                                {event.lookingForSpeakers && (
-                                    <Link to={`/upcoming-event/${event.slug}/speakers`}>
-                                        <Button className="w-full justify-start gap-3 h-auto py-4" variant="outline">
-                                            <Mic className="w-5 h-5 text-primary" />
-                                            <div className="text-left">
-                                                <div className="font-semibold">Apply as Speaker</div>
-                                                <div className="text-xs text-muted-foreground">Share your expertise with attendees</div>
-                                            </div>
-                                        </Button>
-                                    </Link>
-                                )}
+                                    {event.lookingForSpeakers && (
+                                        <Link to={`/upcoming-event/${event.slug}/speakers`}>
+                                            <Button className="w-full justify-start gap-3 h-auto py-4" variant="outline">
+                                                <Mic className="w-5 h-5 text-primary" />
+                                                <div className="text-left">
+                                                    <div className="font-semibold">Apply as Speaker</div>
+                                                    <div className="text-xs text-muted-foreground">Share your expertise with attendees</div>
+                                                </div>
+                                            </Button>
+                                        </Link>
+                                    )}
 
-                                {event.lookingForSponsors && (
-                                    <Link to={`/upcoming-event/${event.slug}/sponsors`}>
-                                        <Button className="w-full justify-start gap-3 h-auto py-4" variant="outline">
-                                            <Handshake className="w-5 h-5 text-primary" />
-                                            <div className="text-left">
-                                                <div className="font-semibold">Become a Sponsor</div>
-                                                <div className="text-xs text-muted-foreground">Support this amazing event</div>
-                                            </div>
-                                        </Button>
-                                    </Link>
-                                )}
-                            </div>
+                                    {event.lookingForSponsors && (
+                                        <Link to={`/upcoming-event/${event.slug}/sponsors`}>
+                                            <Button className="w-full justify-start gap-3 h-auto py-4" variant="outline">
+                                                <Handshake className="w-5 h-5 text-primary" />
+                                                <div className="text-left">
+                                                    <div className="font-semibold">Become a Sponsor</div>
+                                                    <div className="text-xs text-muted-foreground">Support this amazing event</div>
+                                                </div>
+                                            </Button>
+                                        </Link>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="rounded-lg border bg-muted/30 p-3">
+                                        <p className="font-semibold">Registration status</p>
+                                        <p className="text-sm text-muted-foreground">{registrations.length} attendee{registrations.length === 1 ? '' : 's'} already joined</p>
+                                    </div>
+                                    <div className="rounded-lg border bg-muted/30 p-3">
+                                        <p className="font-semibold">Community support</p>
+                                        <p className="text-sm text-muted-foreground">Approved venue, speaker, and sponsor proposals are highlighted above.</p>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="mt-6 pt-6 border-t">
                                 <p className="text-xs text-muted-foreground">
