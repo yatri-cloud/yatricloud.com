@@ -38,6 +38,8 @@ interface EnrollmentModalProps {
     price: string | number;
     currency?: string;
     isPaid: boolean;
+    /** Optional admin-set platform fee as a % of the base price, added on top of it. */
+    platformFeePct?: number;
     onSuccess: () => void;
     // Optional live session start, used to add the calendar link to the
     // enrollment email when the training has a scheduled session.
@@ -56,7 +58,7 @@ interface FormData {
     linkedIn: string;
 }
 
-export function EnrollmentModal({ open, onClose, courseId, courseName, price, currency, isPaid, onSuccess, startDate, startTime, meetLink }: EnrollmentModalProps) {
+export function EnrollmentModal({ open, onClose, courseId, courseName, price, currency, isPaid, platformFeePct, onSuccess, startDate, startTime, meetLink }: EnrollmentModalProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [autoSubmitting, setAutoSubmitting] = useState(false);
@@ -89,9 +91,16 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
     };
 
     const effectiveInr = discountedInr(inrPrice, coupon);
-    const convertedPrice = convertFromInr(effectiveInr, payCurrency);
+    // Optional platform fee: % of the BASE price (not coupon-discounted), added on top.
+    const feePct = Number(platformFeePct) || 0;
+    const platformFeeInr = Math.round((inrPrice * feePct) / 100 * 100) / 100;
+    const totalInr = effectiveInr + platformFeeInr;
+    const convertedPrice = convertFromInr(totalInr, payCurrency);
     const priceLabel = formatMoney(convertedPrice, payCurrency);
     const originalLabel = formatMoney(convertFromInr(inrPrice, payCurrency), payCurrency);
+    const feeLabel = feePct > 0 && platformFeeInr > 0
+        ? formatMoney(convertFromInr(platformFeeInr, payCurrency), payCurrency)
+        : "";
     const [formData, setFormData] = useState<FormData>({
         name: "",
         email: "",
@@ -233,7 +242,7 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     email: formData.email,
                     amount: convertedPrice,
                     currency: payCurrency.code,
-                    items: [{ name: courseName, price_inr: effectiveInr }],
+                    items: [{ name: courseName, price_inr: totalInr }],
                 });
                 if (orderErr || !orderId) throw new Error(orderErr || "Could not start your order. Please try again.");
 
@@ -461,6 +470,11 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                                 <span className="text-muted-foreground">You pay </span>
                                 <span className="font-semibold text-foreground">{priceLabel}</span>
                                 {coupon && <s className="ml-2 text-muted-foreground">{originalLabel}</s>}
+                                {feeLabel && (
+                                    <div className="mt-0.5 text-xs text-muted-foreground">
+                                        Base {originalLabel}{coupon ? ` − ${coupon.percentOff}% off` : ""} + Platform fee ({feePct}%) {feeLabel}
+                                    </div>
+                                )}
                             </div>
                             <CurrencySelect
                                 value={payCurrency.code}

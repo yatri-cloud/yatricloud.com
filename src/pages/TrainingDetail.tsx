@@ -26,6 +26,7 @@ interface Course {
     duration: string;
     paymentType: "Free" | "Paid";
     price: string;
+    platformFeePct?: number;
     thumbnailUrl: string;
     subType: string;
     mode: "Online" | "On-site";
@@ -655,6 +656,7 @@ export default function TrainingDetail() {
                     price={course.price}
                     currency={course.paymentType === 'Paid' ? (course.price.includes("₹") ? "INR" : "USD") : "INR"}
                     isPaid={course.paymentType === "Paid"}
+                    platformFeePct={course.platformFeePct}
                     onSuccess={() => {
                         setIsEnrolled(true);
                     }}

@@ -91,9 +91,16 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     };
 
     const effectiveInr = discountedInr(inrPrice, coupon);
-    const convertedPrice = convertFromInr(effectiveInr, currency);
+    // Optional platform fee: % of the BASE price (not coupon-discounted), added on top.
+    const feePct = Number(event.platformFeePct) || 0;
+    const platformFeeInr = Math.round((inrPrice * feePct) / 100 * 100) / 100;
+    const totalInr = effectiveInr + platformFeeInr;
+    const convertedPrice = convertFromInr(totalInr, currency);
     const priceLabel = formatMoney(convertedPrice, currency);
     const originalLabel = formatMoney(convertFromInr(inrPrice, currency), currency);
+    const feeLabel = feePct > 0 && platformFeeInr > 0
+        ? formatMoney(convertFromInr(platformFeeInr, currency), currency)
+        : "";
 
     // Duplicate registrations are prevented by the DB unique (event_id, email)
     // constraint; the insert surfaces an error if the Yatri is already registered.
@@ -260,7 +267,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                     email: formData.email,
                     amount: convertedPrice,
                     currency: currency.code,
-                    items: [{ name: event.name, price_inr: inrPrice }],
+                    items: [{ name: event.name, price_inr: totalInr }],
                 });
                 if (orderErr || !orderId) throw new Error(orderErr || "Could not start your order. Please try again.");
 
@@ -468,6 +475,11 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                     <span className="text-muted-foreground">You pay </span>
                                     <span className="font-semibold text-foreground">{priceLabel}</span>
                                     {coupon && <s className="ml-2 text-muted-foreground">{originalLabel}</s>}
+                                    {feeLabel && (
+                                        <div className="mt-0.5 text-xs text-muted-foreground">
+                                            Base {originalLabel}{coupon ? ` − ${coupon.percentOff}% off` : ""} + Platform fee ({feePct}%) {feeLabel}
+                                        </div>
+                                    )}
                                 </div>
                                 <CurrencySelect
                                     value={currency.code}

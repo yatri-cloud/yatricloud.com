@@ -45,6 +45,8 @@ export interface TrainingForm {
     capacityCount?: string;
     paymentType: string;
     price?: string;
+    /** Optional admin-set platform fee as a % of the base price, added on top of it. */
+    platformFeePct?: string;
     currency?: string;
     couponCode?: string;
     startDate?: Date;

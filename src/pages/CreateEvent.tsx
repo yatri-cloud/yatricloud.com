@@ -121,6 +121,7 @@ export default function CreateEvent() {
                 posterUrl: editEvent.imageUrl,
                 pricingType: editEvent.price === 'Free' ? 'free' : 'paid',
                 price: editEvent.price !== 'Free' ? String(editEvent.price) : "",
+                platformFeePct: editEvent.platformFeePct ? String(editEvent.platformFeePct) : "",
                 capacity: editEvent.seatsAvailable ? String(editEvent.seatsAvailable) : "",
                 registrationDeadline: editEvent.registrationDeadline || "",
                 tickets: editEvent.tickets || [],
@@ -163,6 +164,7 @@ export default function CreateEvent() {
 
         pricingType: "free" as "free" | "paid",
         price: "",
+        platformFeePct: "",
         capacity: "",
         registrationDeadline: "",
         tickets: [] as EventTicket[],
@@ -254,6 +256,7 @@ export default function CreateEvent() {
             status: status,
             visibility: visibility,
             price: formData.pricingType === 'paid' ? formData.price : 'Free',
+            platformFeePct: formData.pricingType === 'paid' ? (Number(formData.platformFeePct) || 0) : 0,
             // Ticket Info
             seatsAvailable: formData.capacity ? parseInt(formData.capacity) : undefined,
             registrationDeadline: formData.registrationDeadline,
@@ -979,6 +982,42 @@ export default function CreateEvent() {
                                             </div>
                                         </div>
                                         <div className="space-y-6">
+                                            {/* Primary event price: Free/Paid + optional platform fee % (added on top). */}
+                                            <div className="flex flex-col gap-4 p-6 border rounded-xl bg-card shadow-sm">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="font-semibold text-base">Event Price</h3>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button type="button" variant={formData.pricingType === 'free' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, pricingType: 'free', price: '', platformFeePct: '' })}>Free</Button>
+                                                    <Button type="button" variant={formData.pricingType === 'paid' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, pricingType: 'paid' })}>Paid</Button>
+                                                </div>
+                                                {formData.pricingType === 'paid' && (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label>Ticket Price (₹)</Label>
+                                                            <Input
+                                                                type="number"
+                                                                min="0"
+                                                                value={formData.price}
+                                                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                                                placeholder="e.g. 499"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label>Platform fee (%) <span className="font-normal text-muted-foreground">(optional)</span></Label>
+                                                            <Input
+                                                                type="number"
+                                                                min="0"
+                                                                step="0.01"
+                                                                value={formData.platformFeePct}
+                                                                onChange={(e) => setFormData({ ...formData, platformFeePct: e.target.value })}
+                                                                placeholder="e.g. 5"
+                                                            />
+                                                            <p className="text-xs text-muted-foreground">Added on top of the price the attendee pays.</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                             {formData.tickets.map((ticket, index) => (
                                                 <div key={index} className="flex flex-col gap-4 p-6 border rounded-xl bg-card relative shadow-sm">
                                                     <div className="flex justify-between items-start">

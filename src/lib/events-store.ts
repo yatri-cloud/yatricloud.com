@@ -29,6 +29,8 @@ export interface Event {
     spreadsheetId?: string; // Google Sheet ID for storing submissions
 
     price?: string | number;
+    /** Optional admin-set platform fee as a % of the base price, added on top of it. 0/undefined = no fee. */
+    platformFeePct?: number;
     registrationDeadline?: string;
     seatsAvailable?: number;
     communityLink?: string;

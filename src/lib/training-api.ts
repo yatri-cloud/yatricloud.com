@@ -74,6 +74,8 @@ export interface Course {
   duration: string;
   paymentType: "Free" | "Paid";
   price: string;
+  /** Optional admin-set platform fee as a % of the base price, added on top of it. 0 = no fee. */
+  platformFeePct: number;
   thumbnailUrl: string;
   subType: string;
   mode: "Online" | "On-site";
@@ -154,6 +156,7 @@ function rowToCourse(row: any, modulesCount = 0): Course {
     duration: row.duration_hours ? `${row.duration_hours} hours` : "",
     paymentType: isPaid ? "Paid" : "Free",
     price: isPaid ? `₹${priceNum}` : "Free",
+    platformFeePct: Number(row.platform_fee_pct) || 0,
     thumbnailUrl: row.image_url || "",
     subType: row.name || "",
     mode,
@@ -190,7 +193,7 @@ function rowToCourse(row: any, modulesCount = 0): Course {
  * students still receive the meeting link on their dashboards.
  */
 const TRAINING_PUBLIC_COLS =
-  "id,slug,name,course_title,provider,start_date,start_time,end_date,duration_hours,mode,city,trainer_id,trainer_name,max_capacity,price_inr,image_url,description,resources,status,created_at,updated_at,review_status,avg_rating,review_count,certification_id,visibility,level";
+  "id,slug,name,course_title,provider,start_date,start_time,end_date,duration_hours,mode,city,trainer_id,trainer_name,max_capacity,price_inr,platform_fee_pct,image_url,description,resources,status,created_at,updated_at,review_status,avg_rating,review_count,certification_id,visibility,level";
 
 async function trainingCatalogColumns(): Promise<string> {
   const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
@@ -933,6 +936,8 @@ export interface TrainingInput {
   capacityCount?: string;
   paymentType?: string;
   price?: string;
+  /** Optional admin-set platform fee as a % of the base price, added on top of it. 0/undefined = no fee. */
+  platformFeePct?: number;
   startDate?: string;
   startTime?: string;
   thumbnailBase64?: string;
@@ -970,6 +975,7 @@ function inputToRow(input: TrainingInput): Record<string, any> {
     ...(input.meetLink !== undefined ? { meet_link: input.meetLink || null } : {}),
     max_capacity: input.capacityType === "Limited" ? (Number(input.capacityCount) || null) : null,
     price_inr: input.paymentType === "Paid" ? price : 0,
+    platform_fee_pct: input.paymentType === "Paid" ? (Number(input.platformFeePct) || 0) : 0,
     start_date: input.startDate || null,
     start_time: input.startTime || null,
     resources: Array.isArray(input.resources) ? input.resources : [],

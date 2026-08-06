@@ -66,6 +66,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
             mode: "Online",
             capacityType: "Unlimited",
             paymentType: "Free",
+            platformFeePct: "",
             currency: "USD"
         }
     });
@@ -214,6 +215,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
         setValue("capacityCount", training.capacityCount || "");
         setValue("paymentType", training.paymentType || "Free");
         setValue("price", training.price || "");
+        setValue("platformFeePct", training.platformFeePct ? String(training.platformFeePct) : "");
         setValue("currency", training.currency || "USD");
         setValue("couponCode", training.couponCode || "");
         setValue("certificationId", training.certificationId || "");
@@ -326,6 +328,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 capacityCount: data.capacityCount,
                 paymentType: data.paymentType,
                 price: data.price,
+                platformFeePct: data.platformFeePct ? Number(data.platformFeePct) : 0,
                 startDate: data.startDate ? format(data.startDate, "yyyy-MM-dd") : "",
                 startTime: data.startTime,
                 thumbnailBase64: thumbnailBase64,
@@ -940,6 +943,21 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                 <Label className="block text-sm font-medium mb-1.5">Price</Label>
                                                 <Input type="number" {...register("price")} placeholder="99.99" className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary" />
                                             </div>
+                                        </div>
+
+                                        <div className="w-full md:w-72">
+                                            <Label className="block text-sm font-medium mb-1.5">
+                                                Platform fee (%) <span className="font-normal text-muted-foreground">(optional)</span>
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                {...register("platformFeePct")}
+                                                placeholder="e.g. 5"
+                                                className="h-11 rounded-xl border border-input bg-background tabular-nums focus:ring-2 focus:ring-ring focus:border-primary"
+                                            />
+                                            <p className="mt-1 text-xs text-muted-foreground">Added on top of the price the learner pays (e.g. 5% on ₹999 = ₹49.95 fee).</p>
                                         </div>
 
                                         <div className="bg-muted/30 p-5 rounded-xl border border-dashed border-border">
