@@ -161,11 +161,11 @@ export default function UpcomingEventDetail() {
                                 <p className="text-base leading-7 text-muted-foreground max-w-2xl">
                                     {event.description}
                                 </p>
-                                {event.techStack && event.techStack.length > 0 && (
+                                {event.techStack?.filter((tech) => typeof tech === 'string' && tech.trim().length > 0).length > 0 && (
                                     <div className="flex flex-wrap gap-2">
-                                        {event.techStack.map((tech, i) => (
+                                        {event.techStack.filter((tech) => typeof tech === 'string' && tech.trim().length > 0).map((tech, i) => (
                                             <span key={i} className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                                                {tech}
+                                                {tech.trim()}
                                             </span>
                                         ))}
                                     </div>
@@ -175,7 +175,7 @@ export default function UpcomingEventDetail() {
                             <div className="grid gap-4 min-w-[260px] max-w-full lg:max-w-[320px]">
                                 <div className="rounded-3xl border border-border bg-background/90 p-5 shadow-sm">
                                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Event details</p>
-                                    <div className="mt-4 space-y-3 text-sm text-foreground">
+                                    <div className="mt-4 space-y-4 text-sm text-foreground">
                                         <div>
                                             <p className="font-medium">When</p>
                                             <p className="text-muted-foreground">{formattedDate} · {formattedTime}</p>
@@ -306,24 +306,20 @@ export default function UpcomingEventDetail() {
                         >
                             <h2 className="text-2xl font-bold mb-6">When & Where</h2>
                             <div className="space-y-4">
-                                <div className="flex items-start gap-4">
-                                    <Calendar className="w-5 h-5 text-primary mt-1" />
+                                        <div className="space-y-3">
                                     <div>
                                         <p className="font-semibold">{formattedDate}</p>
                                         <p className="text-muted-foreground">{formattedTime}</p>
                                     </div>
-                                </div>
-                                {event.location.venue && (
-                                    <div className="flex items-start gap-4">
-                                        <MapPin className="w-5 h-5 text-primary mt-1" />
+                                    {event.location.venue && (
                                         <div>
                                             <p className="font-semibold">{event.location.venue}</p>
                                             <p className="text-muted-foreground">
                                                 {event.location.city}, {event.location.state}
                                             </p>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     </div>
