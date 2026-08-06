@@ -54,6 +54,7 @@ export default function EventRegistrationsList() {
     const [event, setEvent] = useState<any>(null);
     const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
     const [notifyingId, setNotifyingId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     // Edit State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -184,13 +185,19 @@ export default function EventRegistrationsList() {
         if (!confirm(`Permanently delete registration ${reg.registrationCode}? This cannot be undone.`)) {
             return;
         }
+        setDeletingId(reg.id);
         const success = await deleteRegistration(reg.id);
+        setDeletingId(null);
         if (success) {
             toast({
                 title: "Registration Deleted",
                 description: "The registration has been removed from the event.",
             });
-            setSelectedRegistration(null);
+            setRegistrations((current) => current.filter((item) => item.id !== reg.id));
+            setFilteredRegistrations((current) => current.filter((item) => item.id !== reg.id));
+            if (selectedRegistration?.id === reg.id) {
+                setSelectedRegistration(null);
+            }
             loadData();
         } else {
             toast({
@@ -480,6 +487,7 @@ export default function EventRegistrationsList() {
                                                     variant="destructive"
                                                     size="sm"
                                                     onClick={() => handleDeletePermanent(reg)}
+                                                    disabled={deletingId === reg.id}
                                                     className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
                                                 >
                                                     Delete
