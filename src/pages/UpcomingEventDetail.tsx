@@ -142,23 +142,23 @@ export default function UpcomingEventDetail() {
 
             {/* Event Banner */}
             <div className="relative">
-                <div className="h-[380px] sm:h-[460px] lg:h-[560px] overflow-hidden rounded-b-[2rem] border-b border-border shadow-xl shadow-slate-900/5">
+                <div className="h-[340px] sm:h-[440px] lg:h-[560px] overflow-hidden rounded-b-[2rem] border-b border-border shadow-xl shadow-slate-900/5">
                     <img
                         src={event.imageUrl}
                         alt={event.name}
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/15 to-transparent" />
                 </div>
 
-                <div className="container mx-auto px-4 md:px-6 -mt-24 md:-mt-28 relative z-10">
-                    <div className="rounded-[2rem] border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-xl">
-                        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+                <div className="container mx-auto px-4 md:px-6 -mt-12 md:-mt-16 relative z-10">
+                    <div className="rounded-[2rem] border border-border/80 bg-card/95 p-6 md:p-7 shadow-2xl backdrop-blur-2xl">
+                        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                             <div className="max-w-3xl space-y-4">
                                 <h1 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground">
                                     {event.name}
                                 </h1>
-                                <p className="text-base leading-7 text-muted-foreground">
+                                <p className="text-base leading-7 text-muted-foreground max-w-2xl">
                                     {event.description}
                                 </p>
                                 {event.techStack && event.techStack.length > 0 && (
@@ -222,8 +222,8 @@ export default function UpcomingEventDetail() {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="container mx-auto px-4 py-8 md:py-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Event Details */}
