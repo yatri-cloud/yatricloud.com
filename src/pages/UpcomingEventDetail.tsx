@@ -372,7 +372,7 @@ export default function UpcomingEventDetail() {
                 </div>
             </div>
 
-            <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} onSuccess={handleLoginSuccess} />
+            <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} onSuccess={handleLoginSuccess} />
             <RegistrationModal event={event} open={showRegistrationModal} onClose={() => setShowRegistrationModal(false)} onSuccess={handleRegistrationSuccess} />
             <WaitlistModal event={event} open={showWaitlistModal} onClose={() => setShowWaitlistModal(false)} onSuccess={handleWaitlistSuccess} />
             <Footer />
