@@ -153,8 +153,8 @@ export default function UpcomingEventDetail() {
 
                 <div className="container mx-auto px-4 md:px-6 -mt-12 md:-mt-16 relative z-10">
                     <div className="rounded-[2rem] border border-border/80 bg-card/95 p-6 md:p-7 shadow-2xl backdrop-blur-2xl">
-                        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                            <div className="max-w-3xl space-y-4">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="max-w-3xl space-y-3">
                                 <h1 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground">
                                     {event.name}
                                 </h1>
@@ -173,9 +173,9 @@ export default function UpcomingEventDetail() {
                             </div>
 
                             <div className="grid gap-4 min-w-[260px] max-w-full lg:max-w-[320px]">
-                                <div className="rounded-3xl border border-border bg-background/90 p-5 shadow-sm">
+                                <div className="rounded-3xl border border-border bg-background/90 p-4 shadow-sm">
                                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Event details</p>
-                                    <div className="mt-4 space-y-4 text-sm text-foreground">
+                                    <div className="mt-3 space-y-4 text-sm text-foreground">
                                         <div>
                                             <p className="font-medium">When</p>
                                             <p className="text-muted-foreground">{formattedDate} · {formattedTime}</p>
@@ -198,9 +198,9 @@ export default function UpcomingEventDetail() {
                                     </div>
                                 </div>
 
-                                <div className="rounded-3xl border border-border bg-background/90 p-5 shadow-sm">
+                                <div className="rounded-3xl border border-border bg-background/90 p-4 shadow-sm">
                                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Next action</p>
-                                    <div className="mt-4 space-y-3">
+                                    <div className="mt-3 space-y-3">
                                         <p className="text-sm text-muted-foreground">
                                             {viewState.showPublishedState
                                                 ? 'This event is now live for registrations and community updates.'
@@ -223,7 +223,7 @@ export default function UpcomingEventDetail() {
             </div>
 
             <div className="container mx-auto px-4 py-8 md:py-10">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 lg:gap-10">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Event Details */}
