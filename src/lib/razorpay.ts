@@ -152,7 +152,8 @@ export function formatEventPrice(price: string | number | undefined): string {
   }
 
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-  return `₹${numPrice.toFixed(0)}`;
+  if (!Number.isFinite(numPrice)) return 'Free';
+  return `₹${Math.round(numPrice).toLocaleString('en-IN')}`;
 }
 
 /**

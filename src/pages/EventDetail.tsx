@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
 import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
 import { canViewEventGallery, listEventGalleryMedia, type EventGalleryItem } from "@/lib/events-api";
+import { formatEventPrice } from "@/lib/razorpay";
 import { EntityReviews } from "@/components/reviews/EntityReviews";
 import { googleCalendarUrl, buildIcs, icsDataUri } from "@/lib/calendar";
 import { CountdownTimer } from "@/components/CountdownTimer";
@@ -403,14 +404,16 @@ const EventDetail = () => {
                                 </div>
 
                                 {/* Price */}
-                                {event.price && (
+                                {event.price != null && (
                                     <div className="flex items-start gap-3">
                                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                                             <Tag className="w-5 h-5 text-primary" />
                                         </div>
                                         <div>
                                             <p className="text-sm text-muted-foreground">Price</p>
-                                            <p className="font-semibold text-2xl text-primary">{event.price}</p>
+                                            <p className="font-semibold text-2xl text-primary tracking-tight">
+                                                {formatEventPrice(event.price)}
+                                            </p>
                                         </div>
                                     </div>
                                 )}
@@ -603,12 +606,14 @@ const EventDetail = () => {
                                                                 <p className="text-sm text-muted-foreground">{ticket.description}</p>
                                                             </div>
                                                             <div className="text-right">
-                                                                <div className="text-2xl font-bold text-primary">{ticket.price}</div>
-                                                                {ticket.available && (
-                                                                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-success/10 text-success">
-                                                                        <Check className="w-3 h-3" /> Available
-                                                                    </span>
-                                                                )}
+                                                                <div className="text-2xl font-bold tracking-tight text-primary">
+                                                                {formatEventPrice(ticket.price)}
+                                                            </div>
+                                                            {ticket.available && (
+                                                                <span className="inline-flex items-center gap-1 mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-success/10 text-success">
+                                                                    <Check className="w-3 h-3" /> Available
+                                                                </span>
+                                                            )}
                                                             </div>
                                                         </div>
                                                         {ticket.benefits && ticket.benefits.length > 0 && (

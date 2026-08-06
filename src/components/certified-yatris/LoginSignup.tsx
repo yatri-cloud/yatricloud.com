@@ -355,11 +355,11 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-background via-background/95 to-background">
+    <div className="flex min-h-full items-center justify-center px-4 py-10 bg-gradient-to-br from-background via-background/95 to-background">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md max-h-[calc(100vh-4rem)] overflow-hidden"
       >
         <div className="bg-card border border-border rounded-2xl p-8 shadow-2xl">
           {/* Header */}

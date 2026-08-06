@@ -485,6 +485,18 @@ export async function cancelRegistration(id: string): Promise<boolean> {
     return true;
 }
 
+export async function deleteRegistration(id: string): Promise<boolean> {
+    const { error } = await supabase
+        .from("event_registrations")
+        .delete()
+        .eq("id", id);
+    if (error) {
+        console.error("[events-api] deleteRegistration", error.message);
+        return false;
+    }
+    return true;
+}
+
 export async function updateRegistrationDetails(
     id: string,
     updates: Partial<EventRegistration["userDetails"]>

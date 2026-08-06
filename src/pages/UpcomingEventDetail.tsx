@@ -155,9 +155,6 @@ export default function UpcomingEventDetail() {
                     <div className="rounded-[2rem] border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-xl">
                         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
                             <div className="max-w-3xl space-y-4">
-                                <span className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold ${viewState.showPublishedState ? 'bg-emerald-500 text-emerald-950' : 'bg-yellow-500 text-yellow-950'}`}>
-                                    {viewState.showPublishedState ? '✨ Event Published' : '🚀 Upcoming Event - Help Needed!'}
-                                </span>
                                 <h1 className="text-3xl md:text-4xl font-bold tracking-[-0.03em] text-foreground">
                                     {event.name}
                                 </h1>

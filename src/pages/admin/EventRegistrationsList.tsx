@@ -33,6 +33,7 @@ import type { EventRegistration } from "@/lib/registration-store";
 import {
     getEventRegistrations,
     cancelRegistration,
+    deleteRegistration,
     updateRegistrationDetails,
     getEventWaitlist,
     notifyWaitlistEntry,
@@ -160,21 +161,43 @@ export default function EventRegistrationsList() {
     };
 
     const handleDeleteClick = async (reg: EventRegistration) => {
-        if (confirm(`Are you sure you want to cancel the registration for ${reg.userDetails.name}?`)) {
-            const success = await cancelRegistration(reg.id);
-            if (success) {
-                toast({
-                    title: "Registration Cancelled",
-                    description: "The registration has been successfully cancelled.",
-                });
-                loadData();
-            } else {
-                toast({
-                    title: "Error",
-                    description: "Failed to cancel registration.",
-                    variant: "destructive",
-                });
-            }
+        if (!confirm(`Are you sure you want to cancel the registration for ${reg.userDetails.name}?`)) {
+            return;
+        }
+        const success = await cancelRegistration(reg.id);
+        if (success) {
+            toast({
+                title: "Registration Cancelled",
+                description: "The registration has been successfully cancelled.",
+            });
+            loadData();
+        } else {
+            toast({
+                title: "Error",
+                description: "Failed to cancel registration.",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const handleDeletePermanent = async (reg: EventRegistration) => {
+        if (!confirm(`Permanently delete registration ${reg.registrationCode}? This cannot be undone.`)) {
+            return;
+        }
+        const success = await deleteRegistration(reg.id);
+        if (success) {
+            toast({
+                title: "Registration Deleted",
+                description: "The registration has been removed from the event.",
+            });
+            setSelectedRegistration(null);
+            loadData();
+        } else {
+            toast({
+                title: "Error",
+                description: "Failed to delete registration.",
+                variant: "destructive",
+            });
         }
     };
 
@@ -446,7 +469,7 @@ export default function EventRegistrationsList() {
                                                     </Button>
                                                 )}
                                                 <Button
-                                                    variant="ghost"
+                                                    variant="outline"
                                                     size="sm"
                                                     onClick={() => setSelectedRegistration(reg)}
                                                     className="focus-visible:ring-2 focus-visible:ring-ring"
@@ -647,12 +670,19 @@ export default function EventRegistrationsList() {
                                 </div>
                             </div>
 
-                            <DialogFooter>
+                            <DialogFooter className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                                 <Button variant="outline" className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setSelectedRegistration(null)}>Close</Button>
                                 <Button variant="outline" className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring" onClick={() => {
                                     setSelectedRegistration(null);
                                     handleEditClick(selectedRegistration);
                                 }}>Edit</Button>
+                                <Button
+                                    variant="destructive"
+                                    className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
+                                    onClick={() => selectedRegistration && handleDeletePermanent(selectedRegistration)}
+                                >
+                                    Delete registration
+                                </Button>
                             </DialogFooter>
                         </div>
                     )}
