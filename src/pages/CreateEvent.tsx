@@ -79,6 +79,56 @@ export default function CreateEvent() {
     const [visibility, setVisibility] = useState<'public' | 'private'>('public');
     /** Slug of an already-private event being edited — kept stable so links already shared keep working. */
     const [existingPrivateSlug, setExistingPrivateSlug] = useState<string | null>(null);
+    const [formData, setFormData] = useState({
+        eventName: "",
+        startDate: "",
+        startTime: "",
+        endTime: "",
+        isSameDay: true,
+        endDate: "",
+        timezone: "Asia/Kolkata",
+        communityLink: "",
+
+        state: "",
+        city: "",
+        location: "", // Address Text
+        mapLink: "",  // Google Maps Link
+        description: "",
+        aboutEvent: "",
+        posterUrl: "",
+
+
+        pricingType: "free" as "free" | "paid",
+        price: "",
+        platformFeePct: "",
+        capacity: "",
+        registrationDeadline: "",
+        tickets: [] as EventTicket[],
+        organizerName: "Yatri Cloud",
+        organizerEmail: "events@yatricloud.com",
+        organizerPhone: "+91 9724823602",
+
+        // New Fields
+        category: "Workshop",
+        techStack: "", // Comma separated string for input
+
+        noSponsorsRequired: true,
+        sponsors: [] as Sponsor[],
+        speakers: [] as EventSpeaker[],
+        gallery: [] as GalleryAlbum[],
+
+        // Collaboration flags
+        lookingForVenue: false,
+        lookingForSpeakers: false,
+        lookingForSponsors: false
+    });
+    const isUpcomingFlow = Boolean(
+        (locationState.state?.event as Event | undefined)?.isUpcoming ||
+        (locationState.state?.event as Event | undefined)?.status === 'upcoming' ||
+        formData.lookingForVenue ||
+        formData.lookingForSpeakers ||
+        formData.lookingForSponsors
+    );
 
 
     useEffect(() => {
@@ -142,50 +192,6 @@ export default function CreateEvent() {
             }));
         }
     }, [locationState.state]);
-
-    const [formData, setFormData] = useState({
-        eventName: "",
-        startDate: "",
-        startTime: "",
-        endTime: "",
-        isSameDay: true,
-        endDate: "",
-        timezone: "Asia/Kolkata",
-        communityLink: "",
-
-        state: "",
-        city: "",
-        location: "", // Address Text
-        mapLink: "",  // Google Maps Link
-        description: "",
-        aboutEvent: "",
-        posterUrl: "",
-
-
-        pricingType: "free" as "free" | "paid",
-        price: "",
-        platformFeePct: "",
-        capacity: "",
-        registrationDeadline: "",
-        tickets: [] as EventTicket[],
-        organizerName: "Yatri Cloud",
-        organizerEmail: "events@yatricloud.com",
-        organizerPhone: "+91 9724823602",
-
-        // New Fields
-        category: "Workshop",
-        techStack: "", // Comma separated string for input
-
-        noSponsorsRequired: true,
-        sponsors: [] as Sponsor[],
-        speakers: [] as EventSpeaker[],
-        gallery: [] as GalleryAlbum[],
-
-        // Collaboration flags
-        lookingForVenue: false,
-        lookingForSpeakers: false,
-        lookingForSponsors: false
-    });
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -586,6 +592,24 @@ export default function CreateEvent() {
                                     <span className="hidden truncate font-display text-base font-bold tracking-tight md:block">{isEditMode ? 'Edit Event' : 'Create New Event'}</span>
                                 </div>
                                 <div className="flex gap-2">
+                                    {isUpcomingFlow && (
+                                        <Button
+                                            variant="outline"
+                                            className="gap-2 rounded-xl min-h-[44px]"
+                                            onClick={() => navigate(`/upcoming-event/${(locationState.state?.event as Event | undefined)?.slug || eventId}`)}
+                                        >
+                                            Back to upcoming
+                                        </Button>
+                                    )}
+                                    <Button
+                                        variant="outline"
+                                        className="gap-2 rounded-xl min-h-[44px]"
+                                        onClick={() => handleSaveDraft("Event Details")}
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                                        Save Draft
+                                    </Button>
                                     {!isEditMode && (
                                         <Button
                                             onClick={handlePublishAsUpcoming}

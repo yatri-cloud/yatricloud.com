@@ -1,13 +1,18 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { Calendar, MapPin, Clock, ArrowLeft, Users, Building2, Mic, Handshake, TicketCheck, Mail } from "lucide-react";
+import { Calendar, MapPin, Clock, ArrowLeft, Users, Building2, Mic, Handshake, TicketCheck, Mail, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getEventBySlug, Event } from "@/lib/events-store";
 import { motion } from "framer-motion";
 import { getAllSubmissionsForEvent } from "@/lib/event-submissions-api";
-import { getEventRegistrations } from "@/lib/events-api";
+import { getEventRegistrations, getEventCapacity, getMyWaitlistEntry, leaveWaitlist, type EventCapacity, type WaitlistEntry } from "@/lib/events-api";
 import { getUpcomingEventViewState } from "@/lib/upcoming-event-view";
+import { LoginModal } from "@/components/LoginModal";
+import { RegistrationModal } from "@/components/RegistrationModal";
+import { WaitlistModal } from "@/components/WaitlistModal";
+import { isAuthenticated, getRegisteredEvents } from "@/lib/yatris-api";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UpcomingEventDetail() {
     const { slug } = useParams<{ slug: string }>();
@@ -16,12 +21,22 @@ export default function UpcomingEventDetail() {
     const [loading, setLoading] = useState(true);
     const [submissions, setSubmissions] = useState({ venues: [], speakers: [], sponsors: [] as any[] });
     const [registrations, setRegistrations] = useState<any[]>([]);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+    const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+    const [isRegistered, setIsRegistered] = useState(false);
+    const [capacity, setCapacity] = useState<EventCapacity | null>(null);
+    const [waitlistEntry, setWaitlistEntry] = useState<WaitlistEntry | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (!slug) {
             setLoading(false);
             return;
         }
+
+        setIsUserLoggedIn(isAuthenticated());
 
         getEventBySlug(slug).then(async (foundEvent) => {
             const canShowEvent = foundEvent && (foundEvent.isUpcoming || foundEvent.visibility === "private" || foundEvent.status !== "draft");
@@ -34,6 +49,15 @@ export default function UpcomingEventDetail() {
                     ]);
                     setSubmissions(allSubmissions);
                     setRegistrations(eventRegistrations);
+
+                    if (isAuthenticated() && foundEvent.id) {
+                        const regs = await getRegisteredEvents();
+                        setIsRegistered(regs.some((registration) => registration.eventId === foundEvent.id && registration.status === 'confirmed'));
+                        setCapacity(await getEventCapacity(foundEvent.id));
+                        setWaitlistEntry(await getMyWaitlistEntry(foundEvent.id));
+                    } else {
+                        setCapacity(await getEventCapacity(foundEvent.id));
+                    }
                 }
             } else {
                 navigate('/events');
@@ -61,6 +85,54 @@ export default function UpcomingEventDetail() {
     const formattedDate = format(eventDate, "EEEE, MMMM d, yyyy");
     const formattedTime = format(eventDate, "h:mm a");
     const viewState = getUpcomingEventViewState(event, submissions, registrations);
+    const isFull = capacity?.isFull ?? false;
+    const onWaitlist = Boolean(waitlistEntry && waitlistEntry.status !== 'cancelled');
+
+    const handleRegister = () => {
+        if (!isUserLoggedIn) {
+            setShowLoginModal(true);
+            return;
+        }
+        setShowRegistrationModal(true);
+    };
+
+    const handleJoinWaitlist = () => {
+        if (!isUserLoggedIn) {
+            setShowLoginModal(true);
+            return;
+        }
+        setShowWaitlistModal(true);
+    };
+
+    const handleWaitlistSuccess = () => {
+        setShowWaitlistModal(false);
+        if (event) getMyWaitlistEntry(event.id).then(setWaitlistEntry);
+    };
+
+    const handleLeaveWaitlist = async () => {
+        if (!waitlistEntry) return;
+        const { ok } = await leaveWaitlist(waitlistEntry.id);
+        if (ok) {
+            setWaitlistEntry(null);
+            toast({ title: "You left the waitlist", description: "You can join again any time seats are full." });
+            if (event) getEventCapacity(event.id).then(setCapacity);
+        } else {
+            toast({ title: "Something went wrong", description: "Please try again.", variant: "destructive" });
+        }
+    };
+
+    const handleRegistrationSuccess = () => {
+        setIsRegistered(true);
+    };
+
+    const handleLoginSuccess = (user: any) => {
+        setIsUserLoggedIn(true);
+        toast({ title: "Welcome!", description: `Logged in as ${user.fullName}` });
+        setTimeout(() => {
+            if (isFull) setShowWaitlistModal(true);
+            else setShowRegistrationModal(true);
+        }, 500);
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -287,7 +359,27 @@ export default function UpcomingEventDetail() {
                                 </div>
                             )}
 
-                            <div className="mt-6 pt-6 border-t">
+                            <div className="mt-6 pt-6 border-t space-y-4">
+                                <div className="rounded-lg border bg-background/60 p-3">
+                                    {isRegistered ? (
+                                        <div className="flex items-center gap-2 text-sm font-medium text-emerald-600">
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            You're already registered
+                                        </div>
+                                    ) : onWaitlist ? (
+                                        <div className="space-y-2">
+                                            <p className="text-sm font-medium">You are on the waitlist</p>
+                                            <Button variant="outline" size="sm" className="w-full" onClick={handleLeaveWaitlist}>Leave waitlist</Button>
+                                        </div>
+                                    ) : isFull ? (
+                                        <div className="space-y-2">
+                                            <p className="text-sm font-medium">Seats are full</p>
+                                            <Button className="w-full" onClick={handleJoinWaitlist}>Join waitlist</Button>
+                                        </div>
+                                    ) : (
+                                        <Button className="w-full" onClick={handleRegister}>Register now</Button>
+                                    )}
+                                </div>
                                 <p className="text-xs text-muted-foreground">
                                     Organized by <span className="font-semibold">{event.organizer?.name || 'Yatri Cloud'}</span>
                                 </p>
@@ -296,6 +388,10 @@ export default function UpcomingEventDetail() {
                     </div>
                 </div>
             </div>
+
+            <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} onSuccess={handleLoginSuccess} />
+            <RegistrationModal event={event} open={showRegistrationModal} onClose={() => setShowRegistrationModal(false)} onSuccess={handleRegistrationSuccess} />
+            <WaitlistModal event={event} open={showWaitlistModal} onClose={() => setShowWaitlistModal(false)} onSuccess={handleWaitlistSuccess} />
         </div>
     );
 }
