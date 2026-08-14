@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -17,7 +17,13 @@ import {
     CalendarX,
     ImageOff,
     Lock,
-    X
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Image,
+    Star,
+    Share2,
+    Play
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -72,6 +78,42 @@ const EventDetail = () => {
     const [canViewGallery, setCanViewGallery] = useState(false);
     const [galleryLoaded, setGalleryLoaded] = useState(false);
     const [galleryLightbox, setGalleryLightbox] = useState<number | null>(null);
+    const [sliderIndex, setSliderIndex] = useState(0);
+    const sliderRef = useRef<HTMLDivElement>(null);
+    // 'light' = dark background image → white navbar text
+    // 'dark'  = light background image → dark navbar text
+    const [heroTheme, setHeroTheme] = useState<'light' | 'dark'>('light');
+
+    // Detect hero image brightness so we can flip the navbar text colour.
+    useEffect(() => {
+        if (!event?.imageUrl) return;
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                // Only sample the top-left 200×80 px (where the navbar sits)
+                canvas.width = 200;
+                canvas.height = 80;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+                ctx.drawImage(img, 0, 0, 200, 80);
+                const { data } = ctx.getImageData(0, 0, 200, 80);
+                let total = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    // Perceived luminance formula
+                    total += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                }
+                const avg = total / (data.length / 4);
+                // avg < 128 → dark image → use light/white text
+                setHeroTheme(avg < 140 ? 'light' : 'dark');
+            } catch {
+                setHeroTheme('light'); // safe fallback: assume dark
+            }
+        };
+        img.onerror = () => setHeroTheme('light');
+        img.src = event.imageUrl;
+    }, [event?.imageUrl]);
 
     // Check if user is logged in
     useEffect(() => {
@@ -122,6 +164,21 @@ const EventDetail = () => {
         // Scroll to top
         window.scrollTo(0, 0);
     }, [eventParam, navigate]);
+
+    useEffect(() => {
+        if (event) {
+            const hidden = event.hiddenSections || [];
+            if (hidden.includes(activeTab)) {
+                const availableTabs = [
+                    'about', 'tickets', 'speakers', 'attendees', 'community',
+                    ...(event.status === 'past' ? ['gallery'] : []), 'reviews'
+                ].filter(id => !hidden.includes(id));
+                if (availableTabs.length > 0) {
+                    setActiveTab(availableTabs[0] as any);
+                }
+            }
+        }
+    }, [event, activeTab]);
 
     // Seats are full only when a real cap is set and every seat is taken.
     const isFull = capacity?.isFull ?? false;
@@ -183,11 +240,9 @@ const EventDetail = () => {
         }, 500);
     };
 
-    // Load the attendees-only gallery the first time its tab is opened on a past
-    // event. canViewEventGallery gates on attendance/admin; listEventGalleryMedia
-    // returns signed URLs (empty unless permitted).
+    // For past events load gallery immediately (not tab-gated)
     useEffect(() => {
-        if (!event || event.status !== "past" || activeTab !== "gallery" || galleryLoaded) return;
+        if (!event || event.status !== "past" || galleryLoaded) return;
         let active = true;
         (async () => {
             const can = await canViewEventGallery(event.id);
@@ -197,7 +252,7 @@ const EventDetail = () => {
             setGalleryLoaded(true);
         })();
         return () => { active = false; };
-    }, [event, activeTab, galleryLoaded]);
+    }, [event, galleryLoaded]);
 
     if (!event) {
         return null;
@@ -222,10 +277,506 @@ const EventDetail = () => {
         return `${date.toLocaleTimeString('en-US', options)} ${timezone}`;
     };
 
+
     const isPastEvent = event.status === 'past';
 
-    // Add to calendar for events that carry a real start date. End is +2 hours
-    // since events do not store an explicit finish time.
+    // ─── PAST EVENT RECAP UI ───────────────────────────────────────────────────
+    if (isPastEvent) {
+        const pastTabs = [
+            { id: 'about', label: 'About' },
+            { id: 'speakers', label: 'Speakers' },
+            { id: 'attendees', label: 'Attendees' },
+            { id: 'reviews', label: 'Reviews' },
+        ].filter(tab => !(event.hiddenSections || []).includes(tab.id));
+
+        const sliderPrev = () => setSliderIndex(i => Math.max(0, i - 1));
+        const sliderNext = () => setSliderIndex(i => Math.min(galleryItems.length - 1, i + 1));
+
+        const locationDisplay = event.location?.type === 'online'
+            ? 'Online Event'
+            : [event.location?.city, event.location?.country].filter(Boolean).join(', ');
+
+        return (
+            <div className="min-h-screen bg-background text-foreground">
+                <SEO
+                    title={`${event.name} — Event Recap · Yatri Cloud`}
+                    description={event.description || `Relive ${event.name}, a Yatri Cloud community event.`}
+                    image={event.imageUrl}
+                    type="article"
+                    noindex={event.visibility === 'private'}
+                />
+                <div className="noise-overlay" />
+                <Navbar heroTheme={heroTheme} />
+
+                {/* ── Cinematic hero ───────────────────────────────────── */}
+                <div className="relative min-h-[60vh] md:min-h-[70vh] flex items-end overflow-hidden">
+                    {/* background image */}
+                    <img
+                        src={event.imageUrl}
+                        alt={event.name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    {/* gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+
+                    {/* back link */}
+                    <Link
+                        to="/events"
+                        className="absolute top-24 left-6 md:left-10 inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors group"
+                    >
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-sm font-medium">All events</span>
+                    </Link>
+
+                    <div className="relative z-10 w-full container mx-auto px-4 md:px-6 pb-10 md:pb-14">
+                        {/* badges row */}
+                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold">
+                                <CalendarX className="w-3.5 h-3.5" /> Event Recap
+                            </span>
+                            {event.category && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/80 backdrop-blur-sm text-white text-xs font-semibold">
+                                    {event.category}
+                                </span>
+                            )}
+                            {event.techStack?.slice(0, 3).map((t, i) => (
+                                <span key={i} className="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-white/80 text-xs font-medium">{t}</span>
+                            ))}
+                        </div>
+
+                        <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-4 max-w-4xl leading-tight">
+                            {event.name}
+                        </h1>
+
+                        {/* Event meta — clean, no icons */}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white/60 text-sm font-medium">
+                            <span className="text-white/90">{formatEventDate(event.date, event.timezone)}</span>
+                            <span className="text-white/30">·</span>
+                            <span>{locationDisplay}</span>
+                            {event.attendees && event.attendees.length > 0 && (
+                                <>
+                                    <span className="text-white/30">·</span>
+                                    <span>{event.attendees.length} Attendees</span>
+                                </>
+                            )}
+                            {event.speakers && event.speakers.length > 0 && (
+                                <>
+                                    <span className="text-white/30">·</span>
+                                    <span>{event.speakers.length} {event.speakers.length === 1 ? 'Speaker' : 'Speakers'}</span>
+                                </>
+                            )}
+                            {canViewGallery && galleryItems.length > 0 && (
+                                <>
+                                    <span className="text-white/30">·</span>
+                                    <span>{galleryItems.length} Photos</span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Gallery Spotlight Slider ─────────────────────────── */}
+                {canViewGallery && galleryItems.length > 0 && !( event.hiddenSections || []).includes('gallery') && (
+                    <div className="bg-background border-t border-border py-8">
+                        <div className="container mx-auto px-4 md:px-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex items-center gap-2 text-foreground font-semibold text-lg">
+                                        <Image className="w-5 h-5 text-primary" /> Moments from the day
+                                    </span>
+                                    <span className="text-muted-foreground text-sm tabular-nums">{sliderIndex + 1} / {galleryItems.length}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={sliderPrev}
+                                        disabled={sliderIndex === 0}
+                                        className="w-9 h-9 flex items-center justify-center rounded-full bg-muted hover:bg-muted/60 text-foreground disabled:opacity-30 transition border border-border"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={sliderNext}
+                                        disabled={sliderIndex >= galleryItems.length - 1}
+                                        className="w-9 h-9 flex items-center justify-center rounded-full bg-muted hover:bg-muted/60 text-foreground disabled:opacity-30 transition border border-border"
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* main featured image */}
+                            <button
+                                className="relative w-full aspect-[16/7] rounded-2xl overflow-hidden mb-3 group focus:outline-none"
+                                onClick={() => setGalleryLightbox(sliderIndex)}
+                            >
+                                {galleryItems[sliderIndex]?.mediaType === 'photo' ? (
+                                    <img src={galleryItems[sliderIndex].url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                ) : (
+                                    <div className="relative w-full h-full">
+                                        <video src={galleryItems[sliderIndex].url} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition">
+                                            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <Play className="w-7 h-7 text-white fill-white" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                {galleryItems[sliderIndex]?.caption && (
+                                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                                        <p className="text-white text-sm">{galleryItems[sliderIndex].caption}</p>
+                                    </div>
+                                )}
+                            </button>
+
+                            {/* thumbnail strip */}
+                            <div ref={sliderRef} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                                {galleryItems.map((item, idx) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => setSliderIndex(idx)}
+                                        className={`flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden transition-all ${
+                                            idx === sliderIndex
+                                                ? 'ring-2 ring-primary ring-offset-2 ring-offset-background opacity-100'
+                                                : 'opacity-50 hover:opacity-80'
+                                        }`}
+                                    >
+                                        {item.mediaType === 'photo' ? (
+                                            <img src={item.url} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                                                <Play className="w-4 h-4 text-muted-foreground" />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Main content ─────────────────────────────────────── */}
+                <main className="container mx-auto px-4 md:px-6 py-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+                        {/* Left: Tabbed content */}
+                        <div className="lg:col-span-2">
+                            {pastTabs.length > 0 && (
+                                <div className="border-b border-border mb-8 overflow-x-auto scrollbar-hide">
+                                    <div className="flex gap-6 md:gap-8">
+                                        {pastTabs.map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id as any)}
+                                                aria-pressed={activeTab === tab.id}
+                                                className={`min-h-[44px] pb-4 px-2 text-sm font-medium whitespace-nowrap transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm ${
+                                                    activeTab === tab.id
+                                                        ? 'text-primary'
+                                                        : 'text-muted-foreground hover:text-foreground'
+                                                }`}
+                                            >
+                                                {tab.label}
+                                                {activeTab === tab.id && (
+                                                    <motion.div
+                                                        layoutId="pastActiveTab"
+                                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                                                        transition={reduceMotion ? { duration: 0 } : undefined}
+                                                    />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* About */}
+                            {activeTab === 'about' && (
+                                <ScrollReveal>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h2 className="font-display text-2xl font-bold mb-3">What this event was about</h2>
+                                            <p className="text-muted-foreground leading-relaxed text-base">{event.fullDescription || event.description}</p>
+                                        </div>
+                                        {event.techStack && event.techStack.length > 0 && (
+                                            <div>
+                                                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Topics covered</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {event.techStack.map((t, i) => (
+                                                        <span key={i} className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20">{t}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </ScrollReveal>
+                            )}
+
+                            {/* Speakers */}
+                            {activeTab === 'speakers' && (
+                                <ScrollReveal>
+                                    <div>
+                                        <h2 className="font-display text-2xl font-bold mb-6">Who took the stage</h2>
+                                        {event.speakers && event.speakers.length > 0 ? (
+                                            <div className="space-y-4">
+                                                {event.speakers.map(speaker => (
+                                                    <div key={speaker.id} className="bg-card border border-border rounded-2xl p-6 hover:border-brand-200 hover:shadow-card transition-all">
+                                                        <div className="flex gap-5 items-start">
+                                                            {speaker.profileImage ? (
+                                                                <img src={speaker.profileImage} alt={speaker.fullName} className="w-20 h-20 rounded-2xl object-cover flex-shrink-0" />
+                                                            ) : (
+                                                                <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10 font-display text-3xl font-bold text-primary">
+                                                                    {(speaker.fullName || '?').charAt(0).toUpperCase()}
+                                                                </div>
+                                                            )}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-start justify-between gap-2 mb-1">
+                                                                    <h3 className="text-lg font-bold text-foreground">{speaker.fullName}</h3>
+                                                                    {speaker.linkedinUrl && (
+                                                                        <a href={speaker.linkedinUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 hover:opacity-80" aria-label="LinkedIn">
+                                                                            <Linkedin className="w-4 h-4 text-primary" />
+                                                                        </a>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-sm font-medium text-primary mb-0.5">{speaker.sessionName || 'Speaker'}</p>
+                                                                {speaker.companyName && <p className="text-sm text-muted-foreground mb-2">{speaker.companyName}</p>}
+                                                                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">{speaker.about}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center">
+                                                <Users className="w-8 h-8 text-primary mx-auto mb-3" />
+                                                <p className="text-muted-foreground">Speaker details haven't been added for this event yet.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </ScrollReveal>
+                            )}
+
+                            {/* Attendees */}
+                            {activeTab === 'attendees' && (
+                                <ScrollReveal>
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <h2 className="font-display text-2xl font-bold">Yatris who were there</h2>
+                                            {event.attendees && event.attendees.length > 0 && (
+                                                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
+                                                    {event.attendees.length}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {event.attendees && event.attendees.length > 0 ? (
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                {event.attendees.map(attendee => (
+                                                    <div key={attendee.id} className="bg-card border border-border rounded-xl p-4 hover:border-brand-200 transition-all hover:shadow-card">
+                                                        <div className="flex flex-col items-center text-center">
+                                                            <img src={attendee.imageUrl} alt={attendee.name} className="w-14 h-14 rounded-full object-cover mb-2" />
+                                                            <p className="font-semibold text-sm truncate w-full">{attendee.name}</p>
+                                                            <p className="text-xs text-primary font-medium">{attendee.role}</p>
+                                                            {attendee.company && <p className="text-xs text-muted-foreground truncate w-full">{attendee.company}</p>}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center">
+                                                <Users className="w-8 h-8 text-primary mx-auto mb-3" />
+                                                <p className="text-muted-foreground">Attendee list not available.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </ScrollReveal>
+                            )}
+
+                            {/* Reviews */}
+                            {activeTab === 'reviews' && (
+                                <ScrollReveal>
+                                    <div>
+                                        <h2 className="font-display text-2xl font-bold mb-6">What Yatris said</h2>
+                                        <EntityReviews
+                                            entityType="event"
+                                            entityId={event.id}
+                                            entityName={event.name}
+                                            gateHint="Reviews are open to Yatris who attended this event."
+                                        />
+                                    </div>
+                                </ScrollReveal>
+                            )}
+                        </div>
+
+                        {/* Sidebar */}
+                        <div className="lg:col-span-1">
+                            <div className="sticky top-24 space-y-4">
+
+                                {/* Event details card */}
+                                <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+                                    <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Event details</p>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <Calendar className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Held on</p>
+                                            <p className="font-semibold text-sm">{formatEventDate(event.date, event.timezone)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            {event.location?.type === 'online' ? <Globe className="w-4 h-4 text-primary" /> : <MapPin className="w-4 h-4 text-primary" />}
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Location</p>
+                                            <p className="font-semibold text-sm">{locationDisplay}</p>
+                                            {event.location?.venue && <p className="text-xs text-muted-foreground">{event.location.venue}</p>}
+                                        </div>
+                                    </div>
+                                    {event.organizer && (
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                                {event.organizer.logo
+                                                    ? <img src={event.organizer.logo} alt={event.organizer.name} className="w-full h-full object-cover" />
+                                                    : <Users className="w-4 h-4 text-primary" />}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">Organised by</p>
+                                                <p className="font-semibold text-sm">{event.organizer.name}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Gallery locked note */}
+                                {!canViewGallery && !( event.hiddenSections || []).includes('gallery') && (
+                                    <div className="bg-card border border-border rounded-2xl p-5 flex items-start gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <Lock className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm mb-0.5">Photos for attendees</p>
+                                            <p className="text-xs text-muted-foreground">Sign in with the account you used to attend this event to view the gallery.</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Share */}
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                if (navigator.share) {
+                                                    await navigator.share({ title: event.name, url: window.location.href });
+                                                } else {
+                                                    await navigator.clipboard.writeText(window.location.href);
+                                                    toast({ title: 'Link copied!', description: 'Share it with a friend.' });
+                                                }
+                                            } catch { /* dismissed */ }
+                                        }}
+                                        className="flex items-center justify-center gap-2 w-full min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                                    >
+                                        <Share2 className="w-4 h-4" /> Share recap
+                                    </button>
+                                    <a
+                                        href={`https://wa.me/?text=${encodeURIComponent(`Check out the recap for ${event.name} — a Yatri Cloud event: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+                                        target="_blank" rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 w-full min-h-[44px] border border-border hover:bg-brand-50 hover:border-brand-200 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                                    >
+                                        Share on WhatsApp
+                                    </a>
+                                </div>
+
+                                {/* Upcoming events CTA */}
+                                <div className="bg-gradient-to-br from-primary/10 to-brand-50/50 border border-primary/20 rounded-2xl p-5 text-center">
+                                    <p className="font-semibold text-sm mb-1">Missed this one?</p>
+                                    <p className="text-xs text-muted-foreground mb-3">Don't miss the next one — join the Yatri community.</p>
+                                    <Link
+                                        to="/events"
+                                        className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand-600 transition-colors"
+                                    >
+                                        See upcoming events <ArrowRight className="w-3.5 h-3.5" />
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                {/* More events */}
+                {allEvents.filter(e => e.id !== event.id && e.status === 'upcoming').length > 0 && (
+                    <section className="container mx-auto px-4 md:px-6 py-14 border-t border-border">
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="font-display text-2xl font-bold">Up next, Yatri</h2>
+                            <Link to="/events" className="text-primary hover:underline font-medium text-sm flex items-center gap-1">
+                                View all <ExternalLink className="w-3 h-3" />
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {allEvents
+                                .filter(e => e.id !== event.id && e.status === 'upcoming' && new Date(e.date) > new Date())
+                                .slice(0, 3)
+                                .map((ev, i) => (
+                                    <ScrollReveal key={ev.id} delay={i * 0.1}>
+                                        <Link to={`/events/${ev.slug || ev.id}`} className="block h-full">
+                                            <div className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-brand-200 hover:shadow-card transition-all h-full flex flex-col">
+                                                <div className="aspect-video overflow-hidden">
+                                                    <img src={ev.imageUrl} alt={ev.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                                </div>
+                                                <div className="p-5 flex-1 flex flex-col">
+                                                    <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider mb-2">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </div>
+                                                    <h3 className="font-display text-base font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{ev.name}</h3>
+                                                    <div className="mt-auto flex items-center text-muted-foreground text-sm">
+                                                        <MapPin className="w-3.5 h-3.5 mr-1 text-primary" />
+                                                        <span className="truncate">{ev.location?.venue || ev.location?.city}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    </ScrollReveal>
+                                ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Lightbox for past-event gallery */}
+                {galleryLightbox !== null && galleryItems[galleryLightbox] && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4" onClick={() => setGalleryLightbox(null)}>
+                        <button className="absolute right-4 top-4 text-white/70 hover:text-white" onClick={() => setGalleryLightbox(null)}>
+                            <X className="h-7 w-7" />
+                        </button>
+                        <button
+                            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white disabled:opacity-30"
+                            onClick={e => { e.stopPropagation(); setGalleryLightbox(i => Math.max(0, (i ?? 0) - 1)); }}
+                            disabled={galleryLightbox === 0}
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        {galleryItems[galleryLightbox].mediaType === 'photo' ? (
+                            <img src={galleryItems[galleryLightbox].url} alt="" className="max-h-[88vh] max-w-full rounded-lg object-contain" onClick={e => e.stopPropagation()} />
+                        ) : (
+                            <video src={galleryItems[galleryLightbox].url} controls autoPlay className="max-h-[88vh] max-w-full rounded-lg" onClick={e => e.stopPropagation()} />
+                        )}
+                        <button
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white disabled:opacity-30"
+                            onClick={e => { e.stopPropagation(); setGalleryLightbox(i => Math.min(galleryItems.length - 1, (i ?? 0) + 1)); }}
+                            disabled={galleryLightbox >= galleryItems.length - 1}
+                        >
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-1.5 rounded-full text-sm">
+                            {galleryLightbox + 1} / {galleryItems.length}
+                        </div>
+                    </div>
+                )}
+
+                <Footer />
+            </div>
+        );
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const hasEventDate = Boolean(event.date) && !isNaN(new Date(event.date).getTime());
     const eventEndISO = hasEventDate
         ? new Date(new Date(event.date).getTime() + 2 * 60 * 60 * 1000).toISOString()
@@ -248,9 +799,8 @@ const EventDetail = () => {
         { id: 'speakers', label: 'Speakers' },
         { id: 'attendees', label: 'Attendees' },
         { id: 'community', label: 'Join Community' },
-        ...(isPastEvent ? [{ id: 'gallery', label: 'Gallery' }] : []),
         { id: 'reviews', label: 'Reviews' },
-    ];
+    ].filter(tab => !(event.hiddenSections || []).includes(tab.id));
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -906,7 +1456,7 @@ const EventDetail = () => {
                     open={showRegistrationModal}
                     onClose={() => setShowRegistrationModal(false)}
                     event={event}
-                    onSuccess={handleRegistrationSuccess}
+                    onSuccess={handleRegistrationSuccess as any}
                 />
             )}
 

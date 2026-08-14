@@ -43,6 +43,7 @@ function eventToRow(event: Event): EventRow {
         endDate: event.endDate,
         category: event.category,
         techStack: event.techStack,
+        hiddenSections: event.hiddenSections,
         registrationDeadline: event.registrationDeadline,
         communityLink: event.communityLink,
         organizer: event.organizer,
@@ -164,6 +165,7 @@ function rowToEvent(row: EventRow): Event {
         tickets: ext.tickets,
         attendees: ext.attendees,
         gallery: ext.gallery,
+        hiddenSections: ext.hiddenSections,
     };
 }
 

@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, Mic, Layers, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
+import { Calendar, Users, Mic, Layers, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon, Image as ImageIcon, LayoutList } from "lucide-react";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ListPager } from "@/components/ui/list-pager";
-import { getAllEvents, getEventStatus, Event, deleteEvent } from "@/lib/events-store";
+import { getAllEvents, getEventStatus, Event, deleteEvent, updateEvent } from "@/lib/events-store";
 import { Badge } from "@/components/ui/badge";
 import { deleteEventFolder } from "@/lib/event-automation-api";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,9 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 type TabType = "active" | "draft" | "past";
 
@@ -30,6 +33,9 @@ export default function AdminEvents() {
     const [sort, setSort] = useState("date");
     const [visFilter, setVisFilter] = useState<"all" | "public" | "private">("all");
     const [page, setPage] = useState(1);
+    const [sectionsDialogEvent, setSectionsDialogEvent] = useState<Event | null>(null);
+    const [tempHiddenSections, setTempHiddenSections] = useState<string[]>([]);
+    const [isSavingSections, setIsSavingSections] = useState(false);
 
     useEffect(() => { setPage(1); }, [activeTab, search, sort, visFilter]);
 
@@ -110,6 +116,37 @@ export default function AdminEvents() {
             } finally {
                 setDeletingEventId(null);
             }
+        }
+    };
+
+    const openSectionsDialog = (event: Event) => {
+        setSectionsDialogEvent(event);
+        setTempHiddenSections(event.hiddenSections || []);
+    };
+
+    const handleSaveSections = async () => {
+        if (!sectionsDialogEvent) return;
+        setIsSavingSections(true);
+        try {
+            await updateEvent({
+                ...sectionsDialogEvent,
+                hiddenSections: tempHiddenSections
+            });
+            toast({ title: "Sections updated", description: "Event sections visibility updated successfully." });
+            setEvents(await getAllEvents());
+            setSectionsDialogEvent(null);
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message || "Failed to update sections", variant: "destructive" });
+        } finally {
+            setIsSavingSections(false);
+        }
+    };
+
+    const toggleSection = (sectionId: string, isVisible: boolean) => {
+        if (isVisible) {
+            setTempHiddenSections(prev => prev.filter(id => id !== sectionId));
+        } else {
+            setTempHiddenSections(prev => [...prev, sectionId]);
         }
     };
 
@@ -363,6 +400,15 @@ export default function AdminEvents() {
                                         <DropdownMenuSeparator />
 
                                         <DropdownMenuItem
+                                            onClick={() => openSectionsDialog(event)}
+                                        >
+                                            <LayoutList className="w-4 h-4 mr-2" />
+                                            Manage Sections
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem
                                             data-testid="event-menu-delete"
                                             onClick={() => handleDelete(event.id, event.name, event.driveFolderId)}
                                             className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
@@ -396,6 +442,47 @@ export default function AdminEvents() {
                 )}
                 <ListPager page={currentPage} pageCount={pageCount} onPageChange={setPage} />
             </div>
+
+            {/* Sections Dialog */}
+            <Dialog open={!!sectionsDialogEvent} onOpenChange={(open) => !open && setSectionsDialogEvent(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Manage Sections Visibility</DialogTitle>
+                        <DialogDescription>
+                            Show or hide sections on the event details page for "{sectionsDialogEvent?.name}".
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        {[
+                            { id: 'about', label: 'About' },
+                            { id: 'tickets', label: 'Tickets' },
+                            { id: 'speakers', label: 'Speakers' },
+                            { id: 'attendees', label: 'Attendees' },
+                            { id: 'community', label: 'Join Community' },
+                            { id: 'gallery', label: 'Gallery' },
+                            { id: 'reviews', label: 'Reviews' }
+                        ].map(section => (
+                            <div key={section.id} className="flex items-center justify-between space-x-2">
+                                <Label htmlFor={`section-${section.id}`} className="flex-1 cursor-pointer">
+                                    {section.label}
+                                </Label>
+                                <Switch 
+                                    id={`section-${section.id}`} 
+                                    checked={!tempHiddenSections.includes(section.id)}
+                                    onCheckedChange={(checked) => toggleSection(section.id, checked)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setSectionsDialogEvent(null)} disabled={isSavingSections}>Cancel</Button>
+                        <Button onClick={handleSaveSections} disabled={isSavingSections}>
+                            {isSavingSections && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

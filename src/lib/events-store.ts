@@ -20,6 +20,7 @@ export interface Event {
     status: 'upcoming' | 'past' | 'draft';
     /** 'public' = listed on /events; 'private' = unlisted, reachable only via its direct link. */
     visibility?: 'public' | 'private';
+    hiddenSections?: string[]; // IDs of sections hidden from public view
 
     // Collaboration flags for upcoming events
     isUpcoming?: boolean; // Published as upcoming event needing community help

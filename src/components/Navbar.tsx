@@ -16,13 +16,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
-export const Navbar = () => {
+export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isMentor, setIsMentor] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // When not scrolled and overlaying a hero, use heroTheme to determine text colours.
+  // 'light' means the bg is dark  → use white text.
+  // 'dark'  means the bg is light → use dark text (default behaviour).
+  const isLightText = !isScrolled && heroTheme === 'light';
 
   useEffect(() => {
     // Check authentication on mount and when location changes
@@ -95,7 +100,9 @@ export const Navbar = () => {
                 height={32}
                 className="h-8 w-8 transition-transform duration-300 ease-out-expo group-hover:scale-110 group-hover:rotate-6"
               />
-              <span className="font-display text-xl font-bold tracking-tight text-foreground">Yatri Cloud</span>
+              <span className={`font-display text-xl font-bold tracking-tight transition-colors ${
+                isLightText ? 'text-white' : 'text-foreground'
+              }`}>Yatri Cloud</span>
             </a>
 
             {/* Desktop Navigation — centered at lg for a balanced
@@ -136,7 +143,11 @@ export const Navbar = () => {
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}
-                  className={`group relative shrink-0 whitespace-nowrap py-1 text-sm font-medium transition-colors ${location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`group relative shrink-0 whitespace-nowrap py-1 text-sm font-medium transition-colors ${
+                    location.pathname === link.href
+                      ? (isLightText ? 'text-white' : 'text-primary')
+                      : (isLightText ? 'text-white/80 hover:text-white' : 'text-muted-foreground hover:text-foreground')
+                  }`}
                 >
                   {link.label}
                   <span
@@ -240,7 +251,9 @@ export const Navbar = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 text-foreground"
+              className={`md:hidden p-2 transition-colors ${
+                isLightText ? 'text-white' : 'text-foreground'
+              }`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileMenuOpen}
