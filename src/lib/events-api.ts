@@ -347,13 +347,16 @@ function regRowToRegistration(row: EventRow): RegistrationWithEvent {
 /** Payment/amount fields that vary between the free and paid flows. */
 function registrationPaymentFields(input: CreateRegistrationInput): Record<string, unknown> {
     const fields: Record<string, unknown> = {};
-    if (input.paymentId) fields.payment_id = input.paymentId;
+    if (input.paymentId && UUID_RE.test(input.paymentId)) {
+        fields.payment_id = input.paymentId;
+    }
     if (input.amount !== undefined) fields.amount = input.amount;
     if (input.currency) fields.currency = input.currency;
     if (input.paymentStatus) fields.payment_status = input.paymentStatus;
     if (input.orderId !== undefined && input.orderId !== null) fields.order_id = input.orderId;
     return fields;
 }
+
 
 /**
  * Creates (or reuses) a registration for an event.

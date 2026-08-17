@@ -270,10 +270,13 @@ export async function enroll(input: {
   const email = input.email.trim().toLowerCase();
 
   const fields: Record<string, unknown> = {};
-  if (input.paymentId) fields.payment_id = input.paymentId;
+  if (input.paymentId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.paymentId)) {
+    fields.payment_id = input.paymentId;
+  }
   if (input.amount !== undefined) fields.amount = input.amount;
   if (input.currency) fields.currency = input.currency;
   if (input.paymentStatus) fields.payment_status = input.paymentStatus;
+
   if (input.orderId !== undefined && input.orderId !== null) fields.order_id = input.orderId;
   // Attendee contact details — only set the ones we actually received so a
   // retried paid attempt never blanks values captured on the first pass.
