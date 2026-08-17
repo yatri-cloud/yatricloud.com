@@ -126,10 +126,28 @@ if (R.availability) kids.push(center("Availability: " + R.availability, 18, NAVY
 if (R.summary) { kids.push(section("PROFESSIONAL SUMMARY")); kids.push(summaryP(R.summary)); }
 
 // ---- skills --------------------------------------------------------------
-if (R.skills && R.skills.length) {
-  kids.push(section("TECHNICAL SKILLS"));
-  R.skills.forEach(([label, val]) => kids.push(skillLine(label + ":", val)));
+if (R.skills) {
+  let skillsList = [];
+  if (Array.isArray(R.skills)) {
+    skillsList = R.skills.map((s) => {
+      if (Array.isArray(s)) return [s[0], s[1] || s.slice(1).join(", ")];
+      if (typeof s === "object" && s !== null) {
+        const label = s.category || s.label || s.heading || Object.keys(s)[0] || "Skills";
+        const val = s.skills || s.value || s.list || Object.values(s)[0] || "";
+        return [label, Array.isArray(val) ? val.join(", ") : String(val)];
+      }
+      return ["Skill", String(s)];
+    });
+  } else if (typeof R.skills === "object") {
+    skillsList = Object.entries(R.skills).map(([k, v]) => [k, Array.isArray(v) ? v.join(", ") : String(v)]);
+  }
+
+  if (skillsList.length) {
+    kids.push(section("TECHNICAL SKILLS"));
+    skillsList.forEach(([label, val]) => kids.push(skillLine(label + ":", val)));
+  }
 }
+
 
 // ---- experience ----------------------------------------------------------
 if (R.experience && R.experience.length) {
