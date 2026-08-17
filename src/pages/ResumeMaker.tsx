@@ -273,8 +273,8 @@ export default function ResumeMaker() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             <SEO
-                title="AI ATS Resume Scanner & Builder · Gemini Powered | Yatri Cloud"
-                description="Scan your resume with Gemini AI against modern ATS standards, discover missing keywords, score section by section, and generate recruiter-ready resumes."
+                title="AI ATS Resume Scanner & Builder | Yatri Cloud"
+                description="Scan your resume with AI against modern ATS standards, discover missing keywords, score section by section, and generate recruiter-ready resumes."
                 noindex={false}
             />
             <div className="noise-overlay" />
@@ -286,7 +286,7 @@ export default function ResumeMaker() {
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
                     <div className="container relative z-10 mx-auto px-4 md:px-6 text-center space-y-4">
                         <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary">
-                            <Sparkles className="h-3.5 w-3.5" /> Powered by Google Gemini AI Engine
+                            <Sparkles className="h-3.5 w-3.5" /> AI ATS Intelligence Engine
                         </div>
                         <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
                             AI ATS Resume <span className="gradient-text">Score & Optimizer</span>
@@ -326,7 +326,7 @@ export default function ResumeMaker() {
                                         <Target className="w-5 h-5 text-primary" /> Resume & Job Description
                                     </h2>
                                     <Badge variant="outline" className="text-xs">
-                                        Gemini 1.5 Analysis
+                                        Automated ATS Check
                                     </Badge>
                                 </div>
 
@@ -364,7 +364,7 @@ export default function ResumeMaker() {
                                     {isScanning ? (
                                         <>
                                             <Loader2 className="w-5 h-5 animate-spin" />
-                                            Scanning Resume with Gemini AI...
+                                            Scanning Resume with AI Engine...
                                         </>
                                     ) : (
                                         <>
@@ -374,6 +374,7 @@ export default function ResumeMaker() {
                                     )}
                                 </Button>
                             </div>
+
 
                             {/* Results & Score Card */}
                             <div className="space-y-6">
