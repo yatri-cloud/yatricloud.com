@@ -10,6 +10,9 @@ import {
   FALLBACK_SETTINGS,
   FALLBACK_NAV_LINKS,
 } from "@/lib/site-content";
+import { sendEmail } from "@/lib/email";
+import { getSubscriberWelcomeEmail } from "@/lib/email-templates";
+
 
 export const Footer = () => {
   const currentYear = 2026;
@@ -43,12 +46,13 @@ export const Footer = () => {
     form.reset();
     setSubName("");
     // Fire welcome email (non-blocking, always)
-    import("@/lib/email").then(({ sendEmail }) =>
-      import("@/lib/email-templates").then(({ getSubscriberWelcomeEmail }) =>
-        sendEmail({ to: email, subject: "Welcome to the Yatri Cloud newsletter", html: getSubscriberWelcomeEmail(name || "Yatri", email) })
-      )
-    ).catch(() => { /* best effort */ });
+    sendEmail({
+      to: email,
+      subject: "Welcome to the Yatri Cloud newsletter",
+      html: getSubscriberWelcomeEmail(name || "Yatri", email),
+    }).catch(() => { /* best effort */ });
   };
+
 
   /* Footer link columns come from Supabase `nav_links` (seeded identical
    * to the fallbacks, so nothing visibly changes). */
