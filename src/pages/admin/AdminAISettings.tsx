@@ -213,11 +213,12 @@ export default function AdminAISettings() {
                                     <Input
                                         id="apiKey"
                                         type="password"
-                                        placeholder="AQ.Ab8RN6KTK4s..."
+                                        placeholder="Enter your Gemini API key..."
                                         value={config.apiKey}
                                         onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
                                         className="h-11 rounded-xl font-mono text-sm pr-10"
                                     />
+
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                                         <Shield className="w-4 h-4" />
                                     </div>
