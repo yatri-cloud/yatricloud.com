@@ -1744,11 +1744,12 @@ export async function issueCertificate(
     if (!accessToken) {
       return { ok: false, message: "Please sign in again to get your certificate." };
     }
-    const res = await fetch("/api/training/issue-certificate", {
+    const res = await fetch("/api/issue-certificate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ training_id: trainingId, access_token: accessToken }),
     });
+
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok || !data.serial) {
       return {

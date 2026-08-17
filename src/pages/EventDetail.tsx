@@ -378,7 +378,7 @@ const EventDetail = () => {
                 </div>
 
                 {/* ── Gallery Spotlight Slider ─────────────────────────── */}
-                {canViewGallery && galleryItems.length > 0 && !( event.hiddenSections || []).includes('gallery') && (
+                {canViewGallery && galleryItems.length > 0 && !(event.hiddenSections || []).includes('gallery') && (
                     <div className="bg-background border-t border-border py-8">
                         <div className="container mx-auto px-4 md:px-6">
                             <div className="flex items-center justify-between mb-4">
@@ -436,11 +436,10 @@ const EventDetail = () => {
                                     <button
                                         key={item.id}
                                         onClick={() => setSliderIndex(idx)}
-                                        className={`flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden transition-all ${
-                                            idx === sliderIndex
-                                                ? 'ring-2 ring-primary ring-offset-2 ring-offset-background opacity-100'
-                                                : 'opacity-50 hover:opacity-80'
-                                        }`}
+                                        className={`flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden transition-all ${idx === sliderIndex
+                                            ? 'ring-2 ring-primary ring-offset-2 ring-offset-background opacity-100'
+                                            : 'opacity-50 hover:opacity-80'
+                                            }`}
                                     >
                                         {item.mediaType === 'photo' ? (
                                             <img src={item.url} alt="" className="w-full h-full object-cover" />
@@ -470,11 +469,10 @@ const EventDetail = () => {
                                                 key={tab.id}
                                                 onClick={() => setActiveTab(tab.id as any)}
                                                 aria-pressed={activeTab === tab.id}
-                                                className={`min-h-[44px] pb-4 px-2 text-sm font-medium whitespace-nowrap transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm ${
-                                                    activeTab === tab.id
-                                                        ? 'text-primary'
-                                                        : 'text-muted-foreground hover:text-foreground'
-                                                }`}
+                                                className={`min-h-[44px] pb-4 px-2 text-sm font-medium whitespace-nowrap transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm ${activeTab === tab.id
+                                                    ? 'text-primary'
+                                                    : 'text-muted-foreground hover:text-foreground'
+                                                    }`}
                                             >
                                                 {tab.label}
                                                 {activeTab === tab.id && (
@@ -824,16 +822,16 @@ const EventDetail = () => {
                     location:
                         event.location?.type === "online"
                             ? {
-                                  "@type": "VirtualLocation",
-                                  url: `https://www.yatricloud.com/events/${event.slug || event.id}`,
-                              }
+                                "@type": "VirtualLocation",
+                                url: `https://www.yatricloud.com/events/${event.slug || event.id}`,
+                            }
                             : {
-                                  "@type": "Place",
-                                  name: event.location?.venue || event.location?.city || "Event venue",
-                                  address: [event.location?.city, event.location?.state, event.location?.country]
-                                      .filter(Boolean)
-                                      .join(", "),
-                              },
+                                "@type": "Place",
+                                name: event.location?.venue || event.location?.city || "Event venue",
+                                address: [event.location?.city, event.location?.state, event.location?.country]
+                                    .filter(Boolean)
+                                    .join(", "),
+                            },
                     organizer: {
                         "@type": "Organization",
                         name: event.organizer?.name || "Yatri Cloud",
@@ -841,17 +839,17 @@ const EventDetail = () => {
                     },
                     ...(event.tickets && event.tickets.length > 0
                         ? {
-                              offers: event.tickets.map((t) => ({
-                                  "@type": "Offer",
-                                  name: t.type,
-                                  price: Number(String(t.price).replace(/[^\d.]/g, "")) || 0,
-                                  priceCurrency: "INR",
-                                  url: `https://www.yatricloud.com/events/${event.slug || event.id}`,
-                                  availability: t.available
-                                      ? "https://schema.org/InStock"
-                                      : "https://schema.org/SoldOut",
-                              })),
-                          }
+                            offers: event.tickets.map((t) => ({
+                                "@type": "Offer",
+                                name: t.type,
+                                price: Number(String(t.price).replace(/[^\d.]/g, "")) || 0,
+                                priceCurrency: "INR",
+                                url: `https://www.yatricloud.com/events/${event.slug || event.id}`,
+                                availability: t.available
+                                    ? "https://schema.org/InStock"
+                                    : "https://schema.org/SoldOut",
+                            })),
+                        }
                         : {}),
                 }}
             />
@@ -1157,13 +1155,13 @@ const EventDetail = () => {
                                                             </div>
                                                             <div className="text-right">
                                                                 <div className="text-2xl font-bold tracking-tight text-primary">
-                                                                {formatEventPrice(ticket.price)}
-                                                            </div>
-                                                            {ticket.available && (
-                                                                <span className="inline-flex items-center gap-1 mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-success/10 text-success">
-                                                                    <Check className="w-3 h-3" /> Available
-                                                                </span>
-                                                            )}
+                                                                    {formatEventPrice(ticket.price)}
+                                                                </div>
+                                                                {ticket.available && (
+                                                                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-success/10 text-success">
+                                                                        <Check className="w-3 h-3" /> Available
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         {ticket.benefits && ticket.benefits.length > 0 && (
@@ -1312,7 +1310,7 @@ const EventDetail = () => {
                                                 rel="noopener noreferrer"
                                                 className="inline-flex items-center gap-3 min-h-[44px] bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:bg-brand-600 transition-colors shadow-inset-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                                             >
-                                                Join the Yatris on Discord
+                                                Join the Yatri Community
                                             </a>
                                         )}
                                     </div>

@@ -10,9 +10,26 @@
   ],
   "rewrites": [
     {
+      "source": "/api/events/issue-certificate",
+      "destination": "/api/issue-certificate"
+    },
+    {
+      "source": "/api/training/issue-certificate",
+      "destination": "/api/issue-certificate"
+    },
+    {
+      "source": "/api/mentorship/cancel-booking",
+      "destination": "/api/mentorship-action"
+    },
+    {
+      "source": "/api/mentorship/reschedule-booking",
+      "destination": "/api/mentorship-action"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
+
     {
       "source": "/.well-known/(.*)",
       "destination": "/.well-known/$1"

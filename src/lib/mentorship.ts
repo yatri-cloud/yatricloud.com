@@ -722,10 +722,11 @@ export async function cancelBooking(
         message: "Please sign in again to cancel this booking.",
       };
     }
-    const res = await fetch("/api/mentorship/cancel-booking", {
+    const res = await fetch("/api/mentorship-action", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        action: "cancel",
         booking_id: bookingId,
         access_token: accessToken,
         cancel_reason: reason ?? null,
@@ -771,16 +772,18 @@ export async function rescheduleBooking(
     if (!accessToken) {
       return { error: "Please sign in again to reschedule this booking.", slotTaken: false };
     }
-    const res = await fetch("/api/mentorship/reschedule-booking", {
+    const res = await fetch("/api/mentorship-action", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        action: "reschedule",
         booking_id: bookingId,
         access_token: accessToken,
         slot_start: newSlotStart,
         slot_end: newSlotEnd,
       }),
     });
+
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data?.ok) {
       return {

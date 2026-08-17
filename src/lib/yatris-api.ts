@@ -472,7 +472,7 @@ export async function issueEventCertificate(
     const accessToken = session?.access_token;
     if (!accessToken) return { ok: false, message: 'Please sign in first.' };
 
-    const res = await fetch('/api/events/issue-certificate', {
+    const res = await fetch('/api/issue-certificate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event_id: eventId, access_token: accessToken }),
