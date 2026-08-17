@@ -100,8 +100,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: CreditCard,
         items: [
             { name: "Revenue", path: "/admin/payments", icon: Receipt, description: "Every receipt and revenue in one place." },
-            { name: "Invoices", path: "/admin/razorpay-invoices", icon: ExternalLink, description: "Raise Razorpay invoices and view dashboard ones." },
-            { name: "Transactions", path: "/admin/transactions", icon: CreditCard, description: "All payments, with refunds." },
             { name: "Coupons", path: "/admin/coupons", icon: Tag, description: "Discount codes for trainings and events." },
         ],
     },
