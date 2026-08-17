@@ -59,21 +59,31 @@ async function api(path, init = {}) {
 }
 
 /**
- * Fetch the active AI configuration (API key and model) directly from Admin site_settings.
+ * Fetch all active AI configurations from Admin site_settings.
  */
-async function getActiveAiConfig() {
+async function getActiveAiConfigs() {
   try {
     const res = await api(`/rest/v1/site_settings?key=eq.ai_api_keys`);
     const [row] = await res.json();
     if (Array.isArray(row?.value) && row.value.length > 0) {
-      const active = row.value.find((k) => k.isActive) || row.value[0];
-      if (active && active.apiKey) {
-        return {
-          apiKey: active.apiKey,
-          model: active.model || "gemini-2.5-flash",
-          temperature: active.temperature ?? 0.2,
-          maxTokens: active.maxTokens ?? 8192,
-        };
+      const active = row.value
+        .filter((k) => k.isActive && k.apiKey && k.apiKey.trim().length > 0)
+        .map((k) => ({
+          name: k.name || "Gemini Key",
+          apiKey: k.apiKey.trim(),
+          model: k.model || "gemini-2.5-flash",
+          temperature: k.temperature ?? 0.2,
+          maxTokens: k.maxTokens ?? 8192,
+        }));
+      if (active.length > 0) return active;
+      if (row.value[0]?.apiKey) {
+        return [{
+          name: row.value[0].name || "Gemini Key",
+          apiKey: row.value[0].apiKey.trim(),
+          model: row.value[0].model || "gemini-2.5-flash",
+          temperature: row.value[0].temperature ?? 0.2,
+          maxTokens: row.value[0].maxTokens ?? 8192,
+        }];
       }
     }
   } catch (e) {
@@ -84,96 +94,103 @@ async function getActiveAiConfig() {
     const res = await api(`/rest/v1/site_settings?key=eq.gemini_ai`);
     const [row] = await res.json();
     if (row?.value?.api_key) {
-      return {
-        apiKey: row.value.api_key,
+      return [{
+        name: "Legacy Gemini Key",
+        apiKey: row.value.api_key.trim(),
         model: row.value.model || "gemini-2.5-flash",
         temperature: row.value.temperature ?? 0.2,
         maxTokens: row.value.max_tokens ?? 8192,
-      };
+      }];
     }
   } catch (e) {}
 
-  return {
-    apiKey: env.VITE_GEMINI_API_KEY || "",
+  return [{
+    name: "Env Fallback Key",
+    apiKey: (env.VITE_GEMINI_API_KEY || "").trim(),
     model: "gemini-2.5-flash",
     temperature: 0.2,
     maxTokens: 8192,
-  };
+  }];
 }
 
 /**
- * Call the Gemini API with structured multimodal inputs.
+ * Call the Gemini API with structured multimodal inputs and automatic failover across active keys.
  */
 async function callGemini(parts, options = {}) {
-  const ai = await getActiveAiConfig();
-  if (!ai.apiKey) {
+  const activeConfigs = await getActiveAiConfigs();
+  if (!activeConfigs.length || !activeConfigs[0].apiKey) {
     throw new Error("No active AI API key found in Admin Settings (site_settings).");
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${ai.model}:generateContent?key=${encodeURIComponent(ai.apiKey)}`;
-
-  const body = {
-    contents: [
-      {
-        parts: parts,
-      },
-    ],
-    generationConfig: {
-      temperature: options.temperature ?? ai.temperature ?? 0.1,
-      maxOutputTokens: options.maxTokens ?? ai.maxTokens ?? 8192,
-      responseMimeType: options.jsonMode ? "application/json" : "text/plain",
-    },
-  };
-
-  if (options.systemInstruction) {
-    body.systemInstruction = {
-      parts: [{ text: options.systemInstruction }],
-    };
-  }
-
   let lastError = null;
-  for (let attempt = 1; attempt <= 4; attempt++) {
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(120000),
-      });
 
-      const data = await res.json();
-      if (!res.ok) {
-        const msg = data?.error?.message || res.statusText;
-        // Check for rate limit wait duration
-        const matchWait = msg.match(/retry in ([\d.]+)s/i);
-        const waitSec = matchWait ? Math.ceil(parseFloat(matchWait[1])) + 2 : attempt * 10;
+  // Loop over each active key in the failover pool
+  for (let keyIdx = 0; keyIdx < activeConfigs.length; keyIdx++) {
+    const ai = activeConfigs[keyIdx];
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${ai.model}:generateContent?key=${encodeURIComponent(ai.apiKey)}`;
 
-        if (res.status === 429 || msg.includes("Quota exceeded") || msg.includes("high demand")) {
-          console.log(`  (Rate limit / Quota hit. Sleeping ${waitSec}s before attempt ${attempt + 1}...)`);
-          await new Promise((r) => setTimeout(r, waitSec * 1000));
-          continue;
+    const body = {
+      contents: [
+        {
+          parts: parts,
+        },
+      ],
+      generationConfig: {
+        temperature: options.temperature ?? ai.temperature ?? 0.1,
+        maxOutputTokens: options.maxTokens ?? ai.maxTokens ?? 8192,
+        responseMimeType: options.jsonMode ? "application/json" : "text/plain",
+      },
+    };
+
+    if (options.systemInstruction) {
+      body.systemInstruction = {
+        parts: [{ text: options.systemInstruction }],
+      };
+    }
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(120000),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          const msg = data?.error?.message || res.statusText;
+          const matchWait = msg.match(/retry in ([\d.]+)s/i);
+          const waitSec = matchWait ? Math.ceil(parseFloat(matchWait[1])) + 2 : 5;
+
+          if (res.status === 429 || msg.includes("Quota exceeded") || msg.includes("high demand")) {
+            console.log(`  (Key "${ai.name}" hit rate limit/quota. ${keyIdx + 1 < activeConfigs.length ? "Failing over to next active key in pool..." : `Sleeping ${waitSec}s...`})`);
+            if (keyIdx + 1 < activeConfigs.length) {
+              // Failover to next key immediately!
+              break;
+            }
+            await new Promise((r) => setTimeout(r, waitSec * 1000));
+            continue;
+          }
+
+          throw new Error(msg);
         }
 
-        throw new Error(msg);
-      }
-
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) {
-        throw new Error("No response generated by Gemini model.");
-      }
-      return text;
-    } catch (err) {
-      lastError = err;
-      if (attempt < 4) {
-        const waitTime = attempt * 5;
-        console.log(`  (API attempt ${attempt} error: ${err.message}. Retrying in ${waitTime}s...)`);
-        await new Promise((r) => setTimeout(r, waitTime * 1000));
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+          throw new Error("No response generated by Gemini model.");
+        }
+        return text; // Success!
+      } catch (err) {
+        lastError = err;
+        console.log(`  (Attempt on key "${ai.name}" error: ${err.message})`);
       }
     }
   }
 
-  throw new Error(`Gemini API Error after attempts: ${lastError?.message}`);
+  throw new Error(`All active Gemini keys failed. Last error: ${lastError?.message}`);
 }
+
 
 
 

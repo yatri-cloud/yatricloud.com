@@ -193,7 +193,55 @@ async function saveAiKeysList(keys: AiKeyRecord[]): Promise<boolean> {
 }
 
 /**
- * CRUD: Create / Add a new API Key record.
+ * List all active keys in the failover/load-balancing pool.
+ */
+export async function listActiveAiKeys(): Promise<AiKeyRecord[]> {
+    const all = await listAiKeys();
+    const active = all.filter((k) => k.isActive && k.apiKey && k.apiKey.trim().length > 0);
+    if (active.length > 0) return active;
+    if (all.length > 0 && all[0].apiKey) return [all[0]];
+
+    const legacy = await getAiConfig();
+    if (legacy.apiKey) {
+        return [{
+            id: "default-legacy",
+            name: "Primary Gemini Key",
+            provider: "google_gemini",
+            apiKey: legacy.apiKey,
+            model: legacy.model || DEFAULT_MODEL,
+            temperature: legacy.temperature ?? 0.2,
+            maxTokens: legacy.maxTokens ?? 4096,
+            isActive: true,
+            usagePurpose: "all",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        }];
+    }
+    return [];
+}
+
+/**
+ * Toggle active status for a specific key (allowing multiple active keys).
+ */
+export async function toggleKeyActive(id: string): Promise<boolean> {
+    const list = await listAiKeys();
+    const idx = list.findIndex((k) => k.id === id);
+    if (idx === -1) return false;
+    list[idx].isActive = !list[idx].isActive;
+    return saveAiKeysList(list);
+}
+
+/**
+ * Set all keys active or inactive in bulk.
+ */
+export async function setAllKeysActive(active: boolean): Promise<boolean> {
+    const list = await listAiKeys();
+    const updated = list.map((k) => ({ ...k, isActive: active }));
+    return saveAiKeysList(updated);
+}
+
+/**
+ * CRUD: Create / Add a new API Key record (multiple keys can be active simultaneously).
  */
 export async function createAiKey(data: Omit<AiKeyRecord, "id" | "createdAt" | "updatedAt">): Promise<AiKeyRecord> {
     const list = await listAiKeys();
@@ -207,38 +255,31 @@ export async function createAiKey(data: Omit<AiKeyRecord, "id" | "createdAt" | "
         updatedAt: now,
     };
 
-    // If marked active, deactivate others
-    let updatedList = list;
-    if (newKey.isActive) {
-        updatedList = list.map((k) => ({ ...k, isActive: false }));
-    } else if (list.length === 0) {
+    // If this is the first key, make sure it's active
+    if (list.length === 0) {
         newKey.isActive = true;
     }
 
-    updatedList.push(newKey);
+    const updatedList = [...list, newKey];
     await saveAiKeysList(updatedList);
     return newKey;
 }
 
 /**
- * CRUD: Update an existing API Key record.
+ * CRUD: Update an existing API Key record without disabling others.
  */
 export async function updateAiKey(id: string, patch: Partial<AiKeyRecord>): Promise<AiKeyRecord | null> {
     const list = await listAiKeys();
     const idx = list.findIndex((k) => k.id === id);
     if (idx === -1) return null;
 
-    let updatedList = [...list];
-    if (patch.isActive) {
-        updatedList = updatedList.map((k) => ({ ...k, isActive: k.id === id }));
-    }
-
     const updatedKey: AiKeyRecord = {
-        ...updatedList[idx],
+        ...list[idx],
         ...patch,
         id,
         updatedAt: new Date().toISOString(),
     };
+    const updatedList = [...list];
     updatedList[idx] = updatedKey;
 
     await saveAiKeysList(updatedList);
@@ -258,11 +299,12 @@ export async function deleteAiKey(id: string): Promise<boolean> {
 }
 
 /**
- * CRUD: Set active key.
+ * CRUD: Set a key active.
  */
 export async function setActiveAiKey(id: string): Promise<boolean> {
     return (await updateAiKey(id, { isActive: true })) !== null;
 }
+
 
 /**
  * Retrieve current active AI configuration.
@@ -416,7 +458,7 @@ export async function testGeminiApi(
 }
 
 /**
- * Call active Gemini API with arbitrary prompt.
+ * Call Gemini API with automatic pool load-balancing and failover across active keys.
  */
 export async function callGeminiApi(
     prompt: string,
@@ -427,60 +469,80 @@ export async function callGeminiApi(
         jsonMode?: boolean;
     }
 ): Promise<string> {
-    const config = await getAiConfig();
-    const apiKey = (config.apiKey || DEFAULT_API_KEY).trim();
-    const model = (config.model || DEFAULT_MODEL).trim();
-
-    if (!apiKey) {
-        throw new Error("Gemini API key is not configured in Admin.");
+    const activeKeys = await listActiveAiKeys();
+    if (activeKeys.length === 0) {
+        throw new Error("No active Gemini API keys configured in Admin Settings.");
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    let lastError: any = null;
 
-    const bodyPayload: any = {
-        contents: [
-            {
-                parts: [
-                    { text: prompt }
-                ]
+    // Try active keys in sequence for automatic failover
+    for (let i = 0; i < activeKeys.length; i++) {
+        const keyRecord = activeKeys[i];
+        const apiKey = keyRecord.apiKey.trim();
+        const model = (keyRecord.model || DEFAULT_MODEL).trim();
+
+        if (!apiKey) continue;
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+        const bodyPayload: any = {
+            contents: [
+                {
+                    parts: [
+                        { text: prompt }
+                    ]
+                }
+            ],
+            generationConfig: {
+                temperature: options?.temperature ?? keyRecord.temperature ?? 0.2,
+                maxOutputTokens: options?.maxTokens ?? keyRecord.maxTokens ?? 8192,
             }
-        ],
-        generationConfig: {
-            temperature: options?.temperature ?? config.temperature ?? 0.2,
-            maxOutputTokens: options?.maxTokens ?? config.maxTokens ?? 4096,
-        }
-    };
-
-    if (options?.jsonMode) {
-        bodyPayload.generationConfig.responseMimeType = "application/json";
-    }
-
-    if (options?.systemInstruction) {
-        bodyPayload.systemInstruction = {
-            parts: [{ text: options.systemInstruction }]
         };
+
+        if (options?.jsonMode) {
+            bodyPayload.generationConfig.responseMimeType = "application/json";
+        }
+
+        if (options?.systemInstruction) {
+            bodyPayload.systemInstruction = {
+                parts: [{ text: options.systemInstruction }]
+            };
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(bodyPayload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const msg = data?.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+                console.warn(`[AI Failover] Key "${keyRecord.name}" (${model}) failed: ${msg}. Switching to next key in pool...`);
+                lastError = new Error(`[${keyRecord.name}] ${msg}`);
+                continue; // Try next active key in pool
+            }
+
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) {
+                console.warn(`[AI Failover] Key "${keyRecord.name}" returned no text. Switching to next key...`);
+                lastError = new Error(`[${keyRecord.name}] Empty response generated.`);
+                continue;
+            }
+
+            return text;
+        } catch (err: any) {
+            console.warn(`[AI Failover] Network exception with key "${keyRecord.name}":`, err.message);
+            lastError = err;
+        }
     }
 
-    const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyPayload)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        const msg = data?.error?.message || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(msg);
-    }
-
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-        throw new Error("No response generated by Gemini model.");
-    }
-
-    return text;
+    throw lastError || new Error("All active Gemini API keys in the pool failed.");
 }
+
 
 /**
  * Comprehensive ATS Resume Analysis using Gemini AI.

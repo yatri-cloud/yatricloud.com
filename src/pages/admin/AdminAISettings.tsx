@@ -45,11 +45,14 @@ import {
     updateAiKey,
     deleteAiKey,
     setActiveAiKey,
+    toggleKeyActive,
+    setAllKeysActive,
     testGeminiApi,
     fetchLiveGeminiModels,
     AVAILABLE_MODELS,
     type AiKeyRecord,
 } from "@/lib/ai-config";
+
 
 export default function AdminAISettings() {
     const [keys, setKeys] = useState<AiKeyRecord[]>([]);
@@ -261,13 +264,25 @@ export default function AdminAISettings() {
         }
     };
 
-    const handleSetActive = async (k: AiKeyRecord) => {
-        const ok = await setActiveAiKey(k.id);
+    const activeKeysCount = keys.filter((k) => k.isActive).length;
+
+    const handleToggleActive = async (k: AiKeyRecord) => {
+        const ok = await toggleKeyActive(k.id);
         if (ok) {
-            toast.success(`"${k.name}" is now the active AI model for ATS scanning.`);
+            toast.success(k.isActive ? `"${k.name}" disabled.` : `"${k.name}" is now active in failover pool!`);
             refreshKeys();
         } else {
-            toast.error("Failed to set active key.");
+            toast.error("Failed to toggle key status.");
+        }
+    };
+
+    const handleActivateAll = async () => {
+        const ok = await setAllKeysActive(true);
+        if (ok) {
+            toast.success("All configured API keys are now active in the failover pool!");
+            refreshKeys();
+        } else {
+            toast.error("Failed to activate all keys.");
         }
     };
 
@@ -306,15 +321,15 @@ export default function AdminAISettings() {
                 <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="space-y-1.5">
                         <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                            <Sparkles className="h-4 w-4" /> AI Models & Key Management
+                            <Sparkles className="h-4 w-4" /> Multi-Key Load Balancing & Auto-Failover
                         </p>
                         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">AI API Keys & Models</h1>
                         <p className="text-muted-foreground text-sm max-w-2xl">
-                            Add, update, switch, and test Google Gemini and LLM API credentials. The active key powers real-time ATS resume scoring and generation.
+                            Activate multiple Gemini API keys simultaneously. If one key hits quota or rate limits, the system seamlessly and automatically fails over to the next active key.
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <Button
                             onClick={handleOpenAddModal}
                             className="rounded-xl h-11 px-5 gap-2 bg-primary text-primary-foreground shadow-inset-btn"
@@ -323,6 +338,34 @@ export default function AdminAISettings() {
                         </Button>
                     </div>
                 </div>
+
+                {/* Pool Status Strip */}
+                {keys.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2.5">
+                            <span className={`inline-block w-2.5 h-2.5 rounded-full ${activeKeysCount > 0 ? "bg-emerald-500 animate-pulse" : "bg-destructive"}`} />
+                            <span className="font-semibold text-foreground">
+                                Active Failover Pool: <span className="text-primary font-bold">{activeKeysCount}</span> of {keys.length} keys active
+                            </span>
+                            {activeKeysCount > 1 && (
+                                <Badge className="bg-success/10 text-success border-success/20 text-[10px] py-0 px-2">
+                                    High Availability Enabled
+                                </Badge>
+                            )}
+                        </div>
+
+                        {activeKeysCount < keys.length && (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleActivateAll}
+                                className="h-7 text-xs rounded-lg gap-1.5 self-start sm:self-auto"
+                            >
+                                <CheckCircle2 className="w-3.5 h-3.5 text-primary" /> Activate All Keys
+                            </Button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Keys Table / List */}
@@ -338,7 +381,7 @@ export default function AdminAISettings() {
                     <div className="space-y-1">
                         <h3 className="font-display text-lg font-bold">No API Keys Configured</h3>
                         <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                            Add your Google Gemini API key to activate the ATS resume scanner and model configurations.
+                            Add your Google Gemini API keys to activate high-availability ATS resume scoring and failover.
                         </p>
                     </div>
                     <Button onClick={handleOpenAddModal} className="rounded-xl gap-2">
@@ -361,7 +404,7 @@ export default function AdminAISettings() {
                             return (
                                 <Card
                                     key={k.id}
-                                    className={`rounded-2xl border transition-all ${k.isActive ? "border-primary/50 bg-primary/[0.02] shadow-sm ring-1 ring-primary/20" : "border-border bg-card"}`}
+                                    className={`rounded-2xl border transition-all ${k.isActive ? "border-primary/50 bg-primary/[0.02] shadow-sm ring-1 ring-primary/20" : "border-border bg-card opacity-80"}`}
                                 >
                                     <CardContent className="p-5 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                                         <div className="space-y-2 flex-1 min-w-0">
@@ -373,11 +416,11 @@ export default function AdminAISettings() {
 
                                                 {k.isActive ? (
                                                     <Badge className="bg-success text-success-foreground border-0 text-xs px-2.5 py-0.5">
-                                                        Active Model
+                                                        Active in Pool
                                                     </Badge>
                                                 ) : (
                                                     <Badge variant="outline" className="text-muted-foreground text-xs">
-                                                        Inactive
+                                                        Disabled
                                                     </Badge>
                                                 )}
 
@@ -413,17 +456,18 @@ export default function AdminAISettings() {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            {!k.isActive && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => handleSetActive(k)}
-                                                    className="rounded-xl h-9 text-xs gap-1.5"
-                                                >
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-primary" /> Set Active
-                                                </Button>
-                                            )}
+                                        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                                            {/* Toggle switch for multi-active pool */}
+                                            <div className="flex items-center gap-2 mr-2 bg-muted/40 px-3 py-1.5 rounded-xl border">
+                                                <Switch
+                                                    checked={k.isActive}
+                                                    onCheckedChange={() => handleToggleActive(k)}
+                                                    id={`switch-${k.id}`}
+                                                />
+                                                <Label htmlFor={`switch-${k.id}`} className="text-xs font-semibold cursor-pointer select-none">
+                                                    {k.isActive ? "Active" : "Off"}
+                                                </Label>
+                                            </div>
 
                                             <Button
                                                 size="sm"
@@ -461,6 +505,7 @@ export default function AdminAISettings() {
                     </div>
                 </div>
             )}
+
 
             {/* ADD / EDIT KEY MODAL */}
             <Dialog open={modalOpen} onOpenChange={setModalOpen}>
