@@ -1,5 +1,22 @@
 import { supabase } from "@/lib/supabase";
 
+export interface AiKeyRecord {
+    id: string;
+    name: string;
+    provider: "google_gemini" | "openai" | "anthropic" | "custom";
+    apiKey: string;
+    model: string;
+    temperature: number;
+    maxTokens: number;
+    isActive: boolean;
+    usagePurpose: "ats_resume" | "general" | "all";
+    lastTestedAt?: string;
+    lastLatencyMs?: number;
+    lastTestStatus?: "success" | "error";
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface AiConfig {
     apiKey: string;
     model: string;
@@ -46,6 +63,7 @@ export interface AtsAnalysisResult {
 const DEFAULT_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY as string) || "";
 const DEFAULT_MODEL = "gemini-2.5-flash";
 const LOCAL_STORAGE_KEY = "yc_gemini_ai_config";
+const LOCAL_STORAGE_KEYS_LIST = "yc_ai_keys_list";
 
 export const AVAILABLE_MODELS = [
     { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Fast, Accurate & Recommended)", speed: "Blazing", maxOutput: 8192 },
@@ -80,15 +98,174 @@ export async function fetchLiveGeminiModels(apiKey: string): Promise<Array<{ id:
             return list.length > 0 ? list : AVAILABLE_MODELS;
         }
     } catch {
-        // ignore and fallback
+        // fallback
     }
     return AVAILABLE_MODELS;
 }
 
+/**
+ * CRUD: List all configured AI API keys from site_settings.
+ */
+export async function listAiKeys(): Promise<AiKeyRecord[]> {
+    try {
+        const { data, error } = await supabase
+            .from("site_settings")
+            .select("value")
+            .eq("key", "ai_api_keys")
+            .maybeSingle();
 
+        if (!error && data?.value && Array.isArray(data.value)) {
+            const list = data.value as AiKeyRecord[];
+            localStorage.setItem(LOCAL_STORAGE_KEYS_LIST, JSON.stringify(list));
+            return list;
+        }
+    } catch (e) {
+        console.warn("[ai-config] Could not fetch keys list from Supabase:", e);
+    }
+
+    // Check localStorage
+    try {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEYS_LIST);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+    } catch {
+        // ignore
+    }
+
+    // Migrate from legacy single gemini_ai setting if keys list is empty
+    const legacyConfig = await getAiConfig();
+    if (legacyConfig.apiKey) {
+        const migratedKey: AiKeyRecord = {
+            id: "default-key-1",
+            name: "Primary Gemini Key",
+            provider: "google_gemini",
+            apiKey: legacyConfig.apiKey,
+            model: legacyConfig.model || DEFAULT_MODEL,
+            temperature: legacyConfig.temperature ?? 0.2,
+            maxTokens: legacyConfig.maxTokens ?? 4096,
+            isActive: true,
+            usagePurpose: "all",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastTestedAt: legacyConfig.lastTestedAt,
+        };
+        await saveAiKeysList([migratedKey]);
+        return [migratedKey];
+    }
+
+    return [];
+}
 
 /**
- * Retrieve current AI configuration from Supabase site_settings with fallback to localStorage / defaults.
+ * Save keys list to Supabase and cache.
+ */
+async function saveAiKeysList(keys: AiKeyRecord[]): Promise<boolean> {
+    localStorage.setItem(LOCAL_STORAGE_KEYS_LIST, JSON.stringify(keys));
+
+    // Also sync active key to gemini_ai key for backwards compatibility
+    const activeKey = keys.find((k) => k.isActive) || keys[0];
+    if (activeKey) {
+        saveAiConfig({
+            apiKey: activeKey.apiKey,
+            model: activeKey.model,
+            temperature: activeKey.temperature,
+            maxTokens: activeKey.maxTokens,
+            enabled: activeKey.isActive,
+            lastTestedAt: activeKey.lastTestedAt,
+        }).catch(() => {});
+    }
+
+    try {
+        const { error } = await supabase
+            .from("site_settings")
+            .upsert({
+                key: "ai_api_keys",
+                value: keys,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: "key" });
+
+        return !error;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * CRUD: Create / Add a new API Key record.
+ */
+export async function createAiKey(data: Omit<AiKeyRecord, "id" | "createdAt" | "updatedAt">): Promise<AiKeyRecord> {
+    const list = await listAiKeys();
+    const id = "key_" + Math.random().toString(36).slice(2, 10);
+    const now = new Date().toISOString();
+
+    const newKey: AiKeyRecord = {
+        ...data,
+        id,
+        createdAt: now,
+        updatedAt: now,
+    };
+
+    // If marked active, deactivate others
+    let updatedList = list;
+    if (newKey.isActive) {
+        updatedList = list.map((k) => ({ ...k, isActive: false }));
+    } else if (list.length === 0) {
+        newKey.isActive = true;
+    }
+
+    updatedList.push(newKey);
+    await saveAiKeysList(updatedList);
+    return newKey;
+}
+
+/**
+ * CRUD: Update an existing API Key record.
+ */
+export async function updateAiKey(id: string, patch: Partial<AiKeyRecord>): Promise<AiKeyRecord | null> {
+    const list = await listAiKeys();
+    const idx = list.findIndex((k) => k.id === id);
+    if (idx === -1) return null;
+
+    let updatedList = [...list];
+    if (patch.isActive) {
+        updatedList = updatedList.map((k) => ({ ...k, isActive: k.id === id }));
+    }
+
+    const updatedKey: AiKeyRecord = {
+        ...updatedList[idx],
+        ...patch,
+        id,
+        updatedAt: new Date().toISOString(),
+    };
+    updatedList[idx] = updatedKey;
+
+    await saveAiKeysList(updatedList);
+    return updatedKey;
+}
+
+/**
+ * CRUD: Delete an API Key record.
+ */
+export async function deleteAiKey(id: string): Promise<boolean> {
+    const list = await listAiKeys();
+    const filtered = list.filter((k) => k.id !== id);
+    if (filtered.length > 0 && !filtered.some((k) => k.isActive)) {
+        filtered[0].isActive = true;
+    }
+    return saveAiKeysList(filtered);
+}
+
+/**
+ * CRUD: Set active key.
+ */
+export async function setActiveAiKey(id: string): Promise<boolean> {
+    return (await updateAiKey(id, { isActive: true })) !== null;
+}
+
+/**
+ * Retrieve current active AI configuration.
  */
 export async function getAiConfig(): Promise<AiConfig> {
     try {
@@ -122,7 +299,7 @@ export async function getAiConfig(): Promise<AiConfig> {
         if (saved) {
             return { ...JSON.parse(saved), apiKey: JSON.parse(saved).apiKey || DEFAULT_API_KEY };
         }
-    } catch (e) {
+    } catch {
         // ignore
     }
 
@@ -175,7 +352,7 @@ export async function saveAiConfig(config: Partial<AiConfig>): Promise<boolean> 
 }
 
 /**
- * Test the Gemini API connection.
+ * Test a specific Gemini API connection.
  */
 export async function testGeminiApi(
     customKey?: string,
@@ -220,13 +397,11 @@ export async function testGeminiApi(
         }
 
         const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "OK";
-        // Save test timestamp
-        await saveAiConfig({ lastTestedAt: new Date().toISOString() });
 
         return {
             success: true,
             latencyMs,
-            message: `Connection successful! Response: "${candidateText}" in ${latencyMs}ms`,
+            message: `Connection successful! Model response: "${candidateText}" in ${latencyMs}ms`,
             modelUsed: model
         };
     } catch (err: any) {
@@ -241,7 +416,7 @@ export async function testGeminiApi(
 }
 
 /**
- * Call Gemini API with arbitrary prompt and generation configuration.
+ * Call active Gemini API with arbitrary prompt.
  */
 export async function callGeminiApi(
     prompt: string,
@@ -257,7 +432,7 @@ export async function callGeminiApi(
     const model = (config.model || DEFAULT_MODEL).trim();
 
     if (!apiKey) {
-        throw new Error("Gemini API key is not configured.");
+        throw new Error("Gemini API key is not configured in Admin.");
     }
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
