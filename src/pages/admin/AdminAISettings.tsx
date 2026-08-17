@@ -26,6 +26,7 @@ import {
     getAiConfig,
     saveAiConfig,
     testGeminiApi,
+    fetchLiveGeminiModels,
     AVAILABLE_MODELS,
     type AiConfig,
 } from "@/lib/ai-config";
@@ -33,12 +34,14 @@ import {
 export default function AdminAISettings() {
     const [config, setConfig] = useState<AiConfig>({
         apiKey: "",
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         temperature: 0.2,
         maxTokens: 4096,
         enabled: true,
         systemPrompt: "",
     });
+    const [models, setModels] = useState(AVAILABLE_MODELS);
+    const [loadingModels, setLoadingModels] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [testing, setTesting] = useState(false);
@@ -51,10 +54,33 @@ export default function AdminAISettings() {
 
     useEffect(() => {
         getAiConfig().then((c) => {
-            setConfig(c);
+            const finalModel = c.model === "gemini-1.5-flash" ? "gemini-2.5-flash" : c.model;
+            setConfig({ ...c, model: finalModel });
             setLoading(false);
+
+            if (c.apiKey) {
+                fetchLiveGeminiModels(c.apiKey).then((live) => setModels(live));
+            }
         });
     }, []);
+
+    const handleRefreshModels = async () => {
+        if (!config.apiKey) {
+            toast.error("Please enter an API key first.");
+            return;
+        }
+        setLoadingModels(true);
+        try {
+            const live = await fetchLiveGeminiModels(config.apiKey);
+            setModels(live);
+            toast.success(`Loaded ${live.length} available models from Gemini!`);
+        } catch {
+            toast.error("Could not fetch models from key.");
+        } finally {
+            setLoadingModels(false);
+        }
+    };
+
 
     const handleSave = async () => {
         setSaving(true);
@@ -202,9 +228,20 @@ export default function AdminAISettings() {
                             </div>
 
                             <div className="space-y-2 pt-2">
-                                <Label htmlFor="model" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                    Active Model Selection
-                                </Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="model" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                        Active Model Selection
+                                    </Label>
+                                    <button
+                                        type="button"
+                                        onClick={handleRefreshModels}
+                                        disabled={loadingModels}
+                                        className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
+                                    >
+                                        <RefreshCw className={`w-3 h-3 ${loadingModels ? "animate-spin" : ""}`} />
+                                        Fetch Models from Key
+                                    </button>
+                                </div>
                                 <Select
                                     value={config.model}
                                     onValueChange={(val) => setConfig({ ...config, model: val })}
@@ -213,7 +250,7 @@ export default function AdminAISettings() {
                                         <SelectValue placeholder="Select model..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {AVAILABLE_MODELS.map((m) => (
+                                        {models.map((m) => (
                                             <SelectItem key={m.id} value={m.id}>
                                                 <div className="flex items-center justify-between gap-4">
                                                     <span className="font-medium">{m.name}</span>
@@ -226,6 +263,7 @@ export default function AdminAISettings() {
                                     </SelectContent>
                                 </Select>
                             </div>
+
                         </CardContent>
                     </Card>
 

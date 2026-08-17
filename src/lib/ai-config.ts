@@ -44,16 +44,48 @@ export interface AtsAnalysisResult {
 }
 
 const DEFAULT_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY as string) || "";
-const DEFAULT_MODEL = "gemini-1.5-flash";
+const DEFAULT_MODEL = "gemini-2.5-flash";
 const LOCAL_STORAGE_KEY = "yc_gemini_ai_config";
 
-
 export const AVAILABLE_MODELS = [
-    { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash (Fast & Balanced - Recommended)", speed: "Ultra Fast", maxOutput: 8192 },
-    { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro (Deep Reasoning & Analysis)", speed: "Standard", maxOutput: 8192 },
-    { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash (Next-Gen High Performance)", speed: "Blazing", maxOutput: 8192 },
-    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", speed: "Ultra Fast", maxOutput: 8192 },
+    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Fast, Accurate & Recommended)", speed: "Blazing", maxOutput: 8192 },
+    { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (Deep Reasoning & Executive Analysis)", speed: "Standard", maxOutput: 8192 },
+    { id: "gemini-flash-latest", name: "Gemini Flash (Latest Stable)", speed: "Ultra Fast", maxOutput: 8192 },
+    { id: "gemini-pro-latest", name: "Gemini Pro (Latest Stable)", speed: "High Intelligence", maxOutput: 8192 },
+    { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite (Lightweight & Instant)", speed: "Instant", maxOutput: 8192 },
+    { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", speed: "Next-Gen", maxOutput: 8192 },
 ];
+
+/**
+ * Dynamically list active models for the given API key.
+ */
+export async function fetchLiveGeminiModels(apiKey: string): Promise<Array<{ id: string; name: string; speed: string; maxOutput: number }>> {
+    if (!apiKey) return AVAILABLE_MODELS;
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey.trim())}`);
+        if (!res.ok) return AVAILABLE_MODELS;
+        const data = await res.json();
+        if (Array.isArray(data?.models)) {
+            const list = data.models
+                .filter((m: any) => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes("generateContent"))
+                .map((m: any) => {
+                    const id = m.name.replace("models/", "");
+                    return {
+                        id,
+                        name: m.displayName || id,
+                        speed: id.includes("flash") ? "Ultra Fast" : "Standard",
+                        maxOutput: m.outputTokenLimit || 8192,
+                    };
+                });
+            return list.length > 0 ? list : AVAILABLE_MODELS;
+        }
+    } catch {
+        // ignore and fallback
+    }
+    return AVAILABLE_MODELS;
+}
+
+
 
 /**
  * Retrieve current AI configuration from Supabase site_settings with fallback to localStorage / defaults.
