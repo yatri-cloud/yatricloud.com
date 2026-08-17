@@ -54,6 +54,13 @@ import {
     analyzeResumeWithGemini,
     type AtsAnalysisResult,
 } from "@/lib/ai-config";
+import ReactMarkdown from "react-markdown";
+import {
+    generateResumeDocx,
+    exportElementToPdf,
+    parseResumeMarkdown,
+} from "@/lib/resume-export";
+
 
 const STATUS_META: Record<ResumeRequest["status"], { label: string; cls: string }> = {
     queued: { label: "Queued", cls: "bg-brand-50 text-primary border-brand-100" },
@@ -82,12 +89,16 @@ export default function ResumeMaker() {
     const [requests, setRequests] = useState<ResumeRequest[]>([]);
     const [loaded, setLoaded] = useState(false);
 
-    // Modals
+    // Modals & Export State
     const [preview, setPreview] = useState<{ name: string; url: string } | null>(null);
     const [edit, setEdit] = useState<ResumeRequest | null>(null);
     const [editText, setEditText] = useState("");
     const [editJd, setEditJd] = useState("");
     const [editSaving, setEditSaving] = useState(false);
+    const [downloadingPdf, setDownloadingPdf] = useState(false);
+    const [downloadingDocx, setDownloadingDocx] = useState(false);
+    const [isEditingOptimized, setIsEditingOptimized] = useState(false);
+    const [editedOptimizedMarkdown, setEditedOptimizedMarkdown] = useState("");
 
     const refresh = async () => {
         const rows = await listMyResumeRequests();
@@ -119,6 +130,7 @@ export default function ResumeMaker() {
         try {
             const result = await analyzeResumeWithGemini(atsResumeText, atsJdText);
             setAtsResult(result);
+            setEditedOptimizedMarkdown(result.optimized_resume_markdown || "");
             toast.success(`ATS Scan complete! Overall Score: ${result.ats_score}/100`);
         } catch (e: any) {
             console.error("[ATS Scanner]", e);
@@ -129,23 +141,44 @@ export default function ResumeMaker() {
     };
 
     const handleCopyMarkdown = () => {
-        if (!atsResult?.optimized_resume_markdown) return;
-        navigator.clipboard.writeText(atsResult.optimized_resume_markdown);
+        const md = editedOptimizedMarkdown || atsResult?.optimized_resume_markdown;
+        if (!md) return;
+        navigator.clipboard.writeText(md);
         setCopiedText(true);
         toast.success("Optimized resume copied to clipboard!");
         setTimeout(() => setCopiedText(false), 2000);
     };
 
-    const handleDownloadOptimized = () => {
-        if (!atsResult?.optimized_resume_markdown) return;
-        const blob = new Blob([atsResult.optimized_resume_markdown], { type: "text/markdown" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${fullName ? fullName.replace(/\s+/g, "_") : "ATS"}_Optimized_Resume.md`;
-        a.click();
-        URL.revokeObjectURL(url);
+    const handleExportPdf = async () => {
+        setDownloadingPdf(true);
+        try {
+            const outName = `${fullName ? fullName.replace(/\s+/g, "_") : "ATS"}_Resume.pdf`;
+            await exportElementToPdf("ats-resume-print-view", outName);
+            toast.success("PDF resume downloaded successfully!");
+        } catch (e: any) {
+            console.error("[PDF Export]", e);
+            toast.error(e?.message || "Failed to generate PDF.");
+        } finally {
+            setDownloadingPdf(false);
+        }
     };
+
+    const handleExportDocx = async () => {
+        setDownloadingDocx(true);
+        try {
+            const md = editedOptimizedMarkdown || atsResult?.optimized_resume_markdown || "";
+            const parsed = parseResumeMarkdown(md);
+            const outName = `${fullName ? fullName.replace(/\s+/g, "_") : "ATS"}_Resume.docx`;
+            await generateResumeDocx(parsed, outName);
+            toast.success("Word (.docx) resume downloaded successfully!");
+        } catch (e: any) {
+            console.error("[Docx Export]", e);
+            toast.error(e?.message || "Failed to generate Word document.");
+        } finally {
+            setDownloadingDocx(false);
+        }
+    };
+
 
     const pickFile = (file: File | null) => {
         if (!file) return;
@@ -514,63 +547,126 @@ export default function ResumeMaker() {
                                     </div>
                                 )}
 
-                                {/* Action Plan & Optimized Markdown */}
-                                <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                                    <div className="flex items-center justify-between">
+                                {/* Action Plan */}
+                                {atsResult.action_plan.length > 0 && (
+                                    <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-4 shadow-sm">
                                         <h3 className="font-display text-lg font-bold flex items-center gap-2">
-                                            <ShieldCheck className="w-5 h-5 text-primary" /> ATS Optimized Resume
+                                            <ShieldCheck className="w-5 h-5 text-primary" /> Recruiter Action Checklist (95+ Target)
                                         </h3>
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={handleCopyMarkdown}
-                                                className="h-8 rounded-lg text-xs gap-1.5"
-                                            >
-                                                {copiedText ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
-                                                {copiedText ? "Copied" : "Copy"}
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={handleDownloadOptimized}
-                                                className="h-8 rounded-lg text-xs gap-1.5"
-                                            >
-                                                <Download className="w-3.5 h-3.5" /> Download (.md)
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {atsResult.action_plan.length > 0 && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Priority steps recommended by the ATS algorithm for higher interview callback rates.
+                                        </p>
                                         <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2">
-                                            <h4 className="text-xs font-bold text-primary uppercase tracking-wider">
-                                                Checklist to reach 95+ score
-                                            </h4>
-                                            <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+                                            <ul className="list-disc list-inside space-y-1.5 text-xs text-muted-foreground">
                                                 {atsResult.action_plan.map((step, i) => (
                                                     <li key={i}>{step}</li>
                                                 ))}
                                             </ul>
                                         </div>
-                                    )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                                    {atsResult.optimized_resume_markdown && (
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                                Full Rewritten Markdown Resume
-                                            </label>
-                                            <Textarea
-                                                readOnly
-                                                rows={12}
-                                                value={atsResult.optimized_resume_markdown}
-                                                className="rounded-xl font-mono text-xs leading-relaxed bg-muted/30"
-                                            />
+                        {/* FULL 1-PAGE ATS RESUME PREVIEW & INSTANT EXPORT */}
+                        {atsResult && atsResult.optimized_resume_markdown && (
+                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6 shadow-sm">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="space-y-1">
+                                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-success bg-success/10 px-2.5 py-0.5 rounded-full">
+                                            <CheckCircle2 className="w-3.5 h-3.5" /> Recruiter-Approved Single Page Layout
                                         </div>
-                                    )}
+                                        <h3 className="font-display text-xl font-bold flex items-center gap-2">
+                                            Optimized 1-Page ATS Resume
+                                        </h3>
+                                        <p className="text-xs text-muted-foreground">
+                                            Compiled with strict ATS typography, executive contact lines, and quantifiable action achievements.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setIsEditingOptimized(!isEditingOptimized)}
+                                            className="h-9 rounded-xl text-xs gap-1.5"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                            {isEditingOptimized ? "View Live Sheet" : "Edit Text"}
+                                        </Button>
+
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleCopyMarkdown}
+                                            className="h-9 rounded-xl text-xs gap-1.5"
+                                        >
+                                            {copiedText ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                                            {copiedText ? "Copied" : "Copy Markdown"}
+                                        </Button>
+
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleExportDocx}
+                                            disabled={downloadingDocx}
+                                            className="h-9 rounded-xl text-xs gap-1.5 font-semibold text-primary border-primary/30 hover:bg-primary/10"
+                                        >
+                                            {downloadingDocx ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                                            Download Word (.docx)
+                                        </Button>
+
+                                        <Button
+                                            size="sm"
+                                            onClick={handleExportPdf}
+                                            disabled={downloadingPdf}
+                                            className="h-9 rounded-xl text-xs gap-1.5 font-semibold bg-primary text-primary-foreground shadow-inset-btn"
+                                        >
+                                            {downloadingPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                                            Download PDF
+                                        </Button>
+                                    </div>
                                 </div>
+
+                                {isEditingOptimized ? (
+                                    <div className="space-y-3">
+                                        <Textarea
+                                            rows={18}
+                                            value={editedOptimizedMarkdown}
+                                            onChange={(e) => setEditedOptimizedMarkdown(e.target.value)}
+                                            className="font-mono text-xs leading-relaxed rounded-xl"
+                                        />
+                                        <div className="flex justify-end">
+                                            <Button
+                                                size="sm"
+                                                onClick={() => setIsEditingOptimized(false)}
+                                                className="rounded-xl text-xs"
+                                            >
+                                                Done Editing & Preview
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="bg-slate-100 dark:bg-slate-900/60 p-4 md:p-8 rounded-2xl border flex justify-center overflow-x-auto">
+                                        <div
+                                            id="ats-resume-print-view"
+                                            className="bg-white text-slate-900 shadow-2xl rounded-sm p-8 md:p-12 w-full max-w-[800px] min-h-[1020px] font-sans text-xs leading-relaxed space-y-4"
+                                            style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
+                                        >
+                                            <div className="prose prose-sm max-w-none text-slate-800 prose-headings:text-slate-950 prose-headings:font-bold prose-h1:text-2xl prose-h1:text-center prose-h1:tracking-tight prose-h1:text-slate-950 prose-h2:text-[13px] prose-h2:border-b prose-h2:border-slate-300 prose-h2:pb-1 prose-h2:mt-5 prose-h2:mb-2 prose-h2:uppercase prose-h2:tracking-wider prose-h2:text-[#0A2540] prose-h3:text-xs prose-h3:mt-3 prose-h3:mb-1 prose-p:my-1 prose-p:text-xs prose-p:text-slate-700 prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-xs prose-li:text-slate-700 prose-strong:text-slate-900">
+                                                <ReactMarkdown>
+                                                    {editedOptimizedMarkdown || atsResult.optimized_resume_markdown}
+                                                </ReactMarkdown>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                )}
                             </div>
                         )}
                     </section>
                 )}
+
 
                 {/* TAB 2: RESUME BUILDER & QUEUE */}
                 {activeTab === "builder" && (
