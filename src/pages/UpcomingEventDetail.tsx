@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
+import { SEO } from "@/components/SEO";
+
 
 
 export default function UpcomingEventDetail() {
@@ -139,7 +141,15 @@ export default function UpcomingEventDetail() {
 
     return (
         <div className="min-h-screen bg-background text-foreground pt-20 md:pt-24">
+            <SEO
+                title={`${event.name} — Upcoming Event · Yatri Cloud`}
+                description={event.description || `Join us for ${event.name}, a Yatri Cloud community innovation event. Register now.`}
+                image={event.imageUrl}
+                type="article"
+                noindex={event.visibility === "private"}
+            />
             <Navbar />
+
 
             {/* Event Banner */}
             <div className="relative">

@@ -18,10 +18,55 @@
       "destination": "/.well-known/$1"
     },
     {
+      "source": "/events/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Applebot|Googlebot|bingbot|Baiduspider|SkypeUriPreview|vkShare|redditbot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/og-meta?type=event&slug=:slug"
+    },
+    {
+      "source": "/upcoming-event/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Applebot|Googlebot|bingbot|Baiduspider|SkypeUriPreview|vkShare|redditbot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/og-meta?type=upcoming-event&slug=:slug"
+    },
+    {
+      "source": "/training/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Applebot|Googlebot|bingbot|Baiduspider|SkypeUriPreview|vkShare|redditbot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/og-meta?type=training&slug=:slug"
+    },
+    {
+      "source": "/blog/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Applebot|Googlebot|bingbot|Baiduspider|SkypeUriPreview|vkShare|redditbot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/og-meta?type=blog&slug=:slug"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
+
   "headers": [
     {
       "source": "/api/(.*)",
