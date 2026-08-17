@@ -41,8 +41,7 @@ export default function UpcomingEventDetail() {
         setIsUserLoggedIn(isAuthenticated());
 
         getEventBySlug(slug).then(async (foundEvent) => {
-            const canShowEvent = foundEvent && (foundEvent.isUpcoming || foundEvent.visibility === "private" || foundEvent.status !== "draft");
-            if (canShowEvent) {
+            if (foundEvent) {
                 setEvent(foundEvent);
                 if (foundEvent.id) {
                     const [allSubmissions, eventRegistrations] = await Promise.all([
@@ -201,35 +200,27 @@ export default function UpcomingEventDetail() {
                                 <div className="rounded-3xl border border-border bg-background/90 p-4 shadow-sm">
                                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Next action</p>
                                     <div className="mt-3 space-y-3">
-                                        {viewState.showPublishedState ? (
-                                            <>
-                                                <p className="text-sm text-muted-foreground">
-                                                    This event is now live for registrations and community updates.
-                                                </p>
-                                                <Button className="w-full" onClick={handleRegister}>
-                                                    {isRegistered ? 'Already registered' : isFull ? 'Register / Join waitlist' : 'Register now'}
-                                                </Button>
-                                                {isFull && !onWaitlist && (
-                                                    <Button variant="outline" className="w-full" onClick={handleJoinWaitlist}>
-                                                        Join waitlist
-                                                    </Button>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <p className="text-sm text-muted-foreground">
-                                                    This event is currently in planning. Use the sponsor form to support the event instead of registering now.
-                                                </p>
+                                        <Button className="w-full" onClick={handleRegister}>
+                                            {isRegistered ? 'Already registered' : isFull ? 'Register / Join waitlist' : 'Register now'}
+                                        </Button>
+                                        {isFull && !onWaitlist && (
+                                            <Button variant="outline" className="w-full" onClick={handleJoinWaitlist}>
+                                                Join waitlist
+                                            </Button>
+                                        )}
+                                        {viewState.showHelpNeeded && (
+                                            <div className="pt-2 border-t space-y-2">
+                                                <p className="text-xs text-muted-foreground">Community proposals</p>
                                                 {event.lookingForSponsors ? (
                                                     <Link to={`/upcoming-event/${event.slug}/sponsors`}>
-                                                        <Button className="w-full">Sponsor this event</Button>
+                                                        <Button variant="outline" size="sm" className="w-full">Sponsor this event</Button>
                                                     </Link>
                                                 ) : (
                                                     <Link to={`/upcoming-event/${event.slug}/venue`}>
-                                                        <Button className="w-full">Help shape this event</Button>
+                                                        <Button variant="outline" size="sm" className="w-full">Help shape this event</Button>
                                                     </Link>
                                                 )}
-                                            </>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

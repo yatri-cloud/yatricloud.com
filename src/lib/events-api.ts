@@ -198,20 +198,27 @@ export async function getPublishedEvents(): Promise<Event[]> {
 
 export async function getEventBySlug(slug: string): Promise<Event | undefined> {
     if (!slug) return undefined;
-    // Try slug first.
-    const bySlug = await supabase.from("events").select("*").eq("slug", slug).limit(1);
+    const clean = slug.trim();
+    // 1. Try exact slug
+    const bySlug = await supabase.from("events").select("*").eq("slug", clean).limit(1);
     if (!bySlug.error && bySlug.data && bySlug.data.length > 0) {
         return rowToEvent(bySlug.data[0]);
     }
-    // Fall back to id (only when the param looks like a UUID).
-    if (UUID_RE.test(slug)) {
-        const byId = await supabase.from("events").select("*").eq("id", slug).limit(1);
+    // 2. Try case-insensitive slug
+    const byIlike = await supabase.from("events").select("*").ilike("slug", clean).limit(1);
+    if (!byIlike.error && byIlike.data && byIlike.data.length > 0) {
+        return rowToEvent(byIlike.data[0]);
+    }
+    // 3. Fall back to id (when the param looks like a UUID).
+    if (UUID_RE.test(clean)) {
+        const byId = await supabase.from("events").select("*").eq("id", clean).limit(1);
         if (!byId.error && byId.data && byId.data.length > 0) {
             return rowToEvent(byId.data[0]);
         }
     }
     return undefined;
 }
+
 
 export async function getEventById(id: string): Promise<Event | undefined> {
     if (!id || !UUID_RE.test(id)) return undefined;

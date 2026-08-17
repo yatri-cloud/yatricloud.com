@@ -22,8 +22,8 @@ export function getUpcomingEventViewState(
   const approvedSpeaker = submissions.speakers.some((submission) => submission.status === 'approved');
   const approvedSponsor = submissions.sponsors.some((submission) => submission.status === 'approved');
   const hasCommunityContent = approvedVenue || approvedSpeaker || approvedSponsor || registrations.length > 0;
-  const showPublishedState = Boolean(event?.isUpcoming);
-  const showHelpNeeded = !showPublishedState;
+  const showPublishedState = true; // Always allow registrations on upcoming event detail
+  const showHelpNeeded = Boolean(event?.lookingForVenue || event?.lookingForSpeakers || event?.lookingForSponsors);
 
   return {
     showHelpNeeded,
@@ -32,3 +32,4 @@ export function getUpcomingEventViewState(
     hasApprovedContent: approvedVenue || approvedSpeaker || approvedSponsor,
   };
 }
+
