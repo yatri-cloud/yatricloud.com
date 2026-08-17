@@ -62,10 +62,44 @@
       "destination": "/api/og-meta?type=blog&slug=:slug"
     },
     {
+      "source": "/certificate/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Applebot|Googlebot|bingbot|Baiduspider|SkypeUriPreview|vkShare|redditbot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/og-meta?type=certificate&slug=:slug"
+    },
+    {
+      "source": "/mentorship/:slug*",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Applebot|Googlebot|bingbot|Baiduspider|SkypeUriPreview|vkShare|redditbot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/og-meta?type=mentorship&slug=:slug"
+    },
+    {
+      "source": "/yatri/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Applebot|Googlebot|bingbot|Baiduspider|SkypeUriPreview|vkShare|redditbot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/og-meta?type=yatri&slug=:slug"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
+
 
   "headers": [
     {

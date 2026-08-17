@@ -21,9 +21,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
     let title = "Yatri Cloud · Empowering Cloud Learners";
-    let description = "Community events, hands-on cloud certifications, and technical hackathons by Yatri Cloud.";
+    let description = "Community events, hands-on cloud certifications, vouchers and expert-led trainings by Yatri Cloud.";
     let imageUrl = DEFAULT_IMAGE;
-    let targetPath = type === "upcoming-event" ? `/upcoming-event/${slug}` : `/events/${slug}`;
+    let targetPath = "/";
+
+    if (type === "upcoming-event") targetPath = `/upcoming-event/${slug}`;
+    else if (type === "event") targetPath = `/events/${slug}`;
+    else if (type === "training") targetPath = `/training/${slug}`;
+    else if (type === "blog") targetPath = `/blog/${slug}`;
+    else if (type === "certificate") targetPath = `/certificate/${slug}`;
+    else if (type === "mentor" || type === "mentorship") targetPath = `/mentorship/${slug}`;
+    else if (type === "yatri" || type === "profile") targetPath = `/yatri/${slug}`;
+    else if (type === "store" || type === "product") targetPath = `/yatristore/${slug}`;
+    else if (type === "examdump") targetPath = `/examdumps/${slug}`;
 
     if (slug && supabaseUrl && serviceKey) {
         const headers = {
@@ -32,10 +42,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
 
         try {
-            if (type === "event" || type === "upcoming-event") {
-                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-                const queryFilter = isUuid ? `id=eq.${encodeURIComponent(slug)}` : `slug=ilike.${encodeURIComponent(slug)}`;
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
 
+            if (type === "event" || type === "upcoming-event") {
+                const queryFilter = isUuid ? `id=eq.${encodeURIComponent(slug)}` : `slug=ilike.${encodeURIComponent(slug)}`;
                 const resp = await fetch(
                     `${supabaseUrl}/rest/v1/events?${queryFilter}&select=id,name,description,image_url,slug&limit=1`,
                     { headers }
@@ -54,8 +64,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     }
                 }
             } else if (type === "training") {
+                const queryFilter = isUuid ? `id=eq.${encodeURIComponent(slug)}` : `slug=ilike.${encodeURIComponent(slug)}`;
                 const resp = await fetch(
-                    `${supabaseUrl}/rest/v1/trainings?slug=ilike.${encodeURIComponent(slug)}&select=id,name,course_title,description,image_url,slug&limit=1`,
+                    `${supabaseUrl}/rest/v1/trainings?${queryFilter}&select=id,name,course_title,description,image_url,slug&limit=1`,
                     { headers }
                 );
 
@@ -70,8 +81,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     }
                 }
             } else if (type === "blog") {
+                const queryFilter = isUuid ? `id=eq.${encodeURIComponent(slug)}` : `slug=ilike.${encodeURIComponent(slug)}`;
                 const resp = await fetch(
-                    `${supabaseUrl}/rest/v1/blog_posts?slug=ilike.${encodeURIComponent(slug)}&select=id,title,subtitle,excerpt,cover_image_url,slug&limit=1`,
+                    `${supabaseUrl}/rest/v1/blog_posts?${queryFilter}&select=id,title,subtitle,excerpt,cover_image_url,slug&limit=1`,
                     { headers }
                 );
 
@@ -83,6 +95,71 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         description = (post.subtitle || post.excerpt || description).slice(0, 280);
                         if (post.cover_image_url) imageUrl = post.cover_image_url;
                         targetPath = `/blog/${post.slug || post.id}`;
+                    }
+                }
+            } else if (type === "certificate") {
+                const resp = await fetch(
+                    `${supabaseUrl}/rest/v1/certificates?serial=eq.${encodeURIComponent(slug)}&select=serial,recipient_name,course_title,event_name&limit=1`,
+                    { headers }
+                );
+
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.length > 0) {
+                        const cert = data[0];
+                        title = `Certificate of Completion — ${cert.recipient_name} | Yatri Cloud`;
+                        description = `Verified Certificate of Completion for ${cert.course_title || cert.event_name || "Cloud Training"} issued by Yatri Cloud.`;
+                        targetPath = `/certificate/${cert.serial}`;
+                    }
+                }
+            } else if (type === "mentor" || type === "mentorship") {
+                const queryFilter = isUuid ? `id=eq.${encodeURIComponent(slug)}` : `slug=ilike.${encodeURIComponent(slug)}`;
+                const resp = await fetch(
+                    `${supabaseUrl}/rest/v1/mentors?${queryFilter}&select=id,name,headline,bio,avatar_url,image_url,slug&limit=1`,
+                    { headers }
+                );
+
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.length > 0) {
+                        const mentor = data[0];
+                        title = `${mentor.name} — Cloud Mentor | Yatri Cloud`;
+                        if (mentor.headline || mentor.bio) description = (mentor.headline || mentor.bio).slice(0, 280);
+                        if (mentor.avatar_url || mentor.image_url) imageUrl = mentor.avatar_url || mentor.image_url;
+                        targetPath = `/mentorship/${mentor.slug || mentor.id}`;
+                    }
+                }
+            } else if (type === "yatri" || type === "profile") {
+                const queryFilter = isUuid ? `id=eq.${encodeURIComponent(slug)}` : `username=ilike.${encodeURIComponent(slug)}`;
+                const resp = await fetch(
+                    `${supabaseUrl}/rest/v1/profiles?${queryFilter}&select=id,full_name,username,avatar_url,bio,headline&limit=1`,
+                    { headers }
+                );
+
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.length > 0) {
+                        const prof = data[0];
+                        title = `${prof.full_name || prof.username} | Yatri Profile`;
+                        if (prof.headline || prof.bio) description = (prof.headline || prof.bio).slice(0, 280);
+                        if (prof.avatar_url) imageUrl = prof.avatar_url;
+                        targetPath = `/yatri/${prof.username || prof.id}`;
+                    }
+                }
+            } else if (type === "store" || type === "product") {
+                const queryFilter = isUuid ? `id=eq.${encodeURIComponent(slug)}` : `title=ilike.${encodeURIComponent(slug)}`;
+                const resp = await fetch(
+                    `${supabaseUrl}/rest/v1/products?${queryFilter}&select=id,title,description,image_url&limit=1`,
+                    { headers }
+                );
+
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.length > 0) {
+                        const prod = data[0];
+                        title = `${prod.title} | Yatri Store`;
+                        if (prod.description) description = prod.description.slice(0, 280);
+                        if (prod.image_url) imageUrl = prod.image_url;
                     }
                 }
             }
