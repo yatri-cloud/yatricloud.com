@@ -13,8 +13,10 @@ import { RegistrationModal } from "@/components/RegistrationModal";
 import { WaitlistModal } from "@/components/WaitlistModal";
 import { isAuthenticated, getRegisteredEvents } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from "react-markdown";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
+
 
 export default function UpcomingEventDetail() {
     const { slug } = useParams<{ slug: string }>();
@@ -241,14 +243,13 @@ export default function UpcomingEventDetail() {
                             animate={{ opacity: 1, y: 0 }}
                         >
                             <h2 className="text-2xl font-bold mb-6">About This Event</h2>
-                            <div className="prose prose-slate dark:prose-invert max-w-none">
-                                {event.fullDescription ? (
-                                    <p className="whitespace-pre-wrap">{event.fullDescription}</p>
-                                ) : (
-                                    <p>{event.description}</p>
-                                )}
+                            <div className="prose prose-slate dark:prose-invert max-w-none prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-li:my-1.5 prose-headings:font-bold prose-h2:text-xl prose-h3:text-lg prose-headings:mt-6 prose-headings:mb-3">
+                                <ReactMarkdown>
+                                    {event.fullDescription || event.description || ""}
+                                </ReactMarkdown>
                             </div>
                         </motion.div>
+
 
                         {viewState.showPublishedState && (
                             <motion.div

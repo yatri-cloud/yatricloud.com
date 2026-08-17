@@ -28,7 +28,9 @@ import {
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
+import ReactMarkdown from "react-markdown";
 import { SEO } from "@/components/SEO";
+
 import { LoginModal } from "@/components/LoginModal";
 import { RegistrationModal } from "@/components/RegistrationModal";
 import { WaitlistModal } from "@/components/WaitlistModal";
@@ -494,8 +496,11 @@ const EventDetail = () => {
                                     <div className="space-y-6">
                                         <div>
                                             <h2 className="font-display text-2xl font-bold mb-3">What this event was about</h2>
-                                            <p className="text-muted-foreground leading-relaxed text-base">{event.fullDescription || event.description}</p>
+                                            <div className="text-muted-foreground leading-relaxed text-base prose dark:prose-invert max-w-none prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-li:my-1.5 prose-headings:font-bold prose-h2:text-xl prose-h3:text-lg prose-headings:mt-6 prose-headings:mb-3">
+                                                <ReactMarkdown>{event.fullDescription || event.description || ""}</ReactMarkdown>
+                                            </div>
                                         </div>
+
                                         {event.techStack && event.techStack.length > 0 && (
                                             <div>
                                                 <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Topics covered</p>
@@ -1126,10 +1131,11 @@ const EventDetail = () => {
                                 <ScrollReveal>
                                     <div>
                                         <h2 className="font-display text-2xl font-bold mb-4">What this is about</h2>
-                                        <p className="text-muted-foreground leading-relaxed">
-                                            {event.fullDescription || event.description}
-                                        </p>
+                                        <div className="text-muted-foreground leading-relaxed text-base prose dark:prose-invert max-w-none prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-li:my-1.5 prose-headings:font-bold prose-h2:text-xl prose-h3:text-lg prose-headings:mt-6 prose-headings:mb-3">
+                                            <ReactMarkdown>{event.fullDescription || event.description || ""}</ReactMarkdown>
+                                        </div>
                                     </div>
+
                                 </ScrollReveal>
                             )}
 
