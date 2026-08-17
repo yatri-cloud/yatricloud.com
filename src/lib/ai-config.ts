@@ -489,18 +489,24 @@ export async function analyzeResumeWithGemini(
     resumeText: string,
     jobDescription?: string
 ): Promise<AtsAnalysisResult> {
-    const systemPrompt = `You are a Senior Executive Recruiter and elite Applicant Tracking System (ATS) algorithm specialist.
-Analyze the provided resume against modern ATS scanning standards (Workday, Greenhouse, Taleo, Lever) and ${jobDescription ? 'the provided target Job Description' : 'standard industry hiring benchmarks'}.
+    const systemPrompt = `You are an elite Chief Talent Officer, Executive Resume Architect, and Applicant Tracking System (ATS) optimization specialist.
+Your goal is to thoroughly analyze the candidate's input and REWRITE / ELEVATE their resume into a high-scoring, recruiter-ready masterpiece that targets 95+ on ATS systems (Workday, Greenhouse, Taleo, Lever) and aligns tightly with ${jobDescription ? 'the target Job Description' : 'modern senior engineering/industry standards'}.
 
-Evaluate the resume meticulously and return a strictly valid JSON object matching this schema:
+TRANSFORMATION & REWRITING RULES:
+1. REWRITE EVERY BULLET POINT: Do NOT copy raw or weak bullet points. Transform them using the Google XYZ Formula: "Accomplished [X], as measured by [Y], by doing [Z]". Begin each bullet with high-impact action verbs (Architected, Engineered, Spearheaded, Accelerated, Scaled, Automated, Optimized).
+2. KEYWORD ENRICHMENT: Seamlessly integrate relevant technical keywords and industry standards matching the target role into the skills, experience bullets, and project descriptions.
+3. EXECUTIVE SUMMARY: Craft a compelling 2-3 line summary highlighting the candidate's core expertise, years of experience, and quantifiable value.
+4. ONE-PAGE ATS FORMAT: Structure "optimized_resume_markdown" cleanly using standard markdown headings (# for Name, ## for Sections, ### for Roles/Projects, - for Bullets).
+
+Return a strictly valid JSON object matching this schema:
 {
   "ats_score": number between 0 and 100,
   "overall_verdict": "Exceptional ATS Match (85-100)" | "Good ATS Match (70-84)" | "Needs Improvement (50-69)" | "Critical ATS Issues (<50)",
   "summary": "2-3 concise sentences summarizing the candidate's ATS viability",
-  "strengths": ["List of 3-5 strong ATS points (e.g. strong metrics, clear job titles)"],
-  "critical_issues": ["List of 2-5 issues that will hurt ATS parsing or human review"],
-  "matching_keywords": ["Keywords and technical hard skills found in the resume"],
-  "missing_keywords": ["Crucial high-demand keywords or skills missing from the resume based on the role/JD"],
+  "strengths": ["List of 3-5 strong ATS points"],
+  "critical_issues": ["List of 2-5 issues in original resume that were fixed"],
+  "matching_keywords": ["Keywords and technical hard skills found"],
+  "missing_keywords": ["Crucial high-demand keywords or skills missing from the original resume based on the role/JD"],
   "section_scores": {
     "contact_info": number (0-100),
     "summary": number (0-100),
@@ -511,14 +517,15 @@ Evaluate the resume meticulously and return a strictly valid JSON object matchin
   },
   "bullet_point_improvements": [
     {
-      "original": "Weak/vague bullet point from resume",
-      "improved": "Action-oriented, quantified rewrite (Action Verb + Context + Metric)",
-      "reason": "Why this improved version scores higher on ATS"
+      "original": "Original weak bullet point from user's input",
+      "improved": "High-impact XYZ rewrite (Action Verb + Quantifiable Context + Measurable Metric)",
+      "reason": "Why this improved version scores dramatically higher on ATS algorithms"
     }
   ],
-  "optimized_resume_markdown": "Full clean ATS-friendly markdown resume rewritten with strong bullet points and clean structure",
-  "action_plan": ["Step 1 to boost score", "Step 2 to boost score", "Step 3 to boost score"]
+  "optimized_resume_markdown": "Full rewritten and upgraded markdown resume with executive summary, categorized technical skills, rewritten XYZ experience bullets, key projects, education, and certifications. Must be fully fleshed out, professional, and ready to submit to recruiters.",
+  "action_plan": ["Priority step 1 to maximize interview calls", "Priority step 2", "Priority step 3"]
 }`;
+
 
     const userPrompt = `RESUME CONTENT TO EVALUATE:
 \`\`\`

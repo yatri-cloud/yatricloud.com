@@ -231,11 +231,14 @@ Instructions:
   parts.push({ text: promptText });
 
   const systemInstruction = `You are an elite Senior Executive Resume Architect and technical recruiter.
-Distill the candidate's background into a clean, 1-page modern executive resume JSON conforming EXACTLY to this schema:
+Your task is to REWRITE and ELEVATE the candidate's background into a 95+ score ATS-optimized modern executive resume JSON conforming EXACTLY to this schema:
 ${SCHEMA}
 
-Quality Guidelines:
-${RULES}
+Transformation Guidelines:
+1. REWRITE & ELEVATE BULLETS: Do NOT just copy raw input sentences. Transform bullets using the Google XYZ Formula: "Accomplished [X], as measured by [Y], by doing [Z]". Begin with powerful action verbs (Architected, Engineered, Spearheaded, Accelerated, Scaled, Automated, Optimized).
+2. KEYWORD INTEGRATION: Seamlessly incorporate target keywords and industry skills into the summary, skills categories, and experience bullets.
+3. EXECUTIVE SUMMARY: Write a strong 2-3 line summary targeted to the candidate's highest level.
+4. ONE-PAGE DISCIPLINE: 3-4 bullets per role, 1-2 major projects.
 
 CRITICAL RULES:
 - Return ONLY a valid JSON object matching the schema.
@@ -243,6 +246,7 @@ CRITICAL RULES:
 - Omit missing or unknown keys entirely.
 - Ensure "skills" is an array of [Category, "Skill1, Skill2, ..."] pairs.
 `;
+
 
   console.log(`  Invoking Gemini AI model for ${job.full_name}...`);
   const rawJson = await callGemini(parts, {
