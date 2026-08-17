@@ -253,11 +253,23 @@ export default function UpcomingEventDetail() {
                             animate={{ opacity: 1, y: 0 }}
                         >
                             <h2 className="text-2xl font-bold mb-6">About This Event</h2>
-                            <div className="prose prose-slate dark:prose-invert max-w-none prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-li:my-1.5 prose-headings:font-bold prose-h2:text-xl prose-h3:text-lg prose-headings:mt-6 prose-headings:mb-3">
-                                <ReactMarkdown>
+                            <div className="prose prose-slate dark:prose-invert max-w-none prose-p:text-muted-foreground prose-headings:text-foreground prose-strong:text-foreground prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-li:my-1.5 prose-headings:font-bold prose-h2:text-xl prose-h3:text-lg prose-headings:mt-6 prose-headings:mb-3 prose-a:no-underline prose-a:text-primary hover:prose-a:underline prose-a:font-semibold">
+                                <ReactMarkdown
+                                    components={{
+                                        a: ({ node, ...props }) => (
+                                            <a
+                                                {...props}
+                                                className="text-primary font-semibold no-underline hover:underline transition-colors"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            />
+                                        )
+                                    }}
+                                >
                                     {event.fullDescription || event.description || ""}
                                 </ReactMarkdown>
                             </div>
+
                         </motion.div>
 
 
