@@ -2,8 +2,9 @@ import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
     CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag,
-    FilePen, Mail, ShieldCheck, type LucideIcon,
+    FilePen, Mail, ShieldCheck, Sparkles, type LucideIcon,
 } from "lucide-react";
+
 
 /**
  * The admin navigation, in one place. Both the sidebar (AdminLayout) and the
@@ -41,12 +42,13 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Reviews wall", path: "/admin/reviews", icon: Star, description: "Moderate the site-wide review wall: hide or delete reviews." },
             { name: "Content reviews", path: "/admin/content-reviews", icon: Star, description: "Moderate reviews on events, store products, Udemy courses and exam dumps." },
             { name: "Inquiries", path: "/admin/inquiries", icon: Inbox, description: "Partner requests and contact messages from the site." },
-            { name: "Support tickets", path: "/admin/tickets", icon: Inbox, description: "The support queue: reply, prioritise and resolve Yatri tickets." },
             { name: "Resume requests", path: "/admin/resumes", icon: FilePen, description: "Resume maker queue: retry, download or remove requests." },
+            { name: "AI & Models", path: "/admin/ai-settings", icon: Sparkles, description: "Configure Google Gemini API keys, models and ATS engine." },
             { name: "Job board", path: "/admin/jobs", icon: ClipboardList, description: "Companies whose official boards feed the job board." },
             { name: "Newsletters", path: "/admin/newsletters", icon: Mail, description: "Compose and send newsletter campaigns to subscribers." },
             { name: "Subscribers", path: "/admin/subscribers", icon: Users, description: "Manage newsletter subscribers and exports." },
         ],
+
     },
     {
         id: "users",

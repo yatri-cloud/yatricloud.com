@@ -105,7 +105,9 @@ const AdminSiteContent = lazy(() => import("./pages/admin/AdminSiteContent"));
 const AdminCommunity = lazy(() => import("./pages/admin/AdminCommunity"));
 const AdminInquiries = lazy(() => import("./pages/admin/AdminInquiries"));
 const AdminResumes = lazy(() => import("./pages/admin/AdminResumes"));
+const AdminAISettings = lazy(() => import("./pages/admin/AdminAISettings"));
 const AdminJobs = lazy(() => import("./pages/admin/AdminJobs"));
+
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 const AdminAchievements = lazy(() => import("./pages/admin/AdminAchievements"));
 const AdminCertCatalog = lazy(() => import("./pages/admin/AdminCertCatalog"));
@@ -319,9 +321,11 @@ const App = () => (
                 <Route path="exam-dumps" element={<AdminExamDumps />} />
                 <Route path="exam-dumps/add" element={<AdminAddExamDump />} />
                 <Route path="exam-dumps/edit/:id" element={<AdminEditExamDump />} />
+                <Route path="ai-settings" element={<AdminAISettings />} />
                 <Route path="guide" element={<GuideView type="admin" />} />
                 <Route path="sitemap" element={<AdminSitemapView />} />
               </Route>
+
 
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />

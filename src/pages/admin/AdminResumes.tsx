@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Download, RotateCcw, Trash2 } from "lucide-react";
+import { Loader2, Search, Download, RotateCcw, Trash2, Sparkles, FileText } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -117,16 +118,31 @@ export default function AdminResumes() {
             {/* Header band */}
             <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
                 <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
-                <div className="relative space-y-1.5">
-                    <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Resume requests</h1>
-                    <p className="text-muted-foreground">
-                        Every request from /resume-maker. The local worker builds them;
-                        {queuedCount > 0
-                            ? ` ${queuedCount} waiting or building right now.`
-                            : " the queue is clear."}
-                    </p>
+                <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="space-y-1.5">
+                        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Resume requests</h1>
+                        <p className="text-muted-foreground">
+                            Every request from /resume-maker. The Gemini ATS AI engine powers real-time scoring and document building;
+                            {queuedCount > 0
+                                ? ` ${queuedCount} waiting or building right now.`
+                                : " the queue is clear."}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" asChild className="rounded-xl h-10 gap-2">
+                            <a href="/resume-maker" target="_blank" rel="noopener noreferrer">
+                                <FileText className="w-4 h-4 text-primary" /> Test ATS Scanner
+                            </a>
+                        </Button>
+                        <Button asChild className="rounded-xl h-10 gap-2 bg-primary text-primary-foreground shadow-inset-btn">
+                            <a href="/admin/ai-settings">
+                                <Sparkles className="w-4 h-4 text-amber-300" /> AI & Gemini Settings
+                            </a>
+                        </Button>
+                    </div>
                 </div>
             </div>
+
 
             {/* Search, filter, sort */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
