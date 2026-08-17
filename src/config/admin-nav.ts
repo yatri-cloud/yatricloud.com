@@ -2,8 +2,9 @@ import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
     CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag,
-    FilePen, Mail, ShieldCheck, Sparkles, type LucideIcon,
+    FilePen, Mail, ShieldCheck, Sparkles, LifeBuoy, type LucideIcon,
 } from "lucide-react";
+
 
 
 /**
@@ -52,13 +53,15 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     },
     {
         id: "users",
-        label: "Users",
+        label: "Users & Support",
         icon: Users,
         items: [
             { name: "All Yatris", path: "/admin/yatris", icon: Users, description: "View, search and manage all registered users." },
+            { name: "Support Tickets", path: "/admin/tickets", icon: LifeBuoy, description: "Manage, reply to and resolve user support tickets." },
             { name: "Admin Roles", path: "/admin/roles", icon: ShieldCheck, description: "Manage admins, managers, roles and page permissions." },
         ],
     },
+
     {
         id: "events",
         label: "Events",
