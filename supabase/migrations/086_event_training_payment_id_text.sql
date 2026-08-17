@@ -4,8 +4,10 @@
 -- without failing on invalid UUID syntax.
 -- ============================================================
 
--- Drop foreign key constraint on event_registrations.payment_id if present and alter to text
-alter table event_registrations alter column payment_id type text using payment_id::text;
+-- 1. Drop the foreign key constraint on payment_id
+alter table event_registrations drop constraint if exists event_registrations_payment_id_fkey;
+alter table training_enrollments drop constraint if exists training_enrollments_payment_id_fkey;
 
--- Drop foreign key constraint on training_enrollments.payment_id if present and alter to text
+-- 2. Alter column types to text
+alter table event_registrations alter column payment_id type text using payment_id::text;
 alter table training_enrollments alter column payment_id type text using payment_id::text;
