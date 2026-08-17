@@ -333,8 +333,10 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                     },
                     onFailure: (message) => {
                         setIsSubmitting(false);
+                        setStep(1);
                         toast({ title: "Payment Failed", description: message, variant: "destructive" });
                     },
+
                 });
             } else {
                 // Free event — direct registration.

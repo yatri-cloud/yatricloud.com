@@ -81,6 +81,7 @@ export interface Course {
   mode: "Online" | "On-site";
   skills: string;
   outcomes: string;
+  /** Number of public reviews (0 when none). */
   modulesCount: number;
   status: "Draft" | "Published" | "Review";
   /** 'public' = listed on /training; 'private' = unlisted, reachable only via its direct link. */
@@ -160,8 +161,8 @@ function rowToCourse(row: any, modulesCount = 0): Course {
     thumbnailUrl: row.image_url || "",
     subType: row.name || "",
     mode,
-    skills: "",
-    outcomes: "",
+    skills: row.skills || "",
+    outcomes: row.outcomes || "",
     modulesCount,
     status,
     visibility: row.visibility === "private" ? "private" : "public",
@@ -193,7 +194,7 @@ function rowToCourse(row: any, modulesCount = 0): Course {
  * students still receive the meeting link on their dashboards.
  */
 const TRAINING_PUBLIC_COLS =
-  "id,slug,name,course_title,provider,start_date,start_time,end_date,duration_hours,mode,city,trainer_id,trainer_name,max_capacity,price_inr,platform_fee_pct,image_url,description,resources,status,created_at,updated_at,review_status,avg_rating,review_count,certification_id,visibility,level";
+  "id,slug,name,course_title,provider,start_date,start_time,end_date,duration_hours,mode,city,trainer_id,trainer_name,max_capacity,price_inr,platform_fee_pct,image_url,description,skills,outcomes,resources,status,created_at,updated_at,review_status,avg_rating,review_count,certification_id,visibility,level";
 
 async function trainingCatalogColumns(): Promise<string> {
   const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
@@ -948,12 +949,17 @@ export interface TrainingInput {
     lessons: { lessonId?: string; title: string; type: string; duration: string; url?: string; description?: string }[];
   }[];
   resources?: any[];
+  /** Comma-separated skills gained (stored in trainings.skills). */
+  skills?: string;
+  /** Learning outcomes / what you'll learn (stored in trainings.outcomes). */
+  outcomes?: string;
   status?: "Draft" | "Published";
   /** 'public' = listed on /training; 'private' = unlisted, reachable only via its direct link. */
   visibility?: "public" | "private";
   /** Certification this training prepares you for (provider_certifications.id). Empty = none. */
   certificationId?: string | null;
 }
+
 
 function inputToRow(input: TrainingInput): Record<string, any> {
   const trackLabel = input.subType || input.courseName || "Training";
@@ -979,6 +985,8 @@ function inputToRow(input: TrainingInput): Record<string, any> {
     start_date: input.startDate || null,
     start_time: input.startTime || null,
     resources: Array.isArray(input.resources) ? input.resources : [],
+    skills: input.skills || null,
+    outcomes: input.outcomes || null,
     status: statusToDb(input.status),
     visibility: input.visibility === "private" ? "private" : "public",
     // Optional certification link. An empty choice clears it (nullable column).
@@ -1199,8 +1207,8 @@ export async function getTrainingForEdit(id: string): Promise<any | null> {
     instructor: data.trainer_id || "",
     level: data.level || "Beginner",
     duration: data.duration_hours ? `${data.duration_hours}` : "",
-    skills: "",
-    outcomes: "",
+    skills: data.skills || "",
+    outcomes: data.outcomes || "",
     curriculum,
     mode: data.mode === "online" ? "Online" : "On-site",
     meetLink: data.meet_link || "",

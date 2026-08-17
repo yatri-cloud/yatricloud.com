@@ -432,7 +432,10 @@ export async function getRegisteredEvents(): Promise<EventRegistration[]> {
     .from('event_registrations')
     .select('id,registration_code,name,email,phone,status,payment_status,payment_id,amount,currency,created_at,events(id,slug,name,event_date,location,city,country,image_url)')
     .eq('user_id', uid)
+    // Exclude abandoned checkout rows: only show free, paid, or no-payment registrations.
+    .not('payment_status', 'eq', 'pending')
     .order('created_at', { ascending: false });
+
   if (error) {
     console.error('Error fetching registrations:', error.message);
     return [];

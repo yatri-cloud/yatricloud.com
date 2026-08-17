@@ -406,7 +406,7 @@ const EventDetail = () => {
 
                             {/* main featured image */}
                             <button
-                                className="relative w-full aspect-[16/7] rounded-2xl overflow-hidden mb-3 group focus:outline-none"
+                                className="relative w-full aspect-video rounded-2xl overflow-hidden mb-3 group focus:outline-none"
                                 onClick={() => setGalleryLightbox(sliderIndex)}
                             >
                                 {galleryItems[sliderIndex]?.mediaType === 'photo' ? (
@@ -610,51 +610,45 @@ const EventDetail = () => {
                             <div className="sticky top-24 space-y-4">
 
                                 {/* Event details card */}
-                                <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-                                    <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Event details</p>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                            <Calendar className="w-4 h-4 text-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Held on</p>
-                                            <p className="font-semibold text-sm">{formatEventDate(event.date, event.timezone)}</p>
-                                        </div>
+                                <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-border">
+                                        <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground">About this event</p>
                                     </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                            {event.location?.type === 'online' ? <Globe className="w-4 h-4 text-primary" /> : <MapPin className="w-4 h-4 text-primary" />}
+                                    <div className="divide-y divide-border">
+                                        <div className="px-5 py-4">
+                                            <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70 mb-1">Held on</p>
+                                            <p className="text-sm font-semibold text-foreground">{formatEventDate(event.date, event.timezone)}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Location</p>
-                                            <p className="font-semibold text-sm">{locationDisplay}</p>
-                                            {event.location?.venue && <p className="text-xs text-muted-foreground">{event.location.venue}</p>}
+                                        <div className="px-5 py-4">
+                                            <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70 mb-1">Location</p>
+                                            <p className="text-sm font-semibold text-foreground">{locationDisplay}</p>
+                                            {event.location?.venue && (
+                                                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{event.location.venue}</p>
+                                            )}
                                         </div>
+                                        {event.organizer && (
+                                            <div className="px-5 py-4">
+                                                <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/70 mb-2">Organised by</p>
+                                                <div className="flex items-center gap-3">
+                                                    {event.organizer.logo ? (
+                                                        <img src={event.organizer.logo} alt={event.organizer.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-border" />
+                                                    ) : null}
+                                                    <p className="text-sm font-semibold text-foreground">{event.organizer.name}</p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    {event.organizer && (
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                                {event.organizer.logo
-                                                    ? <img src={event.organizer.logo} alt={event.organizer.name} className="w-full h-full object-cover" />
-                                                    : <Users className="w-4 h-4 text-primary" />}
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-muted-foreground">Organised by</p>
-                                                <p className="font-semibold text-sm">{event.organizer.name}</p>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
 
                                 {/* Gallery locked note */}
-                                {!canViewGallery && !( event.hiddenSections || []).includes('gallery') && (
-                                    <div className="bg-card border border-border rounded-2xl p-5 flex items-start gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                            <Lock className="w-4 h-4 text-primary" />
+                                {!canViewGallery && !(event.hiddenSections || []).includes('gallery') && (
+                                    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                                        <div className="px-5 py-4 border-b border-border">
+                                            <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Gallery</p>
                                         </div>
-                                        <div>
-                                            <p className="font-semibold text-sm mb-0.5">Photos for attendees</p>
-                                            <p className="text-xs text-muted-foreground">Sign in with the account you used to attend this event to view the gallery.</p>
+                                        <div className="px-5 py-4">
+                                            <p className="text-sm font-semibold text-foreground mb-1">Photos for attendees only</p>
+                                            <p className="text-xs text-muted-foreground leading-relaxed">Sign in with the account you used to attend this event to view the photo gallery.</p>
                                         </div>
                                     </div>
                                 )}

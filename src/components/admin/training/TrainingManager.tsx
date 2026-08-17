@@ -335,6 +335,8 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                 thumbnailMimeType: thumbnailMimeType,
                 curriculum: curriculum,
                 resources: resources,
+                skills: data.skills || "",
+                outcomes: data.outcomes || "",
                 status: effectiveStatus,
                 visibility: visibility,
                 certificationId: data.certificationId || null,

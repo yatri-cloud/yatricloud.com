@@ -281,8 +281,10 @@ export function EnrollmentModal({ open, onClose, courseId, courseName, price, cu
                     onSuccess: async () => {
                         if (coupon) void redeemCoupon(coupon.code);
                         await sendWelcomeAndFinish();
+                        setAutoSubmitting(false);
                         setIsSubmitting(false);
                     },
+
                     onFailure: (message) => {
                         setIsSubmitting(false);
                         setAutoSubmitting(false);

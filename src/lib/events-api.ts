@@ -467,6 +467,9 @@ export async function getEventRegistrations(eventId: string): Promise<Registrati
         // registration missing its event still returns (event fields empty).
         .select("*, events(name,slug,event_date,meet_link,city)")
         .eq("event_id", eventId)
+        // Exclude abandoned checkout rows (payment_status='pending') so they
+        // don't show as valid registrations in the admin view.
+        .not("payment_status", "eq", "pending")
         .order("created_at", { ascending: false });
     if (error) {
         console.error("[events-api] getEventRegistrations", error.message);
@@ -474,6 +477,7 @@ export async function getEventRegistrations(eventId: string): Promise<Registrati
     }
     return (data || []).map(regRowToRegistration);
 }
+
 
 export async function cancelRegistration(id: string): Promise<boolean> {
     const { error } = await supabase
