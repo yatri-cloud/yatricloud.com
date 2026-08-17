@@ -23,6 +23,7 @@ import {
     Search,
     ShieldCheck,
     Layers,
+    RefreshCw,
 } from "lucide-react";
 import {
     Dialog,
@@ -46,10 +47,12 @@ import {
     createResumeRequest,
     deleteResumeRequest,
     listMyResumeRequests,
+    rebuildResumeRequest,
     resumeDownloadUrl,
     uploadResumeSource,
     type ResumeRequest,
 } from "@/lib/resume-api";
+
 import {
     analyzeResumeWithGemini,
     type AtsAnalysisResult,
@@ -259,6 +262,18 @@ export default function ResumeMaker() {
         toast.success("Deleted.");
         refresh();
     };
+
+    const retry = async (r: ResumeRequest) => {
+        toast.info("Re-queueing resume build...");
+        const ok = await rebuildResumeRequest(r);
+        if (!ok) {
+            toast.error("Could not retry this request.");
+            return;
+        }
+        toast.success("Resume re-queued for processing!");
+        refresh();
+    };
+
 
     const openPreview = async (r: ResumeRequest) => {
         if (!r.pdf_path) return;
@@ -848,6 +863,28 @@ export default function ResumeMaker() {
                                                             </Button>
                                                         </div>
                                                     )}
+
+                                                    {r.status === "failed" && (
+                                                        <div className="flex items-center gap-2 pt-1">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => retry(r)}
+                                                                className="h-8 rounded-lg text-xs gap-1 text-primary border-primary/30 hover:bg-primary/10"
+                                                            >
+                                                                <RefreshCw className="w-3.5 h-3.5" /> Retry Build
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => remove(r)}
+                                                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
+
                                                 </div>
                                             );
                                         })}

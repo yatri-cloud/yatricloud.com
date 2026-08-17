@@ -132,7 +132,7 @@ async function callGemini(parts, options = {}) {
   }
 
   let lastError = null;
-  for (let attempt = 1; attempt <= 3; attempt++) {
+  for (let attempt = 1; attempt <= 4; attempt++) {
     try {
       const res = await fetch(endpoint, {
         method: "POST",
@@ -143,7 +143,18 @@ async function callGemini(parts, options = {}) {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data?.error?.message || res.statusText);
+        const msg = data?.error?.message || res.statusText;
+        // Check for rate limit wait duration
+        const matchWait = msg.match(/retry in ([\d.]+)s/i);
+        const waitSec = matchWait ? Math.ceil(parseFloat(matchWait[1])) + 2 : attempt * 10;
+
+        if (res.status === 429 || msg.includes("Quota exceeded") || msg.includes("high demand")) {
+          console.log(`  (Rate limit / Quota hit. Sleeping ${waitSec}s before attempt ${attempt + 1}...)`);
+          await new Promise((r) => setTimeout(r, waitSec * 1000));
+          continue;
+        }
+
+        throw new Error(msg);
       }
 
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -153,15 +164,17 @@ async function callGemini(parts, options = {}) {
       return text;
     } catch (err) {
       lastError = err;
-      if (attempt < 3) {
-        console.log(`  (API attempt ${attempt} failed: ${err.message}. Retrying in ${attempt * 3}s...)`);
-        await new Promise((r) => setTimeout(r, attempt * 3000));
+      if (attempt < 4) {
+        const waitTime = attempt * 5;
+        console.log(`  (API attempt ${attempt} error: ${err.message}. Retrying in ${waitTime}s...)`);
+        await new Promise((r) => setTimeout(r, waitTime * 1000));
       }
     }
   }
 
-  throw new Error(`Gemini API Error after 3 attempts: ${lastError?.message}`);
+  throw new Error(`Gemini API Error after attempts: ${lastError?.message}`);
 }
+
 
 
 async function claimNext() {
