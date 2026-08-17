@@ -18,7 +18,9 @@ import {
     MapPin,
     Calendar,
     Lock,
-    Link as LinkIcon
+    Link as LinkIcon,
+    Globe,
+    EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +66,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listAllTrainings, deleteTraining, updateTrainingSchedule, approveCourse, rejectCourse } from "@/lib/training-api";
+import { listAllTrainings, deleteTraining, updateTrainingSchedule, approveCourse, rejectCourse, publishCourse, unpublishCourse } from "@/lib/training-api";
+
 
 interface Course {
     id: string;
@@ -197,7 +200,24 @@ export default function AdminTrainingList() {
         }
     };
 
+    const handleTogglePublish = async (course: Course) => {
+        try {
+            if (course.status === "Published") {
+                await unpublishCourse(course.id);
+                toast.success("Training unpublished and moved to drafts");
+            } else {
+                await publishCourse(course.id);
+                toast.success("Training published successfully");
+            }
+            fetchCourses();
+        } catch (e: any) {
+            toast.error("Failed to update status: " + (e?.message || "Error"));
+        }
+    };
+
     return (
+
+
         <div className="px-4 md:px-8 py-8 md:py-10">
             <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
             {/* Header band — distinct blue-tinted workspace panel */}
@@ -352,6 +372,21 @@ export default function AdminTrainingList() {
                                                             <Edit className="w-4 h-4 mr-2" /> Edit Details
                                                         </Link>
                                                     </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        data-testid="training-menu-toggle-publish"
+                                                        onClick={() => handleTogglePublish(course)}
+                                                    >
+                                                        {course.status === "Published" ? (
+                                                            <>
+                                                                <EyeOff className="w-4 h-4 mr-2 text-amber-600" /> Unpublish (Move to Draft)
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Globe className="w-4 h-4 mr-2 text-success" /> Publish Training
+                                                            </>
+                                                        )}
+                                                    </DropdownMenuItem>
+
                                                     <DropdownMenuItem onClick={() => {
                                                         setSelectedCourse(course);
                                                         setScheduleDate(course.startDate ? new Date(course.startDate) : undefined);

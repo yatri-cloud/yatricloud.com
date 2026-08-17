@@ -1349,6 +1349,27 @@ export async function approveCourse(courseId: string): Promise<void> {
   await logAudit({ training_id: courseId, action: "approved", field: "status", new_value: "published" });
 }
 
+/** Admin: publish course */
+export async function publishCourse(courseId: string): Promise<void> {
+  const { error } = await supabase
+    .from("trainings")
+    .update({ status: "published", review_status: "approved" })
+    .eq("id", courseId);
+  if (error) throw error;
+  await logAudit({ training_id: courseId, action: "published", field: "status", new_value: "published" });
+}
+
+/** Admin: unpublish course back to draft */
+export async function unpublishCourse(courseId: string): Promise<void> {
+  const { error } = await supabase
+    .from("trainings")
+    .update({ status: "draft" })
+    .eq("id", courseId);
+  if (error) throw error;
+  await logAudit({ training_id: courseId, action: "unpublished", field: "status", new_value: "draft" });
+}
+
+
 /** Admin: reject a pending course — mark the review rejected (stays a draft). */
 export async function rejectCourse(courseId: string): Promise<void> {
   const { error } = await supabase

@@ -155,6 +155,15 @@ export async function deleteEvent(id: string): Promise<void> {
     return eventsApi.deleteEvent(id);
 }
 
+export async function publishEvent(id: string): Promise<void> {
+    return eventsApi.publishEvent(id);
+}
+
+export async function unpublishEvent(id: string): Promise<void> {
+    return eventsApi.unpublishEvent(id);
+}
+
+
 // Helper to determine status based on date
 export function getEventStatus(event: Event): 'upcoming' | 'past' | 'draft' {
     if (event.status === 'draft') return 'draft';

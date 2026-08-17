@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, Mic, Layers, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon, Image as ImageIcon, LayoutList } from "lucide-react";
+import { Calendar, Users, Mic, Layers, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon, Image as ImageIcon, LayoutList, Globe, EyeOff } from "lucide-react";
+
 import { StatsCard } from "@/components/admin/StatsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ListPager } from "@/components/ui/list-pager";
-import { getAllEvents, getEventStatus, Event, deleteEvent, updateEvent } from "@/lib/events-store";
+import { getAllEvents, getEventStatus, Event, deleteEvent, updateEvent, publishEvent, unpublishEvent } from "@/lib/events-store";
+
 import { Badge } from "@/components/ui/badge";
 import { deleteEventFolder } from "@/lib/event-automation-api";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +31,7 @@ export default function AdminEvents() {
     const [activeTab, setActiveTab] = useState<TabType>("active");
     const [events, setEvents] = useState<Event[]>([]);
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
+    const [publishingEventId, setPublishingEventId] = useState<string | null>(null);
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState("date");
     const [visFilter, setVisFilter] = useState<"all" | "public" | "private">("all");
@@ -36,6 +39,26 @@ export default function AdminEvents() {
     const [sectionsDialogEvent, setSectionsDialogEvent] = useState<Event | null>(null);
     const [tempHiddenSections, setTempHiddenSections] = useState<string[]>([]);
     const [isSavingSections, setIsSavingSections] = useState(false);
+
+    const handleTogglePublish = async (event: Event) => {
+        const isDraft = event.status === 'draft' || getEventStatus(event) === 'draft';
+        setPublishingEventId(event.id);
+        try {
+            if (isDraft) {
+                await publishEvent(event.id);
+                toast({ title: "Event Published", description: `${event.name} is now published.` });
+            } else {
+                await unpublishEvent(event.id);
+                toast({ title: "Event Unpublished", description: `${event.name} has been moved to drafts.` });
+            }
+            setEvents(await getAllEvents());
+        } catch (err: any) {
+            toast({ title: "Error", description: err.message || "Failed to update event status", variant: "destructive" });
+        } finally {
+            setPublishingEventId(null);
+        }
+    };
+
 
     useEffect(() => { setPage(1); }, [activeTab, search, sort, visFilter]);
 
@@ -328,6 +351,25 @@ export default function AdminEvents() {
                                                 Edit Event
                                             </DropdownMenuItem>
                                         )}
+
+                                        <DropdownMenuItem
+                                            data-testid="event-menu-toggle-publish"
+                                            onClick={() => handleTogglePublish(event)}
+                                            disabled={publishingEventId === event.id}
+                                        >
+                                            {(event.status === 'draft' || getEventStatus(event) === 'draft') ? (
+                                                <>
+                                                    <Globe className="w-4 h-4 mr-2 text-success" />
+                                                    Publish Event
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <EyeOff className="w-4 h-4 mr-2 text-amber-600" />
+                                                    Unpublish Event
+                                                </>
+                                            )}
+                                        </DropdownMenuItem>
+
                                         {activeTab === 'past' && (
                                             <DropdownMenuItem
                                                 data-testid="event-menu-gallery"

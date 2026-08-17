@@ -245,6 +245,29 @@ export async function saveEvent(event: Event): Promise<Event | undefined> {
 export const createEvent = saveEvent;
 export const updateEvent = saveEvent;
 
+export async function publishEvent(eventId: string): Promise<void> {
+    const { error } = await supabase
+        .from("events")
+        .update({ status: "published" })
+        .eq("id", eventId);
+    if (error) {
+        console.error("[events-api] publishEvent error:", error.message);
+        throw new Error(error.message);
+    }
+}
+
+export async function unpublishEvent(eventId: string): Promise<void> {
+    const { error } = await supabase
+        .from("events")
+        .update({ status: "draft" })
+        .eq("id", eventId);
+    if (error) {
+        console.error("[events-api] unpublishEvent error:", error.message);
+        throw new Error(error.message);
+    }
+}
+
+
 export async function deleteEvent(id: string): Promise<void> {
     // Remove the event's gallery files from the private bucket first — the
     // event_media rows cascade on delete, but the storage objects would not,
