@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 /**
  * Mentor self service portal — /mentor/dashboard (docs/MENTORSHIP-PLAN.md §5).
  *
@@ -130,6 +131,7 @@ const bookingBadgeClass: Record<BookingRow["status"], string> = {
 
 const MentorDashboard = () => {
   const [user, setUser] = useState<YatriUser | null>(() => getCachedUser());
+  const { confirm } = useConfirm();
   const [loginOpen, setLoginOpen] = useState(false);
   const [checking, setChecking] = useState(true);
   const [mentor, setMentor] = useState<MentorRow | null>(null);
@@ -1014,7 +1016,7 @@ const ServicesTab = ({
                         variant="ghost"
                         size="sm"
                         className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={() => setToDelete(s)}
+                        onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { setToDelete(s); } }}
                       >
                         Delete
                       </Button>
@@ -1233,7 +1235,7 @@ const ServicesTab = ({
                       />
                       <span className="hidden sm:block text-xs text-muted-foreground">Required</span>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => removeQuestion(index)}>
+                    <Button variant="ghost" size="sm" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removeQuestion(index); } }}>
                       Remove
                     </Button>
                   </div>
@@ -1526,7 +1528,7 @@ const AvailabilityTab = ({
                   </div>
                   <div className="flex items-center gap-3">
                     <Switch checked={rule.active} onCheckedChange={() => toggleRule(rule)} />
-                    <Button variant="ghost" size="sm" onClick={() => removeRule(rule)}>
+                    <Button variant="ghost" size="sm" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removeRule(rule); } }}>
                       Remove
                     </Button>
                   </div>
@@ -1649,7 +1651,7 @@ const AvailabilityTab = ({
                       <span className="text-sm text-muted-foreground">{o.note}</span>
                     ) : null}
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => removeOverride(o)}>
+                  <Button variant="ghost" size="sm" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removeOverride(o); } }}>
                     Remove
                   </Button>
                 </div>
@@ -2030,7 +2032,7 @@ const BookingsCard = ({
                             size="sm"
                             className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
                             disabled={busyId === b.id}
-                            onClick={() => setCancelTarget(b)}
+                            onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { setCancelTarget(b); } }}
                           >
                             Cancel
                           </Button>

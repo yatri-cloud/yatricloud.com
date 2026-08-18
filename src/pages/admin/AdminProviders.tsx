@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 
 import { useState, useEffect, useMemo } from "react";
 import { Loader2, Plus, Database, Server, Pencil, Trash, Check, X, Search } from "lucide-react";
@@ -45,6 +46,7 @@ function resolveProviderLogo(p: ProviderData): string | undefined {
 
 export default function AdminProviders() {
     const [providers, setProviders] = useState<ProviderData[]>([]);
+    const { confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingRow, setEditingRow] = useState<number | null>(null);
@@ -262,7 +264,7 @@ export default function AdminProviders() {
                                                                 }}>
                                                                     <Pencil className="h-4 w-4" />
                                                                 </Button>
-                                                                <Button size="icon" variant="ghost" className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={() => handleDelete(p)}>
+                                                                <Button size="icon" variant="ghost" className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDelete(p); } }}>
                                                                     <Trash className="h-4 w-4" />
                                                                 </Button>
                                                             </>

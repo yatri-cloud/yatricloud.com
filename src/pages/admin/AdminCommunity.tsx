@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, Plus, Search , Trash } from "lucide-react";
+import { Loader2, Plus, Search , Trash, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { supabase } from "@/lib/supabase";
 import { ListPager } from "@/components/ui/list-pager";
 import { toast } from "sonner";
@@ -35,6 +37,7 @@ const groupLabel = (g: string) => GROUPS.find((x) => x.value === g)?.label || g;
 const EMPTY: Omit<Community, "id"> = { name: "", url: "", tagline: "", logo_url: "", grp: "main", sort_order: 0, active: true };
 
 export default function AdminCommunity() {
+    const { confirm } = useConfirm();
     const [rows, setRows] = useState<Community[]>([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -106,7 +109,7 @@ export default function AdminCommunity() {
     };
 
     const remove = async (c: Community) => {
-        if (!window.confirm(`Delete "${c.name}"? This cannot be undone.`)) return;
+        if (!(await confirm({ title: "Delete Community?", description: `Delete "${c.name}"? This cannot be undone.` }))) return;
         const { error } = await supabase.from("communities").delete().eq("id", c.id);
         if (error) { toast.error(error.message); return; }
         setRows((prev) => prev.filter((x) => x.id !== c.id));
@@ -185,7 +188,19 @@ export default function AdminCommunity() {
                                                 <div className="flex items-center justify-end gap-1">
                                                     <Button variant="ghost" size="sm" onClick={() => toggleActive(c)}>{c.active ? "Hide" : "Show"}</Button>
                                                     <Button variant="ghost" size="sm" onClick={() => openEdit(c)}>Edit</Button>
-                                                    <Button variant="ghost" className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={() => remove(c)} title="Delete"><Trash className="h-4 w-4" /></Button>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => remove(c)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                                
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

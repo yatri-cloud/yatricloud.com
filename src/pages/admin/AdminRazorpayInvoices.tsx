@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -47,6 +48,7 @@ function majorAmount(smallest: number, currency: string): number {
 }
 
 export default function AdminRazorpayInvoices() {
+    const { confirm } = useConfirm();
     const [invoices, setInvoices] = useState<RazorpayInvoice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -121,7 +123,7 @@ export default function AdminRazorpayInvoices() {
     };
 
     const cancel = async (inv: RazorpayInvoice) => {
-        if (!window.confirm(`Cancel invoice for ${inv.customer_details?.name || inv.customer_details?.email || inv.id}? This cannot be undone.`)) return;
+        if (!(await confirm({ title: "Cancel Invoice?", description: `Cancel invoice for ${inv.customer_details?.name || inv.customer_details?.email || inv.id}? This cannot be undone.` }))) return;
         try {
             const status = await cancelRazorpayInvoice(inv.id);
             toast.success(`Invoice ${status}.`);

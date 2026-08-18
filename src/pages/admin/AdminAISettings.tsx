@@ -22,6 +22,7 @@ import {
     Clock,
     Server,
     ExternalLink,
+    MoreVertical,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -483,14 +484,19 @@ export default function AdminAISettings() {
                                                 <Edit3 className="w-3.5 h-3.5" /> Edit
                                             </Button>
 
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                onClick={() => setDeleteConfirmKey(k)}
-                                                className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white"
-                                            >
-                                                <Trash className="w-4 h-4" />
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full p-0">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => setDeleteConfirmKey(k)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                        
+                                                        Delete Key
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </CardContent>
                                 </Card>

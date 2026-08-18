@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -113,6 +114,7 @@ const fmtDate = (iso?: string) => {
 };
 
 export default function AdminTrainingReview() {
+    const { confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(true);
     const [rows,      setRows]      = useState<MergedRow[]>([]);
     const [groupBy,   setGroupBy]   = useState<GroupBy>("trainer");
@@ -539,23 +541,23 @@ export default function AdminTrainingReview() {
                                                                     </DropdownMenuTrigger>
                                                                     <DropdownMenuContent align="end" className="w-48 rounded-xl">
                                                                         <DropdownMenuItem asChild>
-                                                                            <Link to={`/admin/training/edit/${r.id}`}><Pencil className="mr-2 h-4 w-4" /> Edit course</Link>
+                                                                            <Link to={`/admin/training/edit/${r.id}`}>Edit course</Link>
                                                                         </DropdownMenuItem>
                                                                         <DropdownMenuItem onClick={() => openAudit(r)}>
-                                                                            <History className="mr-2 h-4 w-4" /> View audit log
+                                                                            View audit log
                                                                         </DropdownMenuItem>
                                                                         {r.status === "Review" && (
                                                                             <>
                                                                                 <DropdownMenuItem onClick={() => handleApprove(r)}>
-                                                                                    <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Approve &amp; publish
+                                                                                    Approve &amp; publish
                                                                                 </DropdownMenuItem>
-                                                                                <DropdownMenuItem onClick={() => handleReject(r)}>
-                                                                                    <XCircle className="mr-2 h-4 w-4 text-rose-600" /> Reject
+                                                                                <DropdownMenuItem onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleReject(r); } }}>
+                                                                                    Reject
                                                                                 </DropdownMenuItem>
                                                                             </>
                                                                         )}
-                                                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(r)}>
-                                                                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDelete(r); } }}>
+                                                                            Delete
                                                                         </DropdownMenuItem>
                                                                     </DropdownMenuContent>
                                                                 </DropdownMenu>

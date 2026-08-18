@@ -15,6 +15,7 @@ import {
   Mail,
   ScrollText,
   Copy,
+  MoreHorizontal,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -33,6 +34,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import {
   fetchNewsletters,
   deleteNewsletter,
@@ -468,31 +475,26 @@ export default function AdminNewsletters() {
                               </Button>
                             </>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-lg"
-                            onClick={() => handleDuplicate(nl)}
-                            disabled={duplicatingId === nl.id}
-                            data-testid="newsletter-duplicate"
-                            aria-label={`Duplicate ${nl.title}`}
-                          >
-                            {duplicatingId === nl.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
-                            onClick={() => setToDelete(nl)}
-                            data-testid="newsletter-delete"
-                            aria-label={`Delete ${nl.title}`}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-lg">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleDuplicate(nl)} disabled={duplicatingId === nl.id}>
+                                
+                                Duplicate
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => setToDelete(nl)} 
+                                className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                              >
+                                
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>

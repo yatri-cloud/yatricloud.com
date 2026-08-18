@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Search, Download, RotateCcw, Trash, Sparkles, FileText } from "lucide-react";
 
@@ -41,6 +42,7 @@ const formatDate = (iso: string) => {
 };
 
 export default function AdminResumes() {
+    const { confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<AdminResumeRequest[]>([]);
     const [search, setSearch] = useState("");
@@ -241,7 +243,7 @@ export default function AdminResumes() {
                                                         aria-label="Delete this request"
                                                         title="Delete"
                                                         className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
-                                                        onClick={() => remove(r)}
+                                                        onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { remove(r); } }}
                                                     >
                                                         <Trash className="h-4 w-4" />
                                                     </Button>

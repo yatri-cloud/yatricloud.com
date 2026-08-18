@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -70,6 +71,7 @@ type TrainerTab = "courses" | "sessions" | "attendance" | "results";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export const TrainerDashboard = () => {
+    const { confirm } = useConfirm();
     const navigate = useNavigate();
     const [trainerData,     setTrainerData]     = useState<TrainerData | null>(null);
     const [courses,         setCourses]         = useState<Course[]>([]);
@@ -384,7 +386,7 @@ export const TrainerDashboard = () => {
                                                                 <DropdownMenuContent align="end" className="w-48 rounded-xl">
                                                                     <DropdownMenuItem asChild>
                                                                         <Link to={`/trainer/course/${course.id}/edit`} className="cursor-pointer">
-                                                                            <Edit className="w-4 h-4 mr-2 text-primary" /> Edit Curriculum
+                                                                            Edit Curriculum
                                                                         </Link>
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem onClick={() => {
@@ -393,14 +395,14 @@ export const TrainerDashboard = () => {
                                                                         setScheduleTime(course.startTime || "");
                                                                         setIsDetailsOpen(true);
                                                                     }}>
-                                                                        <Eye className="w-4 h-4 mr-2" /> View Details
+                                                                        View Details
                                                                     </DropdownMenuItem>
                                                                     <Separator className="my-1" />
                                                                     <DropdownMenuItem
                                                                         className="text-destructive focus:text-destructive cursor-pointer"
-                                                                        onClick={() => handleDelete(course.id)}
+                                                                        onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDelete(course.id); } }}
                                                                     >
-                                                                        <Trash2 className="w-4 h-4 mr-2" /> Delete Draft
+                                                                        Delete Draft
                                                                     </DropdownMenuItem>
                                                                 </DropdownMenuContent>
                                                             </DropdownMenu>

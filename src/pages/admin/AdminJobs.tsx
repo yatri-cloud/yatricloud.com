@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Search, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const fmt = (iso: string | null) =>
     iso ? new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "never";
 
 export default function AdminJobs() {
+    const { confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<CompanyRow[]>([]);
     const [search, setSearch] = useState("");
@@ -166,7 +168,7 @@ export default function AdminJobs() {
                                             aria-label={`Delete ${r.name}`}
                                             title="Delete"
                                             className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
-                                            onClick={() => remove(r)}
+                                            onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { remove(r); } }}
                                         >
                                             <Trash className="h-4 w-4" />
                                         </Button>

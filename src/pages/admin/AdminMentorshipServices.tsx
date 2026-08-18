@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Pencil, Plus, Save, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -150,6 +151,8 @@ const deleteIconButtonClass =
 
 const AdminMentorshipServices = () => {
     const { toast } = useToast();
+
+    const { confirm } = useConfirm();
 
     const [loading, setLoading] = useState(true);
     const [mentors, setMentors] = useState<MentorOption[]>([]);
@@ -690,7 +693,7 @@ const AdminMentorshipServices = () => {
                                                 <Button
                                                     variant="outline"
                                                     size="icon"
-                                                    onClick={() => setServiceToDelete(service)}
+                                                    onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { setServiceToDelete(service); } }}
                                                     aria-label={`Delete ${service.title}`}
                                                     className={deleteIconButtonClass}
                                                     data-testid="service-delete"
@@ -989,7 +992,7 @@ const AdminMentorshipServices = () => {
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            onClick={() => removeQuestion(index)}
+                                            onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removeQuestion(index); } }}
                                             aria-label={`Remove question ${index + 1}`}
                                             className={deleteIconButtonClass}
                                         >

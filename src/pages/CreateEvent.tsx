@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, CheckCircle2, Ticket, Users, Calendar as CalendarIcon, MapPin, Upload, Save, Clock, Handshake, Trash2, Trash, Image as ImageIcon, Link as LinkIcon, Search } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Ticket, Users, Calendar as CalendarIcon, MapPin, Upload, Save, Clock, Handshake, Trash2, Trash, MoreVertical, Image as ImageIcon, Link as LinkIcon, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -725,9 +726,19 @@ export default function CreateEvent() {
                                                         <span className="text-xs text-muted-foreground font-normal ml-2">(16:9 Aspect Ratio Recommended, e.g. 1920x1080)</span>
                                                     </Label>
                                                     {formData.posterUrl && (
-                                                        <Button type="button" variant="ghost" size="icon" onClick={() => setFormData({ ...formData, posterUrl: '' })} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white mt-1">
-                                                            <Trash className="h-4 w-4" />
-                                                        </Button>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 rounded-full p-0 mt-1">
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem onClick={() => setFormData({ ...formData, posterUrl: '' })} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                                    
+                                                                    Remove Poster
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     )}
                                                 </div>
 
@@ -1046,9 +1057,19 @@ export default function CreateEvent() {
                                                 <div key={index} className="flex flex-col gap-4 p-6 border rounded-xl bg-card relative shadow-sm">
                                                     <div className="flex justify-between items-start">
                                                         <h3 className="font-semibold">Ticket Tier #{index + 1}</h3>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveTicket(index)} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
-                                                            <Trash className="h-4 w-4" />
-                                                        </Button>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full p-0">
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem onClick={() => handleRemoveTicket(index)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                                    
+                                                                    Remove Ticket
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </div>
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1398,9 +1419,19 @@ export default function CreateEvent() {
                                                     <div key={index} className="flex flex-col gap-4 p-6 border rounded-xl bg-card relative shadow-sm">
                                                         <div className="flex justify-between items-start">
                                                             <h3 className="font-semibold">Sponsor #{index + 1}</h3>
-                                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveSponsor(index)} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
-                                                                <Trash className="h-4 w-4" />
-                                                            </Button>
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full p-0">
+                                                                        <MoreVertical className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem onClick={() => handleRemoveSponsor(index)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                                        
+                                                                        Remove Sponsor
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
                                                         </div>
 
                                                         <div className="space-y-4">

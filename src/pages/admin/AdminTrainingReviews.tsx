@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Trash } from "lucide-react";
+import { Loader2, Search, Trash, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
 import { ListPager } from "@/components/ui/list-pager";
@@ -44,9 +50,6 @@ const FieldLabel = ({ htmlFor, children }: { htmlFor: string; children: React.Re
         {children}
     </Label>
 );
-
-const deleteIconButtonClass =
-    "h-10 w-10 rounded-xl text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground";
 
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
@@ -316,16 +319,19 @@ const AdminTrainingReviews = () => {
                                                         aria-label={`Review by ${review.name || "Anonymous"} is public`}
                                                     />
                                                 </div>
-                                                <Button
-                                                    data-testid="review-delete"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={() => setReviewToDelete(review)}
-                                                    aria-label={`Delete the review by ${review.name || "Anonymous"}`}
-                                                    className={deleteIconButtonClass}
-                                                >
-                                                    <Trash className="h-4 w-4" />
-                                                </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => setReviewToDelete(review)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                            
+                                                            Delete Review
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </div>
                                     </div>

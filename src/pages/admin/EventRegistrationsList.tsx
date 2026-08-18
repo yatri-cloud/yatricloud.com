@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Search, Loader2, Mail, Phone, MapPin, Linkedin, User, Calendar, CheckCircle2, CreditCard, Banknote, Edit, Trash } from "lucide-react";
@@ -43,6 +44,7 @@ import { getEventById } from "@/lib/events-store";
 
 export default function EventRegistrationsList() {
     const { eventId } = useParams<{ eventId: string }>();
+    const { confirm } = useConfirm();
     const navigate = useNavigate();
     const { toast } = useToast();
     const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
@@ -463,7 +465,7 @@ export default function EventRegistrationsList() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        onClick={() => handleDeleteClick(reg)}
+                                                        onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDeleteClick(reg); } }}
                                                         className="text-destructive hover:bg-destructive hover:text-destructive-foreground focus-visible:ring-2 focus-visible:ring-ring"
                                                         title="Cancel Registration"
                                                         aria-label="Cancel registration"
@@ -482,7 +484,7 @@ export default function EventRegistrationsList() {
                                                 <Button
                                                     variant="destructive"
                                                     size="sm"
-                                                    onClick={() => handleDeletePermanent(reg)}
+                                                    onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDeletePermanent(reg); } }}
                                                     disabled={deletingId === reg.id}
                                                     className="rounded-xl min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring"
                                                 >

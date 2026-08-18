@@ -28,6 +28,7 @@ type TabType = "active" | "draft" | "past";
 export default function AdminEvents() {
     const navigate = useNavigate();
     const { toast } = useToast();
+    const { confirm } = useConfirm();
     const [activeTab, setActiveTab] = useState<TabType>("active");
     const [events, setEvents] = useState<Event[]>([]);
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
@@ -98,7 +99,7 @@ export default function AdminEvents() {
             ? `Are you sure you want to delete "${name}"? This will also permanently delete the Google Drive folder with all event files.`
             : `Are you sure you want to delete "${name}"? This will remove it from the website.`;
 
-        if (window.confirm(confirmMessage)) {
+        if (await confirm({ title: "Delete Event", description: confirmMessage })) {
             setDeletingEventId(id);
 
             try {
@@ -341,7 +342,7 @@ export default function AdminEvents() {
                                                 data-testid="event-menu-edit"
                                                 onClick={() => navigate('/createevent', { state: { event } })}
                                             >
-                                                <Pencil className="w-4 h-4 mr-2" />
+                                                
                                                 Edit Event
                                             </DropdownMenuItem>
                                         )}
@@ -353,12 +354,12 @@ export default function AdminEvents() {
                                         >
                                             {(event.status === 'draft' || getEventStatus(event) === 'draft') ? (
                                                 <>
-                                                    <Globe className="w-4 h-4 mr-2 text-success" />
+                                                    
                                                     Publish Event
                                                 </>
                                             ) : (
                                                 <>
-                                                    <EyeOff className="w-4 h-4 mr-2 text-amber-600" />
+                                                    
                                                     Unpublish Event
                                                 </>
                                             )}
@@ -369,7 +370,7 @@ export default function AdminEvents() {
                                                 data-testid="event-menu-gallery"
                                                 onClick={() => navigate(`/event/${event.slug || event.id}/media`)}
                                             >
-                                                <ImageIcon className="w-4 h-4 mr-2" />
+                                                
                                                 Manage Gallery
                                             </DropdownMenuItem>
                                         )}
@@ -378,14 +379,14 @@ export default function AdminEvents() {
                                             data-testid="event-menu-registrations"
                                             onClick={() => navigate(`/admin/events/${event.id}/registrations`)}
                                         >
-                                            <ClipboardList className="w-4 h-4 mr-2" />
+                                            
                                             View Registered Details
                                         </DropdownMenuItem>
 
                                         <DropdownMenuItem
                                             onClick={() => navigate(`/admin/attendees?eventId=${event.id}`)}
                                         >
-                                            <UserCheck className="w-4 h-4 mr-2" />
+                                            
                                             View Attendees
                                         </DropdownMenuItem>
 
@@ -398,7 +399,7 @@ export default function AdminEvents() {
                                                 toast({ title: "Link copied", description: event.visibility === 'private' ? "Private link copied — share it to take registrations." : "Event link copied to clipboard." });
                                             }}
                                         >
-                                            <LinkIcon className="w-4 h-4 mr-2" />
+                                            
                                             {event.visibility === 'private' ? 'Copy private link' : 'Copy link'}
                                         </DropdownMenuItem>
 
@@ -412,13 +413,13 @@ export default function AdminEvents() {
                                                         toast({ title: "Link Copied", description: "Upcoming event link copied to clipboard" });
                                                     }}
                                                 >
-                                                    <ClipboardList className="w-4 h-4 mr-2" />
+                                                    
                                                     Get Share Link
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => navigate(`/upcoming-event/${event.slug || event.id}`)}
                                                 >
-                                                    <Calendar className="w-4 h-4 mr-2" />
+                                                    
                                                     View Upcoming Page
                                                 </DropdownMenuItem>
                                             </>
@@ -428,7 +429,7 @@ export default function AdminEvents() {
                                             <DropdownMenuItem
                                                 onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${event.spreadsheetId}`, '_blank')}
                                             >
-                                                <ClipboardList className="w-4 h-4 mr-2" />
+                                                
                                                 View Spreadsheet
                                             </DropdownMenuItem>
                                         )}
@@ -438,7 +439,7 @@ export default function AdminEvents() {
                                         <DropdownMenuItem
                                             onClick={() => openSectionsDialog(event)}
                                         >
-                                            <LayoutList className="w-4 h-4 mr-2" />
+                                            
                                             Manage Sections
                                         </DropdownMenuItem>
 
@@ -449,7 +450,7 @@ export default function AdminEvents() {
                                             onClick={() => handleDelete(event.id, event.name, event.driveFolderId)}
                                             className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
                                         >
-                                            <Trash2 className="w-4 h-4 mr-2" />
+                                            
                                             Delete Event
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>

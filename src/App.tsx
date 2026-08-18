@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { CalendlyPopup } from "@/components/CalendlyPopup";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { CartProvider, useCart } from "@/contexts/CartContext";
+import { ConfirmProvider } from "@/components/providers/ConfirmProvider";
 import Index from "./pages/Index";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
@@ -178,8 +179,9 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <CartProvider>
-          <Toaster />
-          <Sonner />
+          <ConfirmProvider>
+            <Toaster />
+            <Sonner />
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -343,6 +345,7 @@ const App = () => (
             <ExitIntentPopup />
             <FloatingCartGate />
           </BrowserRouter>
+          </ConfirmProvider>
         </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>

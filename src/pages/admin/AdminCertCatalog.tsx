@@ -4,6 +4,7 @@ import {
     ArrowUp,
     ExternalLink,
     Loader2,
+    MoreHorizontal,
     Pencil,
     Plus,
     Save,
@@ -40,6 +41,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -768,15 +775,19 @@ const AdminCertCatalog = () => {
                                                 >
                                                     <Pencil className="h-3.5 w-3.5" />
                                                 </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => setProviderToDelete(provider)}
-                                                    aria-label={`Delete ${provider.label}`}
-                                                    className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
-                                                >
-                                                    <Trash className="h-3.5 w-3.5" />
-                                                </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => setProviderToDelete(provider)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                            
+                                                            Delete Provider
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </div>
                                     );
@@ -980,11 +991,20 @@ const AdminCertCatalog = () => {
                                                                                 aria-label={`Edit ${cert.label}`} className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-primary hover:text-primary-foreground">
                                                                                 <Pencil className="h-3.5 w-3.5" />
                                                                             </Button>
-                                                                            <Button variant="ghost" size="icon" onClick={() => setCertToDelete(cert)}
-                                                                                aria-label={`Delete ${cert.label}`} className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white">
-                                                                                <Trash className="h-3.5 w-3.5" />
-                                                                            </Button>
-                                                                        </div>
+                                                                                <DropdownMenu>
+                                                                                    <DropdownMenuTrigger asChild>
+                                                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                                            <MoreHorizontal className="h-4 w-4" />
+                                                                                        </Button>
+                                                                                    </DropdownMenuTrigger>
+                                                                                    <DropdownMenuContent align="end">
+                                                                                        <DropdownMenuItem onClick={() => setCertToDelete(cert)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                                                            
+                                                                                            Delete Cert
+                                                                                        </DropdownMenuItem>
+                                                                                    </DropdownMenuContent>
+                                                                                </DropdownMenu>
+                                                                            </div>
                                                                     </div>
                                                                 </div>
                                                             )}

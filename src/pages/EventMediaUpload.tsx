@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Upload, Trash2, Loader2, ArrowLeft, Lock } from "lucide-react";
@@ -22,6 +23,7 @@ export default function EventMediaUpload() {
     const { slug } = useParams<{ slug: string }>();
     const { toast } = useToast();
     const fileRef = useRef<HTMLInputElement>(null);
+    const { confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [event, setEvent] = useState<{ id: string; name: string } | null>(null);
@@ -112,7 +114,7 @@ export default function EventMediaUpload() {
                             : <video src={item.url} className="h-full w-full object-cover" />}
                         <button
                             data-testid="gallery-item-delete"
-                            onClick={() => handleDelete(item)}
+                            onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDelete(item); } }}
                             className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition-opacity hover:bg-destructive group-hover:opacity-100"
                             aria-label="Delete photo"
                         >

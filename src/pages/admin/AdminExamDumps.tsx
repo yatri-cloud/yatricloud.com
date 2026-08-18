@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Plus, Loader2, Search, Trash2, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 
 const AdminExamDumps = () => {
   const navigate = useNavigate();
+  const { confirm } = useConfirm();
   const [dumps, setDumps] = useState<ExamDump[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,7 +40,7 @@ const AdminExamDumps = () => {
   );
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this exam dump?")) return;
+    if (!(await confirm({ title: "Delete Exam Dump?", description: "Are you sure you want to delete this exam dump? This cannot be undone." }))) return;
     
     try {
       await deleteExamDump(id);

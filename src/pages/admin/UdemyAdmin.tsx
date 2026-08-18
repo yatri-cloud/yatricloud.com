@@ -11,8 +11,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Upload, X, Search , Trash } from "lucide-react";
+import { Loader2, Upload, X, Search , Trash, MoreHorizontal } from "lucide-react";
 import { ListPager } from "@/components/ui/list-pager";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useSiteContent, getOptionList, FALLBACK_OPTION_LISTS } from "@/lib/site-content";
@@ -127,7 +129,7 @@ const UdemyAdmin = () => {
     };
 
     const deleteCourse = async (c: UdemyCourse) => {
-        if (!window.confirm(`Delete "${c.title}"? This cannot be undone.`)) return;
+        if (!(await confirm({ title: "Delete Course?", description: `Delete "${c.title}"? This cannot be undone.` }))) return;
         const { error } = await supabase.from("udemy_courses").delete().eq("id", c.id);
         if (error) { toast({ title: "Could not delete", description: error.message, variant: "destructive" }); return; }
         setCourses((prev) => prev.filter((x) => x.id !== c.id));
@@ -580,7 +582,19 @@ const UdemyAdmin = () => {
                                                 <div className="flex items-center justify-end gap-1">
                                                     <Button variant="ghost" size="sm" onClick={() => toggleStatus(c)}>{c.status === "published" ? "Unpublish" : "Publish"}</Button>
                                                     <Button variant="ghost" size="sm" onClick={() => setEditing({ ...c })}>Edit</Button>
-                                                    <Button variant="ghost" className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={() => deleteCourse(c)} title="Delete"><Trash className="h-4 w-4" /></Button>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => deleteCourse(c)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                                
+                                                                Delete Course
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

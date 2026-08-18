@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect } from "react";
 import {
     Loader2, Plus, Pencil, Trash2, KeyRound, Copy, ShieldCheck,
@@ -53,6 +54,7 @@ const PERM_GROUPS = ADMIN_NAV_GROUPS.map((g) => ({
 
 export default function AdminRoleManagement() {
     const [users, setUsers] = useState<AdminUserRow[]>([]);
+    const { confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(true);
 
     // Add dialog
@@ -315,13 +317,13 @@ export default function AdminRoleManagement() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="w-56">
-                                                    <DropdownMenuItem onClick={() => openEdit(u)}><Pencil className="mr-2 h-4 w-4" /> Edit role &amp; pages</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleResetPassword(u)}><KeyRound className="mr-2 h-4 w-4" /> Reset password</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openEdit(u)}>Edit role &amp; pages</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleResetPassword(u)}>Reset password</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => handleToggleActive(u)}>
-                                                        <Lock className="mr-2 h-4 w-4" /> {u.isActive ? "Disable" : "Enable"}
+                                                        {u.isActive ? "Disable" : "Enable"}
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(u)}>
-                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDelete(u); } }}>
+                                                        Delete
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

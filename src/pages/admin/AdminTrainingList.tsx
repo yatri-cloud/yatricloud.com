@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -97,6 +98,7 @@ const TIME_SLOTS = Array.from({ length: 96 }).map((_, i) => {
 export default function AdminTrainingList() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+    const { confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"All" | "Published" | "Draft" | "Review">("All");
@@ -363,7 +365,7 @@ export default function AdminTrainingList() {
                                                 <DropdownMenuContent align="end" className="w-48">
                                                     <DropdownMenuItem asChild data-testid="training-menu-edit">
                                                         <Link to={`/admin/training/edit/${course.id}`} className="cursor-pointer">
-                                                            <Edit className="w-4 h-4 mr-2" /> Edit Details
+                                                            Edit Details
                                                         </Link>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
@@ -372,11 +374,11 @@ export default function AdminTrainingList() {
                                                     >
                                                         {course.status === "Published" ? (
                                                             <>
-                                                                <EyeOff className="w-4 h-4 mr-2 text-amber-600" /> Unpublish (Move to Draft)
+                                                                Unpublish (Move to Draft)
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <Globe className="w-4 h-4 mr-2 text-success" /> Publish Training
+                                                                Publish Training
                                                             </>
                                                         )}
                                                     </DropdownMenuItem>
@@ -387,31 +389,31 @@ export default function AdminTrainingList() {
                                                         setScheduleTime(course.startTime || "");
                                                         setIsDetailsOpen(true);
                                                     }}>
-                                                        <Eye className="w-4 h-4 mr-2" /> View Details
+                                                        View Details
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => {
                                                         const url = `${window.location.origin}/training/${course.slug || course.id}`;
                                                         navigator.clipboard.writeText(url);
                                                         toast.success(course.visibility === 'private' ? "Private link copied — share it to take enrollments." : "Training link copied.");
                                                     }}>
-                                                        <LinkIcon className="w-4 h-4 mr-2" /> {course.visibility === 'private' ? 'Copy private link' : 'Copy link'}
+                                                        {course.visibility === 'private' ? 'Copy private link' : 'Copy link'}
                                                     </DropdownMenuItem>
                                                     {course.status === "Review" && (
                                                         <>
                                                             <DropdownMenuItem data-testid="training-menu-approve" onClick={() => handleApprove(course.id)}>
-                                                                <CheckCircle2 className="w-4 h-4 mr-2 text-success" /> Approve and Publish
+                                                                Approve and Publish
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => handleReject(course.id)}>
-                                                                <AlertCircle className="w-4 h-4 mr-2 text-warning" /> Reject
+                                                            <DropdownMenuItem onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleReject(course.id); } }}>
+                                                                Reject
                                                             </DropdownMenuItem>
                                                         </>
                                                     )}
                                                     <DropdownMenuItem
                                                         data-testid="training-menu-delete"
                                                         className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
-                                                        onClick={() => handleDelete(course.id)}
+                                                        onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDelete(course.id); } }}
                                                     >
-                                                        <Trash2 className="w-4 h-4 mr-2" /> Delete
+                                                        Delete
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

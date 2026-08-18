@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Search, Star, ExternalLink, Eye, Trash, Globe, FileText, Undo2 } from "lucide-react";
@@ -17,6 +18,7 @@ interface Row {
 const AdminBlog = () => {
   const { toast } = useToast();
   const [rows, setRows] = useState<Row[]>([]);
+  const { confirm } = useConfirm();
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "published" | "draft" | "featured">("all");
@@ -125,7 +127,7 @@ const AdminBlog = () => {
                   ) : (
                     <Button size="sm" variant="outline" onClick={() => setStatus(r, "published")} className="rounded-lg" title="Publish">Publish</Button>
                   )}
-                  <Button size="icon" variant="ghost" onClick={() => remove(r)} className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" aria-label="Delete"><Trash className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { remove(r); } }} className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" aria-label="Delete"><Trash className="h-4 w-4" /></Button>
                 </div>
               </div>
             ))}

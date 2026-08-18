@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PenLine, Eye, Clock, Loader2, FileText, Globe, Pencil, Trash2, Bell, User } from "lucide-react";
@@ -11,6 +12,7 @@ import { getUserId, listMyPosts, deletePost, unreadCount, type MyPost } from "@/
 const fmt = (d: string | null) => d ? new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
 
 const BlogDashboard = () => {
+  const { confirm } = useConfirm();
   const [ready, setReady] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
   const [posts, setPosts] = useState<MyPost[]>([]);
@@ -99,7 +101,7 @@ const BlogDashboard = () => {
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <Button asChild size="icon" variant="ghost" className="h-9 w-9 rounded-lg text-muted-foreground hover:text-primary" aria-label="Edit"><Link to={`/blog/edit/${p.id}`}><Pencil className="h-4 w-4" /></Link></Button>
-                <Button size="icon" variant="ghost" onClick={() => remove(p.id)} className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { remove(p.id); } }} className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
               </div>
             </div>
           ))}

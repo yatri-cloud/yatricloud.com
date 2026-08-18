@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect } from "react";
 import { UserCheck, Calendar, Key, BookOpen, Trash2, ExternalLink, Star, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,7 @@ export const AdminTrainersNew = () => {
     // Application states
     const [applications, setApplications] = useState<TrainerApplication[]>([]);
     const [filteredApplications, setFilteredApplications] = useState<TrainerApplication[]>([]);
+    const { confirm } = useConfirm();
     const [isLoadingApplications, setIsLoadingApplications] = useState(true);
     const [selectedApplication, setSelectedApplication] = useState<TrainerApplication | null>(null);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -658,7 +660,7 @@ export const AdminTrainersNew = () => {
                                                                 variant="default"
                                                                 size="sm"
                                                                 className="bg-warning hover:bg-warning/90"
-                                                                onClick={() => handleRejectApplication(application)}
+                                                                onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleRejectApplication(application); } }}
                                                                 disabled={isProcessing}
                                                             >
                                                                 Reject
@@ -668,7 +670,7 @@ export const AdminTrainersNew = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                                            onClick={() => handleDeleteApplication(application)}
+                                                            onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDeleteApplication(application); } }}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </Button>
@@ -761,7 +763,7 @@ export const AdminTrainersNew = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                                            onClick={() => handleDeleteTrainer(trainer)}
+                                                            onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDeleteTrainer(trainer); } }}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </Button>
@@ -1152,7 +1154,7 @@ export const AdminTrainersNew = () => {
                                     <Button
                                         className="flex-1"
                                         variant="destructive"
-                                        onClick={() => handleRejectApplication(selectedApplication)}
+                                        onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleRejectApplication(selectedApplication); } }}
                                         disabled={isProcessing}
                                     >
                                         {isProcessing ? "Processing..." : "Reject Application"}

@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect, useCallback } from "react";
 import {
   Plus, Users, Video, MapPin, ChevronDown, ChevronRight, Check,
@@ -37,6 +38,7 @@ const TIME_SLOTS = Array.from({ length: 96 }, (_, i) => {
 export default function SessionsManager({ courses, onTakeAttendance }: SessionsManagerProps) {
   const [courseId, setCourseId] = useState<string>(courses[0]?.id || "");
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
+  const { confirm } = useConfirm();
   const [isLoading, setIsLoading] = useState(false);
   const [upcomingOpen, setUpcomingOpen] = useState(true);
   const [pastOpen, setPastOpen] = useState(false);
@@ -207,7 +209,7 @@ export default function SessionsManager({ courses, onTakeAttendance }: SessionsM
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0 rounded-lg text-rose-500 hover:text-rose-600 hover:bg-rose-50 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => handleDelete(session.id)}
+          onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDelete(session.id); } }}
         >
           <Trash2 className="w-4 h-4" />
         </Button>

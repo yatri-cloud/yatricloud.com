@@ -6,6 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import {
   Search,
   Loader2,
   Trash,
@@ -15,6 +21,7 @@ import {
   UserX,
   Plus,
   RotateCcw,
+  MoreHorizontal,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -474,16 +481,19 @@ export default function AdminSubscribers() {
                               <RotateCcw className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
-                            onClick={() => setToDelete(sub)}
-                            data-testid="subscriber-delete"
-                            aria-label={`Delete ${sub.email}`}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setToDelete(sub)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                
+                                Delete Subscriber
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>

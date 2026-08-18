@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Trash } from "lucide-react";
+import { Loader2, Search, Trash, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -349,15 +355,19 @@ const AdminMentorReviews = () => {
                                                         data-testid="mentor-review-public-switch"
                                                     />
                                                 </div>
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={() => setReviewToDelete(review)}
-                                                    aria-label={`Delete the review by ${review.name || "Anonymous"}`}
-                                                    className={deleteIconButtonClass}
-                                                >
-                                                    <Trash className="h-4 w-4" />
-                                                </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => setReviewToDelete(review)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                            
+                                                            Delete Review
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </div>
                                     </div>

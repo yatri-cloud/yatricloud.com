@@ -1,11 +1,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { Loader2, FolderPlus, User, Clock, BookOpen, Layers, CheckCircle, ChevronRight, Trash2, Trash, Plus, FileText, Video, ClipboardList, Save, Upload, MapPin, Users, Ticket, CreditCard } from "lucide-react";
+import { Loader2, FolderPlus, User, Clock, BookOpen, Layers, CheckCircle, ChevronRight, Trash2, Trash, MoreVertical, Plus, FileText, Video, ClipboardList, Save, Upload, MapPin, Users, Ticket, CreditCard } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -1165,15 +1166,19 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                                 <p className="font-medium">{resource.name}</p>
                                                                 <p className="text-xs text-muted-foreground">{resource.type} • {resource.url.substring(0, 50)}...</p>
                                                             </div>
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => setResources(resources.filter((_, i) => i !== idx))}
-                                                                className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white"
-                                                            >
-                                                                <Trash className="h-4 w-4" />
-                                                            </Button>
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 rounded-full p-0">
+                                                                        <MoreVertical className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem onClick={() => setResources(resources.filter((_, i) => i !== idx))} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                                                                        
+                                                                        Remove Resource
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
                                                         </div>
                                                     ))}
                                                 </div>

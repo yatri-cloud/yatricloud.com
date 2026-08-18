@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -40,6 +41,7 @@ import {
 const RequestVoucher = () => {
   // Provider names from the certification catalog, always ending with "Other"
   const PROVIDERS = useCertCatalog(getVoucherProviders, FALLBACK_VOUCHER_PROVIDERS);
+  const { confirm } = useConfirm();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [exams, setExams] = useState([""]);
@@ -319,7 +321,7 @@ const RequestVoucher = () => {
                                   type="button"
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => removeExam(index)}
+                                  onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removeExam(index); } }}
                                   className="h-12 w-12 rounded-xl text-destructive hover:bg-destructive/10"
                                 >
                                   <Trash2 className="w-5 h-5" />

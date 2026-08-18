@@ -6,7 +6,8 @@ import {
   Trash,
   ExternalLink,
   Search,
-  Filter
+  Filter,
+  MoreHorizontal
 } from "lucide-react";
 
 import { fetchLeads, updateLeadStatus, deleteLead, CRMLead } from "@/lib/crm-leads";
@@ -27,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -237,14 +239,19 @@ export default function AdminLeads() {
                       </Select>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white"
-                        onClick={() => setLeadToDelete(lead.id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setLeadToDelete(lead.id)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                            
+                            Delete Lead
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

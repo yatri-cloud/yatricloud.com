@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -77,6 +78,7 @@ export default function ResumeMaker() {
     const [activeTab, setActiveTab] = useState<"ats-scanner" | "builder">("ats-scanner");
 
     // ATS Scanner State
+    const { confirm } = useConfirm();
     const [atsResumeText, setAtsResumeText] = useState("");
     const [atsJdText, setAtsJdText] = useState("");
     const [isScanning, setIsScanning] = useState(false);
@@ -856,7 +858,7 @@ export default function ResumeMaker() {
                                                             <Button
                                                                 size="sm"
                                                                 variant="ghost"
-                                                                onClick={() => remove(r)}
+                                                                onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { remove(r); } }}
                                                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                                                             >
                                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -877,7 +879,7 @@ export default function ResumeMaker() {
                                                             <Button
                                                                 size="sm"
                                                                 variant="ghost"
-                                                                onClick={() => remove(r)}
+                                                                onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { remove(r); } }}
                                                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                                                             >
                                                                 <Trash2 className="w-3.5 h-3.5" />

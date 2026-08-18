@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +32,7 @@ const OPEN_PENDING_KEY = "yc:open-cart-pending";
 
 export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
+  const { confirm } = useConfirm();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -340,7 +342,7 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
                               size="icon"
                               aria-label="Remove from cart"
                               className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                              onClick={() => removeFromCart(item.id)}
+                              onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removeFromCart(item.id); } }}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

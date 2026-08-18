@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -37,6 +38,7 @@ const milestoneCopy = (days: number) => {
 export function StudyPlanCard() {
     const [plans, setPlans] = useState<StudyPlan[]>([]);
     const [options, setOptions] = useState<CertificationOption[]>([]);
+    const { confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [adding, setAdding] = useState(false);
     const [certId, setCertId] = useState("");
@@ -178,7 +180,7 @@ export function StudyPlanCard() {
                                             <Link to="/training" className="text-primary hover:underline">Training</Link>
                                             <button
                                                 type="button"
-                                                onClick={() => removePlan(plan)}
+                                                onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removePlan(plan); } }}
                                                 className="ml-auto text-muted-foreground transition-colors hover:text-destructive"
                                             >
                                                 Remove

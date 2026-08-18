@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 
 import { useState, useEffect, useMemo } from "react";
 import { Loader2, Search, Trash2, Edit2, Mail, Phone, MapPin, Linkedin, CheckCircle, XCircle, UserCheck, Download } from "lucide-react";
@@ -33,6 +34,7 @@ interface Enrollment {
 
 export default function AdminEnrollments() {
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+    const { confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [sort, setSort] = useState<"newest" | "oldest" | "name" | "course">("newest");
@@ -234,7 +236,7 @@ export default function AdminEnrollments() {
                                                     )}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => handleDelete(enrollment.rowIndex)}>
+                                                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { handleDelete(enrollment.rowIndex); } }}>
                                                         <Trash2 className="w-4 h-4" />
                                                     </Button>
                                                 </TableCell>

@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -159,6 +160,7 @@ const ContentListSection = ({
 }: ContentListSectionProps) => {
     const { toast } = useToast();
     const [rows, setRows] = useState<ContentRow[]>([]);
+    const { confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [savingKey, setSavingKey] = useState<string | null>(null);
 
@@ -399,7 +401,7 @@ const ContentListSection = ({
                                         <Button
                                             variant="outline"
                                             size="icon"
-                                            onClick={() => deleteRow(index)}
+                                            onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { deleteRow(index); } }}
                                             aria-label={`Delete this ${itemLabel}`}
                                             className="h-10 w-10 rounded-xl text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
                                         >
@@ -1636,7 +1638,7 @@ const AdminSiteContent = () => {
                                             <Button
                                                 variant="outline"
                                                 size="icon"
-                                                onClick={() => deleteFaq(index)}
+                                                onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { deleteFaq(index); } }}
                                                 aria-label="Delete this question"
                                                 className="h-10 w-10 rounded-xl text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground"
                                             >

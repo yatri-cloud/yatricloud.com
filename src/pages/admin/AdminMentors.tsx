@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useEffect, useState } from "react";
 import {
     ArrowDown,
@@ -137,6 +138,8 @@ const deleteIconButtonClass =
 
 const AdminMentors = () => {
     const { toast } = useToast();
+
+    const { confirm } = useConfirm();
 
     const [loading, setLoading] = useState(true);
     const [mentors, setMentors] = useState<Mentor[]>([]);
@@ -802,7 +805,7 @@ const AdminMentors = () => {
                                                 <Button
                                                     variant="outline"
                                                     size="icon"
-                                                    onClick={() => setMentorToDelete(mentor)}
+                                                    onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { setMentorToDelete(mentor); } }}
                                                     aria-label={`Delete ${mentor.name}`}
                                                     className={deleteIconButtonClass}
                                                 >
@@ -1133,7 +1136,7 @@ const AdminMentors = () => {
                                             <Button
                                                 variant="outline"
                                                 size="icon"
-                                                onClick={() => deleteRule(rule)}
+                                                onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { deleteRule(rule); } }}
                                                 aria-label={`Delete the ${WEEKDAYS[rule.weekday]} window`}
                                                 className={deleteIconButtonClass}
                                             >

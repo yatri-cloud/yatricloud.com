@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { Loader2, Trash } from "lucide-react";
+import { Loader2, Trash, MoreHorizontal } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import {
   getPostBySlug, incrementView, getUserId, getMyClap, setClap, isBookmarked, toggleBookmark,
   isFollowing, toggleFollow, followerCount, listResponses, addResponse, deleteResponse, authorIsCertified,
@@ -259,9 +261,19 @@ const ResponseItem = ({ r, uid, onDelete }: { r: BlogResponse; uid: string | nul
         <span className="font-semibold text-foreground">{r.author_name}</span>
         <span className="text-muted-foreground text-xs">{new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
         {uid === r.user_id && (
-          <button onClick={() => onDelete(r.id)} className="ml-auto h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90" aria-label="Delete">
-              <Trash className="h-4 w-4" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="ml-auto h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onDelete(r.id)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
       <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{r.body}</p>
