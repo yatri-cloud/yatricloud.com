@@ -83,9 +83,6 @@ export default function AdminOverviewPage() {
         <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-8">
             <div>
                 <h1 className="font-display text-3xl font-black tracking-tight">Overview</h1>
-                <p className="mt-1 text-muted-foreground">
-                    A quick pulse on Yatri Cloud, then jump straight to what you need.
-                </p>
             </div>
 
             {isLoading || !data ? (
@@ -112,10 +109,10 @@ export default function AdminOverviewPage() {
 
                     {/* ── Stats grid — 14 tiles ── */}
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                        <StatsCard title="Revenue in INR" value={formatInvoiceMoney(data.inrRevenue, "INR")} icon={IndianRupee} color="bg-emerald-500/10 text-emerald-600" />
+                        <StatsCard title="Revenue in INR" value={formatInvoiceMoney(data.inrRevenue, "INR")} icon={IndianRupee} color="bg-emerald-500 text-white border-0" />
                         <StatsCard title="Receipts" value={data.receipts} icon={Receipt} color="bg-primary/10 text-primary" />
-                        <StatsCard title="Registered Yatris" value={data.yatris} icon={Users} color="bg-blue-500/10 text-blue-600" />
-                        <StatsCard title="Mentorship bookings" value={data.mentorshipBookings} icon={Handshake} color="bg-amber-500/10 text-amber-600" />
+                        <StatsCard title="Registered Yatris" value={data.yatris} icon={Users} color="bg-blue-500 text-white border-0" />
+                        <StatsCard title="Mentorship bookings" value={data.mentorshipBookings} icon={Handshake} color="bg-amber-500 text-white border-0" />
                         <StatsCard title="Events" value={data.events} icon={Calendar} color="bg-violet-500/10 text-violet-600" />
                         <StatsCard title="Event registrations" value={data.eventRegistrations} icon={TicketCheck} color="bg-rose-500/10 text-rose-600" />
                         <StatsCard title="Trainings" value={data.trainings} icon={GraduationCap} color="bg-cyan-500/10 text-cyan-600" />

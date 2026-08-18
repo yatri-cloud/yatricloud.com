@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { Loader2, FolderPlus, User, Clock, BookOpen, Layers, CheckCircle, ChevronRight, Trash2, Plus, FileText, Video, ClipboardList, Save, Upload, MapPin, Users, Ticket, CreditCard } from "lucide-react";
+import { Loader2, FolderPlus, User, Clock, BookOpen, Layers, CheckCircle, ChevronRight, Trash2, Trash, Plus, FileText, Video, ClipboardList, Save, Upload, MapPin, Users, Ticket, CreditCard } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -555,11 +555,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                         {/* STEP 1: IDENTITY */}
                         <TabsContent value="Identity" className="space-y-6">
-                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
-                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                            <div className="space-y-8 py-2">
+                                <div className="mb-6 flex items-start gap-3 pb-2">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">1</span>
                                     <div className="min-w-0">
-                                        <h2 className="font-display text-lg font-semibold tracking-tight">Course Identity</h2>
+                                        <h2 className="font-display font-semibold tracking-tight">Course Identity</h2>
                                         <p className="text-sm text-muted-foreground">Tell learners what this training is and who it's for.</p>
                                     </div>
                                 </div>
@@ -626,7 +626,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
 
                                 {/* Visibility — public (listed) vs private (unlisted link) */}
-                                <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-3">
+                                <div className="space-y-4 pt-4">
                                     <div>
                                         <Label className="block text-sm font-medium">Visibility</Label>
                                         <p className="text-sm text-muted-foreground mt-0.5">Public trainings appear on the /training page. Private trainings stay off the site — you share their link to take enrollments.</p>
@@ -652,7 +652,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                                 {/* Certification — the single source of the course's provider + name.
                                     (For non-certification trainings it stays an optional link.) */}
-                                <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
+                                <div className="space-y-4 pt-4">
                                     <div>
                                         <Label className="block text-sm font-medium">{selectedType === "Certification" ? "Certification" : "Prepares you for"}</Label>
                                         <p className="text-sm text-muted-foreground mt-0.5">
@@ -741,23 +741,23 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                             </div>
 
                             <div className="flex justify-end pt-2 mt-auto">
-                                <Button type="button" onClick={() => setActiveTab("Details")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                                <Button type="button" onClick={() => setActiveTab("Details")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next</Button>
                             </div>
                         </TabsContent>
 
                         {/* STEP 2: DETAILS */}
                         <TabsContent value="Details" className="space-y-6">
-                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6">
-                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">2</span>
+                            <div className="space-y-8 py-2">
+                                <div className="mb-6 flex items-start gap-3 pb-2">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">2</span>
                                     <div className="min-w-0">
-                                        <h2 className="font-display text-lg font-semibold tracking-tight">Course Details</h2>
+                                        <h2 className="font-display font-semibold tracking-tight">Course Details</h2>
                                         <p className="text-sm text-muted-foreground">Instructor, duration, and what learners walk away with.</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                     <div>
-                                        <Label className="flex items-center gap-1.5 text-sm font-medium mb-1.5"><User className="w-3.5 h-3.5" /> Instructor Name</Label>
+                                        <Label className="block text-sm font-medium mb-1.5">Instructor Name</Label>
                                         <Select
                                             onValueChange={(val) => !isTrainerMode && setValue("instructor", val)}
                                             value={isTrainerMode && trainerData ? trainerData.trainerId : watch("instructor")}
@@ -780,7 +780,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                         </Select>
                                     </div>
                                     <div>
-                                        <Label className="flex items-center gap-1.5 text-sm font-medium mb-1.5"><Clock className="w-3.5 h-3.5" /> Total Duration</Label>
+                                        <Label className="block text-sm font-medium mb-1.5">Total Duration</Label>
                                         <Input {...register("duration")} data-testid="builder-duration" placeholder="e.g. 5 hours" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                     </div>
                                     <div>
@@ -806,18 +806,18 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                             </div>
                             <div className="flex justify-between pt-2 mt-auto">
                                 <Button type="button" variant="ghost" onClick={() => setActiveTab("Identity")} className="min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">Back</Button>
-                                <Button type="button" onClick={() => setActiveTab("Logistics")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                                <Button type="button" onClick={() => setActiveTab("Logistics")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next</Button>
                             </div>
                         </TabsContent>
 
                         {/* STEP 3: LOGISTICS */}
                         <TabsContent value="Logistics" className="space-y-6">
                             {/* Mode Section */}
-                            <div className="space-y-5 rounded-2xl border border-border p-6 md:p-8 bg-card text-card-foreground">
-                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">3</span>
+                            <div className="space-y-8 py-2">
+                                <div className="mb-6 flex items-start gap-3 pb-2">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">3</span>
                                     <div className="min-w-0">
-                                        <h2 className="font-display text-lg font-semibold tracking-tight">Delivery Mode</h2>
+                                        <h2 className="font-display font-semibold tracking-tight">Delivery Mode</h2>
                                         <p className="text-sm text-muted-foreground">Choose how the training runs — online or on-site — and set the schedule.</p>
                                     </div>
                                 </div>
@@ -894,11 +894,10 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                             </div>
 
                             {/* Capacity Section */}
-                            <div className="space-y-5 rounded-2xl border border-border p-6 md:p-8 bg-card text-card-foreground">
-                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">3</span>
+                            <div className="space-y-8 py-2">
+                                <div className="mb-6 pb-2">
                                     <div className="min-w-0">
-                                        <h2 className="font-display text-lg font-semibold tracking-tight">Capacity</h2>
+                                        <h2 className="font-display font-semibold tracking-tight">Capacity</h2>
                                         <p className="text-sm text-muted-foreground">Allow unlimited seats or cap the number of attendees.</p>
                                     </div>
                                 </div>
@@ -921,11 +920,10 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                             </div>
 
                             {/* Payment Section */}
-                            <div className="space-y-5 rounded-2xl border border-border p-6 md:p-8 bg-card text-card-foreground">
-                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">3</span>
+                            <div className="space-y-8 py-2">
+                                <div className="mb-6 pb-2">
                                     <div className="min-w-0">
-                                        <h2 className="font-display text-lg font-semibold tracking-tight">Payment &amp; Vouchers</h2>
+                                        <h2 className="font-display font-semibold tracking-tight">Payment &amp; Vouchers</h2>
                                         <p className="text-sm text-muted-foreground">Set whether the course is free or paid, and generate a coupon code.</p>
                                     </div>
                                 </div>
@@ -963,7 +961,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                         </div>
 
                                         <div className="bg-muted/30 p-5 rounded-xl border border-dashed border-border">
-                                            <Label className="flex items-center gap-2 text-sm font-medium mb-2"><Ticket className="w-3.5 h-3.5" /> Coupon Code Generation</Label>
+                                            <Label className="block text-sm font-medium mb-2">Coupon Code Generation</Label>
                                             <div className="flex gap-2">
                                                 <Input {...register("couponCode")} placeholder="CERT-AZURE-YATRI-001" className="h-11 rounded-xl border border-input bg-background font-mono uppercase focus:ring-2 focus:ring-ring focus:border-primary" />
                                                 <Button type="button" variant="secondary" onClick={generateCoupon} className="min-h-[44px] rounded-xl">
@@ -980,7 +978,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                             <div className="flex justify-between pt-2 mt-auto">
                                 <Button type="button" variant="ghost" onClick={() => setActiveTab("Details")} className="min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">Back</Button>
-                                <Button type="button" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                                <Button type="button" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next</Button>
                             </div>
                         </TabsContent>
 
@@ -988,7 +986,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                         <TabsContent value="Curriculum" className="space-y-5">
                             <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center bg-muted/30 p-4 rounded-xl border border-border">
                                 <div>
-                                    <h4 className="font-semibold text-sm">Bulk Import</h4>
+                                    <h4 className="font-semibold">Bulk Import</h4>
                                     <p className="text-xs text-muted-foreground">Upload a Markdown file to auto-populate modules.</p>
                                 </div>
                                 <div className="flex gap-2">
@@ -1010,11 +1008,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
-                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">4</span>
+                            <div className="space-y-8 py-2">
+                                <div className="mb-6 flex items-start gap-3 pb-2">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">4</span>
                                     <div className="min-w-0">
-                                        <h2 className="font-display text-lg font-semibold tracking-tight">Curriculum</h2>
+                                        <h2 className="font-display font-semibold tracking-tight">Curriculum</h2>
                                         <p className="text-sm text-muted-foreground">Build your modules and lessons, or bulk-import them from Markdown.</p>
                                     </div>
                                 </div>
@@ -1023,16 +1021,16 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
 
                             <div className="flex justify-between pt-2 mt-auto">
                                 <Button type="button" variant="ghost" onClick={() => setActiveTab("Logistics")} className="min-h-[44px] rounded-xl hover:bg-brand-50 hover:text-primary">Back</Button>
-                                <Button type="button" onClick={() => setActiveTab("Quiz")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                                <Button type="button" onClick={() => setActiveTab("Quiz")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">Next</Button>
                             </div>
                         </TabsContent>
 
                         {/* Quiz Tab */}
                         <TabsContent value="Quiz" className="space-y-5">
-                            <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">5</span>
+                            <div className="mb-6 flex items-start gap-3 pb-2">
+                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">5</span>
                                 <div className="min-w-0">
-                                    <h2 className="font-display text-lg font-semibold tracking-tight">Training Quizzes</h2>
+                                    <h2 className="font-display font-semibold tracking-tight">Training Quizzes</h2>
                                     <p className="text-sm text-muted-foreground">Create quiz questions to test students' knowledge.</p>
                                 </div>
                             </div>
@@ -1043,24 +1041,24 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 <Button type="button" variant="outline" onClick={() => setActiveTab("Curriculum")} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
                                     Back
                                 </Button>
-                                <Button type="button" onClick={() => setActiveTab("Resources")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
-                                    Next <ChevronRight className="ml-2 w-4 h-4" />
+                                <Button type="button" onClick={() => setActiveTab("Resources")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
+                                    Next
                                 </Button>
                             </div>
                         </TabsContent>
 
                         {/* Resources Tab */}
                         <TabsContent value="Resources" className="space-y-5">
-                            <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">6</span>
+                            <div className="mb-6 flex items-start gap-3 pb-2">
+                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">6</span>
                                 <div className="min-w-0">
-                                    <h2 className="font-display text-lg font-semibold tracking-tight">Training Resources</h2>
+                                    <h2 className="font-display font-semibold tracking-tight">Training Resources</h2>
                                     <p className="text-sm text-muted-foreground">Add downloadable resources, PDFs, and links for students.</p>
                                 </div>
                             </div>
 
-                            <Card className="rounded-2xl border border-border">
-                                <CardContent className="pt-6 space-y-5">
+                            <div className="space-y-5">
+                                <div className="space-y-5">
                                     <Tabs value={resourceMode} onValueChange={(v) => setResourceMode(v as 'link' | 'upload')} className="w-full">
                                         <TabsList className="grid w-full grid-cols-2 mb-4">
                                             <TabsTrigger value="link" className="rounded-lg">External Link</TabsTrigger>
@@ -1148,8 +1146,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                 <Input id="resource-desc-upload" placeholder="Brief description" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                             </div>
 
-                                            <Button type="button" disabled={isUploading} onClick={handleResourceUpload} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
-                                                {isUploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                            <Button type="button" disabled={isUploading} onClick={handleResourceUpload} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
                                                 {isUploading ? "Uploading..." : "Upload & Add Resource"}
                                             </Button>
                                         </TabsContent>
@@ -1171,11 +1168,11 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                             <Button
                                                                 type="button"
                                                                 variant="ghost"
-                                                                size="sm"
+                                                                size="icon"
                                                                 onClick={() => setResources(resources.filter((_, i) => i !== idx))}
-                                                                className="text-destructive hover:text-destructive"
+                                                                className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                                                             >
-                                                                Remove
+                                                                <Trash className="h-4 w-4" />
                                                             </Button>
                                                         </div>
                                                     ))}
@@ -1183,26 +1180,26 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             </CardContent>
                                         </Card>
                                     )}
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
 
                             <div className="flex justify-between pt-2">
                                 <Button type="button" variant="outline" onClick={() => setActiveTab("Quiz")} className="min-h-[44px] rounded-xl border border-border hover:bg-brand-50 hover:text-primary">
                                     Back
                                 </Button>
-                                <Button type="button" onClick={() => setActiveTab("Review")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
-                                    Next <ChevronRight className="ml-2 w-4 h-4" />
+                                <Button type="button" onClick={() => setActiveTab("Review")} className="min-h-[44px] px-6 font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
+                                    Next
                                 </Button>
                             </div>
                         </TabsContent>
 
                         {/* STEP 4: REVIEW */}
                         <TabsContent value="Review" className="space-y-6">
-                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-4">
-                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">7</span>
+                            <div className="space-y-8 py-2">
+                                <div className="mb-6 flex items-start gap-3 pb-2">
+                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">7</span>
                                     <div className="min-w-0">
-                                        <h2 className="font-display text-lg font-semibold tracking-tight">Training Summary</h2>
+                                        <h2 className="font-display font-semibold tracking-tight">Training Summary</h2>
                                         <p className="text-sm text-muted-foreground">Review the key details before you publish.</p>
                                     </div>
                                 </div>
@@ -1219,27 +1216,22 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
-                                <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                    <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">7</span>
+                            <div className="space-y-8 py-2">
+                                <div className="mb-6 pb-2">
                                     <div className="min-w-0">
-                                        <h2 className="font-display text-lg font-semibold tracking-tight">Curriculum Preview</h2>
+                                        <h2 className="font-display font-semibold tracking-tight">Curriculum Preview</h2>
                                         <p className="text-sm text-muted-foreground">A quick look at the modules and lessons you've built.</p>
                                     </div>
                                 </div>
                                 <div className="space-y-3 max-h-[300px] overflow-y-auto border border-border p-3 rounded-xl">
                                     {curriculum?.map((module, i) => (
-                                        <div key={i} className="border border-border rounded-xl p-3 bg-card">
-                                            <div className="font-semibold flex items-center gap-2">
-                                                <Layers className="w-4 h-4 text-primary" />
+                                        <div key={i} className="py-2">
+                                            <div className="font-semibold">
                                                 Module {i + 1}: {module.title}
                                             </div>
-                                            <ul className="ml-6 mt-2 space-y-1 text-sm text-muted-foreground">
+                                            <ul className="ml-4 mt-2 space-y-1 text-sm text-muted-foreground">
                                                 {module.lessons?.map((lesson, j) => (
                                                     <li key={j} className="flex items-center gap-2">
-                                                        {lesson.type === "Video" && <Video className="w-3 h-3" />}
-                                                        {lesson.type === "Reading" && <FileText className="w-3 h-3" />}
-                                                        {lesson.type === "Assignment" && <ClipboardList className="w-3 h-3" />}
                                                         {lesson.title} <span className="text-xs border border-border px-1.5 py-0.5 rounded-md">{lesson.duration}</span>
                                                     </li>
                                                 ))}

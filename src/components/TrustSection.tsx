@@ -122,11 +122,8 @@ const MarqueeRow = ({
           <div
             key={`${feature.title}-${i}`}
             role={copy === 0 ? "listitem" : undefined}
-            className="inline-flex items-center gap-3 rounded-full border border-border bg-card px-5 py-3 min-h-[44px]"
+            className="inline-flex items-center rounded-full border border-border bg-card px-5 py-3 min-h-[44px]"
           >
-            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
-              {i + 1}
-            </span>
             <span className="whitespace-nowrap font-display text-sm md:text-base font-semibold tracking-tight text-foreground">
               {feature.title}
             </span>
@@ -169,7 +166,6 @@ export const TrustSection = () => {
          * ------------------------------------------------------------- */}
         <ScrollReveal>
           <div className="text-center mb-12 max-w-3xl mx-auto">
-            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-3">Is this for you?</p>
             <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-foreground">
               This Certification Program Is a <span className="gradient-text">Perfect</span> Fit If You're Ready to...
             </h2>
@@ -244,9 +240,6 @@ export const TrustSection = () => {
          * ------------------------------------------------------------- */}
         <ScrollReveal delay={0.1}>
           <div className="text-center mb-14 max-w-3xl mx-auto">
-            <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
-              Trusted by Professionals
-            </span>
             <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight mb-4">
               Why Learners <span className="gradient-text">Trust Us</span>
             </h2>

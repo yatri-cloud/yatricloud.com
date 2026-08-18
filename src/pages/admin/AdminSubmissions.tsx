@@ -140,8 +140,8 @@ export default function AdminSubmissions() {
     };
 
     const StatusBadge = ({ status }: { status: string }) => {
-        if (status === 'approved') return <Badge className="rounded-full border-0 bg-success/10 text-success text-xs font-medium">Approved</Badge>;
-        if (status === 'rejected') return <Badge className="rounded-full border-0 bg-destructive/10 text-destructive text-xs font-medium">Rejected</Badge>;
+        if (status === 'approved') return <Badge className="rounded-full border-0 bg-success text-white text-xs font-medium">Approved</Badge>;
+        if (status === 'rejected') return <Badge className="rounded-full border-0 bg-destructive text-white text-xs font-medium">Rejected</Badge>;
         return <Badge className="rounded-full border-0 bg-warning/10 text-warning text-xs font-medium">Pending</Badge>;
     };
 
@@ -165,7 +165,6 @@ export default function AdminSubmissions() {
                     <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div className="space-y-1.5">
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Event Submissions</h1>
-                            <p className="text-muted-foreground">Review and manage proposals for your upcoming events.</p>
                         </div>
                     </div>
                 </div>
@@ -186,9 +185,7 @@ export default function AdminSubmissions() {
                     </div>
                 ) : (
                     <div className="border border-border rounded-2xl bg-card p-10 text-center">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                            <Building2 className="h-7 w-7" />
-                        </div>
+                        
                         <h3 className="font-display text-lg font-semibold">No upcoming events yet</h3>
                         <p className="text-muted-foreground mt-1">Publish an upcoming event to start collecting proposals.</p>
                     </div>
@@ -212,15 +209,15 @@ export default function AdminSubmissions() {
                     <Tabs defaultValue="venues" className="w-full space-y-6">
                         <TabsList className="grid w-full grid-cols-3 rounded-xl p-1">
                             <TabsTrigger value="venues" className="min-h-[44px] rounded-lg focus-visible:ring-2 focus-visible:ring-ring">
-                                <Building2 className="w-4 h-4 mr-2" />
+                                
                                 Venues ({submissions.venues.length})
                             </TabsTrigger>
                             <TabsTrigger value="speakers" className="min-h-[44px] rounded-lg focus-visible:ring-2 focus-visible:ring-ring">
-                                <Mic className="w-4 h-4 mr-2" />
+                                
                                 Speakers ({submissions.speakers.length})
                             </TabsTrigger>
                             <TabsTrigger value="sponsors" className="min-h-[44px] rounded-lg focus-visible:ring-2 focus-visible:ring-ring">
-                                <Handshake className="w-4 h-4 mr-2" />
+                                
                                 Sponsors ({submissions.sponsors.length})
                             </TabsTrigger>
                         </TabsList>
@@ -229,9 +226,7 @@ export default function AdminSubmissions() {
                         <TabsContent value="venues" className="space-y-4">
                             {filteredVenues.length === 0 ? (
                                 <div className="border border-border rounded-2xl bg-card p-10 text-center">
-                                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                                        <Building2 className="h-7 w-7" />
-                                    </div>
+                                    
                                     <h3 className="font-display text-lg font-semibold">{submissions.venues.length === 0 ? "No venue proposals yet" : "No venues match your search"}</h3>
                                     <p className="text-muted-foreground mt-1">{submissions.venues.length === 0 ? "New venue offers for this event will show up here." : "Try a different name, contact or email."}</p>
                                 </div>
@@ -269,12 +264,12 @@ export default function AdminSubmissions() {
 
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                                             <span className="inline-flex items-center gap-2">
-                                                <Mail className="w-4 h-4" />
+                                                
                                                 {venue.contactEmail}
                                             </span>
                                             {venue.contactPhone && (
                                                 <span className="inline-flex items-center gap-2">
-                                                    <Phone className="w-4 h-4" />
+                                                    
                                                     {venue.contactPhone}
                                                 </span>
                                             )}
@@ -304,9 +299,7 @@ export default function AdminSubmissions() {
                         <TabsContent value="speakers" className="space-y-4">
                             {filteredSpeakers.length === 0 ? (
                                 <div className="border border-border rounded-2xl bg-card p-10 text-center">
-                                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                                        <Mic className="h-7 w-7" />
-                                    </div>
+                                    
                                     <h3 className="font-display text-lg font-semibold">{submissions.speakers.length === 0 ? "No speaker applications yet" : "No speakers match your search"}</h3>
                                     <p className="text-muted-foreground mt-1">{submissions.speakers.length === 0 ? "Talk proposals for this event will appear here." : "Try a different name, talk or email."}</p>
                                 </div>
@@ -345,7 +338,7 @@ export default function AdminSubmissions() {
 
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                                             <span className="inline-flex items-center gap-2">
-                                                <Mail className="w-4 h-4" />
+                                                
                                                 {speaker.email}
                                             </span>
                                             {speaker.linkedinWebsite && (
@@ -379,9 +372,7 @@ export default function AdminSubmissions() {
                         <TabsContent value="sponsors" className="space-y-4">
                             {filteredSponsors.length === 0 ? (
                                 <div className="border border-border rounded-2xl bg-card p-10 text-center">
-                                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                                        <Handshake className="h-7 w-7" />
-                                    </div>
+                                    
                                     <h3 className="font-display text-lg font-semibold">{submissions.sponsors.length === 0 ? "No sponsorship proposals yet" : "No sponsors match your search"}</h3>
                                     <p className="text-muted-foreground mt-1">{submissions.sponsors.length === 0 ? "Partnership offers for this event will appear here." : "Try a different company, contact or email."}</p>
                                 </div>
@@ -429,12 +420,12 @@ export default function AdminSubmissions() {
 
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                                             <span className="inline-flex items-center gap-2">
-                                                <Mail className="w-4 h-4" />
+                                                
                                                 {sponsor.contactEmail}
                                             </span>
                                             {sponsor.contactPhone && (
                                                 <span className="inline-flex items-center gap-2">
-                                                    <Phone className="w-4 h-4" />
+                                                    
                                                     {sponsor.contactPhone}
                                                 </span>
                                             )}

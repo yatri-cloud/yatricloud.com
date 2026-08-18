@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Search, Loader2, Mail, Phone, MapPin, Linkedin, User, Calendar, CheckCircle2, CreditCard, Banknote, Edit, Trash2 } from "lucide-react";
+import { Search, Loader2, Mail, Phone, MapPin, Linkedin, User, Calendar, CheckCircle2, CreditCard, Banknote, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -276,11 +276,7 @@ export default function EventRegistrationsList() {
 
                         <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                             <div className="space-y-1.5">
-                                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Registrations
-                                </p>
                                 <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">{event.name}</h1>
-                                <p className="text-muted-foreground">Manage attendees, check-ins, and ticket details.</p>
                             </div>
                         </div>
 
@@ -314,7 +310,7 @@ export default function EventRegistrationsList() {
                                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Attended</p>
                                 <p className="text-2xl font-bold tabular-nums mt-1">{stats.attended}</p>
                             </div>
-                            <div className="rounded-2xl bg-success/10 text-success p-2.5">
+                            <div className="rounded-2xl bg-success text-white p-2.5">
                                 <CheckCircle2 className="w-5 h-5" />
                             </div>
                         </div>
@@ -325,7 +321,7 @@ export default function EventRegistrationsList() {
                                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Cancelled</p>
                                 <p className="text-2xl font-bold tabular-nums mt-1">{stats.cancelled}</p>
                             </div>
-                            <div className="rounded-2xl bg-destructive/10 text-destructive p-2.5">
+                            <div className="rounded-2xl bg-destructive text-white p-2.5">
                                 <Banknote className="w-5 h-5" />
                             </div>
                         </div>
@@ -433,7 +429,7 @@ export default function EventRegistrationsList() {
                                         </TableCell>
                                         <TableCell className="px-4 py-3">
                                             {reg.ticketType === 'paid' ? (
-                                                <Badge className={`rounded-full text-xs font-medium ${reg.paymentStatus === 'completed' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
+                                                <Badge className={`rounded-full text-xs font-medium ${reg.paymentStatus === 'completed' ? 'bg-success text-white' : 'bg-destructive text-white'}`}>
                                                     {reg.paymentStatus === 'completed' ? 'Paid' : 'Pending'}
                                                 </Badge>
                                             ) : (
@@ -443,9 +439,9 @@ export default function EventRegistrationsList() {
                                         <TableCell className="px-4 py-3">
                                             <Badge className={`rounded-full text-xs font-medium ${
                                                 reg.status === 'attended'
-                                                    ? 'bg-success/10 text-success'
+                                                    ? 'bg-success text-white'
                                                     : reg.status === 'cancelled'
-                                                        ? 'bg-destructive/10 text-destructive'
+                                                        ? 'bg-destructive text-white'
                                                         : 'bg-primary/10 text-primary'
                                             }`}>
                                                 {reg.status === 'attended' ? 'Attended' : reg.status === 'cancelled' ? 'Cancelled' : 'Registered'}
@@ -472,7 +468,7 @@ export default function EventRegistrationsList() {
                                                         title="Cancel Registration"
                                                         aria-label="Cancel registration"
                                                     >
-                                                        <Trash2 className="w-4 h-4" />
+                                                        <Trash className="w-4 h-4" />
                                                     </Button>
                                                 )}
                                                 <Button
@@ -537,11 +533,11 @@ export default function EventRegistrationsList() {
                                         <TableCell className="px-4 py-3">
                                             <Badge className={`rounded-full text-xs font-medium ${
                                                 entry.status === 'converted'
-                                                    ? 'bg-success/10 text-success'
+                                                    ? 'bg-success text-white'
                                                     : entry.status === 'notified'
                                                         ? 'bg-primary/10 text-primary'
                                                         : entry.status === 'cancelled'
-                                                            ? 'bg-destructive/10 text-destructive'
+                                                            ? 'bg-destructive text-white'
                                                             : 'bg-warning/10 text-warning'
                                             }`}>
                                                 {entry.status === 'waiting' ? 'Waiting'
@@ -602,9 +598,9 @@ export default function EventRegistrationsList() {
                                 <h3 className="font-display text-lg font-semibold">User Information</h3>
                                 <Badge className={`rounded-full text-xs font-medium ${
                                     selectedRegistration.status === 'attended'
-                                        ? 'bg-success/10 text-success'
+                                        ? 'bg-success text-white'
                                         : selectedRegistration.status === 'cancelled'
-                                            ? 'bg-destructive/10 text-destructive'
+                                            ? 'bg-destructive text-white'
                                             : 'bg-primary/10 text-primary'
                                 }`}>
                                     {selectedRegistration.status.toUpperCase()}

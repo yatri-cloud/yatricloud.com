@@ -103,7 +103,7 @@ const saveButtonClass =
 const STATUS_PILL: Record<ApplicationStatus, { label: string; className: string }> = {
     pending: { label: "Pending", className: "bg-brand-100 text-brand-700" },
     approved: { label: "Approved", className: "bg-primary/10 text-primary" },
-    rejected: { label: "Rejected", className: "bg-destructive/10 text-destructive" },
+    rejected: { label: "Rejected", className: "bg-destructive text-white" },
 };
 
 const FILTERS: { value: StatusFilter; label: string }[] = [
@@ -512,15 +512,9 @@ const AdminMentorApplications = () => {
                         <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
                         <div className="relative space-y-1.5">
-                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Mentorship
-                            </p>
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                 Mentor <span className="gradient-text">Applications</span>
                             </h1>
-                            <p className="text-muted-foreground">
-                                Review the people who want to mentor on Yatri Cloud. Approving gives them a mentor account they set up and publish themselves.
-                            </p>
                         </div>
                     </div>
                 </ScrollReveal>
@@ -898,7 +892,7 @@ const AdminMentorApplications = () => {
                         <Button
                             onClick={confirmReject}
                             disabled={rejecting}
-                            className="min-h-[44px] rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-semibold"
+                            className="min-h-[44px] rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white font-semibold"
                         >
                             {rejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Decline application

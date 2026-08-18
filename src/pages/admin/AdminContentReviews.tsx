@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Star, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Loader2, Search, Star, Eye, EyeOff, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -82,9 +82,6 @@ const AdminContentReviews = () => {
         <ScrollReveal>
           <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
             <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Content <span className="gradient-text">reviews</span></h1>
-            <p className="mt-1 text-muted-foreground">
-              Reviews Yatris leave on events, store products, Udemy courses and exam dumps — {rows.length} total. Training and mentor reviews have their own consoles.
-            </p>
           </div>
         </ScrollReveal>
 
@@ -146,7 +143,7 @@ const AdminContentReviews = () => {
                   <Button size="sm" variant="outline" onClick={() => toggle(r)} className="rounded-lg" title={r.isPublic ? "Hide" : "Show"}>
                     {r.isPublic ? <><EyeOff className="mr-1 h-3.5 w-3.5" /> Hide</> : <><Eye className="mr-1 h-3.5 w-3.5" /> Show</>}
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => setToDelete(r)} className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" aria-label={`Delete the review by ${r.name}`}><Trash2 className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => setToDelete(r)} className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" aria-label={`Delete the review by ${r.name}`}><Trash className="h-4 w-4" /></Button>
                 </div>
               </div>
             ))}
@@ -160,7 +157,7 @@ const AdminContentReviews = () => {
             <AlertDialogDescription>It will be permanently removed. To just take it off the site, use Hide instead.</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl">Keep it</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"><Trash2 className="mr-2 h-4 w-4" /> Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} className="rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"><Trash className="mr-2 h-4 w-4" /> Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

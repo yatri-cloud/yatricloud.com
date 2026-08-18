@@ -8,7 +8,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import {
   Search,
   Loader2,
-  Trash2,
+  Trash,
   Download,
   Users,
   UserCheck,
@@ -280,16 +280,9 @@ export default function AdminSubscribers() {
               className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
             />
             <div className="relative">
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Newsletter
-              </p>
               <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight md:text-3xl">
                 Subscribers
               </h1>
-              <p className="mt-1 text-muted-foreground">
-                Manage your newsletter audience. Search, export, or remove subscribers.
-              </p>
             </div>
           </div>
         </ScrollReveal>
@@ -484,12 +477,12 @@ export default function AdminSubscribers() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground rounded-lg"
+                            className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                             onClick={() => setToDelete(sub)}
                             data-testid="subscriber-delete"
                             aria-label={`Delete ${sub.email}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>
@@ -527,9 +520,9 @@ export default function AdminSubscribers() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash className="mr-2 h-4 w-4" />
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

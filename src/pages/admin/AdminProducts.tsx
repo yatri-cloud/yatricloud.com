@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Search, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { Loader2, Search, Plus, Pencil, Trash, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,9 +73,7 @@ const AdminProducts = () => {
           <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Store</p>
                 <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight md:text-3xl">Manage <span className="gradient-text">products</span></h1>
-                <p className="mt-1 text-muted-foreground">{items.length} products · {published} published. Edit, publish, or remove — changes are live.</p>
               </div>
               <Button asChild className="rounded-xl bg-primary hover:bg-brand-600 shadow-inset-btn"><Link to="/admin/products/add"><Plus className="mr-1.5 h-4 w-4" /> Add product</Link></Button>
             </div>
@@ -112,7 +110,7 @@ const AdminProducts = () => {
                     <Switch checked={p.status === "published"} onCheckedChange={() => toggleStatus(p)} className="scale-90" />
                   </label>
                   <Button size="icon" variant="ghost" onClick={() => setEditing({ ...p })} className="h-9 w-9 rounded-lg text-muted-foreground hover:text-primary" aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => setToDelete(p)} className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => setToDelete(p)} className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" aria-label="Delete"><Trash className="h-4 w-4" /></Button>
                 </div>
               </div>
             ))}
@@ -164,7 +162,7 @@ const AdminProducts = () => {
             <AlertDialogDescription>It will be removed from the store. This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl">Keep it</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"><Trash2 className="mr-2 h-4 w-4" /> Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} className="rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"><Trash className="mr-2 h-4 w-4" /> Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

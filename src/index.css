@@ -230,9 +230,27 @@
     font-family: "Inter Tight Variable", "Inter Tight", sans-serif;
   }
   
-  /* Default font weight for headings and important text */
+  /* Global Typographic Scale for Headings (Minimal & Clean UX) */
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
+    @apply font-display tracking-tight text-foreground;
+  }
+  h1 {
+    @apply text-3xl md:text-4xl font-bold;
+  }
+  h2 {
+    @apply text-2xl md:text-3xl font-bold;
+  }
+  h3 {
+    @apply text-xl md:text-2xl font-semibold;
+  }
+  h4 {
+    @apply text-lg md:text-xl font-semibold;
+  }
+  h5 {
+    @apply text-base font-semibold;
+  }
+  h6 {
+    @apply text-sm font-semibold uppercase tracking-wider text-muted-foreground;
   }
 }
 
@@ -544,4 +562,11 @@
 /* Google's overlay adds a scroll-lock to <body>; never let it stick. */
 body {
   overflow-y: auto !important;
+}
+
+/* Fix for Calendly loading race condition: ensures the popup stays on top
+   even before the external widget.css finishes downloading. */
+.calendly-overlay {
+  position: fixed !important;
+  z-index: 99999 !important;
 }

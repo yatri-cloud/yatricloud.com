@@ -103,33 +103,33 @@ export default function YatriDashboard() {
                             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                                 <Link to="/my-trainings">
                                     <Card className="group h-full transition-colors hover:border-primary/40 hover:bg-brand-50/40">
-                                        <CardContent className="flex items-center gap-4 p-5">
-                                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><BookOpen className="h-5 w-5" /></span>
-                                            <span><span className="block text-2xl font-black tabular-nums">{enrollments.length}</span><span className="text-sm text-muted-foreground">Trainings</span></span>
+                                        <CardContent className="p-5">
+                                            <span className="block text-2xl font-black tabular-nums">{enrollments.length}</span>
+                                            <span className="text-sm font-medium text-muted-foreground">Trainings</span>
                                         </CardContent>
                                     </Card>
                                 </Link>
                                 <Link to="/profile/my-events">
                                     <Card className="group h-full transition-colors hover:border-primary/40 hover:bg-brand-50/40">
-                                        <CardContent className="flex items-center gap-4 p-5">
-                                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Calendar className="h-5 w-5" /></span>
-                                            <span><span className="block text-2xl font-black tabular-nums">{upcoming.length}</span><span className="text-sm text-muted-foreground">Upcoming events</span></span>
+                                        <CardContent className="p-5">
+                                            <span className="block text-2xl font-black tabular-nums">{upcoming.length}</span>
+                                            <span className="text-sm font-medium text-muted-foreground">Upcoming events</span>
                                         </CardContent>
                                     </Card>
                                 </Link>
                                 <Link to="/certificates">
                                     <Card className="group h-full transition-colors hover:border-primary/40 hover:bg-brand-50/40">
-                                        <CardContent className="flex items-center gap-4 p-5">
-                                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Award className="h-5 w-5" /></span>
-                                            <span><span className="block text-2xl font-black tabular-nums">{certs.length}</span><span className="text-sm text-muted-foreground">Certificates</span></span>
+                                        <CardContent className="p-5">
+                                            <span className="block text-2xl font-black tabular-nums">{certs.length}</span>
+                                            <span className="text-sm font-medium text-muted-foreground">Certificates</span>
                                         </CardContent>
                                     </Card>
                                 </Link>
                                 <Link to="/profile/purchases">
                                     <Card className="group h-full transition-colors hover:border-primary/40 hover:bg-brand-50/40">
-                                        <CardContent className="flex items-center gap-4 p-5">
-                                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Receipt className="h-5 w-5" /></span>
-                                            <span><span className="block text-2xl font-black tabular-nums">{invoices.length}</span><span className="text-sm text-muted-foreground">Receipts</span></span>
+                                        <CardContent className="p-5">
+                                            <span className="block text-2xl font-black tabular-nums">{invoices.length}</span>
+                                            <span className="text-sm font-medium text-muted-foreground">Receipts</span>
                                         </CardContent>
                                     </Card>
                                 </Link>

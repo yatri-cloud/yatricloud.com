@@ -204,12 +204,11 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                                                 <Link
                                                     key={item.path}
                                                     to={item.path}
-                                                    className={`flex items-center gap-3 min-h-[40px] px-3 py-2 rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${active
-                                                        ? "bg-primary/10 text-primary font-medium border-l-2 border-primary -ml-[18px] pl-4"
+                                                    className={`flex items-center min-h-[40px] px-3 py-2 rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${active
+                                                        ? "bg-primary text-primary-foreground font-medium shadow-inset-btn"
                                                         : "text-muted-foreground hover:bg-brand-50 hover:text-foreground"
                                                         }`}
                                                 >
-                                                    <ItemIcon className="w-4 h-4" />
                                                     <span>{item.name}</span>
                                                 </Link>
                                             );
@@ -297,7 +296,6 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                             target="_blank"
                             className="hidden sm:inline-flex items-center gap-2 min-h-[40px] rounded-xl border border-border bg-card px-3 text-sm font-medium text-muted-foreground hover:bg-brand-50 hover:text-primary hover:border-brand-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
-                            <ExternalLink className="w-4 h-4" />
                             View site
                         </Link>
 
@@ -307,7 +305,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                                 <span className="block text-sm font-medium">Admin</span>
                                 <span className="block text-[11px] text-muted-foreground">Signed in</span>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-inset-btn">
+                            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
                                 A
                             </div>
                         </div>

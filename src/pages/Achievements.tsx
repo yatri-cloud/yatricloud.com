@@ -45,12 +45,12 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   GCP: { logo: `${LOGO_BASE_URL}/google_cloud.svg` },
   GOOGLE: { logo: `${LOGO_BASE_URL}/google_cloud.svg` },
   GITHUB: { logo: `${LOGO_BASE_URL}/github-white-icon.webp`, logoLight: `${LOGO_BASE_URL}/github-white-icon.webp` },
-  ORACLE: { logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  ORACLE: { logo: `https://companieslogo.com/img/orig/ORCL-d5a587ae.png?t=1740130451` },
   SALESFORCE: { logo: `${LOGO_BASE_URL}/Salesforce_logo.svg` },
   SERVICENOW: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
   KUBERNETES: { logo: `${LOGO_BASE_URL}/kubernetes.svg` },
   TERRAFORM: { logo: `${LOGO_BASE_URL}/terraform.svg` },
-  OPENAI: { logo: `https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg` },
+  OPENAI: { logo: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318` },
   HASHICORP: { logo: `https://upload.wikimedia.org/wikipedia/commons/6/6e/HashiCorp_logo.svg`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/6/6e/HashiCorp_logo.svg` },
 };
 
@@ -1116,9 +1116,7 @@ const Achievements = () => {
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
 
-                  <Trophy className="relative z-10 w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
                   <span className="relative z-10">Add your name to the wall</span>
-                  <ExternalLink className="relative z-10 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
 
                   {/* Glow effect */}
                   <div className="absolute inset-0 rounded-2xl bg-primary/0 group-hover:bg-primary/25 blur-2xl transition-all duration-300" />
@@ -1134,12 +1132,11 @@ const Achievements = () => {
                     <div className="inline-flex min-w-max">
                       <button
                         onClick={() => setSelectedProvider("all")}
-                        className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedProvider === "all"
+                        className={`flex items-center justify-center px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedProvider === "all"
                           ? "bg-primary text-primary-foreground shadow-lg"
                           : "text-muted-foreground hover:text-foreground"
                           }`}
                       >
-                        <BadgeCheck className="w-4 h-4" />
                         All ({certifications.length})
                       </button>
                       {providers.map((provider) => {
@@ -1156,28 +1153,28 @@ const Achievements = () => {
                               ? providerLogo.logo
                               : (providerLogo.logoLight || providerLogo.logo)));
 
+                        const count = groupedByProvider[provider]?.reduce((sum, person) => sum + person.certifications.length, 0) || 0;
+
                         return (
                           <button
                             key={provider}
                             onClick={() => setSelectedProvider(provider)}
-                            className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedProvider === provider
-                              ? "bg-primary text-primary-foreground shadow-lg"
-                              : "text-muted-foreground hover:text-foreground"
+                            title={`${provider} (${count})`}
+                            className={`group relative flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-lg font-semibold transition-all ${selectedProvider === provider
+                              ? "bg-primary text-primary-foreground shadow-md"
+                              : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                               }`}
                           >
                             <img
                               src={logoSrc}
                               alt={provider}
-                              className={`object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''} ${provider === 'ORACLE' || provider === 'SERVICENOW'
-                                ? 'w-7 h-7'
-                                : 'w-5 h-5'
-                                }`}
+                              className={`w-5 h-5 object-contain transition-transform duration-200 group-hover:scale-110 ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''}`}
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
                               }}
                             />
-                            <span className="hidden sm:inline">
-                              {provider} ({groupedByProvider[provider]?.reduce((sum, person) => sum + person.certifications.length, 0) || 0})
+                            <span className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-semibold">
+                              {provider} ({count})
                             </span>
                           </button>
                         );
@@ -1393,6 +1390,40 @@ const Achievements = () => {
                                   className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5"
                                 />
 
+                                {/* Top Row: LinkedIn Logo (Top Left) & Country Flag (Top Right) */}
+                                <div className="flex items-center justify-between relative z-20 w-full mb-1">
+                                  {person.linkedinUrl ? (
+                                    <a
+                                      href={person.linkedinUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      title="LinkedIn Profile"
+                                      className="inline-flex items-center justify-center p-0.5 rounded-lg transition-transform duration-200 hover:scale-110"
+                                    >
+                                      <img
+                                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/500px-LinkedIn_logo_initials.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+                                        alt="LinkedIn"
+                                        className="w-5.5 h-5.5 sm:w-6 sm:h-6 object-contain"
+                                      />
+                                    </a>
+                                  ) : <div />}
+
+                                  {person.country && (
+                                    <div
+                                      className="group/flag relative flex items-center justify-center p-1 sm:px-2 sm:py-1 rounded-lg transition-all hover:bg-muted/80 cursor-pointer"
+                                      title={getCountryName(person.country)}
+                                    >
+                                      <span className="text-xl sm:text-2xl leading-none transition-transform duration-200 group-hover/flag:scale-110">
+                                        {getCountryFlag(person.country)}
+                                      </span>
+                                      <span className="max-w-0 overflow-hidden opacity-0 group-hover/flag:max-w-xs group-hover/flag:opacity-100 group-hover/flag:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap text-xs font-semibold text-foreground/80">
+                                        {getCountryName(person.country)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+
                                 {/* Photo */}
                                 <div className="relative mb-6 z-10 flex justify-center">
                                   <motion.div
@@ -1439,45 +1470,23 @@ const Achievements = () => {
                                 </h4>
 
                                 {/* Certification Logos Horizontal Row */}
-                                <div className="flex flex-col items-center gap-2 mb-4 relative z-10">
-                                  <div className="flex items-center justify-center gap-2 flex-wrap">
+                                <div className="flex flex-col items-center gap-2 relative z-10">
+                                  <div className="flex items-center justify-center gap-3 sm:gap-4 flex-wrap py-1">
                                     {uniqueProviders.map((providerName) => {
                                       const providerLogo = PROVIDER_LOGOS[providerName];
                                       const count = providerCounts[providerName];
 
                                       if (!providerLogo) return null;
 
-                                      // Special AWS logo alternation for Yatharth and Nensi (theme-dependent)
-                                      let logoSrc;
-                                      if (providerName === 'AWS' && isSpecialPerson) {
-                                        // Alternate AWS logos based on theme: swaps when theme changes
-                                        if (person.fullName === "Yatharth Chauhan") {
-                                          // Yatharth: logoLight in light mode, logo in dark mode
-                                          logoSrc = theme === 'dark'
-                                            ? providerLogo.logo  // aws-light.png in dark mode
-                                            : (providerLogo.logoLight || providerLogo.logo); // aws.svg in light mode
-                                        } else if (person.fullName === "Nensi Ravaliya") {
-                                          // Nensi: logo in light mode, logoLight in dark mode (opposite of Yatharth)
-                                          logoSrc = theme === 'dark'
-                                            ? (providerLogo.logoLight || providerLogo.logo) // aws.svg in dark mode
-                                            : providerLogo.logo; // aws-light.png in light mode
-                                        } else {
-                                          logoSrc = theme === 'dark'
+                                      const logoSrc = providerName === 'AWS'
+                                        ? (theme === 'dark'
+                                          ? providerLogo.logo  // aws-light.png for dark mode
+                                          : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
+                                        : (theme === 'dark'
+                                          ? (providerLogo.logoLight || providerLogo.logo)
+                                          : (providerName === 'GITHUB'
                                             ? providerLogo.logo
-                                            : (providerLogo.logoLight || providerLogo.logo);
-                                        }
-                                      } else {
-                                        // Normal logo selection for other providers or non-special persons
-                                        logoSrc = providerName === 'AWS'
-                                          ? (theme === 'dark'
-                                            ? providerLogo.logo  // aws-light.png for dark mode
-                                            : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                                          : (theme === 'dark'
-                                            ? (providerLogo.logoLight || providerLogo.logo)
-                                            : (providerName === 'GITHUB'
-                                              ? providerLogo.logo
-                                              : (providerLogo.logoLight || providerLogo.logo)));
-                                      }
+                                            : (providerLogo.logoLight || providerLogo.logo)));
 
                                       return (
                                         <motion.div
@@ -1494,13 +1503,7 @@ const Achievements = () => {
                                               {count}x
                                             </span>
                                           )}
-                                          <div className={`flex items-center justify-center rounded-lg border p-1 ${providerName === 'ORACLE' || providerName === 'SERVICENOW'
-                                            ? 'w-12 h-12'
-                                            : 'w-8 h-8'
-                                            } ${isSpecialPerson
-                                              ? "bg-brand-50 border-brand-200"
-                                              : "bg-background/50 border-border/40"
-                                            }`}>
+                                          <div className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7">
                                             <img
                                               src={logoSrc}
                                               alt={providerName}
@@ -1514,49 +1517,6 @@ const Achievements = () => {
                                       );
                                     })}
                                   </div>
-                                  {/* Country Flag at center bottom with name */}
-                                  {person.country && (
-                                    <motion.div
-                                      whileHover={{ scale: 1.1 }}
-                                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${isSpecialPerson
-                                        ? "bg-brand-50 border-brand-200"
-                                        : "bg-background/50 border-border/40"
-                                        }`}
-                                      title={getCountryName(person.country)}
-                                    >
-                                      <span className="text-lg leading-none">
-                                        {getCountryFlag(person.country)}
-                                      </span>
-                                      <span className={`text-xs font-medium ${isSpecialPerson
-                                        ? "text-foreground/80 font-semibold"
-                                        : "text-foreground/80"
-                                        }`}>
-                                        {getCountryName(person.country)}
-                                      </span>
-                                    </motion.div>
-                                  )}
-                                </div>
-
-                                {/* Action buttons — text only, no icons: quiet outline for
-                                    LinkedIn, solid primary for the profile view. */}
-                                <div className="flex items-center justify-center gap-2.5 mt-auto relative z-10">
-                                  {person.linkedinUrl && (
-                                    <a
-                                      href={person.linkedinUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="inline-flex min-h-[40px] flex-1 max-w-[130px] items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                                    >
-                                      LinkedIn
-                                    </a>
-                                  )}
-                                  <button
-                                    type="button"
-                                    className="inline-flex min-h-[40px] flex-1 max-w-[130px] items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-inset-btn transition-colors hover:bg-brand-600"
-                                  >
-                                    View profile
-                                  </button>
                                 </div>
                               </motion.div>
                             );
@@ -1619,23 +1579,21 @@ const Achievements = () => {
                             <button
                               key={provider}
                               onClick={() => setSelectedMapProvider(provider)}
-                              className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === provider
-                                ? "bg-primary text-primary-foreground shadow-lg"
-                                : "text-muted-foreground hover:text-foreground"
+                              title={`${provider} (${providerCount})`}
+                              className={`group relative flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === provider
+                                ? "bg-primary text-primary-foreground shadow-md"
+                                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                                 }`}
                             >
                               <img
                                 src={logoSrc}
                                 alt={provider}
-                                className={`object-contain ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''} ${provider === 'ORACLE' || provider === 'SERVICENOW'
-                                  ? 'w-7 h-7'
-                                  : 'w-5 h-5'
-                                  }`}
+                                className={`w-5 h-5 object-contain transition-transform duration-200 group-hover:scale-110 ${provider === 'GITHUB' && theme === 'light' ? 'invert' : ''}`}
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).style.display = 'none';
                                 }}
                               />
-                              <span className="hidden sm:inline">
+                              <span className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-semibold">
                                 {provider} ({providerCount})
                               </span>
                             </button>
@@ -1790,28 +1748,35 @@ const Achievements = () => {
                       </DialogTitle>
                       {/* Country Flag and Name - Right side of name */}
                       {selectedPerson.country && (
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-background/50 rounded-lg border border-border/40">
-                          <span className="text-lg leading-none">
+                        <div
+                          className="group/flag relative flex items-center justify-center p-1 sm:px-2 sm:py-1 rounded-lg transition-all hover:bg-muted/80 cursor-pointer"
+                          title={getCountryName(selectedPerson.country)}
+                        >
+                          <span className="text-xl leading-none transition-transform duration-200 group-hover/flag:scale-110">
                             {getCountryFlag(selectedPerson.country)}
                           </span>
-                          <span className="text-xs font-medium text-foreground/80">
+                          <span className="max-w-0 overflow-hidden opacity-0 group-hover/flag:max-w-xs group-hover/flag:opacity-100 group-hover/flag:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap text-xs font-semibold text-foreground/80">
                             {getCountryName(selectedPerson.country)}
                           </span>
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-4 flex-wrap">
-                      <a
-                        href={selectedPerson.linkedinUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                        </svg>
-                        <span className="text-sm font-semibold">LinkedIn</span>
-                      </a>
+                      {selectedPerson.linkedinUrl && (
+                        <a
+                          href={selectedPerson.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="LinkedIn Profile"
+                          className="inline-flex items-center justify-center p-2 rounded-lg border border-border bg-background hover:bg-muted transition-all"
+                        >
+                          <img
+                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/500px-LinkedIn_logo_initials.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+                            alt="LinkedIn"
+                            className="w-5 h-5 object-contain"
+                          />
+                        </a>
+                      )}
                       <a
                         href={`/yatri/${selectedPerson.fullName.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`}
                         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary hover:bg-brand-600 text-primary-foreground transition-all"
@@ -1833,53 +1798,26 @@ const Achievements = () => {
                         {(() => {
                           const uniqueProviders = Array.from(new Set(selectedPerson.certifications.map(c => c.certificationProvider.toUpperCase())));
 
-                          const isSpecialPerson = selectedPerson.fullName === "Yatharth Chauhan" || selectedPerson.fullName === "Nensi Ravaliya";
-
                           return (
-                            <div className="flex items-center gap-1 ml-2">
+                            <div className="flex items-center gap-3 ml-2">
                               {uniqueProviders.map((providerName) => {
                                 const providerLogo = PROVIDER_LOGOS[providerName];
                                 if (!providerLogo) return null;
 
-                                // Special AWS logo alternation for Yatharth and Nensi (theme-dependent)
-                                let logoSrc;
-                                if (providerName === 'AWS' && isSpecialPerson) {
-                                  // Alternate AWS logos based on theme: swaps when theme changes
-                                  if (selectedPerson.fullName === "Yatharth Chauhan") {
-                                    // Yatharth: logoLight in light mode, logo in dark mode
-                                    logoSrc = theme === 'dark'
-                                      ? providerLogo.logo  // aws-light.png in dark mode
-                                      : (providerLogo.logoLight || providerLogo.logo); // aws.svg in light mode
-                                  } else if (selectedPerson.fullName === "Nensi Ravaliya") {
-                                    // Nensi: logo in light mode, logoLight in dark mode (opposite of Yatharth)
-                                    logoSrc = theme === 'dark'
-                                      ? (providerLogo.logoLight || providerLogo.logo) // aws.svg in dark mode
-                                      : providerLogo.logo; // aws-light.png in light mode
-                                  } else {
-                                    logoSrc = theme === 'dark'
+                                const logoSrc = providerName === 'AWS'
+                                  ? (theme === 'dark'
+                                    ? providerLogo.logo  // aws-light.png for dark mode
+                                    : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
+                                  : (theme === 'dark'
+                                    ? (providerLogo.logoLight || providerLogo.logo)
+                                    : (providerName === 'GITHUB'
                                       ? providerLogo.logo
-                                      : (providerLogo.logoLight || providerLogo.logo);
-                                  }
-                                } else {
-                                  // Normal logo selection for other providers or non-special persons
-                                  logoSrc = providerName === 'AWS'
-                                    ? (theme === 'dark'
-                                      ? providerLogo.logo  // aws-light.png for dark mode
-                                      : (providerLogo.logoLight || providerLogo.logo))  // aws.svg for light mode
-                                    : (theme === 'dark'
-                                      ? (providerLogo.logoLight || providerLogo.logo)
-                                      : (providerName === 'GITHUB'
-                                        ? providerLogo.logo
-                                        : (providerLogo.logoLight || providerLogo.logo)));
-                                }
+                                      : (providerLogo.logoLight || providerLogo.logo)));
 
                                 return (
                                   <div
                                     key={providerName}
-                                    className={`flex items-center justify-center bg-background/50 rounded border border-border/40 p-0.5 ${providerName === 'ORACLE' || providerName === 'SERVICENOW'
-                                      ? 'w-7 h-7'
-                                      : 'w-5 h-5'
-                                      }`}
+                                    className="flex items-center justify-center w-5 h-5"
                                   >
                                     <img
                                       src={logoSrc}

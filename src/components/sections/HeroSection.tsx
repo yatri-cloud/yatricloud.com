@@ -21,19 +21,11 @@ import {
 } from "@/lib/site-content";
 import { FALLBACK_CERT_TRACKS } from "@/lib/cert-catalog";
 import { openCalendlyPopup } from "@/lib/third-party";
-import { supabase } from "@/lib/supabase";
 
 const EASE_EDITORIAL = [0.16, 1, 0.3, 1] as const;
 
-/* Decorative certification tracks drifting behind the headline. The list
-   lives in the certification catalog as a fixed display set: catalog labels
-   would reorder and reword the visible six, so the marquee keeps this exact
-   sequence. */
 const CERT_TRACKS = FALLBACK_CERT_TRACKS;
 
-/* Kinetic outline marquee — purely decorative, reduced-motion safe.
-   Renders only after the display font is live: 14vw text reflowing on the
-   font swap was the page's biggest layout shift (CLS). */
 const CertMarquee = () => {
   const reduceMotion = useReducedMotion();
   const line = CERT_TRACKS.join("  ·  ");
@@ -77,7 +69,6 @@ const CertMarquee = () => {
   );
 };
 
-/* Count-up numeral: 0 → target on scroll-into-view; instant when reduced. */
 type CountUpProps = {
   value: number;
   decimals?: number;
@@ -108,8 +99,6 @@ const CountUp = ({ value, decimals = 0, suffix = "", ariaLabel }: CountUpProps) 
   }, [inView, reduceMotion, value, decimals]);
 
   return (
-    // aria-label is prohibited on a plain <span>, so screen readers get the
-    // final value via a visually-hidden twin while the count-up is hidden.
     <span ref={ref} className="tabular-nums">
       <span className="sr-only">{ariaLabel}</span>
       <span aria-hidden="true">
@@ -120,8 +109,6 @@ const CountUp = ({ value, decimals = 0, suffix = "", ariaLabel }: CountUpProps) 
   );
 };
 
-/* Parse a stat string like "50K+" → { value: 50, decimals: 0, suffix: "K+" }
- * or "4.8" → { value: 4.8, decimals: 1, suffix: "" } for the count-up. */
 const parseStatValue = (raw: string) => {
   const match = String(raw).match(/^([\d.]+)(.*)$/);
   const numStr = match?.[1] ?? "0";
@@ -135,21 +122,7 @@ const parseStatValue = (raw: string) => {
 
 export const HeroSection = () => {
   const reduceMotion = useReducedMotion();
-  const [weeklyJoins, setWeeklyJoins] = useState<number | null>(null);
 
-  useEffect(() => {
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    supabase
-      .from("subscribers")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", weekAgo)
-      .then(({ count }) => {
-        if (count && count > 0) setWeeklyJoins(count);
-      });
-  }, []);
-
-  /* Live site content — renders the exact fallback first, then swaps in
-   * Supabase values (seeded identical, so nothing visibly changes). */
   const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
   const settings = useSiteContent(getSiteSettings, FALLBACK_SETTINGS);
   const promotion = useSiteContent(
@@ -162,7 +135,6 @@ export const HeroSection = () => {
 
   const openCalendly = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Loads Calendly's widget on first use; falls back to the booking page.
     void openCalendlyPopup(calendlyUrl);
   };
 
@@ -172,8 +144,6 @@ export const HeroSection = () => {
     { ...parseStatValue(statValue(siteStats, "tracks", "6")), label: "Cloud Tracks", aria: statValue(siteStats, "tracks", "6"), icon: Layers },
   ];
 
-  /* Headline copy split for a word-by-word kinetic reveal — line one runs
-   * up to and including "on", line two carries the rest. */
   const headlineWords = String(promotion?.headline || FALLBACK_PROMOTION.headline)
     .split(/\s+/)
     .filter(Boolean);
@@ -182,9 +152,6 @@ export const HeroSection = () => {
   const HEADLINE_LINE_ONE = headlineWords.slice(0, splitAt);
   const HEADLINE_LINE_TWO = headlineWords.slice(splitAt);
 
-  /* When the static index.html shell already painted this hero's text,
-     entrance animations are skipped: re-animating identical content flashes
-     it out/in and re-fires LCP at the later React paint. */
   const instantHero =
     typeof window !== "undefined" && Boolean((window as unknown as { __YC_STATIC_SHELL__?: boolean }).__YC_STATIC_SHELL__);
   const skipEntrance = instantHero || reduceMotion;
@@ -231,163 +198,132 @@ export const HeroSection = () => {
       <CertMarquee />
 
       <div className="container relative z-10 mx-auto px-4 md:px-6">
-        <div className="max-w-4xl">
-          {/* Personal, time-aware welcome */}
-          <motion.p
-            initial={skipEntrance ? { opacity: 1 } : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: EASE_EDITORIAL }}
-            className="mb-4 text-lg md:text-xl font-medium"
-          >
-            <span className="text-foreground">
-              <YatriGreeting />
-            </span>
-          </motion.p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          {/* Left Column Content */}
+          <div className="lg:col-span-7">
+            {/* Personal, time-aware welcome */}
+            <motion.p
+              initial={skipEntrance ? { opacity: 1 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE_EDITORIAL }}
+              className="mb-4 text-lg md:text-xl font-medium"
+            >
+              <span className="text-foreground">
+                <YatriGreeting />
+              </span>
+            </motion.p>
 
-          {/* Kinetic headline */}
-          <motion.h1
-            variants={wordContainer}
-            initial="hidden"
-            animate="show"
-            className="mb-6 font-display text-4xl font-bold leading-[1.02] tracking-[-0.02em] md:text-6xl lg:text-7xl"
-          >
-            {renderWords(HEADLINE_LINE_ONE)}
-            <br />
-            {renderWords(HEADLINE_LINE_TWO, true)}
-          </motion.h1>
+            {/* Kinetic headline */}
+            <motion.h1
+              variants={wordContainer}
+              initial="hidden"
+              animate="show"
+              className="mb-6 font-display text-4xl font-bold leading-[1.02] tracking-[-0.02em] md:text-5xl lg:text-6xl"
+            >
+              {renderWords(HEADLINE_LINE_ONE)}
+              <br />
+              {renderWords(HEADLINE_LINE_TWO, true)}
+            </motion.h1>
 
-          {/* Subheadline — lives in site_settings under the `hero` key,
-           * with the exact live copy as the hardcoded fallback. */}
-          <ScrollReveal delay={0.35} instant={instantHero}>
-            <p className="mb-4 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              {settings.hero?.subheadline || FALLBACK_SETTINGS.hero.subheadline}
-            </p>
-          </ScrollReveal>
-
-          {/* Social-proof badge — live weekly join count */}
-          {weeklyJoins !== null && (
-            <ScrollReveal delay={0.4} instant={instantHero}>
-              <motion.div
-                initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: EASE_EDITORIAL }}
-                className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                </span>
-                <span className="tabular-nums">{weeklyJoins}</span>
-                <span className="text-muted-foreground">Yatris joined this week</span>
-              </motion.div>
+            {/* Subheadline */}
+            <ScrollReveal delay={0.35} instant={instantHero}>
+              <p className="mb-6 max-w-2xl text-lg text-muted-foreground md:text-xl leading-relaxed">
+                {settings.hero?.subheadline || FALLBACK_SETTINGS.hero.subheadline}
+              </p>
             </ScrollReveal>
-          )}
 
-          {/* CTAs */}
-          <ScrollReveal delay={0.45} instant={instantHero}>
-            <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
-              <motion.a
-                href="#"
-                aria-label="Get your 50% off certification voucher — book a slot"
-                onClick={openCalendly}
-                whileHover={reduceMotion ? undefined : { scale: 1.03, y: -2 }}
-                whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-                className="group relative inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground shadow-inset-btn shadow-glow-soft transition-colors duration-base hover:bg-brand-600"
-              >
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
-                <span className="relative z-10">{promotion?.cta_label || FALLBACK_PROMOTION.cta_label}</span>
-                <ArrowRight className="relative z-10 h-5 w-5 transition-transform duration-base group-hover:translate-x-1" />
-              </motion.a>
-
-              <motion.a
-                href="/examdumps"
-                aria-label="Browse the latest exam dumps"
-                whileHover={reduceMotion ? undefined : { scale: 1.03, y: -2 }}
-                whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-                className="group relative inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-3 rounded-xl border border-border bg-card px-8 py-4 text-lg font-semibold text-foreground transition-colors duration-base hover:border-primary/60 hover:bg-brand-50"
-              >
-                <span className="relative z-10">Latest Exam Dumps</span>
-                <ArrowRight className="relative z-10 h-5 w-5 transition-transform duration-base group-hover:translate-x-1" />
-              </motion.a>
-            </div>
-          </ScrollReveal>
-
-          {/* Count-up stat cards — creative bento tiles */}
-          <ScrollReveal delay={0.55}>
-            <dl className="mt-14 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {STATS.map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ delay: 0.1 + i * 0.08, duration: 0.5, ease: EASE_EDITORIAL }}
-                  whileHover={reduceMotion ? undefined : { y: -4 }}
-                  className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-colors duration-base hover:border-brand-200 hover:shadow-card"
+            {/* CTAs */}
+            <ScrollReveal delay={0.45} instant={instantHero}>
+              <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+                <motion.a
+                  href="#"
+                  aria-label="Get your 50% off certification voucher — book a slot"
+                  onClick={openCalendly}
+                  whileHover={reduceMotion ? undefined : { scale: 1.03, y: -2 }}
+                  whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+                  className="group relative inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground shadow-inset-btn shadow-glow-soft transition-colors duration-base hover:bg-brand-600"
                 >
-                  {/* A <div> inside <dl> may only contain dt/dd groups, so the
-                      glow + visible label live inside the <dd>. */}
-                  <dt className="sr-only">{stat.label}</dt>
-                  <dd className="m-0">
-                    {/* Soft blue glow that blooms on hover */}
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/15 blur-2xl opacity-0 transition-opacity duration-slow group-hover:opacity-100"
-                    />
-                    <span className="block font-display text-4xl font-black tracking-tight gradient-text md:text-5xl">
-                      <CountUp
-                        value={stat.value}
-                        decimals={stat.decimals}
-                        suffix={stat.suffix}
-                        ariaLabel={stat.aria}
-                      />
-                    </span>
-                    <span aria-hidden="true" className="mt-1 block text-sm font-medium text-muted-foreground">
-                      {stat.label}
-                    </span>
-                  </dd>
-                </motion.div>
-              ))}
-              {weeklyJoins !== null && (
-                <motion.div
-                  initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ delay: 0.1 + STATS.length * 0.08, duration: 0.5, ease: EASE_EDITORIAL }}
-                  whileHover={reduceMotion ? undefined : { y: -4 }}
-                  className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-colors duration-base hover:border-brand-200 hover:shadow-card"
+                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+                  <span className="relative z-10">{promotion?.cta_label || FALLBACK_PROMOTION.cta_label}</span>
+                  <ArrowRight className="relative z-10 h-5 w-5 transition-transform duration-base group-hover:translate-x-1" />
+                </motion.a>
+
+                <motion.a
+                  href="/examdumps"
+                  aria-label="Browse the latest exam dumps"
+                  whileHover={reduceMotion ? undefined : { scale: 1.03, y: -2 }}
+                  whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+                  className="group relative inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-3 rounded-xl border border-border bg-card px-8 py-4 text-lg font-semibold text-foreground transition-colors duration-base hover:border-primary/60 hover:bg-brand-50"
                 >
-                  <dt className="sr-only">Weekly joins</dt>
-                  <dd className="m-0">
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/15 blur-2xl opacity-0 transition-opacity duration-slow group-hover:opacity-100"
-                    />
-                    <span className="block font-display text-4xl font-black tracking-tight gradient-text md:text-5xl">
-                      <CountUp
-                        value={weeklyJoins}
-                        decimals={0}
-                        suffix="+"
-                        ariaLabel={`${weeklyJoins} Yatris joined this week`}
-                      />
-                    </span>
-                    <span aria-hidden="true" className="mt-1 block text-sm font-medium text-muted-foreground">
-                      Yatris joined this week
-                    </span>
-                  </dd>
-                </motion.div>
-              )}
-            </dl>
-          </ScrollReveal>
+                  <span className="relative z-10">Latest Exam Dumps</span>
+                  <ArrowRight className="relative z-10 h-5 w-5 transition-transform duration-base group-hover:translate-x-1" />
+                </motion.a>
+              </div>
+            </ScrollReveal>
+          </div>
+
+          {/* Right Column — Floating borderless logo with soft ambient glow */}
+          <div className="lg:col-span-5 flex justify-center lg:justify-end">
+            <motion.div
+              initial={skipEntrance ? { opacity: 1 } : { opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: EASE_EDITORIAL }}
+              className="relative w-full max-w-sm lg:max-w-md flex items-center justify-center p-4"
+            >
+              {/* Soft ambient background glow */}
+              <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-3xl -z-10" />
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/1280px-Amazon_Web_Services_Logo.svg.png"
+                alt="Amazon Web Services Logo"
+                className="w-full max-h-56 object-contain drop-shadow-md transition-transform duration-300 hover:scale-105"
+                loading="eager"
+              />
+            </motion.div>
+          </div>
+
         </div>
+
+        {/* Count-up stat cards */}
+        <ScrollReveal delay={0.55}>
+          <dl className="mt-14 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+            {STATS.map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ delay: 0.1 + i * 0.08, duration: 0.5, ease: EASE_EDITORIAL }}
+                whileHover={reduceMotion ? undefined : { y: -4 }}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 transition-colors duration-base hover:border-brand-200 hover:shadow-card"
+              >
+                <dt className="sr-only">{stat.label}</dt>
+                <dd className="m-0">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/15 blur-2xl opacity-0 transition-opacity duration-slow group-hover:opacity-100"
+                  />
+                  <span className="block font-display text-4xl font-black tracking-tight gradient-text md:text-5xl">
+                    <CountUp
+                      value={stat.value}
+                      decimals={stat.decimals}
+                      suffix={stat.suffix}
+                      ariaLabel={stat.aria}
+                    />
+                  </span>
+                  <span aria-hidden="true" className="mt-1 block text-sm font-medium text-muted-foreground">
+                    {stat.label}
+                  </span>
+                </dd>
+              </motion.div>
+            ))}
+          </dl>
+        </ScrollReveal>
 
         {/* Certification Process Section */}
         <ScrollReveal delay={0.7}>
           <div id="certification-process" className="mx-auto mt-28 max-w-6xl">
             <div className="mb-12 max-w-2xl">
-              <span className="mb-4 block text-sm font-semibold uppercase tracking-wider text-primary">
-                Certification Process
-              </span>
               <h2 className="mb-4 font-display text-3xl font-bold tracking-tight md:text-5xl">
                 How to Get <span className="gradient-text">Certified</span>
               </h2>
@@ -400,17 +336,14 @@ export const HeroSection = () => {
             <div className="grid gap-6 md:grid-cols-3">
               {[
                 {
-                  number: "01",
                   title: "Select Time",
                   description: "Select a suitable time slot to schedule your meeting",
                 },
                 {
-                  number: "02",
                   title: "Book a Meet",
                   description: "Confirm your booking through the Calendly widget below",
                 },
                 {
-                  number: "03",
                   title: "Exam Scheduling",
                   description:
                     "We will start processing ahead to schedule the exam during our meeting",
@@ -427,11 +360,7 @@ export const HeroSection = () => {
                 >
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity duration-base group-hover:opacity-100" />
 
-                  <span className="font-display text-5xl font-black text-foreground/10 transition-colors duration-base group-hover:text-primary/70">
-                    {step.number}
-                  </span>
-
-                  <h3 className="mb-3 mt-4 text-xl font-semibold text-foreground transition-colors group-hover:text-primary">
+                  <h3 className="mb-3 text-xl font-semibold text-foreground transition-colors group-hover:text-primary">
                     {step.title}
                   </h3>
 

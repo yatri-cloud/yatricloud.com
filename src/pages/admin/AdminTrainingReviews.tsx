@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Trash2 } from "lucide-react";
+import { Loader2, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -186,15 +186,9 @@ const AdminTrainingReviews = () => {
                         <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
                         <div className="relative space-y-1.5">
-                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Training
-                            </p>
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                 Training <span className="gradient-text">Reviews</span>
                             </h1>
-                            <p className="text-muted-foreground">
-                                Moderate what Yatris say about each training. Public reviews shape its average rating.
-                            </p>
                         </div>
                     </div>
                 </ScrollReveal>
@@ -284,7 +278,7 @@ const AdminTrainingReviews = () => {
                                             <div className="min-w-0 flex-1 space-y-1">
                                                 <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                                                     <span className="truncate">{review.name || "Anonymous Yatri"}</span>
-                                                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                                    <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground border-0">
                                                         Rated {review.rating} of 5
                                                     </span>
                                                     {review.enrollment_id && (
@@ -330,7 +324,7 @@ const AdminTrainingReviews = () => {
                                                     aria-label={`Delete the review by ${review.name || "Anonymous"}`}
                                                     className={deleteIconButtonClass}
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -364,12 +358,12 @@ const AdminTrainingReviews = () => {
                         <AlertDialogAction
                             onClick={confirmDelete}
                             disabled={deleting}
-                            className="min-h-[44px] rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="min-h-[44px] rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                         >
                             {deleting ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash className="mr-2 h-4 w-4" />
                             )}
                             Delete review
                         </AlertDialogAction>

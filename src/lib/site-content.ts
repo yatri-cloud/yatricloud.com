@@ -284,27 +284,15 @@ export const FALLBACK_TEAM_MEMBERS: TeamMember[] = [
 export const FALLBACK_PACKAGE_BENEFITS: PackageBenefit[] = [
   {
     text: "50% OFF Vouchers",
-    description: "Get AWS Associate exam vouchers at half price - limited time offer",
+    description: "Get AWS Associate exam vouchers at half price for all eligible exams",
   },
   {
     text: "Exam Dumps & Resources",
-    description: "Comprehensive exam dumps and study resources to help you prepare effectively",
+    description: "Comprehensive exam dumps and practice resources to help you prepare effectively",
   },
   {
-    text: "Udemy Course Free Access",
-    description: "Get free access to our premium Udemy certification courses",
-  },
-  {
-    text: "Topmate Free Connect",
-    description: "Free Topmate sessions with Yatharth Chauhan and Nensi Ravaliya for personalized guidance",
-  },
-  {
-    text: "LinkedIn Recommendation",
-    description: "Get a professional LinkedIn recommendation from us after certification",
-  },
-  {
-    text: "Yatri Wall of Fame",
-    description: "Get featured on our Wall of Fame after successfully passing your AWS certification",
+    text: "Guided Exam Scheduling & Support",
+    description: "Personalized support and step-by-step guidance to schedule your AWS certification exam",
   },
 ];
 

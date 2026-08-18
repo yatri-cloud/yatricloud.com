@@ -8,7 +8,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import {
   Search,
   Loader2,
-  Trash2,
+  Trash,
   Plus,
   Send,
   Edit,
@@ -303,18 +303,9 @@ export default function AdminNewsletters() {
             />
             <div className="relative flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  Newsletter
-                </p>
                 <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight md:text-3xl">
                   Campaigns
                 </h1>
-                <p className="mt-1 text-muted-foreground">
-                  {newsletters.length} newsletters &middot;{" "}
-                  {counts.draft} drafts &middot; {counts.sent} sent. Compose,
-                  preview, and deliver to your audience.
-                </p>
               </div>
               <Button
                 className="rounded-xl bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn"
@@ -495,12 +486,12 @@ export default function AdminNewsletters() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground rounded-lg"
+                            className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                             onClick={() => setToDelete(nl)}
                             data-testid="newsletter-delete"
                             aria-label={`Delete ${nl.title}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>
@@ -541,9 +532,9 @@ export default function AdminNewsletters() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash className="mr-2 h-4 w-4" />
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

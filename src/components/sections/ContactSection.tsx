@@ -1,5 +1,5 @@
 import { type ReactNode, type FormEvent, useState } from "react";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Mail, Phone, MapPin, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import ScrollReveal from "@/components/ScrollReveal";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useSiteContent, getSiteSettings, FALLBACK_SETTINGS } from "@/lib/site-content";
 
 const Field = ({ id, label, children }: { id: string; label: string; children: ReactNode }) => (
-  <div className="space-y-1.5">
-    <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
+  <div className="space-y-2">
+    <Label htmlFor={id} className="text-sm font-semibold text-foreground/90">{label}</Label>
     {children}
   </div>
 );
@@ -25,10 +25,10 @@ export const ContactSection = () => {
   const contact = settings.contact || FALLBACK_SETTINGS.contact;
 
   const CONTACT_INFO = [
-    { label: "Email", value: contact.email, href: `mailto:${contact.email}` },
-    { label: "Phone", value: contact.phone, href: contact.phone_href },
-    { label: "Location", value: contact.location },
-    { label: "Office hours (IST)", value: contact.hours },
+    { label: "Email", value: contact.email, href: `mailto:${contact.email}`, icon: Mail },
+    { label: "Phone", value: contact.phone, href: contact.phone_href, icon: Phone },
+    { label: "Location", value: contact.location, icon: MapPin },
+    { label: "Office hours (IST)", value: contact.hours, icon: Clock },
   ];
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -58,12 +58,29 @@ export const ContactSection = () => {
     form.reset();
   };
 
+  const renderValue = (val: string) => {
+    if (val.includes(" · ")) {
+      const parts = val.split(" · ");
+      return (
+        <div className="mt-1 space-y-1 font-medium text-foreground text-sm leading-relaxed">
+          {parts.map((p) => (
+            <div key={p} className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+              <span>{p}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return <div className="mt-0.5 font-semibold text-foreground text-sm leading-relaxed">{val}</div>;
+  };
+
   return (
     <section id="contact" className="band-tint py-20 md:py-28">
       <div className="container mx-auto px-4 md:px-6">
         <ScrollReveal>
           <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="font-display text-3xl font-bold tracking-tight md:text-5xl">
+            <h2 className="font-display text-3xl md:text-5xl font-black tracking-tight">
               Say hello, <span className="gradient-text">Yatri</span>
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
@@ -73,42 +90,49 @@ export const ContactSection = () => {
         </ScrollReveal>
 
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-5">
-          {/* Contact info */}
-          <div className="space-y-4 lg:col-span-2">
-            {CONTACT_INFO.map((info) => {
-              const inner = (
-                <div className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-brand-200">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {info.label}
-                  </div>
-                  <div className="mt-1.5 font-medium">{info.value}</div>
-                </div>
-              );
-              return info.href ? (
-                <a key={info.label} href={info.href} className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{inner}</a>
-              ) : (
-                <div key={info.label}>{inner}</div>
-              );
-            })}
+          {/* Contact info — unified single card container */}
+          <div className="flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-6 md:p-8 lg:col-span-2 shadow-2xs space-y-6">
+            <div>
+              <h3 className="font-display text-2xl font-black text-foreground mb-1">Get in touch</h3>
+              <p className="text-sm text-muted-foreground mb-6">We'd love to hear from you. Reach out through any of these channels.</p>
+              
+              <div className="space-y-6">
+                {CONTACT_INFO.map((info) => {
+                  const inner = (
+                    <div className="group cursor-pointer">
+                      <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                        {info.label}
+                      </div>
+                      {renderValue(info.value)}
+                    </div>
+                  );
+                  return info.href ? (
+                    <a key={info.label} href={info.href} className="block focus-visible:outline-none">{inner}</a>
+                  ) : (
+                    <div key={info.label}>{inner}</div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Message form */}
-          <form onSubmit={handleSubmit} className="space-y-5 rounded-3xl border border-border bg-card p-6 md:p-8 lg:col-span-3">
+          <form onSubmit={handleSubmit} className="space-y-5 rounded-3xl border border-border/80 bg-card p-6 md:p-8 lg:col-span-3 shadow-2xs">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <Field id="c-name" label="Your name">
-                <Input id="c-name" name="name" required placeholder="Yatharth Chauhan" className="h-11 rounded-xl" />
+                <Input id="c-name" name="name" required placeholder="Yatharth Chauhan" className="h-11 rounded-xl bg-background" />
               </Field>
               <Field id="c-email" label="Email address">
-                <Input id="c-email" name="email" type="email" required placeholder="you@example.com" className="h-11 rounded-xl" />
+                <Input id="c-email" name="email" type="email" required placeholder="you@example.com" className="h-11 rounded-xl bg-background" />
               </Field>
             </div>
             <Field id="c-subject" label="Subject">
-              <Input id="c-subject" name="subject" placeholder="How can we help?" className="h-11 rounded-xl" />
+              <Input id="c-subject" name="subject" placeholder="How can we help?" className="h-11 rounded-xl bg-background" />
             </Field>
             <Field id="c-message" label="Message">
-              <Textarea id="c-message" name="message" required placeholder="Tell us a little about what you need..." className="min-h-[130px] rounded-xl" />
+              <Textarea id="c-message" name="message" required placeholder="Tell us a little about what you need..." className="min-h-[130px] rounded-xl bg-background leading-relaxed" />
             </Field>
-            <Button type="submit" disabled={sending} className="w-full gap-2 rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-inset-btn hover:bg-brand-600 hover:text-primary-foreground min-h-[48px]">
+            <Button type="submit" disabled={sending} className="w-full gap-2 rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-inset-btn hover:bg-primary/90 min-h-[48px]">
               {sending ? (<><Loader2 className="h-4 w-4 animate-spin" /> Sending…</>) : (<>Send message <ArrowRight className="h-4 w-4" /></>)}
             </Button>
           </form>

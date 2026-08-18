@@ -2,6 +2,7 @@ import { useFieldArray, Control } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Trash } from "lucide-react";
 import { LESSON_TYPES, type TrainingForm } from "./training-form";
 
 /**
@@ -59,8 +60,8 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                         className="font-semibold text-lg border-none shadow-none focus-visible:ring-0 px-0 h-auto rounded-none border-b focus-visible:border-primary"
                     />
                 </div>
-                <Button type="button" data-testid={`module-${moduleIndex}-remove`} variant="ghost" size="sm" onClick={() => removeModule(moduleIndex)} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
-                    Remove
+                <Button type="button" data-testid={`module-${moduleIndex}-remove`} variant="ghost" size="icon" onClick={() => removeModule(moduleIndex)} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
+                    <Trash className="h-4 w-4" />
                 </Button>
             </div>
 
@@ -82,8 +83,8 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                                 <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.duration`)} data-testid={`module-${moduleIndex}-lesson-${lessonIndex}-duration`} placeholder="Dur." className="h-8 text-sm" />
                             </div>
                             <div className="col-span-1 flex justify-end">
-                                <Button type="button" variant="ghost" size="sm" onClick={() => removeLesson(lessonIndex)} className="h-8 px-2 text-xs text-muted-foreground hover:bg-destructive hover:text-destructive-foreground">
-                                    Remove
+                                <Button type="button" variant="ghost" size="icon" onClick={() => removeLesson(lessonIndex)} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
+                                    <Trash className="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>

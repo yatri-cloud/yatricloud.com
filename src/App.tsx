@@ -39,6 +39,7 @@ const ManageCertifications = lazy(() => import("./pages/ManageCertifications"));
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Leads = lazy(() => import("./pages/Leads"));
 const ResumeMaker = lazy(() => import("./pages/ResumeMaker"));
 const JobBoard = lazy(() => import("./pages/JobBoard"));
 const JobApplications = lazy(() => import("./pages/JobApplications"));
@@ -108,6 +109,7 @@ const AdminInquiries = lazy(() => import("./pages/admin/AdminInquiries"));
 const AdminResumes = lazy(() => import("./pages/admin/AdminResumes"));
 const AdminAISettings = lazy(() => import("./pages/admin/AdminAISettings"));
 const AdminJobs = lazy(() => import("./pages/admin/AdminJobs"));
+const AdminLeads = lazy(() => import("./pages/admin/AdminLeads"));
 
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 const AdminAchievements = lazy(() => import("./pages/admin/AdminAchievements"));
@@ -191,6 +193,7 @@ const App = () => (
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/certifiedyatris" element={<CertifiedYatris />} />
               <Route path="/resume-maker" element={<ResumeMaker />} />
+              <Route path="/leads" element={<Leads />} />
               <Route path="/jobs" element={<JobBoard />} />
               <Route path="/jobs/applications" element={<JobApplications />} />
               <Route path="/jobs/profile" element={<JobSeekerProfile />} />
@@ -284,6 +287,7 @@ const App = () => (
                 <Route path="inquiries" element={<AdminInquiries />} />
                 <Route path="resumes" element={<AdminResumes />} />
                 <Route path="jobs" element={<AdminJobs />} />
+                <Route path="leads" element={<AdminLeads />} />
                 <Route path="coupons" element={<AdminCoupons />} />
                 <Route path="achievements" element={<AdminAchievements />} />
                 <Route path="reviews" element={<AdminReviews />} />

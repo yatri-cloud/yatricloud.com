@@ -145,7 +145,6 @@ export const HomeReviewsSection = () => {
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <ScrollReveal>
           <div className="text-center mb-12 max-w-3xl mx-auto">
-            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-3">What People Say</p>
             <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-foreground">
               Trusted by <span className="gradient-text">Learners</span>
             </h2>

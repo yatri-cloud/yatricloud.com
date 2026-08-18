@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, CheckCircle2, Ticket, Users, Calendar as CalendarIcon, MapPin, Upload, Save, Clock, Handshake, Trash2, Image as ImageIcon, Link as LinkIcon, Search } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Ticket, Users, Calendar as CalendarIcon, MapPin, Upload, Save, Clock, Handshake, Trash2, Trash, Image as ImageIcon, Link as LinkIcon, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -675,9 +675,9 @@ export default function CreateEvent() {
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
                                     <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
                                         <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">1</span>
                                             <div className="min-w-0">
-                                                <h2 className="font-display text-lg font-semibold tracking-tight">Event Basic Information</h2>
+                                                <h2 className="font-display font-semibold tracking-tight">Event Basic Information</h2>
                                                 <p className="text-sm text-muted-foreground">Name, poster, date &amp; time, location, and what the event is about.</p>
                                             </div>
                                         </div>
@@ -725,8 +725,8 @@ export default function CreateEvent() {
                                                         <span className="text-xs text-muted-foreground font-normal ml-2">(16:9 Aspect Ratio Recommended, e.g. 1920x1080)</span>
                                                     </Label>
                                                     {formData.posterUrl && (
-                                                        <Button variant="ghost" size="sm" onClick={() => setFormData({ ...formData, posterUrl: "" })} className="text-destructive h-8 px-2 text-xs">
-                                                            Remove
+                                                        <Button type="button" variant="ghost" size="icon" onClick={() => setFormData({ ...formData, posterUrl: '' })} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white mt-1">
+                                                            <Trash className="h-4 w-4" />
                                                         </Button>
                                                     )}
                                                 </div>
@@ -967,9 +967,9 @@ export default function CreateEvent() {
 
                                     <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
                                         <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">2</span>
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">2</span>
                                             <div className="min-w-0">
-                                                <h2 className="font-display text-lg font-semibold tracking-tight">Organizer Details</h2>
+                                                <h2 className="font-display font-semibold tracking-tight">Organizer Details</h2>
                                                 <p className="text-sm text-muted-foreground">Who's hosting, how to reach them, and the community invite link.</p>
                                             </div>
                                         </div>
@@ -999,9 +999,9 @@ export default function CreateEvent() {
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
                                     <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
                                         <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">1</span>
                                             <div className="min-w-0">
-                                                <h2 className="font-display text-lg font-semibold tracking-tight">Pricing &amp; Tickets</h2>
+                                                <h2 className="font-display font-semibold tracking-tight">Pricing &amp; Tickets</h2>
                                                 <p className="text-sm text-muted-foreground">Add ticket tiers with prices and benefits, plus the registration deadline.</p>
                                             </div>
                                         </div>
@@ -1009,7 +1009,7 @@ export default function CreateEvent() {
                                             {/* Primary event price: Free/Paid + optional platform fee % (added on top). */}
                                             <div className="flex flex-col gap-4 p-6 border rounded-xl bg-card shadow-sm">
                                                 <div className="flex items-center justify-between">
-                                                    <h3 className="font-semibold text-base">Event Price</h3>
+                                                    <h3 className="font-semibold">Event Price</h3>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <Button type="button" variant={formData.pricingType === 'free' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, pricingType: 'free', price: '', platformFeePct: '' })}>Free</Button>
@@ -1045,9 +1045,9 @@ export default function CreateEvent() {
                                             {formData.tickets.map((ticket, index) => (
                                                 <div key={index} className="flex flex-col gap-4 p-6 border rounded-xl bg-card relative shadow-sm">
                                                     <div className="flex justify-between items-start">
-                                                        <h3 className="font-semibold text-base">Ticket Tier #{index + 1}</h3>
-                                                        <Button variant="ghost" size="sm" onClick={() => handleRemoveTicket(index)} className="text-destructive hover:bg-destructive/10">
-                                                            Remove
+                                                        <h3 className="font-semibold">Ticket Tier #{index + 1}</h3>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveTicket(index)} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
+                                                            <Trash className="h-4 w-4" />
                                                         </Button>
                                                     </div>
 
@@ -1164,9 +1164,9 @@ export default function CreateEvent() {
                                     <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
                                         <div className="mb-6 flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-start sm:justify-between">
                                             <div className="flex items-start gap-3">
-                                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">1</span>
                                                 <div className="min-w-0">
-                                                    <h2 className="font-display text-lg font-semibold tracking-tight">Speakers</h2>
+                                                    <h2 className="font-display font-semibold tracking-tight">Speakers</h2>
                                                     <p className="text-sm text-muted-foreground">Add speakers and their sessions, or open the event to speaker applications.</p>
                                                 </div>
                                             </div>
@@ -1374,9 +1374,9 @@ export default function CreateEvent() {
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
                                     <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
                                         <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">1</span>
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">1</span>
                                             <div className="min-w-0">
-                                                <h2 className="font-display text-lg font-semibold tracking-tight">Sponsors</h2>
+                                                <h2 className="font-display font-semibold tracking-tight">Sponsors</h2>
                                                 <p className="text-sm text-muted-foreground">Add sponsors with their tier, website, and logo — or mark none needed.</p>
                                             </div>
                                         </div>
@@ -1397,9 +1397,9 @@ export default function CreateEvent() {
                                                 {formData.sponsors.map((sponsor, index) => (
                                                     <div key={index} className="flex flex-col gap-4 p-6 border rounded-xl bg-card relative shadow-sm">
                                                         <div className="flex justify-between items-start">
-                                                            <h3 className="font-semibold text-base">Sponsor #{index + 1}</h3>
-                                                            <Button variant="ghost" size="sm" onClick={() => handleRemoveSponsor(index)} className="text-destructive hover:bg-destructive/10">
-                                                                Remove
+                                                            <h3 className="font-semibold">Sponsor #{index + 1}</h3>
+                                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveSponsor(index)} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
+                                                                <Trash className="h-4 w-4" />
                                                             </Button>
                                                         </div>
 
@@ -1478,9 +1478,9 @@ export default function CreateEvent() {
                                     {/* Collaboration Needs */}
                                     <div className="rounded-2xl border border-border bg-card p-6 md:p-8 mt-6">
                                         <div className="mb-6 flex items-start gap-3 border-b border-border pb-4">
-                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold tabular-nums text-primary">2</span>
+                                            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold tabular-nums text-white">2</span>
                                             <div className="min-w-0">
-                                                <h2 className="font-display text-lg font-semibold tracking-tight">Need Community Help?</h2>
+                                                <h2 className="font-display font-semibold tracking-tight">Need Community Help?</h2>
                                                 <p className="text-sm text-muted-foreground">Publish as an upcoming event to collect venue, speaker, or sponsor proposals.</p>
                                             </div>
                                         </div>

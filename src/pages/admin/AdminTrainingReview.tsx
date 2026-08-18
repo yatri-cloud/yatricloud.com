@@ -300,20 +300,20 @@ export default function AdminTrainingReview() {
         <div className="min-h-screen bg-slate-50/50 py-8 px-4 md:px-8">
             <div className="max-w-7xl mx-auto space-y-6">
 
-                {/* ── Breadcrumb + Top Header ── */}
-                <div className="space-y-2">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                        <span>Dashboard</span>
-                        <span>›</span>
-                        <span className="text-slate-900">Trainer Pipeline</span>
-                    </div>
+                {/* ── Top Header ── */}
+                <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                    <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 font-display">
+                    <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-1.5">
+                            <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+                                Training Operations
+                            </p>
+                            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
                                 Trainer Course Pipeline
                             </h1>
-                            <p className="text-xs md:text-sm text-slate-500 mt-1">
+                            <p className="text-xs md:text-sm text-slate-600">
                                 Every trainer-submitted course, grouped and audited — full CRUD, pricing control and transparency.
                             </p>
                         </div>
@@ -467,11 +467,7 @@ export default function AdminTrainingReview() {
                                                                         
                                                                         {/* Unique Modern Status Badges */}
                                                                         {r.status === "Published" && (
-                                                                            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/25 shadow-2xs">
-                                                                                <span className="relative flex h-2 w-2">
-                                                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                                                </span>
+                                                                            <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-success text-white border-0">
                                                                                 Published
                                                                             </span>
                                                                         )}
@@ -502,11 +498,7 @@ export default function AdminTrainingReview() {
 
                                                                     {/* Unique Flag Badges */}
                                                                     <div className="flex flex-wrap gap-1.5 pt-0.5">
-                                                                        {r.priceChanged && (
-                                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-800 border border-amber-500/30 shadow-2xs">
-                                                                                <History className="h-3 w-3 text-amber-600" /> Price Modified
-                                                                            </span>
-                                                                        )}
+
                                                                         {r.duplicate && (
                                                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-700 border border-rose-500/25 shadow-2xs">
                                                                                 <Copy className="h-3 w-3 text-rose-600" /> Duplicate Detected
@@ -522,22 +514,20 @@ export default function AdminTrainingReview() {
                                                             </div>
 
                                                             {/* Right: Revenue, Paid Seats, Earnings Columns */}
-                                                            <div className="flex items-center gap-8 text-right shrink-0">
+                                                            <div className="flex items-center gap-6 md:gap-10 text-right shrink-0">
                                                                 <div>
-                                                                    <p className="text-xs text-slate-400 font-medium">Revenue</p>
-                                                                    <p className="font-bold text-slate-900 text-sm tabular-nums mt-0.5">{fmtINR(r.price)}</p>
+                                                                    <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-0.5">Revenue</p>
+                                                                    <p className="font-bold text-slate-900 text-base tabular-nums">{fmtINR(r.price)}</p>
                                                                 </div>
 
                                                                 <div>
-                                                                    <p className="text-xs text-slate-400 font-medium">Paid Seats</p>
-                                                                    <p className="font-bold text-slate-900 text-sm tabular-nums mt-0.5">{r.paidEnrollments}</p>
-                                                                    <p className="text-[11px] text-slate-400">of {r.freeEnrollments} free</p>
+                                                                    <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-0.5">Paid Seats</p>
+                                                                    <p className="font-bold text-slate-900 text-base tabular-nums">{r.paidEnrollments}</p>
                                                                 </div>
 
                                                                 <div>
-                                                                    <p className="text-xs text-slate-400 font-medium">Earnings</p>
-                                                                    <p className="font-bold text-slate-900 text-sm tabular-nums mt-0.5">{fmtINR(r.revenue)}</p>
-                                                                    <p className="text-[11px] text-blue-600 font-semibold">earned</p>
+                                                                    <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-0.5">Earnings</p>
+                                                                    <p className="font-bold text-slate-900 text-base tabular-nums">{fmtINR(r.revenue)}</p>
                                                                 </div>
 
                                                                 {/* Actions vertical three dots */}
@@ -586,7 +576,7 @@ export default function AdminTrainingReview() {
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1">
                                     <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl bg-white border-slate-200" disabled><ChevronLeft className="h-3.5 w-3.5" /></Button>
-                                    <Button className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 font-bold border border-blue-200">1</Button>
+                                    <Button className="h-8 w-8 rounded-xl bg-blue-600 text-white font-bold border-0 hover:bg-blue-700 shadow-2xs">1</Button>
                                     <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl bg-white border-slate-200" disabled><ChevronRight className="h-3.5 w-3.5" /></Button>
                                 </div>
                                 <Select defaultValue="10">

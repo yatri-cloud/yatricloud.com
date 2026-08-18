@@ -56,8 +56,8 @@ const STATUS_STYLES: Record<string, string> = {
     pending: "bg-muted text-muted-foreground",
     confirmed: "bg-primary/10 text-primary",
     completed: "bg-brand-100 text-brand-700",
-    cancelled: "bg-destructive/10 text-destructive",
-    refunded: "bg-destructive/10 text-destructive",
+    cancelled: "bg-destructive text-white",
+    refunded: "bg-destructive text-white",
 };
 
 const formatSlot = (iso: string | null, timeZone: string) => {
@@ -352,15 +352,9 @@ const AdminMentorshipBookings = () => {
                         <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
                         <div className="relative space-y-1.5">
-                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Mentorship
-                            </p>
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                 Mentorship <span className="gradient-text">Bookings</span>
                             </h1>
-                            <p className="text-muted-foreground">
-                                Every session booked by Yatris. Update statuses, share meeting links, and resend confirmations.
-                            </p>
                         </div>
                     </div>
                 </ScrollReveal>

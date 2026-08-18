@@ -1376,12 +1376,9 @@ const AdminSiteContent = () => {
 
                         <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                             <div className="space-y-1.5">
-                                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
+                                <h1 className="font-display text-2xl font-black tracking-tight sm:text-3xl">
                                     Site & <span className="gradient-text">Homepage</span>
                                 </h1>
-                                <p className="text-muted-foreground">
-                                    Edit the words and numbers Yatris see across the site. Every save goes live right away.
-                                </p>
                             </div>
                         </div>
                     </div>
@@ -1392,20 +1389,16 @@ const AdminSiteContent = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card"
+                        className="space-y-6"
                     >
-                        <SectionHeader
-                            eyebrow="Global"
-                            title="Site Settings"
-                            hint="Contact details, social links, booking, and brand copy."
-                        />
 
-                        <div className="space-y-8">
+
+                        <div className="space-y-6">
                             {/* Contact */}
-                            <div>
-                                <p className="mb-3 border-l-2 border-primary pl-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <div className="rounded-2xl border border-brand-100 bg-card p-5 md:p-6 shadow-sm">
+                                <h3 className="mb-4 text-xl font-bold tracking-tight text-foreground">
                                     Contact
-                                </p>
+                                </h3>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
                                         <FieldLabel htmlFor="contact-email">Email</FieldLabel>
@@ -1431,10 +1424,10 @@ const AdminSiteContent = () => {
                             </div>
 
                             {/* Social */}
-                            <div>
-                                <p className="mb-3 border-l-2 border-primary pl-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <div className="rounded-2xl border border-brand-100 bg-card p-5 md:p-6 shadow-sm">
+                                <h3 className="mb-4 text-xl font-bold tracking-tight text-foreground">
                                     Social links
-                                </p>
+                                </h3>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
                                         <FieldLabel htmlFor="social-youtube">YouTube</FieldLabel>
@@ -1452,10 +1445,10 @@ const AdminSiteContent = () => {
                             </div>
 
                             {/* Booking */}
-                            <div>
-                                <p className="mb-3 border-l-2 border-primary pl-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <div className="rounded-2xl border border-brand-100 bg-card p-5 md:p-6 shadow-sm">
+                                <h3 className="mb-4 text-xl font-bold tracking-tight text-foreground">
                                     Booking
-                                </p>
+                                </h3>
                                 <div className="space-y-2">
                                     <FieldLabel htmlFor="booking-calendly">Calendly URL</FieldLabel>
                                     <Input id="booking-calendly" className="min-h-[44px] rounded-xl" value={booking.calendly_url} onChange={(e) => setBooking({ ...booking, calendly_url: e.target.value })} />
@@ -1463,10 +1456,10 @@ const AdminSiteContent = () => {
                             </div>
 
                             {/* Brand */}
-                            <div>
-                                <p className="mb-3 border-l-2 border-primary pl-3 text-xs font-semibold uppercase tracking-wider text-primary">
+                            <div className="rounded-2xl border border-brand-100 bg-card p-5 md:p-6 shadow-sm">
+                                <h3 className="mb-4 text-xl font-bold tracking-tight text-foreground">
                                     Brand
-                                </p>
+                                </h3>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
                                         <FieldLabel htmlFor="brand-name">Brand name</FieldLabel>
@@ -1504,11 +1497,11 @@ const AdminSiteContent = () => {
                             hint="The numbers shown on the homepage, community, and training pages."
                         />
 
-                        <div className="space-y-3">
+                        <div className="divide-y divide-border">
                             {stats.map((stat) => (
                                 <div
                                     key={stat.id}
-                                    className="grid grid-cols-1 items-center gap-3 rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 p-4 sm:grid-cols-[110px_1fr_1fr_auto]"
+                                    className="grid grid-cols-1 items-center gap-4 py-4 sm:grid-cols-[110px_1fr_1fr_auto]"
                                 >
                                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         {stat.key}
@@ -1612,9 +1605,9 @@ const AdminSiteContent = () => {
                             hint="The questions and answers shown on the homepage. Save each card after editing."
                         />
 
-                        <div className="space-y-4">
+                        <div className="divide-y divide-border">
                             {faqs.map((faq, index) => (
-                                <div key={faq.id ?? `new-${index}`} className="rounded-xl border border-border bg-background odd:bg-brand-50/30 odd:border-brand-100 p-4 md:p-5 space-y-4">
+                                <div key={faq.id ?? `new-${index}`} className="py-6 space-y-4">
                                     <div className="flex items-center justify-between gap-3">
                                         <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
                                             {index + 1}

@@ -284,13 +284,7 @@ export default function AdminAttendees() {
 
                 <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                     <div className="space-y-1.5">
-                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Event Attendance & Verification
-                        </p>
                         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Attendee Management</h1>
-                        <p className="text-muted-foreground">
-                            Verify registration codes, manage checked-in attendees, and track real-time attendance.
-                        </p>
                     </div>
 
                     {/* Event Selector Dropdown */}
@@ -321,9 +315,6 @@ export default function AdminAttendees() {
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Registered</p>
                                 <p className="text-2xl font-bold mt-1">{stats.total}</p>
                             </div>
-                            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                                <Users className="w-5 h-5" />
-                            </div>
                         </div>
                     </Card>
 
@@ -333,9 +324,6 @@ export default function AdminAttendees() {
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Checked In (Attended)</p>
                                 <p className="text-2xl font-bold text-success mt-1">{stats.attended}</p>
                             </div>
-                            <div className="h-10 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center">
-                                <UserCheck className="w-5 h-5" />
-                            </div>
                         </div>
                     </Card>
 
@@ -344,9 +332,6 @@ export default function AdminAttendees() {
                             <div>
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pending Check-in</p>
                                 <p className="text-2xl font-bold text-amber-600 mt-1">{stats.pending}</p>
-                            </div>
-                            <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                                <Clock className="w-5 h-5" />
                             </div>
                         </div>
                     </Card>
@@ -392,7 +377,7 @@ export default function AdminAttendees() {
                             </div>
                             <Badge className={
                                 attendee.status === "attended"
-                                    ? "rounded-full bg-success/10 text-success text-xs"
+                                    ? "rounded-full bg-success text-white text-xs"
                                     : "rounded-full bg-primary/10 text-primary text-xs"
                             }>
                                 {attendee.status === "attended" ? "Already Checked In" : "Ready to Check-in"}
@@ -491,7 +476,7 @@ export default function AdminAttendees() {
                                 className="h-10 rounded-xl gap-1.5 text-xs font-medium"
                                 onClick={() => navigate(`/admin/events/${selectedEventId}/registrations`)}
                             >
-                                <ExternalLink className="w-3.5 h-3.5" /> Registrations
+                                Registrations
                             </Button>
                         )}
                     </div>
@@ -555,11 +540,11 @@ export default function AdminAttendees() {
                                                 {/* Status */}
                                                 <TableCell>
                                                     {isAttended ? (
-                                                        <Badge className="rounded-full bg-success/10 text-success border-0 text-xs font-medium inline-flex items-center gap-1">
-                                                            <Check className="w-3 h-3" /> Checked In
+                                                        <Badge className="rounded-full bg-success text-white border-0 text-xs font-medium inline-flex items-center gap-1">
+                                                            Checked In
                                                         </Badge>
                                                     ) : (
-                                                        <Badge className="rounded-full bg-amber-500/10 text-amber-600 border-0 text-xs font-medium">
+                                                        <Badge className="rounded-full bg-amber-500 text-white border-0 border-0 text-xs font-medium">
                                                             Pending Check-in
                                                         </Badge>
                                                     )}
@@ -595,7 +580,7 @@ export default function AdminAttendees() {
                                                         </Button>
                                                     ) : (
                                                         <span className="text-xs font-medium flex items-center justify-end gap-1 text-success">
-                                                            <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                                                            Verified
                                                         </span>
                                                     )}
                                                 </TableCell>
@@ -622,7 +607,7 @@ export default function AdminAttendees() {
                                 <span className="text-muted-foreground">Status</span>
                                 <Badge className={
                                     detailAttendee.status === "attended"
-                                        ? "bg-success/10 text-success border-0"
+                                        ? "bg-success text-white border-0"
                                         : "bg-primary/10 text-primary border-0"
                                 }>
                                     {detailAttendee.status === "attended" ? "Checked In" : "Pending Check-in"}

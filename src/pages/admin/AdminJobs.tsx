@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Plus, Trash2 } from "lucide-react";
+import { Loader2, Search, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -107,10 +107,6 @@ export default function AdminJobs() {
                 <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
                 <div className="relative space-y-1.5">
                     <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Companies</h1>
-                    <p className="text-muted-foreground">
-                        {totalJobs.toLocaleString("en-IN")} live postings across {rows.filter((r) => r.active).length} active boards.
-                        Jobs sync from official ATS APIs; run <code className="rounded bg-muted px-1.5 py-0.5 text-xs">node scripts/jobs-sync.mjs</code> after changes.
-                    </p>
                 </div>
             </div>
 
@@ -169,10 +165,10 @@ export default function AdminJobs() {
                                             size="icon"
                                             aria-label={`Delete ${r.name}`}
                                             title="Delete"
-                                            className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
+                                            className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                                             onClick={() => remove(r)}
                                         >
-                                            <Trash2 className="h-4 w-4" />
+                                            <Trash className="h-4 w-4" />
                                         </Button>
                                     </td>
                                 </tr>

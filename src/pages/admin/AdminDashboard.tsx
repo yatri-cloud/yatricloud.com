@@ -26,7 +26,7 @@ const RouteGuard = ({ children }: { children: React.ReactNode }) => {
 
 const NoAccess = () => (
   <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center px-6">
-    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive text-white">
       <ShieldX className="h-7 w-7" />
     </div>
     <h2 className="font-display text-xl font-bold tracking-tight">No access</h2>

@@ -141,9 +141,6 @@ export default function AdminRazorpayInvoices() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="font-display text-3xl font-black tracking-tight">Razorpay invoices</h1>
-                    <p className="mt-1 text-muted-foreground">
-                        Raise a professional invoice in any currency, or view the ones you created in the Razorpay dashboard.
-                    </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" className="gap-2" onClick={load} disabled={isLoading}>

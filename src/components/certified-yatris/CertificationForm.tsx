@@ -1466,9 +1466,6 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                                           : cert.logo.includes('github-white-icon') && theme === 'light'
                                             ? 'invert' // Invert white icon for light theme
                                             : ''
-                                          } ${cert.logo && (cert.logo.includes('Oracle') || cert.logo.includes('ServiceNow'))
-                                            ? 'max-w-[80px]' // Limit width for Oracle and ServiceNow certifications
-                                            : ''
                                           }`}
                                         onError={(e) => {
                                           // Hide image if it fails to load

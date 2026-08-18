@@ -44,7 +44,7 @@ import {
 import { isAuthenticated, getStoredUser, getRegisteredEvents, type EventRegistration } from "@/lib/yatris-api";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2 } from "lucide-react";
-import { getAllEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
+import { getPublishedEvents, getEventBySlug, Event, EventSpeaker as Speaker, Ticket, Attendee, GalleryAlbum, GalleryMedia } from "@/lib/events-store";
 import { canViewEventGallery, listEventGalleryMedia, type EventGalleryItem } from "@/lib/events-api";
 import { formatEventPrice } from "@/lib/razorpay";
 import { EntityReviews } from "@/components/reviews/EntityReviews";
@@ -161,7 +161,7 @@ const EventDetail = () => {
         });
 
         // Load related events for the "more events" section
-        getAllEvents().then(setAllEvents);
+        getPublishedEvents().then(setAllEvents);
 
         // Scroll to top
         window.scrollTo(0, 0);
@@ -384,7 +384,7 @@ const EventDetail = () => {
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
                                     <span className="flex items-center gap-2 text-foreground font-semibold text-lg">
-                                        <Image className="w-5 h-5 text-primary" /> Moments from the day
+                                        Moments from the day
                                     </span>
                                     <span className="text-muted-foreground text-sm tabular-nums">{sliderIndex + 1} / {galleryItems.length}</span>
                                 </div>
@@ -713,7 +713,7 @@ const EventDetail = () => {
                 </main>
 
                 {/* More events */}
-                {allEvents.filter(e => e.id !== event.id && e.status === 'upcoming').length > 0 && (
+                {allEvents.filter(e => e.id !== event.id && e.status === 'upcoming' && e.visibility !== 'private').length > 0 && (
                     <section className="container mx-auto px-4 md:px-6 py-14 border-t border-border">
                         <div className="flex items-center justify-between mb-8">
                             <h2 className="font-display text-2xl font-bold">Up next, Yatri</h2>
@@ -723,7 +723,7 @@ const EventDetail = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {allEvents
-                                .filter(e => e.id !== event.id && e.status === 'upcoming' && new Date(e.date) > new Date())
+                                .filter(e => e.id !== event.id && e.status === 'upcoming' && e.visibility !== 'private' && new Date(e.date) > new Date())
                                 .slice(0, 3)
                                 .map((ev, i) => (
                                     <ScrollReveal key={ev.id} delay={i * 0.1}>
@@ -733,13 +733,11 @@ const EventDetail = () => {
                                                     <img src={ev.imageUrl} alt={ev.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                                 </div>
                                                 <div className="p-5 flex-1 flex flex-col">
-                                                    <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider mb-2">
-                                                        <Calendar className="w-3 h-3" />
+                                                    <div className="text-primary text-xs font-bold uppercase tracking-wider mb-2">
                                                         {new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </div>
                                                     <h3 className="font-display text-base font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{ev.name}</h3>
                                                     <div className="mt-auto flex items-center text-muted-foreground text-sm">
-                                                        <MapPin className="w-3.5 h-3.5 mr-1 text-primary" />
                                                         <span className="truncate">{ev.location?.venue || ev.location?.city}</span>
                                                     </div>
                                                 </div>
@@ -1522,13 +1520,11 @@ const EventDetail = () => {
                                             />
                                         </div>
                                         <div className="p-6 flex-1 flex flex-col">
-                                            <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider mb-2">
-                                                <Calendar className="w-3 h-3" />
+                                            <div className="text-primary text-xs font-bold uppercase tracking-wider mb-2">
                                                 <span>{new Date(otherEvent.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                             </div>
                                             <h3 className="font-display text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{otherEvent.name}</h3>
                                             <div className="mt-auto flex items-center text-muted-foreground text-sm">
-                                                <MapPin className="w-4 h-4 mr-1 text-primary" />
                                                 <span className="truncate">{otherEvent.location.venue || otherEvent.location.city}</span>
                                             </div>
                                         </div>
@@ -1551,13 +1547,11 @@ const EventDetail = () => {
                                             />
                                         </div>
                                         <div className="p-6 flex-1 flex flex-col">
-                                            <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider mb-2">
-                                                <Calendar className="w-3 h-3" />
+                                            <div className="text-primary text-xs font-bold uppercase tracking-wider mb-2">
                                                 <span>{new Date(otherEvent.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                             </div>
                                             <h3 className="font-display text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">{otherEvent.name}</h3>
                                             <div className="mt-auto flex items-center text-muted-foreground text-sm">
-                                                <MapPin className="w-4 h-4 mr-1 text-primary" />
                                                 <span className="truncate">{otherEvent.location.venue || otherEvent.location.city}</span>
                                             </div>
                                         </div>

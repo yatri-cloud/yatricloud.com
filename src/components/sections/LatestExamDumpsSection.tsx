@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ShoppingCart, ExternalLink } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import ScrollReveal from "@/components/ScrollReveal";
-import { fetchExamDumps, type ExamDump } from "@/lib/exam-dumps";
+import { fetchExamDumps, getProviderGlowColor, type ExamDump } from "@/lib/exam-dumps";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 
@@ -36,9 +36,6 @@ export const LatestExamDumpsSection = () => {
           <ScrollReveal>
             <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-12 gap-6">
               <div className="max-w-2xl">
-                <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
-                  Premium Resources
-                </span>
                 <h2 className="font-display text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-4">
                   Latest <span className="gradient-text">Exam Dumps</span>
                 </h2>
@@ -65,10 +62,16 @@ export const LatestExamDumpsSection = () => {
               return (
               <ScrollReveal key={dump.id} delay={index * 0.06}>
                 <motion.div
-                  className="group relative h-full flex flex-col bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/40 hover:shadow-card transition-colors duration-300"
-                  whileHover={{ y: -6 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="group relative h-full flex flex-col rounded-2xl border border-border transition-all duration-300 hover:border-transparent outline-none focus:outline-none"
                 >
+                  {/* Static Soft Glow Layer */}
+                  <div 
+                    className="absolute -inset-1 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-[24px] blur-xl"
+                    style={{ backgroundColor: getProviderGlowColor(dump.provider) }}
+                  />
+
+                  {/* Content Wrapper to mask inner shadow and clip corners */}
+                  <div className="relative z-10 flex flex-col flex-1 rounded-2xl overflow-hidden bg-card h-full">
                   {/* Square image stage — artwork contained and centered,
                       matching ExamDumpCard on /examdumps. The image links to
                       the dumps page, same as the Details button. */}
@@ -102,20 +105,10 @@ export const LatestExamDumpsSection = () => {
                     </div>
                   </Link>
 
-                  {/* Ruled exam-paper body */}
-                  <div
-                    className="relative flex flex-col flex-1 p-6 pl-8"
-                    style={{
-                      backgroundImage:
-                        "repeating-linear-gradient(to bottom, transparent, transparent 31px, hsl(var(--border) / 0.6) 31px, hsl(var(--border) / 0.6) 32px)",
-                    }}
-                  >
-                    {/* Margin rule */}
-                    <span className="pointer-events-none absolute inset-y-0 left-5 w-px bg-primary/30" aria-hidden="true" />
+                  {/* Card body */}
+                  <div className="relative flex flex-col flex-1 p-6">
 
-                    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-                      Exam Paper
-                    </span>
+
                     <h3 className="text-xl font-bold text-foreground mb-4 line-clamp-1 group-hover:text-primary transition-colors">
                       <Link
                         to="/examdumps"
@@ -155,17 +148,16 @@ export const LatestExamDumpsSection = () => {
                         }}
                         className="flex items-center justify-center gap-2 min-h-[44px] bg-primary text-primary-foreground font-semibold py-3 rounded-xl shadow-inset-btn hover:bg-primary/90 transition-colors"
                       >
-                        <ShoppingCart className="w-4 h-4" />
                         Add
                       </button>
                       <Link
                         to="/examdumps"
                         className="flex items-center justify-center gap-2 min-h-[44px] border border-border text-foreground font-semibold py-3 rounded-xl hover:border-primary/40 hover:bg-secondary transition-colors"
                       >
-                        <ExternalLink className="w-4 h-4" />
                         Details
                       </Link>
                     </div>
+                  </div>
                   </div>
                 </motion.div>
               </ScrollReveal>

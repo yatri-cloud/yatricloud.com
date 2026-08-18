@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Search } from "lucide-react";
+import { Loader2, Plus, Search , Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -164,7 +164,6 @@ export default function AdminCoupons() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="font-display text-3xl font-black tracking-tight">Coupons</h1>
-                    <p className="mt-1 text-muted-foreground">Discount codes for training, event and store checkouts.</p>
                 </div>
                 <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> New coupon</Button>
             </div>
@@ -240,7 +239,7 @@ export default function AdminCoupons() {
                                                 <div className="flex items-center justify-end gap-1">
                                                     <Button variant="ghost" size="sm" onClick={() => toggleActive(c)}>{c.active ? "Pause" : "Resume"}</Button>
                                                     <Button variant="ghost" size="sm" onClick={() => openEdit(c)}>Edit</Button>
-                                                    <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => remove(c)}>Delete</Button>
+                                                    <Button variant="ghost" className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={() => remove(c)} title="Delete"><Trash className="h-4 w-4" /></Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

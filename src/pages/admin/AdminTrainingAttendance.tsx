@@ -36,14 +36,11 @@ export default function AdminTrainingAttendance() {
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Training Operations
+              Training Operations
             </p>
             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
               Training Attendance &amp; Sessions
             </h1>
-            <p className="text-muted-foreground text-sm">
-              Manage class schedules and track student attendance across all training courses.
-            </p>
           </div>
         </div>
       </div>

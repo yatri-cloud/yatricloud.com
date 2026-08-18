@@ -71,7 +71,6 @@ const AdminAddExamDump = () => {
         className="mb-8"
       >
         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Add New Exam Dump</h1>
-        <p className="text-muted-foreground mt-1.5">Fill in the details for the certification exam dump.</p>
       </motion.div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

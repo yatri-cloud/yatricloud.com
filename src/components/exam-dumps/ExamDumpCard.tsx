@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { ShoppingCart, ExternalLink, Download } from "lucide-react";
+import { ShoppingCart, ExternalLink } from "lucide-react";
 import { EntityReviews } from "@/components/reviews/EntityReviews";
-import { ExamDump } from "@/lib/exam-dumps";
+import { ExamDump, getProviderGlowColor } from "@/lib/exam-dumps";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,18 +24,7 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
   const { addToCart } = useCart();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  /* Simulated "people viewing" -- random 3-12 per card, cached per session. */
-  const [viewers] = useState<number>(() => {
-    try {
-      const cached = sessionStorage.getItem(`viewers-${dump.id}`);
-      if (cached) return parseInt(cached, 10);
-      const v = Math.floor(Math.random() * 10) + 3;
-      sessionStorage.setItem(`viewers-${dump.id}`, String(v));
-      return v;
-    } catch {
-      return Math.floor(Math.random() * 10) + 3;
-    }
-  });
+
 
   const handleAddToCart = () => {
     // Adapter for cart context which expects StoreProduct
@@ -68,26 +57,17 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      whileHover={{ y: -8 }}
       className="h-full"
     >
-      <Card className="group relative h-full flex flex-col overflow-hidden rounded-2xl border-2 border-border bg-card/95 hover:border-primary/70 transition-all duration-300 shadow-sm hover:shadow-lg">
-        {/* Discount Badge */}
-        {dump.originalPrice > dump.price && (
-          <div className="absolute top-4 right-4 z-10">
-            <Badge className="bg-red-500 text-white font-bold text-xs px-2 py-1 shadow-md">
-              {Math.round(((dump.originalPrice - dump.price) / dump.originalPrice) * 100)}% OFF
-            </Badge>
-          </div>
-        )}
+      <Card className="group relative h-full flex flex-col rounded-2xl border border-slate-200/80 transition-all duration-300 hover:border-transparent outline-none focus:outline-none">
+        {/* Static Soft Glow Layer */}
+        <div 
+          className="absolute -inset-1 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-[24px] blur-xl"
+          style={{ backgroundColor: getProviderGlowColor(dump.provider) }}
+        />
 
-        {/* Provider Badge */}
-        <div className="absolute top-4 left-4 z-10">
-          <Badge variant="secondary" className="font-semibold shadow-sm">
-            {dump.provider}
-          </Badge>
-        </div>
-
+        {/* Content Wrapper to mask inner shadow and clip corners */}
+        <div className="relative z-10 flex flex-col flex-1 rounded-2xl overflow-hidden bg-card h-full">
         {/* Dump Image -- square tile, logo shown in full. Clicking it opens
             the details dialog, same as the View Details button. */}
         <button
@@ -99,12 +79,20 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
           <motion.img
             src={dump.image}
             alt=""
-            className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+            className="max-h-full max-w-full rounded-2xl object-contain transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         </button>
 
-        <CardHeader className="flex-1 px-5 pt-5 pb-2">
+        <CardHeader className="flex-1 px-5 pt-4 pb-2">
+          {dump.provider && dump.provider.toUpperCase() !== "OTHER" && (
+            <div className="mb-2">
+              <span className="inline-flex items-center rounded-full border border-slate-200/90 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                {dump.provider}
+              </span>
+            </div>
+          )}
+
           <CardTitle className="text-lg font-bold leading-snug group-hover:text-primary transition-colors">
             <button
               type="button"
@@ -116,7 +104,7 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="px-5 pt-1 pb-4 space-y-3">
+        <CardContent className="px-5 pt-1 pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold tracking-tight text-foreground">
@@ -128,18 +116,27 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
                 </span>
               )}
             </div>
-            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              {viewers} people viewing
-            </span>
+
+            {dump.originalPrice > dump.price && (
+              <span className="inline-flex items-center rounded-full bg-red-600 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wide text-white shadow-2xs">
+                {Math.round(((dump.originalPrice - dump.price) / dump.originalPrice) * 100)}% OFF
+              </span>
+            )}
           </div>
-          <div className="text-xs font-medium text-emerald-700">Instant delivery via email</div>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2 p-5 pt-0">
+          <Button
+            onClick={handleBuyNow}
+            className="w-full font-semibold shadow-inset-btn"
+            size="lg"
+          >
+            Buy Now
+          </Button>
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full text-sm" size="sm">
+              <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-foreground" size="sm">
                 View Details
               </Button>
             </DialogTrigger>
@@ -154,11 +151,11 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
-                <div className="relative w-full max-w-sm mx-auto rounded-lg overflow-hidden border aspect-square flex items-center justify-center bg-muted">
+                <div className="relative w-full max-w-sm mx-auto rounded-2xl overflow-hidden border aspect-square flex items-center justify-center bg-muted p-4">
                   <img
                     src={dump.image}
                     alt={dump.title}
-                    className="max-w-full max-h-full object-contain"
+                    className="max-w-full max-h-full rounded-2xl object-contain"
                   />
                 </div>
                 <div className="flex items-baseline gap-3">
@@ -187,19 +184,8 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
               </div>
             </DialogContent>
           </Dialog>
-
-          <Button
-            onClick={handleBuyNow}
-            className="w-full group/btn font-semibold shadow-inset-btn"
-            size="lg"
-          >
-            Buy Now
-          </Button>
-          <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-            <Download className="h-3 w-3" aria-hidden="true" />
-            Instant delivery to your email after payment
-          </p>
         </CardFooter>
+        </div>
       </Card>
     </motion.div>
   );

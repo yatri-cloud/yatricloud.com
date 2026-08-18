@@ -36,9 +36,6 @@ export const InstructorSection = () => {
         {/* Header */}
         <ScrollReveal>
           <div className="max-w-2xl mb-14 md:mb-20">
-            <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-4 block">
-              The Team
-            </span>
             <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.02]">
               Meet the <span className="gradient-text">Team</span>
             </h2>

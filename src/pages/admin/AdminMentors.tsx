@@ -8,7 +8,7 @@ import {
     Plus,
     Save,
     Search,
-    Trash2,
+    Trash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -607,15 +607,9 @@ const AdminMentors = () => {
 
                         <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                             <div className="space-y-1.5">
-                                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Mentorship
-                                </p>
                                 <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                     Mentor <span className="gradient-text">Profiles</span>
                                 </h1>
-                                <p className="text-muted-foreground">
-                                    Manage who mentors on Yatri Cloud, their weekly availability, and how they appear in the directory.
-                                </p>
                             </div>
                             <Button onClick={openAdd} className={saveButtonClass} data-testid="mentor-add">
                                 <Plus className="mr-2 h-4 w-4" />
@@ -711,7 +705,7 @@ const AdminMentors = () => {
                                                 <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                                                     <span className="truncate">{mentor.name}</span>
                                                     {mentor.is_featured && (
-                                                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                                        <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground border-0">
                                                             Featured
                                                         </span>
                                                     )}
@@ -812,7 +806,7 @@ const AdminMentors = () => {
                                                     aria-label={`Delete ${mentor.name}`}
                                                     className={deleteIconButtonClass}
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -1143,7 +1137,7 @@ const AdminMentors = () => {
                                                 aria-label={`Delete the ${WEEKDAYS[rule.weekday]} window`}
                                                 className={deleteIconButtonClass}
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     ))}
@@ -1237,12 +1231,12 @@ const AdminMentors = () => {
                         <AlertDialogAction
                             onClick={confirmDelete}
                             disabled={deleting}
-                            className="min-h-[44px] rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="min-h-[44px] rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                         >
                             {deleting ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash className="mr-2 h-4 w-4" />
                             )}
                             Delete mentor
                         </AlertDialogAction>

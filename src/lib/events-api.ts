@@ -193,7 +193,9 @@ export async function getPublishedEvents(): Promise<Event[]> {
         console.error("[events-api] getPublishedEvents", error.message);
         return [];
     }
-    return (data || []).map(rowToEvent);
+    return (data || [])
+        .map(rowToEvent)
+        .filter(e => e.status !== "draft" && e.visibility !== "private");
 }
 
 export async function getEventBySlug(slug: string): Promise<Event | undefined> {

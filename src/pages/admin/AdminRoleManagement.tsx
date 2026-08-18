@@ -31,8 +31,8 @@ import {
 const roleTone: Record<string, string> = {
     super_admin: "bg-primary/10 text-primary",
     admin: "bg-blue-500/10 text-primary",
-    manager: "bg-amber-500/10 text-amber-600",
-    support: "bg-emerald-500/10 text-emerald-600",
+    manager: "bg-amber-500 text-white border-0",
+    support: "bg-emerald-500 text-white border-0",
     auditor: "bg-purple-500/10 text-purple-600",
 };
 
@@ -248,13 +248,7 @@ export default function AdminRoleManagement() {
                     <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
                     <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div className="space-y-1.5">
-                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Access control
-                            </p>
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Admin Roles &amp; Permissions</h1>
-                            <p className="text-muted-foreground">
-                                Create admins, managers and support staff, assign which pages each role can open, and manage their logins.
-                            </p>
                         </div>
                         <Button onClick={openAdd} className="gap-2 rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600">
                             <Plus className="h-4 w-4" /> Add Admin
@@ -306,7 +300,7 @@ export default function AdminRoleManagement() {
                                             </span>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant="outline" className={cn("text-xs", u.isActive ? "bg-success/10 text-success" : "bg-muted text-muted-foreground")}>
+                                            <Badge variant="outline" className={cn("text-xs", u.isActive ? "bg-success text-white" : "bg-muted text-muted-foreground")}>
                                                 {u.isActive ? "Active" : "Disabled"}
                                             </Badge>
                                         </TableCell>

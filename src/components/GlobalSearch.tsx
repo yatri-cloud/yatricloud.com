@@ -96,7 +96,7 @@ async function loadEntries(): Promise<SearchEntry[]> {
 
 const GROUP_ORDER = ["Pages", "Trainings", "Events", "Exam dumps", "Store", "Certifications"];
 
-export function GlobalSearch() {
+export function GlobalSearch({ isLightText }: { isLightText?: boolean } = {}) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [entries, setEntries] = useState<SearchEntry[]>(PAGES);
@@ -136,7 +136,11 @@ export function GlobalSearch() {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    isLightText
+                        ? "border border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-md"
+                        : "border border-border bg-card text-muted-foreground hover:border-brand-200 hover:bg-brand-50 hover:text-primary"
+                }`}
             >
                 <Search className="h-5 w-5" aria-hidden="true" />
                 <span className="sr-only">Search (Ctrl+K)</span>

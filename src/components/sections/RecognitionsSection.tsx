@@ -44,7 +44,7 @@ export const RecognitionsSection = () => {
           </div>
         </ScrollReveal>
 
-        {/* Recognition badge wall — white pills w/ real brand logos on the blue band */}
+        {/* Recognition badge wall — text-only white pills on the blue band */}
         <div className="mx-auto mt-12 flex max-w-4xl flex-wrap justify-center gap-3">
           {recognitions.map((r, i) => (
             <motion.div
@@ -54,18 +54,9 @@ export const RecognitionsSection = () => {
               viewport={{ once: true, margin: "-40px" }}
               transition={{ delay: Math.min(i * 0.04, 0.35), duration: 0.45, ease: EASE }}
               whileHover={reduce ? undefined : { y: -3 }}
-              className="group inline-flex items-center gap-2.5 rounded-full bg-white px-4 py-2.5 text-foreground shadow-sm transition-shadow duration-300 hover:shadow-elevated"
+              className="group inline-flex items-center rounded-full bg-white px-5 py-2.5 text-foreground shadow-sm transition-shadow duration-300 hover:shadow-elevated"
             >
-              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
-                <img
-                  src={r.logo}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-full w-full object-contain"
-                  loading="lazy"
-                />
-              </span>
-              <span className="text-sm font-medium tracking-tight">{r.label}</span>
+              <span className="text-sm font-semibold tracking-tight">{r.label}</span>
             </motion.div>
           ))}
         </div>

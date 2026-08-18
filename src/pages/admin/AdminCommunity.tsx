@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, Plus, Search } from "lucide-react";
+import { Loader2, Plus, Search , Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -118,7 +118,6 @@ export default function AdminCommunity() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="font-display text-3xl font-black tracking-tight">Community</h1>
-                    <p className="mt-1 text-muted-foreground">Manage the community links shown on the public community page.</p>
                 </div>
                 <Button className="gap-2" onClick={openAdd}><Plus className="h-4 w-4" /> Add community</Button>
             </div>
@@ -169,7 +168,6 @@ export default function AdminCommunity() {
                                         <TableRow key={c.id}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
-                                                    {c.logo_url && <img src={c.logo_url} alt="" className="h-6 w-6 shrink-0 rounded object-contain" />}
                                                     <div className="min-w-0">
                                                         <a href={c.url} target="_blank" rel="noreferrer" className="font-medium hover:text-primary hover:underline">{c.name}</a>
                                                         {c.tagline && <div className="truncate text-xs text-muted-foreground">{c.tagline}</div>}
@@ -179,7 +177,7 @@ export default function AdminCommunity() {
                                             <TableCell className="text-muted-foreground">{groupLabel(c.grp)}</TableCell>
                                             <TableCell className="text-muted-foreground">{c.sort_order}</TableCell>
                                             <TableCell>
-                                                <Badge variant="outline" className={c.active ? "border-emerald-500/30 text-emerald-600" : "border-border text-muted-foreground"}>
+                                                <Badge variant={c.active ? "default" : "outline"} className={c.active ? "bg-success text-white hover:bg-success/90" : "border-border text-muted-foreground"}>
                                                     {c.active ? "Active" : "Hidden"}
                                                 </Badge>
                                             </TableCell>
@@ -187,7 +185,7 @@ export default function AdminCommunity() {
                                                 <div className="flex items-center justify-end gap-1">
                                                     <Button variant="ghost" size="sm" onClick={() => toggleActive(c)}>{c.active ? "Hide" : "Show"}</Button>
                                                     <Button variant="ghost" size="sm" onClick={() => openEdit(c)}>Edit</Button>
-                                                    <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => remove(c)}>Delete</Button>
+                                                    <Button variant="ghost" className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={() => remove(c)} title="Delete"><Trash className="h-4 w-4" /></Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

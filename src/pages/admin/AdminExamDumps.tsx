@@ -65,7 +65,6 @@ const AdminExamDumps = () => {
               className="space-y-1.5"
             >
               <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Manage Exam Dumps</h1>
-              <p className="text-muted-foreground">Add, edit, and organize your certification exam dumps.</p>
             </motion.div>
 
             <Button

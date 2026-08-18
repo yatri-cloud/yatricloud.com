@@ -224,18 +224,9 @@ export default function AdminNewsletterCompose() {
               className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
             />
             <div className="relative">
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Newsletter
-              </p>
               <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight md:text-3xl">
                 {isEdit ? "Edit Newsletter" : "Compose Newsletter"}
               </h1>
-              <p className="mt-1 text-muted-foreground">
-                {isEdit
-                  ? "Update this draft and send it when ready."
-                  : "Write your newsletter content and send it to all subscribers."}
-              </p>
             </div>
           </div>
         </ScrollReveal>

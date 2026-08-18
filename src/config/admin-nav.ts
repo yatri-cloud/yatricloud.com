@@ -57,6 +57,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: Users,
         items: [
             { name: "All Yatris", path: "/admin/yatris", icon: Users, description: "View, search and manage all registered users." },
+            { name: "Leads CRM", path: "/admin/leads", icon: Handshake, description: "Manage incoming partnership and contact leads." },
             { name: "Support Tickets", path: "/admin/tickets", icon: LifeBuoy, description: "Manage, reply to and resolve user support tickets." },
             { name: "Admin Roles", path: "/admin/roles", icon: ShieldCheck, description: "Manage admins, managers, roles and page permissions." },
         ],

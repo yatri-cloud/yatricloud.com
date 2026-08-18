@@ -38,9 +38,6 @@ export const FAQSection = () => {
           {/* LEFT — sticky large-type panel */}
           <div className="lg:sticky lg:top-24">
             <ScrollReveal direction="right">
-              <span className="text-primary font-semibold text-sm uppercase tracking-wider mb-5 block">
-                FAQ
-              </span>
               <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.02] mb-6">
                 Certification
                 <br className="hidden sm:block" />{" "}
@@ -57,10 +54,10 @@ export const FAQSection = () => {
                   Still have questions?
                 </p>
                 <a
-                  href="#schedule-meeting"
+                  href="#contact"
                   className="group inline-flex items-center gap-2 min-h-[44px] text-primary font-semibold rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-colors hover:text-brand-600"
                 >
-                  <span>Book a scheduling meeting</span>
+                  <span>Contact us</span>
                   <ArrowUpRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
               </div>

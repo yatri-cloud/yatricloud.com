@@ -15,9 +15,6 @@ export default function AdminSitemapView() {
         <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-8">
             <div>
                 <h1 className="font-display text-3xl font-black tracking-tight">Admin sitemap</h1>
-                <p className="mt-1 text-muted-foreground">
-                    A live map of every admin area, {pageCount} pages across {ADMIN_NAV_GROUPS.length} sections. This stays in step with the menu on its own.
-                </p>
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, Plus, Database, Server, Pencil, Trash2, Check, X, Search } from "lucide-react";
+import { Loader2, Plus, Database, Server, Pencil, Trash, Check, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,7 +140,6 @@ export default function AdminProviders() {
                 <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                     <div className="space-y-1.5">
                         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Providers Management</h1>
-                        <p className="text-muted-foreground">Manage the training providers shown across the platform.</p>
                     </div>
                 </div>
             </div>
@@ -263,8 +262,8 @@ export default function AdminProviders() {
                                                                 }}>
                                                                     <Pencil className="h-4 w-4" />
                                                                 </Button>
-                                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" onClick={() => handleDelete(p)}>
-                                                                    <Trash2 className="h-4 w-4" />
+                                                                <Button size="icon" variant="ghost" className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={() => handleDelete(p)}>
+                                                                    <Trash className="h-4 w-4" />
                                                                 </Button>
                                                             </>
                                                         )}

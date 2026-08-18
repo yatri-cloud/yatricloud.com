@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Download, RotateCcw, Trash2, Sparkles, FileText } from "lucide-react";
+import { Loader2, Search, Download, RotateCcw, Trash, Sparkles, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,12 +121,6 @@ export default function AdminResumes() {
                 <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="space-y-1.5">
                         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Resume requests</h1>
-                        <p className="text-muted-foreground">
-                            Every request from /resume-maker. The Gemini ATS AI engine powers real-time scoring and document building;
-                            {queuedCount > 0
-                                ? ` ${queuedCount} waiting or building right now.`
-                                : " the queue is clear."}
-                        </p>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button variant="outline" asChild className="rounded-xl h-10 gap-2">
@@ -246,10 +240,10 @@ export default function AdminResumes() {
                                                         size="icon"
                                                         aria-label="Delete this request"
                                                         title="Delete"
-                                                        className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
+                                                        className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                                                         onClick={() => remove(r)}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Trash className="h-4 w-4" />
                                                     </Button>
                                                 </div>
                                             </td>

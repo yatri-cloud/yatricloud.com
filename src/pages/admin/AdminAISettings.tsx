@@ -12,7 +12,7 @@ import {
     FileText,
     Shield,
     Plus,
-    Trash2,
+    Trash,
     Edit3,
     Eye,
     EyeOff,
@@ -320,13 +320,7 @@ export default function AdminAISettings() {
 
                 <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="space-y-1.5">
-                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                            <Sparkles className="h-4 w-4" /> Multi-Key Load Balancing & Auto-Failover
-                        </p>
                         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">AI API Keys & Models</h1>
-                        <p className="text-muted-foreground text-sm max-w-2xl">
-                            Activate multiple Gemini API keys simultaneously. If one key hits quota or rate limits, the system seamlessly and automatically fails over to the next active key.
-                        </p>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
@@ -348,7 +342,7 @@ export default function AdminAISettings() {
                                 Active Failover Pool: <span className="text-primary font-bold">{activeKeysCount}</span> of {keys.length} keys active
                             </span>
                             {activeKeysCount > 1 && (
-                                <Badge className="bg-success/10 text-success border-success/20 text-[10px] py-0 px-2">
+                                <Badge className="bg-success text-white border-0 text-[10px] py-0 px-2">
                                     High Availability Enabled
                                 </Badge>
                             )}
@@ -415,7 +409,7 @@ export default function AdminAISettings() {
                                                 </span>
 
                                                 {k.isActive ? (
-                                                    <Badge className="bg-success text-success-foreground border-0 text-xs px-2.5 py-0.5">
+                                                    <Badge className="bg-success text-white border-0 text-xs px-2.5 py-0.5">
                                                         Active in Pool
                                                     </Badge>
                                                 ) : (
@@ -449,7 +443,7 @@ export default function AdminAISettings() {
                                                 )}
 
                                                 {k.lastLatencyMs && (
-                                                    <Badge variant="outline" className="text-[10px] text-success border-success/30 bg-success/5">
+                                                    <Badge variant="outline" className="text-[10px] bg-success text-white border-0">
                                                         {k.lastLatencyMs} ms
                                                     </Badge>
                                                 )}
@@ -490,12 +484,12 @@ export default function AdminAISettings() {
                                             </Button>
 
                                             <Button
-                                                size="sm"
+                                                size="icon"
                                                 variant="ghost"
                                                 onClick={() => setDeleteConfirmKey(k)}
-                                                className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-destructive"
+                                                className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <Trash className="w-4 h-4" />
                                             </Button>
                                         </div>
                                     </CardContent>
@@ -648,7 +642,7 @@ export default function AdminAISettings() {
                         </div>
 
                         {modalTestResult && (
-                            <div className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${modalTestResult.success ? "bg-success/10 text-success border-success/30" : "bg-destructive/10 text-destructive border-destructive/30"}`}>
+                            <div className={`p-3 rounded-full border text-xs flex items-center gap-2 ${modalTestResult.success ? "bg-success text-white border-0" : "bg-destructive text-white border-0"}`}>
                                 {modalTestResult.success ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
                                 <span>{modalTestResult.message}</span>
                             </div>

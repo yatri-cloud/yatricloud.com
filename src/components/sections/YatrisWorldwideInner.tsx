@@ -27,12 +27,12 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   GCP: { logo: `${LOGO_BASE_URL}/google_cloud.svg` },
   GOOGLE: { logo: `${LOGO_BASE_URL}/google_cloud.svg` },
   GITHUB: { logo: `${LOGO_BASE_URL}/github-white-icon.webp`, logoLight: `${LOGO_BASE_URL}/github-white-icon.webp` },
-  ORACLE: { logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  ORACLE: { logo: `https://companieslogo.com/img/orig/ORCL-d5a587ae.png?t=1740130451` },
   SALESFORCE: { logo: `${LOGO_BASE_URL}/Salesforce_logo.svg` },
   SERVICENOW: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
   KUBERNETES: { logo: `${LOGO_BASE_URL}/kubernetes.svg` },
   TERRAFORM: { logo: `${LOGO_BASE_URL}/terraform.svg` },
-  OPENAI: { logo: `https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg` },
+  OPENAI: { logo: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318` },
   HASHICORP: { logo: `https://upload.wikimedia.org/wikipedia/commons/6/6e/HashiCorp_logo.svg`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/6/6e/HashiCorp_logo.svg` },
 };
 

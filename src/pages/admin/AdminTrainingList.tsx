@@ -227,13 +227,7 @@ export default function AdminTrainingList() {
 
                 <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                     <div className="space-y-1.5">
-                        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Training courses
-                        </p>
                         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Manage Training</h1>
-                        <p className="text-muted-foreground">
-                            View and manage all training content, including drafts and published courses.
-                        </p>
                     </div>
                     <Link to="/admin/training/create" className="self-start md:self-auto">
                         <Button data-testid="training-create-new" className="gap-2 rounded-xl min-h-[44px] bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 focus-visible:ring-2 focus-visible:ring-ring">
@@ -352,7 +346,7 @@ export default function AdminTrainingList() {
                                         <TableCell className="px-4 py-3">{course.subType}</TableCell>
                                         <TableCell className="px-4 py-3">{course.instructor}</TableCell>
                                         <TableCell className="px-4 py-3">
-                                            <Badge className={`rounded-full text-xs font-medium ${course.status === "Published" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
+                                            <Badge className={`rounded-full text-xs font-medium ${course.status === "Published" ? "bg-success text-white" : "bg-muted text-muted-foreground"}`}>
                                                 {course.status}
                                             </Badge>
                                         </TableCell>
@@ -454,7 +448,7 @@ export default function AdminTrainingList() {
                                 <div>
                                     <Label className="text-muted-foreground">Status</Label>
                                     <div>
-                                        <Badge className={`rounded-full text-xs font-medium ${selectedCourse.status === "Published" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
+                                        <Badge className={`rounded-full text-xs font-medium ${selectedCourse.status === "Published" ? "bg-success text-white" : "bg-muted text-muted-foreground"}`}>
                                             {selectedCourse.status}
                                         </Badge>
                                     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search , Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,9 +102,6 @@ export default function AdminAchievements() {
         <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-8">
             <div>
                 <h1 className="font-display text-3xl font-black tracking-tight">Achievements</h1>
-                <p className="mt-1 text-muted-foreground">
-                    Every certification Yatris have shared. {rows.length} total, {publicCount} shown publicly.
-                </p>
             </div>
 
             <Card>
@@ -167,7 +164,7 @@ export default function AdminAchievements() {
                                                 {c.certification_date ? format(new Date(c.certification_date), "dd MMM yyyy") : "—"}
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant="outline" className={c.is_public ? "border-emerald-500/30 text-emerald-600" : "border-border text-muted-foreground"}>
+                                                <Badge variant={c.is_public ? "default" : "outline"} className={c.is_public ? "bg-success text-white hover:bg-success/90" : "border-border text-muted-foreground"}>
                                                     {c.is_public ? "Public" : "Hidden"}
                                                 </Badge>
                                             </TableCell>
@@ -180,7 +177,7 @@ export default function AdminAchievements() {
                                                     )}
                                                     <Button variant="ghost" size="sm" onClick={() => togglePublic(c)}>{c.is_public ? "Hide" : "Show"}</Button>
                                                     <Button variant="ghost" size="sm" onClick={() => setEditing({ ...c })}>Edit</Button>
-                                                    <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => remove(c)}>Delete</Button>
+                                                    <Button variant="ghost" className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={() => remove(c)} title="Delete"><Trash className="h-4 w-4" /></Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

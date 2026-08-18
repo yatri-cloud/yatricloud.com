@@ -113,9 +113,6 @@ export default function AdminTransactions() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="font-display text-3xl font-black tracking-tight">Transactions</h1>
-                    <p className="mt-1 text-muted-foreground">
-                        Every payment taken through Razorpay. Refund a payment in full or in part when you need to.
-                    </p>
                 </div>
                 <Button variant="outline" className="gap-2" onClick={load} disabled={isLoading}>
                     <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} /> Refresh

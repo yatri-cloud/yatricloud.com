@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -259,7 +259,9 @@ const ResponseItem = ({ r, uid, onDelete }: { r: BlogResponse; uid: string | nul
         <span className="font-semibold text-foreground">{r.author_name}</span>
         <span className="text-muted-foreground text-xs">{new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
         {uid === r.user_id && (
-          <button onClick={() => onDelete(r.id)} className="ml-auto text-muted-foreground hover:text-destructive text-xs" aria-label="Delete">Delete</button>
+          <button onClick={() => onDelete(r.id)} className="ml-auto h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90" aria-label="Delete">
+              <Trash className="h-4 w-4" />
+          </button>
         )}
       </div>
       <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{r.body}</p>

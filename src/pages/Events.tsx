@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
-import { getAllEvents, Event } from "@/lib/events-store";
+import { getPublishedEvents, Event } from "@/lib/events-store";
 import { useSiteContent, getOptionList, getSiteStats, statValue, FALLBACK_OPTION_LISTS, FALLBACK_STATS } from "@/lib/site-content";
 
 const Events = () => {
@@ -29,8 +29,8 @@ const Events = () => {
         // Scroll to top when component mounts
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Load events from Supabase
-        getAllEvents().then(setEvents);
+        // Load published events from Supabase
+        getPublishedEvents().then(setEvents);
 
         // Fetch published events from Sheets
         fetchPublishedEvents().then(publishedEvents => {
@@ -135,75 +135,88 @@ const Events = () => {
         return `${date.toLocaleDateString('en-US', options)} ${timezone}`;
     };
 
-    const EventCard = ({ event, index }: { event: Event; index: number }) => (
-        <ScrollReveal delay={index * 0.1}>
-            <Link to={`/events/${event.slug || event.id}`} className="block h-full">
-                <motion.div
-                    initial={reduceMotion ? undefined : { opacity: 0, y: 20 }}
-                    animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={reduceMotion ? undefined : { y: -6 }}
-                    className="group relative bg-card rounded-2xl overflow-hidden h-full flex flex-col border border-border hover:border-brand-200 hover:shadow-card transition-all duration-300 cursor-pointer"
-                >
-                    {/* Event Image - 16:9 aspect ratio */}
-                    <div className="relative w-full aspect-video overflow-hidden bg-muted">
-                        <img
-                            src={event.imageUrl}
-                            alt={event.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                            loading="lazy"
-                        />
-                        {/* Category chip */}
-                        <span className="absolute top-4 left-4 inline-flex items-center rounded-full bg-background/90 backdrop-blur px-3 py-1 text-xs font-semibold text-foreground border border-border/60 shadow-sm">
-                            {event.category}
-                        </span>
-                    </div>
+    const EventCard = ({ event, index }: { event: Event; index: number }) => {
+        const isPast = event.status === 'past' || new Date(event.date) < new Date();
 
-                    {/* Event Details */}
-                    <div className="p-6 flex-1 flex flex-col">
-                        {/* Event Name */}
-                        <h3 className="font-display text-xl font-bold text-foreground mb-3 line-clamp-2 group-hover:text-primary transition-colors">
-                            {event.name}
-                        </h3>
-
-                        {/* Date & Time */}
-                        <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                            <span className="text-sm font-medium tabular-nums">
-                                {formatEventDate(event.date, event.timezone)}
+        return (
+            <ScrollReveal delay={index * 0.1}>
+                <Link to={`/events/${event.slug || event.id}`} className="block h-full">
+                    <motion.div
+                        initial={reduceMotion ? undefined : { opacity: 0, y: 20 }}
+                        animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        whileHover={reduceMotion ? undefined : { y: -6 }}
+                        className="group relative bg-card rounded-2xl overflow-hidden h-full flex flex-col border border-border hover:border-brand-200 hover:shadow-card transition-all duration-300 cursor-pointer"
+                    >
+                        {/* Event Image - 16:9 aspect ratio */}
+                        <div className="relative w-full aspect-video overflow-hidden bg-muted">
+                            <img
+                                src={event.imageUrl}
+                                alt={event.name}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                                loading="lazy"
+                            />
+                            {/* Category chip */}
+                            <span className="absolute top-4 left-4 inline-flex items-center rounded-full bg-background/90 backdrop-blur px-3 py-1 text-xs font-semibold text-foreground border border-border/60 shadow-sm">
+                                {event.category}
                             </span>
                         </div>
 
-                        {/* Location */}
-                        <div className="flex items-start gap-2 text-muted-foreground mb-4">
-                            {event.location.type === 'online' ? (
-                                <>
-                                    <div className="flex-1">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                                            Online Event
-                                        </span>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="flex-1 text-sm">
-                                        <div className="font-medium text-foreground">{event.location.venue}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">
-                                            {event.location.city}, {event.location.country}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                        {/* Event Details */}
+                        <div className="p-6 flex-1 flex flex-col">
+                            {/* Event Name */}
+                            <h3 className="font-display text-xl font-bold text-foreground mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                                {event.name}
+                            </h3>
 
-                        <div className="mt-auto pt-4 border-t border-border flex items-center text-sm font-semibold text-primary">
-                            <span>Save your spot</span>
-                            <ArrowRight className="w-4 h-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" />
+                            {/* Date & Time */}
+                            <div className="flex items-center gap-2 text-muted-foreground mb-3">
+                                <span className="text-sm font-medium tabular-nums">
+                                    {formatEventDate(event.date, event.timezone)}
+                                </span>
+                            </div>
+
+                            {/* Location */}
+                            <div className="flex items-start gap-2 text-muted-foreground mb-4">
+                                {event.location.type === 'online' ? (
+                                    <>
+                                        <div className="flex-1">
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                                                Online Event
+                                            </span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex-1 text-sm">
+                                            <div className="font-medium text-foreground">{event.location.venue}</div>
+                                            <div className="text-xs text-muted-foreground mt-0.5">
+                                                {event.location.city}, {event.location.country}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="mt-auto pt-4 border-t border-border flex items-center text-sm font-semibold transition-colors">
+                                {isPast ? (
+                                    <>
+                                        <span className="text-muted-foreground group-hover:text-primary transition-colors">View event recap</span>
+                                        <ArrowRight className="w-4 h-4 ml-1 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="text-primary">Save your spot</span>
+                                        <ArrowRight className="w-4 h-4 ml-1 text-primary transition-transform duration-300 group-hover:translate-x-1" />
+                                    </>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
-            </Link>
-        </ScrollReveal>
-    );
+                    </motion.div>
+                </Link>
+            </ScrollReveal>
+        );
+    };
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -215,7 +228,7 @@ const Events = () => {
             <Navbar />
 
             {/* Hero — warm welcome for Yatris */}
-            <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-background pt-32 pb-14 md:pb-16">
+            <section className="relative overflow-hidden bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-background pt-32 pb-10 md:pb-12">
                 <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
                 <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-brand-200/20 blur-3xl" />
                 <div className="container relative z-10 mx-auto px-4 md:px-6">
@@ -225,30 +238,17 @@ const Events = () => {
                         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                         className="max-w-3xl"
                     >
-                        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] text-foreground mb-5">
+                        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] text-foreground mb-4">
                             Where Yatris <span className="gradient-text">meet in real life</span>
                         </h1>
-                        <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                            Hackathons, workshops, meetups and conferences — the moments where {learners} Yatris stop studying alone and start building together. Find one near you, grab a seat, and bring a friend.
+                        <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                            Cloud meetups, workshops, hackathons & conferences for Yatris worldwide.
                         </p>
-
-                        {/* Trust cues */}
-                        <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
-                            <span className="inline-flex items-center gap-2">
-                                {learners} Yatris in the community
-                            </span>
-                            <span className="inline-flex items-center gap-2">
-                                Online &amp; in-person, worldwide
-                            </span>
-                            <span className="inline-flex items-center gap-2">
-                                Free &amp; paid — always Yatri-friendly
-                            </span>
-                        </div>
                     </motion.div>
                 </div>
             </section>
 
-            <main className="container mx-auto px-4 md:px-6 pb-12">
+            <main className="container mx-auto px-4 md:px-6 pt-8 md:pt-12 pb-16">
 
                 {/* My Registered Events Section — grouped in a warm tint band */}
                 {user && myRegistrations.length > 0 && (
@@ -321,31 +321,12 @@ const Events = () => {
                     </section>
                 )}
 
-                {/* Filters & Search Section - Single Row */}
-                <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mb-12 lg:items-center lg:justify-between">
-                    {/* Category Tabs - Left Side */}
-                    <div className="overflow-x-auto pb-2 lg:pb-0 flex-1 scrollbar-hide">
-                        <div className="flex gap-2">
-                            {categories.map((category) => (
-                                <button
-                                    key={category}
-                                    onClick={() => setSelectedCategory(category)}
-                                    aria-pressed={selectedCategory === category}
-                                    className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${selectedCategory === category
-                                        ? 'bg-primary text-primary-foreground shadow-inset-btn'
-                                        : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                        }`}
-                                >
-                                    {category}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Search & Country Filter - Right Side */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:flex-shrink-0">
+                {/* Filters & Search Section */}
+                <div className="space-y-5 mb-14">
+                    {/* Row 1: Search & Location/Tech Stack Filters */}
+                    <div className="flex flex-wrap items-center gap-3">
                         {/* Search Bar */}
-                        <div className="relative w-full sm:w-64">
+                        <div className="relative w-full sm:w-80">
                             <label htmlFor="event-search" className="sr-only">Search events</label>
                             <input
                                 id="event-search"
@@ -353,7 +334,7 @@ const Events = () => {
                                 placeholder="Search events, Yatri…"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full min-h-[44px] pl-10 pr-4 py-2.5 bg-background border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all text-sm"
+                                className="w-full min-h-[44px] pl-10 pr-4 py-2.5 bg-background border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all text-sm shadow-2xs"
                             />
                             <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
                             {searchQuery && (
@@ -379,18 +360,14 @@ const Events = () => {
                                     }}
                                     aria-label="Filter by country"
                                     aria-expanded={isCountryDropdownOpen}
-                                    className={`w-full sm:w-auto min-h-[44px] flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium min-w-[160px] justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedCountry !== "All"
+                                    className={`w-full sm:w-auto min-h-[44px] flex items-center justify-center px-5 py-2.5 border rounded-full transition-all text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedCountry !== "All"
                                         ? 'bg-primary/10 border-primary/20 text-primary'
                                         : 'bg-background border-border text-muted-foreground hover:text-foreground hover:border-brand-200'
                                         }`}
                                 >
-                                    <div className="flex items-center gap-2 truncate">
-                                        <Globe className="w-4 h-4 flex-shrink-0" />
-                                        <span className="truncate max-w-[100px]">
-                                            {selectedCountry === "All" ? "All Countries" : selectedCountry}
-                                        </span>
-                                    </div>
-                                    <Filter className="w-3.5 h-3.5 flex-shrink-0 opacity-70" />
+                                    <span className="truncate">
+                                        {selectedCountry === "All" ? "All Countries" : selectedCountry}
+                                    </span>
                                 </button>
 
                                 {/* Dropdown Menu */}
@@ -473,18 +450,14 @@ const Events = () => {
                                         onClick={() => setIsStateDropdownOpen(!isStateDropdownOpen)}
                                         aria-label="Filter by state"
                                         aria-expanded={isStateDropdownOpen}
-                                        className={`w-full sm:w-auto min-h-[44px] flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium min-w-[160px] justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedState !== "All"
+                                        className={`w-full sm:w-auto min-h-[44px] flex items-center justify-center px-5 py-2.5 border rounded-full transition-all text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedState !== "All"
                                             ? 'bg-primary/10 border-primary/20 text-primary'
                                             : 'bg-background border-border text-muted-foreground hover:text-foreground hover:border-brand-200'
                                             }`}
                                     >
-                                        <div className="flex items-center gap-2 truncate">
-                                            <MapPin className="w-4 h-4 flex-shrink-0" />
-                                            <span className="truncate max-w-[100px]">
-                                                {selectedState === "All" ? "All States" : selectedState}
-                                            </span>
-                                        </div>
-                                        <Filter className="w-3.5 h-3.5 flex-shrink-0 opacity-70" />
+                                        <span className="truncate">
+                                            {selectedState === "All" ? "All States" : selectedState}
+                                        </span>
                                     </button>
 
                                     {isStateDropdownOpen && (
@@ -542,18 +515,14 @@ const Events = () => {
                                     onClick={() => setIsTechStackDropdownOpen(!isTechStackDropdownOpen)}
                                     aria-label="Filter by tech stack"
                                     aria-expanded={isTechStackDropdownOpen}
-                                    className={`w-full sm:w-auto min-h-[44px] flex items-center gap-2 pl-4 pr-3 py-2.5 border rounded-full transition-all text-sm font-medium min-w-[160px] justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedTechStack !== "All"
+                                    className={`w-full sm:w-auto min-h-[44px] flex items-center justify-center px-5 py-2.5 border rounded-full transition-all text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedTechStack !== "All"
                                         ? 'bg-primary/10 border-primary/20 text-primary'
                                         : 'bg-background border-border text-muted-foreground hover:text-foreground hover:border-brand-200'
                                         }`}
                                 >
-                                    <div className="flex items-center gap-2 truncate">
-                                        <Layers className="w-4 h-4 flex-shrink-0" />
-                                        <span className="truncate max-w-[100px]">
-                                            {selectedTechStack === "All" ? "Tech Stack" : selectedTechStack}
-                                        </span>
-                                    </div>
-                                    <Filter className="w-3.5 h-3.5 flex-shrink-0 opacity-70" />
+                                    <span className="truncate">
+                                        {selectedTechStack === "All" ? "Tech Stack" : selectedTechStack}
+                                    </span>
                                 </button>
 
                                 {isTechStackDropdownOpen && (
@@ -603,6 +572,23 @@ const Events = () => {
                             )}
                         </div>
                     </div>
+
+                    {/* Row 2: Category Filter Tabs — set below search & location filters */}
+                    <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                        {categories.map((category) => (
+                            <button
+                                key={category}
+                                onClick={() => setSelectedCategory(category)}
+                                aria-pressed={selectedCategory === category}
+                                className={`min-h-[42px] px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${selectedCategory === category
+                                    ? 'bg-primary text-primary-foreground shadow-xs'
+                                    : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                                    }`}
+                            >
+                                {category}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Upcoming Events Section */}
@@ -633,18 +619,6 @@ const Events = () => {
                 {
                     filteredPastCount > 0 && (
                         <section>
-                            <ScrollReveal>
-                                <div className="mb-8">
-                                    <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
-                                        Moments we've shared
-                                        <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-muted text-muted-foreground border border-border shadow-sm">
-                                            {filteredPastCount} {filteredPastCount === 1 ? 'Event' : 'Events'}
-                                        </span>
-                                    </h2>
-                                    <p className="text-muted-foreground">Look back at where Yatris gathered, learned, and celebrated together.</p>
-                                </div>
-                            </ScrollReveal>
-
                             <div className="grid justify-center gap-6 [grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),400px))]">
                                 {pastEvents.map((event, index) => (
                                     <EventCard key={event.id} event={event} index={index} />

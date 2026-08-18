@@ -20,10 +20,10 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   azure: { logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
   gcp: { logo: `${LOGO_BASE_URL}/google_cloud.svg` },
   github: { logo: `${LOGO_BASE_URL}/github-white-icon.webp`, logoLight: `${LOGO_BASE_URL}/github-white-icon.webp` },
-  oracle: { logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  oracle: { logo: `https://companieslogo.com/img/orig/ORCL-d5a587ae.png?t=1740130451` },
   salesforce: { logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg` },
   servicenow: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
-  openai: { logo: `https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg` }, // Using Wikipedia SVG for better availability than internal repo if missing
+  openai: { logo: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318` },
   hashicorp: { logo: `${LOGO_BASE_URL}/HashiCorp_logo.svg` },
   kubernetes: { logo: `${LOGO_BASE_URL}/Kubernetes_logo.svg` },
 };

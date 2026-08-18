@@ -24,7 +24,7 @@ export const CalendlyPopup = () => {
             <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                 <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-2.5 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 min-w-max">
                     <div className="text-sm font-bold text-primary mb-0.5">
-                        Schedule a Meeting 🕒
+                        Schedule a Meeting
                     </div>
                     <p className="text-xs text-muted-foreground font-medium">Book time to start your exam process</p>
                 </div>

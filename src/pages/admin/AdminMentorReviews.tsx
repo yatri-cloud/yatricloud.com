@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Trash2 } from "lucide-react";
+import { Loader2, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -219,9 +219,6 @@ const AdminMentorReviews = () => {
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                 Mentor <span className="gradient-text">Reviews</span>
                             </h1>
-                            <p className="text-muted-foreground">
-                                Moderate what Yatris say about mentors. Public reviews shape each mentor's average rating.
-                            </p>
                         </div>
                     </div>
                 </ScrollReveal>
@@ -311,7 +308,7 @@ const AdminMentorReviews = () => {
                                             <div className="min-w-0 flex-1 space-y-1">
                                                 <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                                                     <span className="truncate">{review.name || "Anonymous Yatri"}</span>
-                                                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                                    <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground border-0">
                                                         Rated {review.rating} of 5
                                                     </span>
                                                     {review.booking_id && (
@@ -359,7 +356,7 @@ const AdminMentorReviews = () => {
                                                     aria-label={`Delete the review by ${review.name || "Anonymous"}`}
                                                     className={deleteIconButtonClass}
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -393,12 +390,12 @@ const AdminMentorReviews = () => {
                         <AlertDialogAction
                             onClick={confirmDelete}
                             disabled={deleting}
-                            className="min-h-[44px] rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="min-h-[44px] rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                         >
                             {deleting ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash className="mr-2 h-4 w-4" />
                             )}
                             Delete review
                         </AlertDialogAction>

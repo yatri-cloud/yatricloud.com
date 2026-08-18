@@ -46,7 +46,7 @@ import {
 const STATUS_STYLES: Record<TicketStatus, string> = {
   open: "bg-primary/10 text-primary border-primary/20",
   pending: "bg-warning/10 text-warning border-warning/20",
-  resolved: "bg-success/10 text-success border-success/20",
+  resolved: "bg-success text-white border-0",
   closed: "bg-muted text-muted-foreground border-border",
 };
 
@@ -54,7 +54,7 @@ const PRIORITY_STYLES: Record<TicketPriority, string> = {
   low: "bg-muted text-muted-foreground",
   normal: "bg-brand-50 text-primary",
   high: "bg-warning/10 text-warning",
-  urgent: "bg-destructive/10 text-destructive",
+  urgent: "bg-destructive text-white",
 };
 
 const fmt = (d: string) =>
@@ -166,9 +166,6 @@ const AdminTickets = () => {
             <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">
               Support <span className="gradient-text">tickets</span>
             </h1>
-            <p className="mt-1 text-muted-foreground">
-              {counts.open} open · {counts.pending} waiting on Yatris · {counts.resolved} resolved. Replies email the Yatri automatically.
-            </p>
           </div>
         </ScrollReveal>
 

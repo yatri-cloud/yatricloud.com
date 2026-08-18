@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
 import Marquee from "@/components/Marquee";
@@ -508,21 +508,6 @@ export const CommunitySection = () => {
         <div className="pointer-events-none absolute -bottom-16 right-0 w-96 h-96 bg-primary/10 blur-3xl rounded-full" />
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <ScrollReveal>
-              <p className="inline-flex items-center gap-2 rounded-full border border-border bg-background/70 px-4 py-1.5 text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-6 backdrop-blur-sm">
-                <span className="relative flex h-2 w-2">
-                  <motion.span
-                    aria-hidden
-                    className="absolute inline-flex h-full w-full rounded-full bg-primary"
-                    animate={reduce ? undefined : { scale: [1, 2.4], opacity: [0.7, 0] }}
-                    transition={reduce ? undefined : { duration: 2, ease: "easeOut", repeat: Infinity }}
-                  />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                </span>
-                Join Our Community
-              </p>
-            </ScrollReveal>
-
             <ScrollReveal delay={0.1}>
               <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95] text-foreground mb-6">
                 Join an <span className="gradient-text">Exclusive</span> Network of Cloud Innovators
@@ -536,12 +521,14 @@ export const CommunitySection = () => {
             </ScrollReveal>
 
             <ScrollReveal delay={0.25}>
-              <div className="mb-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+              <div className="mb-10 flex flex-wrap items-center justify-center gap-3">
                 {["50% OFF vouchers", "Exam dumps & resources", "Personal 1:1 support"].map((b) => (
-                  <span key={b} className="inline-flex items-center gap-2 text-sm text-foreground/80">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                    {b}
-                  </span>
+                  <div
+                    key={b}
+                    className="inline-flex items-center justify-center rounded-full border border-slate-200/90 bg-white px-5 py-2.5 text-xs md:text-sm font-medium text-slate-700 shadow-2xs transition-all duration-200 hover:border-primary/40 hover:text-foreground hover:shadow-xs"
+                  >
+                    <span>{b}</span>
+                  </div>
                 ))}
               </div>
             </ScrollReveal>
@@ -557,7 +544,7 @@ export const CommunitySection = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Join Our Community - It's Free
+                  Join Now
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>

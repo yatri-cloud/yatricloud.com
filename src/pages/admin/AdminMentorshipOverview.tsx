@@ -68,9 +68,6 @@ const AdminMentorshipOverview = () => {
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                 Mentorship <span className="gradient-text">Overview</span>
                             </h1>
-                            <p className="text-muted-foreground">
-                                Earnings and activity across every mentor. These figures update as bookings clear.
-                            </p>
                         </div>
                     </div>
                 </ScrollReveal>

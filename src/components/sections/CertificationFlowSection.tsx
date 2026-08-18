@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { openCalendlyPopup, loadCalendlyInline } from "@/lib/third-party";
@@ -72,6 +72,29 @@ const EXAM_CODE_FALLBACK: Record<string, string> = {
   "ai practitioner": "AIF-C01",
 };
 
+/* Official Credly AWS Badge CDN images for all 7 eligible exams */
+const CREDLY_BADGE_IMAGES: Record<string, string> = {
+  "CLF-C02": "https://images.credly.com/images/00634f82-b07f-4bbd-a6bb-53de397fc3a6/image.png",
+  "AIF-C01": "https://images.credly.com/images/4d4693bb-530e-4bca-9327-de07f3aa2348/image.png",
+  "SAA-C03": "https://images.credly.com/images/0e284c3f-5164-4b21-8660-0d84737941bc/image.png",
+  "DVA-C02": "https://images.credly.com/images/b9feab85-1a43-4f6c-99a5-631b88d5461b/image.png",
+  "SOA-C03": "https://images.credly.com/images/f0d3fbb9-bfa7-4017-9989-7bde8eaf42b1/image.png",
+  "DEA-C01": "https://images.credly.com/images/e5c85d7f-4e50-431e-b5af-fa9d9b0596e7/image.png",
+  "MLA-C01": "https://images.credly.com/images/1a634b4e-3d6b-4a74-b118-c0dcb429e8d2/image.png",
+};
+
+/* Official concise descriptions for each exam card */
+const EXAM_DESCRIPTIONS: Record<string, string> = {
+  "CLF-C02": "Validate overall understanding of the AWS Cloud platform, basic security, and fundamental concepts",
+  "AIF-C01": "Demonstrate fundamental knowledge of AI/ML concepts and practical generative AI applications",
+  "SAA-C03": "Validate your technical knowledge and skills across the breadth of AWS services",
+  "DVA-C02": "Showcase your expertise in developing, deploying, and debugging cloud-based applications",
+  "SOA-C03": "Demonstrate proficiency in deploying, managing, and operating scalable workloads on AWS",
+  "DEA-C01": "Showcase your ability to design data models, manage data life cycles, and ensure data quality",
+  "MLA-C01": "Position yourself for in-demand technical ML roles",
+};
+
+/* Minimal, Unique, Professional Benefit Card */
 const BenefitCard = ({
   feature,
   index,
@@ -79,101 +102,65 @@ const BenefitCard = ({
   feature: PackageBenefit;
   index: number;
 }) => {
-  const [isFlipped, setIsFlipped] = React.useState(false);
-
   return (
     <div
-      className="group relative h-full min-h-[220px] cursor-pointer"
-      onClick={() => setIsFlipped(!isFlipped)}
-      role="button"
-      tabIndex={0}
-      aria-label={`${feature.text} - click to flip for details`}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setIsFlipped(!isFlipped);
-        }
-      }}
-      style={{ perspective: 1000 }}
+      onClick={() => void openCalendlyPopup('https://calendly.com/yatricloud/40min')}
+      className="group relative flex flex-col justify-between h-full min-h-[190px] rounded-2xl border border-border/80 hover:border-transparent p-6 md:p-8 text-left transition-all duration-300 outline-none focus:outline-none cursor-pointer"
     >
-      <motion.div
-        className="w-full h-full relative"
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
-        style={{ transformStyle: "preserve-3d" }}
-      >
-        {/* Front of card — Clean text without big numbers or icons */}
-        <div
-          className="absolute inset-0 bg-card border border-slate-200/80 group-hover:border-primary/40 rounded-2xl p-6 text-left flex flex-col justify-between transition-all duration-300 shadow-2xs"
-          style={{ backfaceVisibility: "hidden" }}
-        >
-          <div className="flex-1 flex flex-col justify-between">
-            <h4 className="font-display text-lg font-bold tracking-tight text-foreground leading-tight group-hover:text-primary transition-colors duration-300">
-              {feature.text}
-            </h4>
-            <p className="text-xs text-muted-foreground mt-4 leading-relaxed line-clamp-3">
-              {feature.description}
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-primary font-semibold">
-            <span>View details</span>
-            <span>→</span>
-          </div>
-        </div>
+      {/* Outer Glow Trail Layer */}
+      <div className="absolute -inset-[8px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-[24px] overflow-hidden">
+        <div 
+          className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 opacity-60"
+          style={{ 
+            animation: "spin 6s linear infinite",
+            background: "conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #2563eb 360deg)",
+            filter: "blur(12px)"
+          }}
+        />
+      </div>
 
-        {/* Back of card */}
-        <div
-          className="absolute inset-0 bg-card border border-primary/40 rounded-2xl p-6 shadow-sm flex flex-col justify-center text-center overflow-auto"
-          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-        >
-          <p className="text-[11px] font-bold text-primary mb-2 uppercase tracking-wider">
-            {index === 0
-              ? "DURING MEET YOU WILL GET:"
-              : index >= 4
-                ? "POST ON LINKEDIN TO UNLOCK:"
-                : "AFTER SCHEDULING EXAM:"}
-          </p>
-          <p className="text-sm text-foreground leading-relaxed font-medium">
-            {feature.description}
-          </p>
-          <p className="mt-4 text-[11px] text-muted-foreground font-medium">
-            Click to flip back
-          </p>
-        </div>
-      </motion.div>
+      {/* Sharp Border Line Layer */}
+      <div className="absolute -inset-[2px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-[18px] overflow-hidden">
+        <div 
+          className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2"
+          style={{ 
+            animation: "spin 6s linear infinite",
+            background: "conic-gradient(from 0deg, transparent 0deg, transparent 340deg, #2563eb 360deg)"
+          }}
+        />
+      </div>
+
+      {/* Solid Background Layer to mask inner shadow */}
+      <div className="absolute inset-0 z-[1] rounded-2xl bg-card pointer-events-none transition-colors duration-300" />
+
+      <div className="relative z-10">
+        <h4 className="font-bold text-foreground text-lg md:text-xl leading-snug mb-3 group-hover:text-primary transition-colors">
+          {feature.text}
+        </h4>
+        <p className="text-xs md:text-sm text-muted-foreground leading-relaxed font-normal">
+          {feature.description}
+        </p>
+      </div>
+
+      <div className="relative z-10 pt-6 mt-4 border-t border-border/50 flex items-center justify-between text-xs md:text-sm text-primary font-semibold">
+        <span>Get offer now</span>
+        <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+      </div>
     </div>
   );
 };
 
 export const CertificationFlowSection = () => {
   const eligibleExams = useSiteContent(getEligibleExams, FALLBACK_ELIGIBLE_EXAMS);
-  const benefitRows = useSiteContent(getPackageBenefits, FALLBACK_PACKAGE_BENEFITS);
+  const benefitRows = useSiteContent(getPackageBenefits, FALLBACK_PACKAGE_BENEFITS).slice(0, 3);
   const stepRows = useSiteContent(getCertificationSteps, FALLBACK_CERTIFICATION_STEPS);
-
-  const handleStepAction = (
-    e: React.MouseEvent,
-    action: StepAction | null
-  ) => {
-    e.preventDefault();
-    if (action?.isPopup) {
-      void openCalendlyPopup('https://calendly.com/yatricloud/40min');
-    } else if (action?.url?.startsWith('#') && action.url.length > 1) {
-      const element = document.querySelector(action.url);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  };
 
   return (
     <section id="certification-flow" className="py-20 md:py-28 bg-background relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 relative z-10">
-        {/* Header */}
+        {/* Header — Clean title without eyebrow line */}
         <ScrollReveal>
           <div className="text-center mb-16 md:mb-20 max-w-3xl mx-auto">
-            <span className="text-primary font-bold text-xs uppercase tracking-widest mb-3 block">
-              Get Certified with Yatri Cloud
-            </span>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
               Your Path to <span className="gradient-text">AWS Certification</span>
             </h2>
@@ -183,58 +170,91 @@ export const CertificationFlowSection = () => {
           </div>
         </ScrollReveal>
 
-        <div className="max-w-6xl mx-auto space-y-12">
-          {/* Eligible Exams Card */}
+        <div className="max-w-6xl mx-auto space-y-16">
+          {/* Eligible Exams Section — Soft Blue Gradient Cards */}
           <ScrollReveal delay={0.1}>
-            <div className="bg-card border border-slate-200/80 rounded-2xl p-6 md:p-8 shadow-2xs">
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <img src="/logos/aws.svg" alt="AWS" width={36} height={20} className="h-5 w-auto" loading="lazy" decoding="async" />
-                    <h3 className="font-display text-xl md:text-2xl font-bold tracking-tight text-foreground">
-                      Eligible Associate Exams
-                    </h3>
-                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                      {eligibleExams.length} exams
-                    </span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground font-medium">
-                  <span className="font-bold text-primary">50% OFF</span> applies to every exam below
-                </p>
+            <div>
+              {/* Header — AWS Logo on left + Highlighted Red 50% OFF badge on right */}
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <img src="/logos/aws.svg" alt="AWS" width={44} height={26} className="h-7 w-auto" loading="lazy" decoding="async" />
+                <span className="inline-flex items-center rounded-full bg-red-600 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-white shadow-md shadow-red-600/25 ring-2 ring-red-600/20">
+                  50% OFF
+                </span>
               </div>
 
-              {/* Credential grid — Clean, no icons */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Credential Grid — Soft Blue Gradient Glow Cards */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {eligibleExams.map((exam, index) => {
                   const codeMatch = exam.title.match(/\(([^)]+)\)/);
                   const code =
                     codeMatch?.[1] ??
                     exam.examCode ??
                     Object.entries(EXAM_CODE_FALLBACK).find(([k]) => exam.title.toLowerCase().includes(k))?.[1] ??
-                    null;
-                  const title = exam.title.replace(/\s*\([^)]*\)\s*/, " ").replace(/\s+–\s+Associate\s*$/i, "").trim();
-                  const level = /associate/i.test(exam.title) ? "Associate" : /practitioner/i.test(exam.title) ? "Foundational" : null;
+                    "";
+
+                  const displayTitle = exam.title.replace(/\s*\([^)]*\)\s*/, " ").trim();
+                  const badgeImg = code && CREDLY_BADGE_IMAGES[code] ? CREDLY_BADGE_IMAGES[code] : "/logos/aws.svg";
+                  const desc = EXAM_DESCRIPTIONS[code] || "Validate your technical knowledge and skills on AWS";
+
                   return (
                     <div
                       key={index}
-                      className="group flex flex-col justify-between rounded-xl border border-slate-200/70 bg-slate-50/50 p-4 transition-all duration-200 hover:border-primary/40 hover:bg-white hover:shadow-2xs"
+                      onClick={() => void openCalendlyPopup('https://calendly.com/yatricloud/40min')}
+                      className="group relative flex flex-col justify-between h-full rounded-2xl border border-border/80 hover:border-transparent p-6 text-left transition-all duration-300 outline-none focus:outline-none cursor-pointer"
                     >
-                      <div>
-                        <div className="flex items-center justify-between gap-2 mb-1.5">
-                          {level && (
-                            <span className="inline-block rounded-full bg-slate-200/60 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                              {level}
-                            </span>
-                          )}
-                          {code && (
-                            <span className="font-mono text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                              {code}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{title}</p>
+                      {/* Outer Glow Trail Layer */}
+                      <div className="absolute -inset-[8px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-[24px] overflow-hidden">
+                        <div 
+                          className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2 opacity-60"
+                          style={{ 
+                            animation: "spin 6s linear infinite",
+                            background: "conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #2563eb 360deg)",
+                            filter: "blur(12px)"
+                          }}
+                        />
+                      </div>
+
+                      {/* Sharp Border Line Layer */}
+                      <div className="absolute -inset-[2px] z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-[18px] overflow-hidden">
+                        <div 
+                          className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2"
+                          style={{ 
+                            animation: "spin 6s linear infinite",
+                            background: "conic-gradient(from 0deg, transparent 0deg, transparent 340deg, #2563eb 360deg)"
+                          }}
+                        />
+                      </div>
+
+                      {/* Solid Background Layer to mask inner shadow */}
+                      <div className="absolute inset-0 z-[1] rounded-2xl bg-card pointer-events-none transition-colors duration-300" />
+
+                      {/* Top: Large Centered Badge */}
+                      <div className="relative z-10 py-4 flex items-center justify-center">
+                        <img
+                          src={badgeImg}
+                          alt={displayTitle}
+                          className="h-28 w-28 md:h-32 md:w-32 object-contain transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/logos/aws.svg";
+                          }}
+                        />
+                      </div>
+
+                      {/* Middle: Title & Description */}
+                      <div className="relative z-10 mb-6">
+                        <h4 className="font-bold text-foreground text-base md:text-lg leading-snug mb-2 group-hover:text-primary transition-colors">
+                          {displayTitle}
+                        </h4>
+                        <p className="text-xs md:text-sm text-muted-foreground leading-relaxed font-normal">
+                          {desc}
+                        </p>
+                      </div>
+
+                      {/* Bottom Row: "Get offer now →" action */}
+                      <div className="relative z-10 pt-3 border-t border-border/50 flex items-center justify-between text-xs md:text-sm text-primary font-semibold">
+                        <span>Get offer now</span>
+                        <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
                       </div>
                     </div>
                   );
@@ -243,11 +263,11 @@ export const CertificationFlowSection = () => {
             </div>
           </ScrollReveal>
 
-          {/* Benefits Grid — Clean cards without big numbers or icons */}
+          {/* Benefits Grid — Soft Grey Background Cards */}
           <ScrollReveal delay={0.2}>
-            <div className="space-y-4">
-              <h3 className="font-display text-xl font-bold text-slate-900 text-center">Package Included Benefits</h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-6">
+              <h3 className="font-display text-2xl font-bold text-slate-900 text-center">Package Included Benefits</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {benefitRows.map((feature, index) => (
                   <BenefitCard key={feature.text} feature={feature} index={index} />
                 ))}
@@ -255,28 +275,58 @@ export const CertificationFlowSection = () => {
             </div>
           </ScrollReveal>
 
-          {/* 3 Step Timeline */}
+          {/* Certification Process — Crisp White Background (No Grey BG) */}
           <ScrollReveal delay={0.3}>
-            <div className="bg-card border border-slate-200/80 rounded-2xl p-6 md:p-8 space-y-6 shadow-2xs">
-              <h3 className="font-display text-xl font-bold text-slate-900 text-center">3-Step Certification Process</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                {stepRows.map((step, idx) => (
-                  <div key={step.title} className="rounded-xl border border-slate-200/70 bg-slate-50/50 p-5 flex flex-col justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-primary uppercase tracking-wider block mb-1">Step {idx + 1}</span>
-                      <h4 className="font-bold text-base text-slate-900 mb-2">{step.title}</h4>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
+            <div className="space-y-10">
+              <h3 className="font-display text-2xl md:text-3xl font-bold text-slate-900 text-center">
+                Certification Process
+              </h3>
+
+              <div className="relative max-w-5xl mx-auto">
+                {/* Animated Horizontal Connecting Stepper Line (centered 100% through circles) */}
+                <div className="hidden md:block absolute top-[60px] -translate-y-1/2 left-[16.66%] right-[16.66%] h-[3px] bg-slate-200/80 z-0 overflow-hidden rounded-full">
+                  <motion.div
+                    className="h-full w-full bg-gradient-to-r from-blue-600 via-sky-400 to-blue-600"
+                    animate={{
+                      x: ["-100%", "100%"],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6 relative z-10">
+                  {stepRows.map((step, index) => (
+                    <div
+                      key={step.title}
+                      className="group relative rounded-2xl p-[1px] transition-all duration-300"
+                    >
+                      {/* Subtle Blue Brand Gradient Glow on Hover */}
+                      <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-r from-blue-500/50 via-sky-400/40 to-indigo-500/50 opacity-0 blur-md transition-all duration-300 group-hover:opacity-75" />
+
+                      {/* Inner Card Container — Pure Crisp White (No Grey BG) */}
+                      <div className="relative flex flex-col items-center text-center rounded-2xl bg-white border border-slate-200/80 p-6 md:p-8 shadow-2xs transition-all duration-300 group-hover:border-transparent group-hover:bg-white">
+                        {/* Solid Blue Round Stepper Badge (1, 2, 3) */}
+                        <div className="w-14 h-14 rounded-full bg-blue-600 text-white font-black text-xl flex items-center justify-center mb-6 shadow-md shadow-blue-500/25 ring-4 ring-white transition-transform duration-300 group-hover:scale-110">
+                          {step.number || index + 1}
+                        </div>
+
+                        {/* Step Title */}
+                        <h4 className="font-bold text-slate-900 text-lg md:text-xl leading-snug mb-2 group-hover:text-blue-600 transition-colors">
+                          {step.title}
+                        </h4>
+
+                        {/* Step Description */}
+                        <p className="text-xs md:text-sm text-slate-500 leading-relaxed font-normal">
+                          {step.description}
+                        </p>
+                      </div>
                     </div>
-                    {step.action && (
-                      <button
-                        onClick={(e) => handleStepAction(e, step.action)}
-                        className="mt-4 inline-flex items-center text-xs font-semibold text-primary hover:underline"
-                      >
-                        {step.action.label} →
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </ScrollReveal>

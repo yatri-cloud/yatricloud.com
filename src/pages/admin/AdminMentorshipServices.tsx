@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Pencil, Plus, Save, Search, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Save, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -531,9 +531,6 @@ const AdminMentorshipServices = () => {
                                 <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                     Mentorship <span className="gradient-text">Services</span>
                                 </h1>
-                                <p className="text-muted-foreground">
-                                    Calls, packages, digital products and webinars across every mentor. Every save goes live right away.
-                                </p>
                             </div>
                             <Button onClick={openAdd} disabled={mentors.length === 0} className={saveButtonClass} data-testid="service-add">
                                 <Plus className="mr-2 h-4 w-4" />
@@ -649,7 +646,7 @@ const AdminMentorshipServices = () => {
                                                         {TYPE_LABELS[service.type] ?? service.type}
                                                     </span>
                                                     {service.badge && (
-                                                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                                        <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground border-0">
                                                             {service.badge}
                                                         </span>
                                                     )}
@@ -698,7 +695,7 @@ const AdminMentorshipServices = () => {
                                                     className={deleteIconButtonClass}
                                                     data-testid="service-delete"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -996,7 +993,7 @@ const AdminMentorshipServices = () => {
                                             aria-label={`Remove question ${index + 1}`}
                                             className={deleteIconButtonClass}
                                         >
-                                            <Trash2 className="h-4 w-4" />
+                                            <Trash className="h-4 w-4" />
                                         </Button>
                                     </div>
                                 ))}
@@ -1087,12 +1084,12 @@ const AdminMentorshipServices = () => {
                         <AlertDialogAction
                             onClick={confirmDelete}
                             disabled={deleting}
-                            className="min-h-[44px] rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="min-h-[44px] rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                         >
                             {deleting ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash className="mr-2 h-4 w-4" />
                             )}
                             Delete service
                         </AlertDialogAction>

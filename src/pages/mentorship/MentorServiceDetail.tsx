@@ -747,7 +747,7 @@ const MentorServiceDetail = () => {
                             : "Sign in to book"}
                       </button>
                       <p className="text-xs text-muted-foreground text-center">
-                        Secure checkout powered by Razorpay. You will get an
+                        Secure 256-bit encrypted checkout. You will get an
                         email confirmation right after.
                       </p>
                     </div>

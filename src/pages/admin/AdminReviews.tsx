@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, Star, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Loader2, Search, Star, Eye, EyeOff, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -13,6 +13,23 @@ interface Review {
 }
 
 const fmt = (d: string) => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+
+const ReviewContext = ({ context }: { context: string | null }) => {
+  if (!context) return null;
+  try {
+    const ctx = JSON.parse(context);
+    if (typeof ctx !== "object" || ctx === null) throw new Error("not object");
+    const parts = [ctx.country, ctx.provider, ctx.source].filter(Boolean);
+    return (
+      <div className="flex items-center gap-1.5">
+        {parts.length > 0 && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">{parts.join(" • ")}</span>}
+        {ctx.linkedin && <a href={ctx.linkedin} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-primary hover:underline uppercase tracking-wide">LINKEDIN</a>}
+      </div>
+    );
+  } catch {
+    return <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{context}</span>;
+  }
+};
 
 const AdminReviews = () => {
   const { toast } = useToast();
@@ -66,7 +83,6 @@ const AdminReviews = () => {
         <ScrollReveal>
           <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
             <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">Moderate the <span className="gradient-text">review wall</span></h1>
-            <p className="mt-1 text-muted-foreground">{counts.all} reviews · {counts.public} shown publicly. Hide or delete anything off-brand or abusive.</p>
           </div>
         </ScrollReveal>
 
@@ -91,7 +107,7 @@ const AdminReviews = () => {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold text-foreground">{r.name || "Anonymous"}</span>
                     <span className="flex items-center gap-0.5 text-amber-500">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-current" : "text-muted-foreground/30"}`} />)}</span>
-                    {r.context && <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{r.context}</span>}
+                    <ReviewContext context={r.context} />
                     {!r.is_public && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">Hidden</span>}
                     <span className="text-xs text-muted-foreground">{fmt(r.created_at)}</span>
                   </div>
@@ -101,7 +117,7 @@ const AdminReviews = () => {
                   <Button size="sm" variant="outline" onClick={() => toggle(r)} className="rounded-lg" title={r.is_public ? "Hide" : "Show"}>
                     {r.is_public ? <><EyeOff className="mr-1 h-3.5 w-3.5" /> Hide</> : <><Eye className="mr-1 h-3.5 w-3.5" /> Show</>}
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => setToDelete(r)} className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => setToDelete(r)} className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" aria-label="Delete"><Trash className="h-4 w-4" /></Button>
                 </div>
               </div>
             ))}
@@ -115,7 +131,7 @@ const AdminReviews = () => {
             <AlertDialogDescription>It will be permanently removed. To just take it off the site, use Hide instead.</AlertDialogDescription></AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-xl">Keep it</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"><Trash2 className="mr-2 h-4 w-4" /> Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete} className="rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"><Trash className="mr-2 h-4 w-4" /> Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

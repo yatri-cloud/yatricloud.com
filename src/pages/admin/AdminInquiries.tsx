@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Reply, Search, Trash2 } from "lucide-react";
+import { Loader2, Reply, Search, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -249,9 +249,6 @@ export default function AdminInquiries() {
                 <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
                 <div className="relative space-y-1.5">
                     <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">Inquiries</h1>
-                    <p className="text-muted-foreground">
-                        Partner requests from the campus and team forms, plus contact messages from the site.
-                    </p>
                 </div>
             </div>
 
@@ -362,8 +359,8 @@ export default function AdminInquiries() {
                                                     Reopen
                                                 </Button>
                                             )}
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" aria-label="Delete inquiry" onClick={() => setToDelete({ table: "consultation_requests", id: r.id, label: r.name || r.email || "this inquiry" })}>
-                                                <Trash2 className="h-4 w-4" />
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" aria-label="Delete inquiry" onClick={() => setToDelete({ table: "consultation_requests", id: r.id, label: r.name || r.email || "this inquiry" })}>
+                                                <Trash className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     </div>
@@ -449,8 +446,8 @@ export default function AdminInquiries() {
                                                     Reopen
                                                 </Button>
                                             )}
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" aria-label="Delete message" onClick={() => setToDelete({ table: "contact_messages", id: r.id, label: r.name || r.email || "this message" })}>
-                                                <Trash2 className="h-4 w-4" />
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" aria-label="Delete message" onClick={() => setToDelete({ table: "contact_messages", id: r.id, label: r.name || r.email || "this message" })}>
+                                                <Trash className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     </div>
@@ -472,8 +469,8 @@ export default function AdminInquiries() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel className="rounded-xl">Keep it</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        <AlertDialogAction onClick={confirmDelete} className="rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white">
+                            <Trash className="mr-2 h-4 w-4" /> Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

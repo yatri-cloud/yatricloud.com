@@ -164,14 +164,21 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
             {/* Search — one instance for every screen size (its trigger
                 collapses to icon-only below lg, and mounting it twice would
                 double-toggle the Cmd+K listener). */}
-            <GlobalSearch />
+            <GlobalSearch isLightText={isLightText} />
 
             {/* Desktop Actions */}
             <div className="hidden md:flex shrink-0 items-center gap-4">
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2 max-w-[200px]">
+                    <Button
+                      variant="outline"
+                      className={`gap-2 max-w-[220px] rounded-full font-medium shadow-2xs transition-all ${
+                        isLightText
+                          ? "border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white backdrop-blur-md"
+                          : "border-border bg-card text-foreground hover:bg-muted"
+                      }`}
+                    >
                       <span className="truncate">{user.fullName || user.email}</span>
                     </Button>
                   </DropdownMenuTrigger>
@@ -180,44 +187,34 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                     <DropdownMenuSeparator />
                     {isMentor && (
                       <DropdownMenuItem onClick={() => navigate("/mentor/dashboard")}>
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
                         Mentor Dashboard
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                      <LayoutDashboard className="w-4 h-4 mr-2" />
                       My Dashboard
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
-                      <Settings className="w-4 h-4 mr-2" />
                       Edit Profile
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/profile/my-events")}>
-                      <Calendar className="w-4 h-4 mr-2" />
                       My Events
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/my-trainings")}>
-                      <BookOpen className="w-4 h-4 mr-2" />
                       My Trainings
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/certificates")}>
-                      <Award className="w-4 h-4 mr-2" />
                       My Certificates
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/profile/purchases")}>
-                      <Receipt className="w-4 h-4 mr-2" />
                       My Receipts
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/profile/guide")}>
-                      <Info className="w-4 h-4 mr-2" />
                       User Guide
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/profile/sitemap")}>
-                      <List className="w-4 h-4 mr-2" />
                       User Sitemap
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/manage-certifications")}>
-                      <User className="w-4 h-4 mr-2" />
                       Manage Certifications
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -228,7 +225,6 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                         navigate("/certifiedyatris");
                       }}
                     >
-                      <LogOut className="w-4 h-4 mr-2" />
                       Logout
                     </DropdownMenuItem>
                   </DropdownMenuContent>

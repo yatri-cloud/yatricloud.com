@@ -11,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Upload, X, Search } from "lucide-react";
+import { Loader2, Upload, X, Search , Trash } from "lucide-react";
 import { ListPager } from "@/components/ui/list-pager";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -308,15 +308,9 @@ const UdemyAdmin = () => {
 
                     <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                         <div className="space-y-1.5">
-                            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Udemy management
-                            </p>
                             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                 Add <span className="gradient-text">Udemy Course</span>
                             </h1>
-                            <p className="text-muted-foreground">
-                                Submit a new course to feature in the course section.
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -409,7 +403,7 @@ const UdemyAdmin = () => {
                                             type="button"
                                             onClick={removeImage}
                                             aria-label="Remove selected image"
-                                            className="absolute top-2 right-2 p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors focus-visible:ring-2 focus-visible:ring-ring"
+                                            className="absolute top-2 right-2 p-2 bg-destructive text-white rounded-full hover:bg-destructive/90 transition-colors focus-visible:ring-2 focus-visible:ring-ring"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
@@ -578,7 +572,7 @@ const UdemyAdmin = () => {
                                             <TableCell className="text-muted-foreground">{c.creator || "—"}</TableCell>
                                             <TableCell className="text-muted-foreground">{c.tech || "—"}</TableCell>
                                             <TableCell>
-                                                <Badge variant="outline" className={c.status === "published" ? "border-emerald-500/30 text-emerald-600" : "border-border text-muted-foreground"}>
+                                                <Badge variant={c.status === "published" ? "default" : "outline"} className={c.status === "published" ? "bg-success text-white hover:bg-success/90" : "border-border text-muted-foreground"}>
                                                     {c.status === "published" ? "Published" : "Draft"}
                                                 </Badge>
                                             </TableCell>
@@ -586,7 +580,7 @@ const UdemyAdmin = () => {
                                                 <div className="flex items-center justify-end gap-1">
                                                     <Button variant="ghost" size="sm" onClick={() => toggleStatus(c)}>{c.status === "published" ? "Unpublish" : "Publish"}</Button>
                                                     <Button variant="ghost" size="sm" onClick={() => setEditing({ ...c })}>Edit</Button>
-                                                    <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => deleteCourse(c)}>Delete</Button>
+                                                    <Button variant="ghost" className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white" onClick={() => deleteCourse(c)} title="Delete"><Trash className="h-4 w-4" /></Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

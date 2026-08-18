@@ -64,10 +64,10 @@ export const FALLBACK_FORM_PROVIDERS: FormProvider[] = [
   { slug: "azure", label: "Azure", enumValue: "AZURE", logoUrl: `${LOGO_BASE_URL}/Microsoft_Azure.svg`, brandColor: "#0078D4" },
   { slug: "gcp", label: "Google Cloud", enumValue: "GCP", logoUrl: `${LOGO_BASE_URL}/google_cloud.svg`, brandColor: "#4285F4" },
   { slug: "github", label: "GitHub", enumValue: "GITHUB", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg", logoLightUrl: "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg", brandColor: "#181717" },
-  { slug: "oracle", label: "Oracle", enumValue: "ORACLE", logoUrl: `${LOGO_BASE_URL}/Oracle_logo.svg`, brandColor: "#F80000" },
+  { slug: "oracle", label: "Oracle", enumValue: "ORACLE", logoUrl: "https://companieslogo.com/img/orig/ORCL-d5a587ae.png?t=1740130451", brandColor: "#F80000" },
   { slug: "salesforce", label: "Salesforce", enumValue: "SALESFORCE", logoUrl: `${LOGO_BASE_URL}/Salesforce.com_logo.svg`, brandColor: "#00A1E0" },
   { slug: "servicenow", label: "ServiceNow", enumValue: "SERVICENOW", logoUrl: `${LOGO_BASE_URL}/ServiceNow_logo.svg`, brandColor: "#00A82E" },
-  { slug: "openai", label: "OpenAI", enumValue: "OPENAI", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" },
+  { slug: "openai", label: "OpenAI", enumValue: "OPENAI", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318" },
   { slug: "hashicorp", label: "HashiCorp Certified", enumValue: "HASHICORP", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
   { slug: "kubernetes", label: "Kubernetes Certified", enumValue: "KUBERNETES", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707", brandColor: "#326CE5" },
 ];
@@ -102,10 +102,10 @@ export const FALLBACK_PROVIDER_LOGOS: Record<string, ProviderLogo> = {
   azure: { logo: `${LOGO_BASE_URL}/Microsoft_Azure.svg` },
   gcp: { logo: `${LOGO_BASE_URL}/google_cloud.svg` },
   github: { logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg", light: "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" },
-  oracle: { logo: `${LOGO_BASE_URL}/Oracle_logo.svg` },
+  oracle: { logo: "https://companieslogo.com/img/orig/ORCL-d5a587ae.png?t=1740130451" },
   salesforce: { logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg` },
   servicenow: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
-  openai: { logo: "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" },
+  openai: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318" },
   hashicorp: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
   kubernetes: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
 };
@@ -193,7 +193,7 @@ export const FALLBACK_CERTIFICATION_PROVIDER_LOGOS: Record<string, Certification
   },
   oracle: {
     label: "Oracle",
-    logo: `${LOGO_BASE_URL}/Oracle_logo.svg`,
+    logo: "https://companieslogo.com/img/orig/ORCL-d5a587ae.png?t=1740130451",
   },
   servicenow: {
     label: "ServiceNow",
@@ -201,7 +201,7 @@ export const FALLBACK_CERTIFICATION_PROVIDER_LOGOS: Record<string, Certification
   },
   openai: {
     label: "OpenAI",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318",
   },
 };
 

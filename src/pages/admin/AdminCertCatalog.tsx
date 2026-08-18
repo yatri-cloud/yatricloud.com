@@ -8,7 +8,7 @@ import {
     Plus,
     Save,
     Search,
-    Trash2,
+    Trash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -673,15 +673,9 @@ const AdminCertCatalog = () => {
 
                         <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                             <div className="space-y-1.5">
-                                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Certifications
-                                </p>
                                 <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
                                     Certification <span className="gradient-text">Catalog</span>
                                 </h1>
-                                <p className="text-muted-foreground">
-                                    Manage the providers and exams Yatris can choose across the site. Every save goes live right away.
-                                </p>
                             </div>
                             <Button onClick={openAddProvider} className={saveButtonClass}>
                                 <Plus className="mr-2 h-4 w-4" />
@@ -779,9 +773,9 @@ const AdminCertCatalog = () => {
                                                     size="icon"
                                                     onClick={() => setProviderToDelete(provider)}
                                                     aria-label={`Delete ${provider.label}`}
-                                                    className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
+                                                    className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                                                 >
-                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                    <Trash className="h-3.5 w-3.5" />
                                                 </Button>
                                             </div>
                                         </div>
@@ -987,8 +981,8 @@ const AdminCertCatalog = () => {
                                                                                 <Pencil className="h-3.5 w-3.5" />
                                                                             </Button>
                                                                             <Button variant="ghost" size="icon" onClick={() => setCertToDelete(cert)}
-                                                                                aria-label={`Delete ${cert.label}`} className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground">
-                                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                                                aria-label={`Delete ${cert.label}`} className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white">
+                                                                                <Trash className="h-3.5 w-3.5" />
                                                                             </Button>
                                                                         </div>
                                                                     </div>
@@ -1272,12 +1266,12 @@ const AdminCertCatalog = () => {
                         <AlertDialogAction
                             onClick={confirmDeleteProvider}
                             disabled={deletingProvider}
-                            className="min-h-[44px] rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="min-h-[44px] rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                         >
                             {deletingProvider ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash className="mr-2 h-4 w-4" />
                             )}
                             Delete provider
                         </AlertDialogAction>
@@ -1306,12 +1300,12 @@ const AdminCertCatalog = () => {
                         <AlertDialogAction
                             onClick={confirmDeleteCert}
                             disabled={deletingCert}
-                            className="min-h-[44px] rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="min-h-[44px] rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
                         >
                             {deletingCert ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash className="mr-2 h-4 w-4" />
                             )}
                             Delete certification
                         </AlertDialogAction>

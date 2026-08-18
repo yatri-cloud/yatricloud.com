@@ -179,9 +179,6 @@ export default function AdminPayments() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 className="font-display text-3xl font-black tracking-tight">Payments and revenue</h1>
-                    <p className="mt-1 text-muted-foreground">
-                        Every receipt across the store, events, training and mentorship, in one place.
-                    </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:items-end">
                     <div className="flex flex-wrap items-center gap-2">
@@ -234,9 +231,9 @@ export default function AdminPayments() {
                 <>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                         <StatsCard title="Total receipts" value={dateFiltered.length} icon={Receipt} color="bg-primary/10 text-primary" />
-                        <StatsCard title="Revenue in INR" value={formatInvoiceMoney(inrRevenue, "INR")} icon={IndianRupee} color="bg-emerald-500/10 text-emerald-600" />
-                        <StatsCard title="Paid in other currencies" value={otherCurrencyCount} icon={Globe} color="bg-blue-500/10 text-blue-600" />
-                        <StatsCard title="Categories" value={Object.keys(byKind).length} icon={Layers} color="bg-amber-500/10 text-amber-600" />
+                        <StatsCard title="Revenue in INR" value={formatInvoiceMoney(inrRevenue, "INR")} icon={IndianRupee} color="bg-emerald-500 text-white border-0" />
+                        <StatsCard title="Paid in other currencies" value={otherCurrencyCount} icon={Globe} color="bg-blue-500 text-white border-0" />
+                        <StatsCard title="Categories" value={Object.keys(byKind).length} icon={Layers} color="bg-amber-500 text-white border-0" />
                     </div>
 
                     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">

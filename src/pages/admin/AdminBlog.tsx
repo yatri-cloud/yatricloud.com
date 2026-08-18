@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Search, Star, ExternalLink, Eye, Trash2, Globe, FileText, Undo2 } from "lucide-react";
+import { Loader2, Search, Star, ExternalLink, Eye, Trash, Globe, FileText, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -81,9 +81,7 @@ const AdminBlog = () => {
       <div className="mx-auto max-w-5xl space-y-6">
         <ScrollReveal>
           <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
-            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Blog</p>
             <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight md:text-3xl">Manage the <span className="gradient-text">blog</span></h1>
-            <p className="mt-1 text-muted-foreground">Feature great stories, moderate content, and keep the feed healthy. Every change is live.</p>
           </div>
         </ScrollReveal>
 
@@ -110,7 +108,6 @@ const AdminBlog = () => {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="truncate font-semibold text-foreground">{r.title || "Untitled"}</span>
-                    {r.status === "published" ? <Globe className="h-3.5 w-3.5 text-primary" /> : <FileText className="h-3.5 w-3.5 text-muted-foreground" />}
                     {r.featured && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">FEATURED</span>}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">by {r.author_name} · {r.view_count} views</p>
@@ -124,11 +121,11 @@ const AdminBlog = () => {
                     <Button asChild size="icon" variant="ghost" className="h-9 w-9 rounded-lg" aria-label="View"><Link to={`/blog/${r.slug}`} target="_blank"><ExternalLink className="h-4 w-4" /></Link></Button>
                   ) : null}
                   {r.status === "published" ? (
-                    <Button size="sm" variant="outline" onClick={() => setStatus(r, "draft")} className="rounded-lg" title="Unpublish"><Undo2 className="mr-1 h-3.5 w-3.5" /> Unpublish</Button>
+                    <Button size="sm" variant="outline" onClick={() => setStatus(r, "draft")} className="rounded-lg" title="Unpublish">Unpublish</Button>
                   ) : (
-                    <Button size="sm" variant="outline" onClick={() => setStatus(r, "published")} className="rounded-lg" title="Publish"><Eye className="mr-1 h-3.5 w-3.5" /> Publish</Button>
+                    <Button size="sm" variant="outline" onClick={() => setStatus(r, "published")} className="rounded-lg" title="Publish">Publish</Button>
                   )}
-                  <Button size="icon" variant="ghost" onClick={() => remove(r)} className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-destructive hover:text-destructive-foreground" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => remove(r)} className="h-8 w-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white" aria-label="Delete"><Trash className="h-4 w-4" /></Button>
                 </div>
               </div>
             ))}

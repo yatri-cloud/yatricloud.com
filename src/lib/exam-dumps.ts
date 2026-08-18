@@ -89,3 +89,18 @@ export async function deleteExamDump(id: string): Promise<void> {
     throw new Error(error.message);
   }
 }
+
+/**
+ * Returns a dynamic CSS color value for an exam provider,
+ * used to render matching glow effects on UI cards.
+ */
+export const getProviderGlowColor = (provider?: string) => {
+  const p = (provider || "").toLowerCase();
+  if (p.includes("aws")) return "rgba(255, 153, 0, 0.35)"; // Orange
+  if (p.includes("azure") || p.includes("microsoft")) return "rgba(0, 137, 214, 0.35)"; // Blue
+  if (p.includes("gcp") || p.includes("google")) return "rgba(66, 133, 244, 0.35)"; // Google Blue
+  if (p.includes("anthropic")) return "rgba(217, 119, 87, 0.35)"; // Peach
+  if (p.includes("cisco")) return "rgba(0, 188, 235, 0.35)"; // Light Blue
+  if (p.includes("oracle")) return "rgba(248, 0, 0, 0.35)"; // Red
+  return "rgba(37, 99, 235, 0.25)"; // Default primary blue
+};

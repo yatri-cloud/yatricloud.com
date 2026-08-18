@@ -24,7 +24,7 @@ export const QuickAccessSection = () => {
   };
 
   return (
-    <section className="relative border-y border-slate-200/60 bg-slate-50/50 py-10 md:py-12">
+    <section className="relative border-y border-blue-200/60 bg-gradient-to-r from-blue-50/70 via-sky-50/50 to-indigo-50/30 py-10 md:py-12">
       <div className="container mx-auto px-4 md:px-6">
         <ScrollReveal>
           <p className="mb-6 text-center text-xs font-bold uppercase tracking-[0.25em] text-slate-500">

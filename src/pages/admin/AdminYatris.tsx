@@ -167,19 +167,15 @@ export default function AdminYatris() {
                 <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-brand-200/20 blur-3xl" />
 
                 <div className="relative space-y-1.5">
-                    <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Users
-                    </p>
                     <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">All Yatris</h1>
-                    <p className="text-muted-foreground">View and manage every registered user on the platform.</p>
                 </div>
 
                 {/* Stats inside header */}
                 <div className="relative mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                    <StatsCard title="Total users" value={totalCount} icon={Users} color="bg-blue-500/10 text-blue-600" />
-                    <StatsCard title="New this month" value={newThisMonth} icon={UserCheck} color="bg-emerald-500/10 text-emerald-600" />
+                    <StatsCard title="Total users" value={totalCount} icon={Users} color="bg-blue-500 text-white border-0" />
+                    <StatsCard title="New this month" value={newThisMonth} icon={UserCheck} color="bg-emerald-500 text-white border-0" />
                     <StatsCard title="Trainers" value={roleCounts.trainer || 0} icon={Users} color="bg-violet-500/10 text-violet-600" />
-                    <StatsCard title="Mentors" value={roleCounts.mentor || 0} icon={Users} color="bg-amber-500/10 text-amber-600" />
+                    <StatsCard title="Mentors" value={roleCounts.mentor || 0} icon={Users} color="bg-amber-500 text-white border-0" />
                 </div>
             </div>
 

@@ -1,36 +1,9 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Ticket, ChevronRight, BadgeCheck, GraduationCap, ShieldCheck, Briefcase, Globe } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
-
-const perks = [
-  {
-    icon: Ticket,
-    title: "Up to 50% Off",
-    desc: "Significant discounts on major cloud & DevOps certifications.",
-    color: "bg-amber-500/10 text-amber-500",
-  },
-  {
-    icon: Briefcase,
-    title: "Career Growth",
-    desc: "Get certified and stand out in the competitive job market.",
-    color: "bg-blue-500/10 text-blue-500",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Verified codes",
-    desc: "100% authentic vouchers from official training partners.",
-    color: "bg-green-500/10 text-green-500",
-  },
-  {
-    icon: Globe,
-    title: "Community First",
-    desc: "Designed to help students and early-career professionals.",
-    color: "bg-red-500/10 text-red-500",
-  },
-];
 
 export const VoucherPromoSection = () => {
   const reduce = useReducedMotion();
@@ -48,16 +21,7 @@ export const VoucherPromoSection = () => {
 
               {/* Left — pitch + CTAs */}
               <div className="space-y-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, ease: EASE_OUT }}
-                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-white text-sm font-medium"
-                >
-                  <BadgeCheck className="w-4 h-4" />
-                  <span>Invested in Your Success</span>
-                </motion.div>
+
 
                 <motion.h2
                   initial={{ opacity: 0, y: 20 }}
@@ -146,20 +110,25 @@ export const VoucherPromoSection = () => {
                       <span className="text-primary/70">you pay half</span>
                     </p>
 
-                    <div className="mt-6 flex flex-wrap gap-2">
-                      {["AWS", "Azure", "GCP", "GitHub"].map((tag) => (
+                    <div className="mt-6 flex items-center gap-3">
+                      {[
+                        { name: "AWS", logo: "/logos/aws.svg" },
+                        { name: "Azure", logo: "/logos/azure.svg" },
+                        { name: "GCP", logo: "/logos/googlecloud.svg" },
+                        { name: "GitHub", logo: "/logos/github.svg" },
+                      ].map((provider) => (
                         <span
-                          key={tag}
-                          className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+                          key={provider.name}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/5 p-1.5 ring-1 ring-primary/10 transition-transform duration-200 hover:scale-110"
+                          title={provider.name}
                         >
-                          {tag}
+                          <img
+                            src={provider.logo}
+                            alt={provider.name}
+                            className="h-full w-full object-contain"
+                          />
                         </span>
                       ))}
-                    </div>
-
-                    <div className="mt-6 flex items-center gap-2 text-xs font-medium text-primary/50">
-                      <GraduationCap className="h-4 w-4" />
-                      <span>Redeemable on official certification exams</span>
                     </div>
                   </div>
 
@@ -194,29 +163,6 @@ export const VoucherPromoSection = () => {
                   className="pointer-events-none absolute right-16 bottom-0 h-6 w-6 translate-y-1/2 translate-x-1/2 rounded-full bg-primary"
                 />
               </motion.div>
-            </div>
-
-            {/* Perks — glass chip row */}
-            <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {perks.map((feature, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.06, ease: EASE_OUT }}
-                  whileHover={reduce ? undefined : { y: -5 }}
-                  className="group flex items-start gap-3 p-5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-sm text-white"
-                >
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/15 text-white transition-colors group-hover:bg-white/25">
-                    <feature.icon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold tracking-tight text-white">{feature.title}</h3>
-                    <p className="mt-1 text-sm text-white/80 leading-relaxed">{feature.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
             </div>
           </ScrollReveal>
         </div>

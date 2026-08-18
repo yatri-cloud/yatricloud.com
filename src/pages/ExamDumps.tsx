@@ -113,44 +113,28 @@ const ExamDumps = () => {
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] text-foreground mb-4">
                 Pass on your <span className="gradient-text">first attempt</span>
               </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Verified, high-quality exam dumps and practice materials trusted by {learners} Yatris preparing for AWS, Azure & GCP. No guesswork, just confidence.
+              <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                Verified practice materials for AWS, Azure & GCP exams.
               </p>
 
-              {/* Trust chips — every claim is real: delivery is automated
-                  email, payments run through Razorpay, learner count comes
-                  from site_stats. */}
-              <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-foreground/80">
-                <span className="inline-flex items-center gap-2">
-                  Instant delivery to your email
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  Secure Razorpay checkout
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  {learners} Yatris learning with us
-                </span>
-              </div>
-
-              {/* How it works — three quiet numbered steps kill the "what
-                  happens after I pay?" hesitation for a digital product. */}
-              <ol className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-0 text-sm">
+              {/* How it works — clean 3-step pill timeline */}
+              <ol className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-2 text-xs md:text-sm">
                 {[
                   "Pick your exam",
                   "Pay securely",
-                  "Files land in your inbox",
+                  "Instant delivery",
                 ].map((step, i) => (
                   <li key={step} className="flex items-center">
-                    <span className="flex items-center gap-2.5">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white px-4 py-2 shadow-2xs">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
                         {i + 1}
                       </span>
-                      <span className="font-medium text-muted-foreground">{step}</span>
+                      <span className="font-medium text-slate-700">{step}</span>
                     </span>
                     {i < 2 && (
                       <span
                         aria-hidden="true"
-                        className="mx-4 hidden h-px w-10 bg-gradient-to-r from-primary/40 to-primary/10 sm:block"
+                        className="mx-2 hidden h-px w-8 bg-slate-300 sm:block"
                       />
                     )}
                   </li>

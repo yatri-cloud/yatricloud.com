@@ -25,10 +25,10 @@ export default function UserSitemapView() {
                 <div className="container mx-auto px-4 md:px-6 max-w-5xl">
                     <Button
                         variant="ghost"
-                        className="gap-2 mb-6 pl-0 hover:pl-2 transition-all"
+                        className="mb-6 pl-0 hover:pl-2 transition-all font-semibold"
                         onClick={() => navigate(-1)}
                     >
-                        <ArrowLeft className="w-4 h-4" /> Back
+                        Back
                     </Button>
 
                     <motion.div
@@ -57,23 +57,18 @@ export default function UserSitemapView() {
                                         </CardHeader>
                                         <CardContent className="space-y-1">
                                             {group.items.map((item) => {
-                                                const ItemIcon = item.icon;
                                                 return (
                                                     <Link
                                                         key={item.path}
                                                         to={item.path}
-                                                        className="group flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-brand-50/50 min-h-[44px]"
+                                                        className="group block rounded-lg p-3 transition-colors hover:bg-brand-50/50"
                                                     >
-                                                        <ItemIcon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
-                                                        <span className="min-w-0 flex-1">
-                                                            <span className="flex items-center gap-1 font-medium">
-                                                                {item.name}
-                                                                <ChevronRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-60" aria-hidden="true" />
-                                                            </span>
-                                                            {item.description && (
-                                                                <span className="mt-0.5 block text-sm text-muted-foreground">{item.description}</span>
-                                                            )}
+                                                        <span className="block font-semibold group-hover:text-primary transition-colors">
+                                                            {item.name}
                                                         </span>
+                                                        {item.description && (
+                                                            <span className="mt-0.5 block text-sm text-muted-foreground">{item.description}</span>
+                                                        )}
                                                     </Link>
                                                 );
                                             })}
