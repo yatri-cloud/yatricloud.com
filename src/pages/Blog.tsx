@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { PenLine, Search, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -29,9 +29,11 @@ const Byline = ({ post }: { post: FeedPost }) => (
 
 const Meta = ({ post }: { post: FeedPost }) => (
   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-    <span className="inline-flex items-center gap-1">{post.reading_minutes} min read</span>
-    <span className="inline-flex items-center gap-1">{post.clap_total}</span>
-    <span className="inline-flex items-center gap-1">{post.response_count}</span>
+    <span>{post.reading_minutes} min read</span>
+    <span>·</span>
+    <span>{post.clap_total} claps</span>
+    <span>·</span>
+    <span>{post.response_count} responses</span>
   </div>
 );
 
@@ -80,7 +82,7 @@ const Blog = () => {
         if (!cancelled) { setPosts(rows); setLoading(false); }
       });
     }, q ? 300 : 0);
-    return () => { cancelled = true; clearTimeout(t); };
+    return () => { cancelled = true; };
   }, [search, tag, cert, sort]);
 
   const featured = useMemo(() => posts.find((p) => p.featured) ?? null, [posts]);
@@ -100,7 +102,7 @@ const Blog = () => {
             </div>
             <div className="flex items-center gap-2">
               <Button asChild variant="outline" className="rounded-full"><Link to="/blog/dashboard">Your stories</Link></Button>
-              <Button asChild className="rounded-full shadow-inset-btn"><Link to="/blog/write"><PenLine className="mr-2 h-4 w-4" /> Write a story</Link></Button>
+              <Button asChild className="rounded-full shadow-inset-btn"><Link to="/blog/write">Write a story</Link></Button>
             </div>
           </div>
         </ScrollReveal>
@@ -108,8 +110,7 @@ const Blog = () => {
         {/* Toolbar */}
         <div className="mt-8 flex flex-col gap-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search stories…" aria-label="Search stories" className="h-11 rounded-full pl-10" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search stories…" aria-label="Search stories" className="h-11 rounded-full px-4" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={() => setTag(null)} className={`rounded-full border px-3 py-1 text-xs font-semibold ${!tag ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>All</button>
@@ -135,7 +136,7 @@ const Blog = () => {
         ) : posts.length === 0 ? (
           <div className="mt-10 rounded-2xl border border-dashed border-border p-12 text-center">
             <p className="text-muted-foreground">{search || tag ? "No stories match that yet." : "No stories published yet — be the first to write one."}</p>
-            <Button asChild variant="outline" className="mt-4 rounded-full"><Link to="/blog/write"><PenLine className="mr-2 h-4 w-4" /> Write the first story</Link></Button>
+            <Button asChild variant="outline" className="mt-4 rounded-full"><Link to="/blog/write">Write the first story</Link></Button>
           </div>
         ) : (
           <div className="mt-4">

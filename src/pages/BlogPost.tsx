@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import { Clock, Hand, Bookmark, BookmarkCheck, MessageSquare, Loader2, Trash2, PenLine } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -13,7 +13,6 @@ import {
   isFollowing, toggleFollow, followerCount, listResponses, addResponse, deleteResponse, authorIsCertified,
   type FeedPost, type BlogResponse,
 } from "@/lib/blog-api";
-import { BadgeCheck, GraduationCap } from "lucide-react";
 
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }) : "";
@@ -74,7 +73,7 @@ const BlogPost = () => {
 
   const clap = () => {
     if (!requireAuth() || !post) return;
-    if (myClap >= 50) { toast.info("Max 50 claps 👏"); return; }
+    if (myClap >= 50) { toast.info("Max 50 claps"); return; }
     const next = myClap + 1;
     setMyClap(next); setTotalClaps((t) => t + 1);
     if (clapTimer.current) window.clearTimeout(clapTimer.current);
@@ -149,11 +148,12 @@ const BlogPost = () => {
             <div className="text-sm">
               <span className="flex items-center gap-1.5">
                 <Link to={`/blog/author/${post.author_id}`} className="font-semibold text-foreground hover:text-primary">{post.author_name}</Link>
-                {certified && <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold text-primary" title="Holds a verified certification"><BadgeCheck className="h-3 w-3" /> Certified Yatri</span>}
+                {certified && <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary" title="Holds a verified certification">Certified Yatri</span>}
               </span>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span>{fmtDate(post.published_at)}</span><span aria-hidden>·</span>
-                <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {post.reading_minutes} min</span>
+              <div className="flex items-center gap-2 text-muted-foreground text-xs mt-0.5">
+                <span>{fmtDate(post.published_at)}</span>
+                <span aria-hidden>·</span>
+                <span>{post.reading_minutes} min read</span>
               </div>
             </div>
           </div>
@@ -164,7 +164,6 @@ const BlogPost = () => {
 
         {post.cert_value && post.cert_label && (
           <Link to={`/blog?cert=${post.cert_value}`} className="mt-6 flex items-center gap-3 rounded-2xl border border-brand-100 bg-primary/[0.06] p-4 transition-colors hover:bg-primary/[0.1]">
-            <GraduationCap className="h-6 w-6 shrink-0 text-primary" />
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold uppercase tracking-wider text-primary">Exam prep</p>
               <p className="truncate font-semibold text-foreground">{post.cert_label}</p>
@@ -190,13 +189,17 @@ const BlogPost = () => {
         )}
 
         {/* Engagement bar */}
-        <div className="sticky bottom-4 z-10 mx-auto mt-10 flex w-fit items-center gap-1 rounded-full border border-border bg-card/90 px-2 py-1.5 shadow-card backdrop-blur">
-          <button onClick={clap} className="group flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium hover:bg-muted" aria-label="Clap">
-            <Hand className={`h-5 w-5 transition-transform group-active:scale-125 ${myClap > 0 ? "fill-primary text-primary" : ""}`} /> {totalClaps}
+        <div className="sticky bottom-4 z-10 mx-auto mt-10 flex w-fit items-center gap-2 rounded-full border border-border bg-card/90 px-3 py-1.5 shadow-card backdrop-blur text-sm font-semibold">
+          <button onClick={clap} className="hover:text-primary transition-colors px-2 py-1">
+            Claps ({totalClaps})
           </button>
-          <a href="#responses" className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium hover:bg-muted"><MessageSquare className="h-5 w-5" /> {responses.length}</a>
-          <button onClick={onBookmark} className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium hover:bg-muted" aria-label="Save">
-            {saved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <Bookmark className="h-5 w-5" />}
+          <span>·</span>
+          <a href="#responses" className="hover:text-primary transition-colors px-2 py-1">
+            Responses ({responses.length})
+          </a>
+          <span>·</span>
+          <button onClick={onBookmark} className="hover:text-primary transition-colors px-2 py-1">
+            {saved ? "Saved" : "Save"}
           </button>
         </div>
 
@@ -204,9 +207,9 @@ const BlogPost = () => {
         <div className="mt-12 flex items-start gap-4 rounded-2xl border border-border bg-card p-6">
           <Avatar name={post.author_name} photo={post.author_photo} big />
           <div className="min-w-0 flex-1">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">Written by</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Written by</p>
             <Link to={`/blog/author/${post.author_id}`} className="font-display text-lg font-bold hover:text-primary">{post.author_name}</Link>
-            <p className="text-sm text-muted-foreground">{followers} follower{followers === 1 ? "" : "s"}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{followers} follower{followers === 1 ? "" : "s"}</p>
           </div>
           {uid !== post.author_id && <Button size="sm" variant={following ? "outline" : "default"} onClick={onFollow} className="rounded-full">{following ? "Following" : "Follow"}</Button>}
         </div>
@@ -241,7 +244,7 @@ const BlogPost = () => {
           </div>
         </section>
 
-        <div className="mt-12 text-center"><Button asChild variant="outline" className="rounded-full"><Link to="/blog"><PenLine className="mr-2 h-4 w-4" /> More stories</Link></Button></div>
+        <div className="mt-12 text-center"><Button asChild variant="outline" className="rounded-full"><Link to="/blog">More stories</Link></Button></div>
       </main>
       <Footer />
     </div>
@@ -254,9 +257,9 @@ const ResponseItem = ({ r, uid, onDelete }: { r: BlogResponse; uid: string | nul
     <div className="min-w-0 flex-1">
       <div className="flex items-center gap-2 text-sm">
         <span className="font-semibold text-foreground">{r.author_name}</span>
-        <span className="text-muted-foreground">{new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+        <span className="text-muted-foreground text-xs">{new Date(r.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
         {uid === r.user_id && (
-          <button onClick={() => onDelete(r.id)} className="ml-auto text-muted-foreground hover:text-destructive" aria-label="Delete"><Trash2 className="h-3.5 w-3.5" /></button>
+          <button onClick={() => onDelete(r.id)} className="ml-auto text-muted-foreground hover:text-destructive text-xs" aria-label="Delete">Delete</button>
         )}
       </div>
       <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{r.body}</p>

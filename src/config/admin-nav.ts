@@ -81,6 +81,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Review & Finance", path: "/admin/training/review", icon: LayoutDashboard, description: "Audited, grouped overview of trainer courses with pricing control and revenue." },
             { name: "Create Course", path: "/admin/training/create", icon: BookOpen, description: "Add a new training course." },
             { name: "Enrollments", path: "/admin/enrollments", icon: Users, description: "See who enrolled and their payment status." },
+            { name: "Attendance", path: "/admin/training/attendance", icon: CalendarClock, description: "Manage training sessions and take attendance for each course." },
             { name: "Reviews", path: "/admin/training/reviews", icon: Star, description: "Moderate learner reviews for trainings." },
             { name: "Providers", path: "/admin/providers", icon: Server, description: "Manage training providers." },
             { name: "Trainers Hub", path: "/admin/trainers", icon: Users, description: "Manage trainers and their access." },

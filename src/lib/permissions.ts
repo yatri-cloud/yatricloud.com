@@ -44,6 +44,7 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<AdminRole, string[]> = {
     "/admin/training",
     "/admin/training/review",
     "/admin/training/create",
+    "/admin/training/attendance",
     "/admin/enrollments",
     "/admin/training/reviews",
     "/admin/providers",
@@ -55,6 +56,7 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<AdminRole, string[]> = {
     "/admin/exam-dumps",
     "/admin/udemy",
   ],
+
 
   support: [
     "/admin/yatris",

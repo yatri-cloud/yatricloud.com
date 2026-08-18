@@ -61,18 +61,19 @@ export interface AtsAnalysisResult {
 }
 
 const DEFAULT_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY as string) || "";
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-3.6-flash";
 const LOCAL_STORAGE_KEY = "yc_gemini_ai_config";
 const LOCAL_STORAGE_KEYS_LIST = "yc_ai_keys_list";
 
 export const AVAILABLE_MODELS = [
-    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Fast, Accurate & Recommended)", speed: "Blazing", maxOutput: 8192 },
-    { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (Deep Reasoning & Executive Analysis)", speed: "Standard", maxOutput: 8192 },
+    { id: "gemini-3.6-flash", name: "Gemini 3.6 Flash (Fast, Next-Gen & Recommended)", speed: "Blazing", maxOutput: 8192 },
+    { id: "gemini-3.7-flash", name: "Gemini 3.7 Flash (Hybrid Reasoning & Ultra Fast)", speed: "Ultra Fast", maxOutput: 8192 },
+    { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", speed: "Fast", maxOutput: 8192 },
     { id: "gemini-flash-latest", name: "Gemini Flash (Latest Stable)", speed: "Ultra Fast", maxOutput: 8192 },
     { id: "gemini-pro-latest", name: "Gemini Pro (Latest Stable)", speed: "High Intelligence", maxOutput: 8192 },
-    { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite (Lightweight & Instant)", speed: "Instant", maxOutput: 8192 },
-    { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", speed: "Next-Gen", maxOutput: 8192 },
+    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", speed: "Standard", maxOutput: 8192 },
 ];
+
 
 /**
  * Dynamically list active models for the given API key.

@@ -86,6 +86,7 @@ const Training = lazy(() => import("./pages/Training"));
 const TrainingDetail = lazy(() => import("./pages/TrainingDetail"));
 const AdminTrainingList = lazy(() => import("@/pages/admin/AdminTrainingList"));
 const AdminTrainingReview = lazy(() => import("@/pages/admin/AdminTrainingReview"));
+const AdminTrainingAttendance = lazy(() => import("@/pages/admin/AdminTrainingAttendance"));
 const AdminRoleManagement = lazy(() => import("@/pages/admin/AdminRoleManagement"));
 const MyTrainings = lazy(() => import("@/pages/MyTrainings"));
 const StudentTrainingDashboard = lazy(() => import("@/pages/StudentTrainingDashboard"));
@@ -305,6 +306,7 @@ const App = () => (
                   <Route path="create" element={<AdminTraining />} />
                   <Route path="edit/:id" element={<AdminEditTraining />} />
                   <Route path="reviews" element={<AdminTrainingReviews />} />
+                  <Route path="attendance" element={<AdminTrainingAttendance />} />
                 </Route>
                 <Route path="providers" element={<AdminProviders />} />
                 <Route path="enrollments" element={<AdminEnrollments />} />

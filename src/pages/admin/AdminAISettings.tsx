@@ -64,7 +64,7 @@ export default function AdminAISettings() {
     const [formName, setFormName] = useState("");
     const [formProvider, setFormProvider] = useState<AiKeyRecord["provider"]>("google_gemini");
     const [formApiKey, setFormApiKey] = useState("");
-    const [formModel, setFormModel] = useState("gemini-2.5-flash");
+    const [formModel, setFormModel] = useState("gemini-3.6-flash");
     const [formTemperature, setFormTemperature] = useState(0.2);
     const [formMaxTokens, setFormMaxTokens] = useState(4096);
     const [formIsActive, setFormIsActive] = useState(false);
