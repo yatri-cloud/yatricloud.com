@@ -18,7 +18,7 @@ const OFFERINGS = [
     desc: "Give your students real, job-ready cloud and DevOps skills, taught by people who do this work every day.",
     benefits: [
       "A curriculum shaped around what employers actually hire for",
-      "Hands-on labs, not just slides",
+      "Hands on labs, not just slides",
       "Mentorship from working industry experts",
       "Placement support for your students",
     ],

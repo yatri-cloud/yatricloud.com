@@ -140,7 +140,7 @@ export default function Training() {
                         </motion.h1>
 
                         <motion.p variants={fadeUp} className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-                            Hands-on certification tracks, role-based paths, and live workshops — many of them free.
+                            Hands on certification tracks, role based paths, and live workshops — many of them free.
                             Learn the way real teams work, and get certified with confidence.
                         </motion.p>
 
