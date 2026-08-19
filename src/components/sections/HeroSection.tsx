@@ -145,11 +145,7 @@ export const HeroSection = () => {
     ? (reviews.reduce((acc, r) => acc + Number(r.rating || 5), 0) / reviews.length).toFixed(1)
     : statValue(siteStats, "rating", "4.9");
 
-  const certifiedStat = statValue(
-    siteStats,
-    "certified",
-    statValue(siteStats, "tracks", "10000+")
-  );
+  const certifiedStat = "10000+";
 
   const STATS = [
     {

@@ -180,7 +180,7 @@ export default function AdminAnalytics() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data?.topResources || []} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
                   <XAxis type="number" hide />
-                  <YAxis dataKey="target_id" type="category" axisLine={false} tickLine={false} width={100} tick={{ fontSize: 12 }} />
+                  <YAxis dataKey={(item) => item.name || item.target_id.split("-")[0]} type="category" axisLine={false} tickLine={false} width={100} tick={{ fontSize: 12 }} />
                   <RechartsTooltip 
                     cursor={{fill: 'transparent'}}
                     contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))' }} 

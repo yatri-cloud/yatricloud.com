@@ -91,7 +91,7 @@ export function ResourceCard({ resource, isUnlocked, onAccess, isLoading }: Reso
               Unlocking…
             </span>
           ) : isUnlocked ? (
-            <span>Access Resource</span>
+            <span>Access Now</span>
           ) : resource.isFree ? (
             <span>Access Now</span>
           ) : (

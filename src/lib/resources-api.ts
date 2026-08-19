@@ -203,7 +203,7 @@ function buildResourceUnlockEmail({
                 <a href="${accessUrl}"
                    style="display:inline-block;background:#1e40af;color:#ffffff;font-size:15px;font-weight:600;
                           padding:14px 36px;border-radius:8px;text-decoration:none;">
-                  Access Resource
+                  Access Now
                 </a>
               </td></tr>
             </table>
