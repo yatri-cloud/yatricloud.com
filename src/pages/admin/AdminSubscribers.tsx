@@ -12,18 +12,6 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import {
-  Search,
-  Loader2,
-  Trash,
-  Download,
-  Users,
-  UserCheck,
-  UserX,
-  Plus,
-  RotateCcw,
-  MoreHorizontal,
-} from "lucide-react";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -62,26 +50,6 @@ const PAGE_SIZE = 15;
 type Tab = "all" | "active" | "unsubscribed";
 
 type SortKey = "newest" | "oldest" | "email-asc" | "email-desc";
-
-const SectionHeader = ({
-  eyebrow,
-  title,
-  hint,
-}: {
-  eyebrow: string;
-  title: string;
-  hint?: string;
-}) => (
-  <div className="mb-4">
-    <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1">
-      {eyebrow}
-    </p>
-    <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-    {hint && (
-      <p className="text-sm text-muted-foreground mt-1">{hint}</p>
-    )}
-  </div>
-);
 
 const fmt = (iso: string | null) =>
   iso
@@ -269,9 +237,8 @@ export default function AdminSubscribers() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center gap-3 text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-        <span>Loading subscribers...</span>
+      <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">
+        Loading subscribers...
       </div>
     );
   }
@@ -279,17 +246,16 @@ export default function AdminSubscribers() {
   return (
     <div className="px-4 md:px-8 py-8 md:py-10">
       <div className="max-w-5xl mx-auto space-y-6 md:space-y-8">
-        {/* Header band */}
+        {/* Header */}
         <ScrollReveal>
-          <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
-            />
+          <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-transparent p-6 md:p-8">
             <div className="relative">
-              <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight md:text-3xl">
+              <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl text-foreground">
                 Subscribers
               </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage newsletter subscribers, waitlist contacts, and exports.
+              </p>
             </div>
           </div>
         </ScrollReveal>
@@ -300,58 +266,44 @@ export default function AdminSubscribers() {
             {
               label: "Total",
               value: counts.total,
-              icon: Users,
-              color: "text-primary",
             },
             {
               label: "Active",
               value: counts.active,
-              icon: UserCheck,
-              color: "text-green-600",
             },
             {
               label: "Unsubscribed",
               value: counts.unsubscribed,
-              icon: UserX,
-              color: "text-muted-foreground",
             },
           ].map((stat) => (
             <div
               key={stat.label}
-              className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card"
+              className="bg-transparent border border-border/80 rounded-2xl p-5 md:p-6"
             >
-              <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ${stat.color}`}>
-                  <stat.icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold tabular-nums text-foreground">
-                    {stat.value.toLocaleString("en-IN")}
-                  </p>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {stat.label}
-                  </p>
-                </div>
-              </div>
+              <p className="text-2xl font-bold tabular-nums text-foreground">
+                {stat.value.toLocaleString("en-IN")}
+              </p>
+              <h3 className="text-xs font-medium text-muted-foreground mt-1">
+                {stat.label}
+              </h3>
             </div>
           ))}
         </div>
 
-        {/* Controls */}
-        <div className="bg-card border border-brand-100 rounded-2xl p-5 md:p-6 shadow-card">
-          <div className="flex flex-wrap items-center gap-3 mb-4">
+        {/* Controls & Table Container */}
+        <div className="bg-transparent border border-border/80 rounded-2xl p-5 md:p-6 space-y-5">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="relative min-w-[220px] flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by email or name..."
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="h-10 rounded-xl pl-9"
+                className="h-10 rounded-xl bg-transparent border-border"
                 data-testid="subscribers-search"
               />
             </div>
             <Select value={sort} onValueChange={handleSortChange}>
-              <SelectTrigger className="h-10 w-[160px] rounded-xl">
+              <SelectTrigger className="h-10 w-[160px] rounded-xl bg-transparent border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -363,40 +315,38 @@ export default function AdminSubscribers() {
             </Select>
             <Button
               variant="outline"
-              className="h-10 rounded-xl"
+              className="h-10 rounded-xl bg-transparent hover:bg-muted/40 border-border text-foreground"
               onClick={() => setShowAddDialog(true)}
               data-testid="add-subscriber-trigger"
             >
-              <Plus className="h-4 w-4 mr-2" />
               Add Subscriber
             </Button>
             <Button
               variant="outline"
-              className="h-10 rounded-xl"
+              className="h-10 rounded-xl bg-transparent hover:bg-muted/40 border-border text-foreground"
               onClick={handleExport}
               data-testid="subscribers-export"
             >
-              <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1.5 mb-4">
+          <div className="flex gap-2">
             {(["all", "active", "unsubscribed"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => handleTabChange(t)}
                 data-testid={`subscribers-tab-${t}`}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize ${
+                className={`rounded-xl border px-3.5 py-1.5 text-xs font-semibold capitalize transition-colors ${
                   tab === t
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground hover:text-foreground"
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border/80 bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
                 }`}
               >
                 {t}{" "}
                 <span
-                  className={tab === t ? "text-primary-foreground/80" : "text-muted-foreground/70"}
+                  className={tab === t ? "text-background/80 ml-1" : "text-muted-foreground/80 ml-1"}
                 >
                   {t === "all"
                     ? counts.total
@@ -412,7 +362,7 @@ export default function AdminSubscribers() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-brand-100">
+                <tr className="border-b border-border/70">
                   <th className="h-10 px-4 text-left font-medium text-muted-foreground">
                     Email
                   </th>
@@ -444,7 +394,7 @@ export default function AdminSubscribers() {
                   paged.map((sub) => (
                     <tr
                       key={sub.id}
-                      className="border-b border-brand-100/50 hover:bg-brand-50/30 transition-colors"
+                      className="border-b border-border/50 hover:bg-muted/20 transition-colors"
                       data-testid={`subscriber-row-${sub.email}`}
                     >
                       <td className="h-12 px-4 font-medium text-foreground">
@@ -455,10 +405,10 @@ export default function AdminSubscribers() {
                       </td>
                       <td className="h-12 px-4">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border ${
                             sub.status === "active"
-                              ? "bg-green-50 text-green-700"
-                              : "bg-muted text-muted-foreground"
+                              ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400"
+                              : "border-border bg-muted/40 text-muted-foreground"
                           }`}
                         >
                           {sub.status}
@@ -468,28 +418,30 @@ export default function AdminSubscribers() {
                         {fmt(sub.created_at)}
                       </td>
                       <td className="h-12 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1.5">
                           {sub.status === "unsubscribed" && (
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 text-muted-foreground hover:bg-green-50 hover:text-green-600 rounded-lg"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-2.5 text-xs bg-transparent hover:bg-muted/40 border-border text-foreground rounded-lg"
                               onClick={() => handleReactivate(sub)}
                               data-testid="subscriber-reactivate"
                               aria-label={`Reactivate ${sub.email}`}
                             >
-                              <RotateCcw className="h-4 w-4" />
+                              Reactivate
                             </Button>
                           )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
+                              <Button variant="outline" className="h-8 px-2.5 text-xs bg-transparent hover:bg-muted/40 border-border">
+                                Actions
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setToDelete(sub)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
-                                
+                            <DropdownMenuContent align="end" className="bg-popover border-border">
+                              <DropdownMenuItem
+                                onClick={() => setToDelete(sub)}
+                                className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+                              >
                                 Delete Subscriber
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -513,7 +465,7 @@ export default function AdminSubscribers() {
 
       {/* Delete confirm dialog */}
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent className="rounded-2xl border-border bg-card">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display tracking-tight">
               Delete subscriber?
@@ -525,14 +477,13 @@ export default function AdminSubscribers() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">
-              Keep it
+            <AlertDialogCancel className="rounded-xl bg-transparent border-border hover:bg-muted/40">
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="rounded-full bg-destructive text-white hover:bg-destructive/90 hover:text-white"
+              className="rounded-xl bg-destructive text-white hover:bg-destructive/90"
             >
-              <Trash className="mr-2 h-4 w-4" />
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -541,13 +492,13 @@ export default function AdminSubscribers() {
 
       {/* Add Subscriber dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="rounded-2xl border-border bg-card">
           <DialogHeader>
             <DialogTitle className="font-display tracking-tight">
               Add Subscriber
             </DialogTitle>
             <DialogDescription>
-              Add a new subscriber to your newsletter list.
+              Add a new subscriber to your newsletter and waitlist roster.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -561,7 +512,7 @@ export default function AdminSubscribers() {
                 placeholder="subscriber@example.com"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
-                className="h-10 rounded-xl"
+                className="h-10 rounded-xl bg-transparent border-border"
                 data-testid="add-subscriber-email"
               />
             </div>
@@ -574,7 +525,7 @@ export default function AdminSubscribers() {
                 placeholder="John Doe"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="h-10 rounded-xl"
+                className="h-10 rounded-xl bg-transparent border-border"
                 data-testid="add-subscriber-name"
               />
             </div>
@@ -582,7 +533,7 @@ export default function AdminSubscribers() {
           <DialogFooter>
             <Button
               variant="outline"
-              className="rounded-xl"
+              className="rounded-xl bg-transparent border-border hover:bg-muted/40"
               onClick={() => {
                 setShowAddDialog(false);
                 setNewEmail("");
@@ -594,11 +545,10 @@ export default function AdminSubscribers() {
             <Button
               onClick={handleAdd}
               disabled={adding || !newEmail.trim()}
-              className="rounded-xl bg-primary hover:bg-brand-600 text-primary-foreground font-semibold shadow-inset-btn"
+              className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               data-testid="add-subscriber-submit"
             >
-              {adding && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Subscribe
+              {adding ? "Adding..." : "Subscribe"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -15,6 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { FEATURE_FLAGS } from "@/config/features";
 
 export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -205,17 +207,8 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                         Mentor Dashboard
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                      My Dashboard
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                       Edit Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/profile/my-events")}>
-                      My Events
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/my-trainings")}>
-                      My Trainings
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/certificates")}>
                       My Certificates
@@ -223,14 +216,108 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                     <DropdownMenuItem onClick={() => navigate("/profile/purchases")}>
                       My Receipts
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/profile/guide")}>
-                      User Guide
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/profile/sitemap")}>
-                      User Sitemap
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/manage-certifications")}>
                       Manage Certifications
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/support")}>
+                      Help & Support
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (!FEATURE_FLAGS.myDashboard) {
+                          toast.info("My Dashboard is coming soon!");
+                        }
+                        navigate("/dashboard");
+                      }}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <span>My Dashboard</span>
+                      {!FEATURE_FLAGS.myDashboard && (
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-2">
+                          Soon
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (!FEATURE_FLAGS.events) {
+                          toast.info("My Events is coming soon!");
+                        }
+                        navigate("/profile/my-events");
+                      }}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <span>My Events</span>
+                      {!FEATURE_FLAGS.events && (
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-2">
+                          Soon
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (!FEATURE_FLAGS.trainings) {
+                          toast.info("My Trainings is coming soon!");
+                        }
+                        navigate("/my-trainings");
+                      }}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <span>My Trainings</span>
+                      {!FEATURE_FLAGS.trainings && (
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-2">
+                          Soon
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (!FEATURE_FLAGS.userGuide) {
+                          toast.info("User Guide is coming soon!");
+                        }
+                        navigate("/profile/guide");
+                      }}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <span>User Guide</span>
+                      {!FEATURE_FLAGS.userGuide && (
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-2">
+                          Soon
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (!FEATURE_FLAGS.userSitemap) {
+                          toast.info("User Sitemap is coming soon!");
+                        }
+                        navigate("/profile/sitemap");
+                      }}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <span>User Sitemap</span>
+                      {!FEATURE_FLAGS.userSitemap && (
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-2">
+                          Soon
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (!FEATURE_FLAGS.myBlogs) {
+                          toast.info("My Blogs is coming soon!");
+                        }
+                        navigate("/blog/dashboard");
+                      }}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <span>My Blogs</span>
+                      {!FEATURE_FLAGS.myBlogs && (
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-2">
+                          Soon
+                        </span>
+                      )}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -342,12 +429,48 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                     <Button
                       variant="outline"
                       onClick={() => {
-                        navigate("/profile/sitemap");
+                        navigate("/support");
                         setIsMobileMenuOpen(false);
                       }}
                       className="w-full"
                     >
-                      User Sitemap
+                      Help & Support
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (!FEATURE_FLAGS.userSitemap) {
+                          toast.info("User Sitemap is coming soon!");
+                        }
+                        navigate("/profile/sitemap");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between"
+                    >
+                      <span>User Sitemap</span>
+                      {!FEATURE_FLAGS.userSitemap && (
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          Soon
+                        </span>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (!FEATURE_FLAGS.myBlogs) {
+                          toast.info("My Blogs is coming soon!");
+                        }
+                        navigate("/blog/dashboard");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between"
+                    >
+                      <span>My Blogs</span>
+                      {!FEATURE_FLAGS.myBlogs && (
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          Soon
+                        </span>
+                      )}
                     </Button>
                     <Button
                       variant="outline"

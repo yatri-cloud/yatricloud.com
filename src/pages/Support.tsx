@@ -35,12 +35,6 @@ import {
     type TicketStatus,
 } from "@/lib/support-api";
 
-/**
- * /support — a Yatri's help desk: open a ticket, see every ticket they have
- * raised with its live status, and jump into the thread. Signed-in only
- * (tickets live with the account); guests get the login modal.
- */
-
 const STATUS_STYLES: Record<TicketStatus, string> = {
     open: "bg-primary/10 text-primary border-primary/20",
     pending: "bg-warning/10 text-warning border-warning/20",
@@ -91,23 +85,23 @@ export default function Support() {
 
     const handleCreate = async () => {
         if (!subject.trim()) {
-            toast({ title: "Add a subject", description: "A short line about what you need.", variant: "destructive" });
+            toast({ title: "Subject required", description: "Please enter a subject.", variant: "destructive" });
             return;
         }
         if (!message.trim()) {
-            toast({ title: "Tell us what happened", description: "A few details help us fix it faster.", variant: "destructive" });
+            toast({ title: "Details required", description: "Please provide details for your ticket.", variant: "destructive" });
             return;
         }
         setSubmitting(true);
         const { ticket, error } = await createTicket({ category, subject, message });
         setSubmitting(false);
         if (!ticket) {
-            toast({ title: "Ticket not created", description: error || "Please try again.", variant: "destructive" });
+            toast({ title: "Ticket creation failed", description: error || "Please try again.", variant: "destructive" });
             return;
         }
         toast({
-            title: `Ticket ${ticket.ticketNumber} is in`,
-            description: "We emailed you a confirmation and will reply soon.",
+            title: `Ticket ${ticket.ticketNumber} created`,
+            description: "We have received your ticket and will respond shortly.",
         });
         setCreateOpen(false);
         setSubject("");
@@ -117,85 +111,124 @@ export default function Support() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
             <SEO
                 title="Support | Yatri Cloud"
-                description="Open a support ticket and track it end to end. The Yatri Cloud team replies fast."
+                description="Open and manage your Yatri Cloud support tickets."
                 noindex
             />
             <Navbar />
-            <main className="container mx-auto px-4 md:px-6 pt-28 md:pt-32 pb-24 max-w-4xl">
-                <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-10 mb-8">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">Support</p>
-                    <h1 className="font-display text-3xl md:text-4xl font-bold tracking-[-0.02em] mb-3">
-                        We've got your back, Yatri
-                    </h1>
-                    <p className="text-muted-foreground max-w-xl">
-                        Stuck on a payment, an event, a course, or anything in between? Open a ticket
-                        and track every reply here — we also email you at each step.
-                    </p>
-                    <Button onClick={openCreate} className="mt-6 min-h-[44px] rounded-xl shadow-inset-btn hover:bg-brand-600" data-testid="ticket-new">
-                        <Plus className="w-4 h-4 mr-2" /> Open a ticket
+            <main className="flex-1 container mx-auto px-4 md:px-6 pt-28 md:pt-32 pb-20 max-w-4xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6 mb-8">
+                    <div>
+                        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                            Support
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Create and manage your support requests.
+                        </p>
+                    </div>
+                    <Button onClick={openCreate} className="h-10 rounded-xl px-4 font-medium" data-testid="ticket-new">
+                        <Plus className="w-4 h-4 mr-1.5" /> New Ticket
                     </Button>
                 </div>
 
                 {!signedIn ? (
-                    <div className="text-center py-16 border rounded-2xl bg-brand-50/40">
-                        <LifeBuoy className="w-10 h-10 text-primary mx-auto mb-4" />
-                        <h2 className="text-xl font-semibold mb-2">Please sign in first</h2>
-                        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                            Your tickets live with your Yatri Cloud account so nothing gets lost.
+                    <div className="text-center py-16 border border-border rounded-2xl bg-card/40 mb-10">
+                        <LifeBuoy className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
+                        <h2 className="text-base font-semibold mb-1">Sign in to view tickets</h2>
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-5 max-w-sm mx-auto">
+                            Sign in to access your support history and submit new requests.
                         </p>
-                        <Button className="min-h-[44px] rounded-xl" onClick={() => setLoginOpen(true)}>
-                            Sign in to continue
+                        <Button className="h-10 rounded-xl px-5 text-sm" onClick={() => setLoginOpen(true)}>
+                            Sign In
                         </Button>
                     </div>
                 ) : loading ? (
-                    <div className="flex items-center justify-center gap-3 py-16 text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" /> Loading your tickets…
+                    <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground mb-10">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" /> Loading tickets…
                     </div>
                 ) : tickets.length === 0 ? (
-                    <div className="text-center py-16 border rounded-2xl bg-card">
-                        <h2 className="font-display text-xl font-bold mb-2">No tickets yet</h2>
-                        <p className="text-muted-foreground">
-                            When you open one, its full history lives here.
+                    <div className="text-center py-16 border border-border rounded-2xl bg-card/40 mb-10">
+                        <h2 className="text-base font-semibold mb-1">No tickets</h2>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                            You currently have no active or past support tickets.
                         </p>
                     </div>
                 ) : (
-                    <ul className="space-y-3" data-testid="ticket-list">
+                    <ul className="space-y-2.5 mb-10" data-testid="ticket-list">
                         {tickets.map((t) => (
                             <li key={t.id}>
                                 <Link
                                     to={`/support/${t.ticketNumber}`}
-                                    className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4 md:p-5 hover:border-brand-200 hover:shadow-card transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:shadow-xs transition"
                                 >
-                                    <span className="font-mono text-sm text-primary font-semibold">{t.ticketNumber}</span>
-                                    <span className="font-semibold flex-1 min-w-[180px]">{t.subject}</span>
-                                    <Badge className={`rounded-full border ${STATUS_STYLES[t.status]}`}>
+                                    <span className="font-mono text-xs font-semibold text-primary">{t.ticketNumber}</span>
+                                    <span className="text-sm font-medium flex-1 min-w-[180px]">{t.subject}</span>
+                                    <Badge className={`rounded-md text-[11px] font-medium border ${STATUS_STYLES[t.status]}`}>
                                         {TICKET_STATUS_LABELS[t.status]}
                                     </Badge>
-                                    <span className="text-xs text-muted-foreground">Updated {fmt(t.lastActivityAt)}</span>
+                                    <span className="text-xs text-muted-foreground">{fmt(t.lastActivityAt)}</span>
                                 </Link>
                             </li>
                         ))}
                     </ul>
                 )}
+
+                {/* About Support Tickets Information Section */}
+                <div className="border border-border/70 rounded-2xl bg-card/30 p-6 md:p-8">
+                    <h2 className="text-base font-semibold text-foreground mb-2">
+                        About Support Tickets
+                    </h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6 max-w-2xl">
+                        A support ticket is a dedicated communication thread created between you and our support team. It ensures your questions, orders, and technical inquiries are systematically tracked, resolved, and documented.
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                        <div className="p-4 rounded-xl bg-background/60 border border-border/60">
+                            <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-1.5">
+                                Direct Communication
+                            </h3>
+                            <p className="text-xs text-muted-foreground leading-normal">
+                                Connect directly with administrators regarding practice exams, vouchers, billing, or resource access.
+                            </p>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-background/60 border border-border/60">
+                            <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-1.5">
+                                Live Tracking
+                            </h3>
+                            <p className="text-xs text-muted-foreground leading-normal">
+                                View status updates in real time and receive instant email notifications whenever a reply is posted.
+                            </p>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-background/60 border border-border/60">
+                            <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-1.5">
+                                Permanent History
+                            </h3>
+                            <p className="text-xs text-muted-foreground leading-normal">
+                                All conversations and resolutions remain securely saved in your account for future reference.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </main>
 
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Open a support ticket</DialogTitle>
-                        <DialogDescription>
-                            We reply by email and right here on your ticket page.
+                        <DialogTitle className="text-lg font-semibold">New Support Ticket</DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground">
+                            Fill out the form below to submit a request to our team.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
-                        <div>
-                            <Label className="mb-2 block">What is this about?</Label>
+                    <div className="space-y-4 pt-1">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-medium">Category</Label>
                             <Select value={category} onValueChange={setCategory}>
-                                <SelectTrigger className="min-h-[44px] rounded-xl" data-testid="ticket-category">
-                                    <SelectValue placeholder="Pick a topic" />
+                                <SelectTrigger className="h-10 rounded-xl text-sm" data-testid="ticket-category">
+                                    <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categories.map((o) => (
@@ -206,41 +239,41 @@ export default function Support() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div>
-                            <Label htmlFor="ticket-subject" className="mb-2 block">Subject</Label>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="ticket-subject" className="text-xs font-medium">Subject</Label>
                             <Input
                                 id="ticket-subject"
                                 data-testid="ticket-subject"
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
-                                placeholder="e.g. Payment went through but no voucher email"
-                                className="min-h-[44px] rounded-xl"
+                                placeholder="Brief summary of your inquiry"
+                                className="h-10 rounded-xl text-sm"
                                 disabled={submitting}
                             />
                         </div>
-                        <div>
-                            <Label htmlFor="ticket-message" className="mb-2 block">What happened?</Label>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="ticket-message" className="text-xs font-medium">Details</Label>
                             <Textarea
                                 id="ticket-message"
                                 data-testid="ticket-message"
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Share what you tried, what you expected, and any order or event details."
-                                className="min-h-[120px]"
+                                placeholder="Provide relevant details or context..."
+                                className="min-h-[100px] rounded-xl text-sm"
                                 disabled={submitting}
                             />
                         </div>
-                        <div className="flex gap-3">
-                            <Button variant="outline" className="flex-1 min-h-[44px] rounded-xl" onClick={() => setCreateOpen(false)} disabled={submitting}>
+                        <div className="flex gap-2.5 pt-2">
+                            <Button variant="outline" className="flex-1 h-10 rounded-xl text-sm font-medium" onClick={() => setCreateOpen(false)} disabled={submitting}>
                                 Cancel
                             </Button>
-                            <Button className="flex-1 min-h-[44px] rounded-xl" onClick={handleCreate} disabled={submitting} data-testid="ticket-submit">
+                            <Button className="flex-1 h-10 rounded-xl text-sm font-medium" onClick={handleCreate} disabled={submitting} data-testid="ticket-submit">
                                 {submitting ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening
+                                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Submitting
                                     </>
                                 ) : (
-                                    "Open ticket"
+                                    "Submit Ticket"
                                 )}
                             </Button>
                         </div>

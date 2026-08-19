@@ -144,6 +144,8 @@ const MyResources = lazy(() => import("./pages/MyResources"));
 const AdminResources = lazy(() => import("./pages/admin/AdminResources"));
 const AdminAddResource = lazy(() => import("./pages/admin/AdminAddResource"));
 const AdminEditResource = lazy(() => import("./pages/admin/AdminEditResource"));
+const ComingSoon = lazy(() => import("./pages/ComingSoon"));
+import { FEATURE_FLAGS } from "@/config/features";
 const queryClient = new QueryClient();
 
 // Floating checkout pill: mounts only when the cart has items, and stays off
@@ -208,21 +210,21 @@ const App = () => (
               <Route path="/jobs/profile" element={<JobSeekerProfile />} />
               <Route path="/jobs/referrals" element={<JobReferrals />} />
               <Route path="/jobs/web" element={<JobWebSearch />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/write" element={<BlogWrite />} />
-              <Route path="/blog/edit/:id" element={<BlogWrite />} />
-              <Route path="/blog/author/:id" element={<BlogAuthor />} />
-              <Route path="/blog/settings" element={<BlogSettings />} />
-              <Route path="/blog/dashboard" element={<BlogDashboard />} />
-              <Route path="/blog/notifications" element={<BlogNotifications />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
+              <Route path="/blog" element={FEATURE_FLAGS.myBlogs ? <Blog /> : <ComingSoon title="Blogs" description="Our community blog and cloud learning stories platform is launching soon." />} />
+              <Route path="/blog/write" element={FEATURE_FLAGS.myBlogs ? <BlogWrite /> : <ComingSoon title="Write Story" description="Writing and publishing community stories will be available soon." />} />
+              <Route path="/blog/edit/:id" element={FEATURE_FLAGS.myBlogs ? <BlogWrite /> : <ComingSoon title="Edit Story" description="Story drafting and editing will be available soon." />} />
+              <Route path="/blog/author/:id" element={FEATURE_FLAGS.myBlogs ? <BlogAuthor /> : <ComingSoon title="Author Profile" description="Author profiles and stories will be available soon." />} />
+              <Route path="/blog/settings" element={FEATURE_FLAGS.myBlogs ? <BlogSettings /> : <ComingSoon title="Blog Settings" description="Writer profile settings will be available soon." />} />
+              <Route path="/blog/dashboard" element={FEATURE_FLAGS.myBlogs ? <BlogDashboard /> : <ComingSoon title="My Blogs" description="Your writer dashboard and story management will be accessible here once the blog platform launches." />} />
+              <Route path="/blog/notifications" element={FEATURE_FLAGS.myBlogs ? <BlogNotifications /> : <ComingSoon title="Blog Notifications" description="Blog notifications will be accessible here soon." />} />
+              <Route path="/blog/:slug" element={FEATURE_FLAGS.myBlogs ? <BlogPost /> : <ComingSoon title="Blogs" description="Our community blog and cloud learning stories platform is launching soon." />} />
               <Route path="/manage-certifications" element={<ManageCertifications />} />
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/paths" element={<CertificationPaths />} />
               <Route path="/yatri/:slug" element={<YatriProfile />} />
-              <Route path="/events" element={<Events />} />
-              <Route path="/events/:slug" element={<EventDetail />} />
+              <Route path="/events" element={FEATURE_FLAGS.events ? <Events /> : <ComingSoon title="Events" description="Our community events and workshop platform is launching soon. Stay tuned for upcoming meetups and certification sessions!" />} />
+              <Route path="/events/:slug" element={FEATURE_FLAGS.events ? <EventDetail /> : <ComingSoon title="Events" description="Our community events and workshop platform is launching soon. Stay tuned for upcoming meetups and certification sessions!" />} />
               <Route path="/community" element={<Community />} />
               <Route path="/support" element={<Support />} />
               <Route path="/support/:ticketNumber" element={<SupportTicket />} />
@@ -232,11 +234,11 @@ const App = () => (
               <Route path="/yatristore" element={<YatriStore />} />
               <Route path="/examdumps" element={<ExamDumps />} />
               <Route path="/resources" element={<Resources />} />
-              <Route path="/training" element={<Training />} />
-              <Route path="/training/:slug/dashboard" element={<StudentTrainingDashboard />} />
+              <Route path="/training" element={FEATURE_FLAGS.trainings ? <Training /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />
+              <Route path="/training/:slug/dashboard" element={FEATURE_FLAGS.trainings ? <StudentTrainingDashboard /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />
               {/* Backward-compatible fallback: resolves by slug or id so old bookmarks keep working */}
-              <Route path="/training/:id" element={<TrainingDetail />} />
-              <Route path="/training/:certification/:courseSlug" element={<TrainingDetail />} />
+              <Route path="/training/:id" element={FEATURE_FLAGS.trainings ? <TrainingDetail /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />
+              <Route path="/training/:certification/:courseSlug" element={FEATURE_FLAGS.trainings ? <TrainingDetail /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />
               <Route path="/certificate/:serial" element={<CertificateView />} />
               <Route path="/addproduct" element={<AddProduct />} />
               <Route path="/feedback" element={<Review />} />
@@ -261,7 +263,7 @@ const App = () => (
               <Route path="/events/:eventName/feedback" element={<EventFeedback />} />
 
               {/* Upcoming Event Routes */}
-              <Route path="/upcoming-event/:slug" element={<UpcomingEventDetail />} />
+              <Route path="/upcoming-event/:slug" element={FEATURE_FLAGS.events ? <UpcomingEventDetail /> : <ComingSoon title="Upcoming Events" description="Our upcoming events platform is launching soon." />} />
               <Route path="/upcoming-event/:slug/venue" element={<VenueSubmissionForm />} />
               <Route path="/upcoming-event/:slug/speakers" element={<SpeakerSubmissionForm />} />
               <Route path="/upcoming-event/:slug/sponsors" element={<SponsorSubmissionForm />} />
@@ -270,15 +272,15 @@ const App = () => (
               <Route path="/event/:slug/media" element={<EventMediaUpload />} />
 
               {/* Profile Routes */}
-              <Route path="/dashboard" element={<YatriDashboard />} />
+              <Route path="/dashboard" element={FEATURE_FLAGS.myDashboard ? <YatriDashboard /> : <ComingSoon title="My Dashboard" description="Your personalized learner dashboard is currently under development. You will soon be able to track your courses, certificates, and practice exams here." />} />
               <Route path="/certificates" element={<MyCertificates />} />
-              <Route path="/profile/my-events" element={<MyEvents />} />
-              <Route path="/my-trainings" element={<MyTrainings />} />
+              <Route path="/profile/my-events" element={FEATURE_FLAGS.events ? <MyEvents /> : <ComingSoon title="My Events" description="Event registrations and schedules will be accessible here once the events feature launches." />} />
+              <Route path="/my-trainings" element={FEATURE_FLAGS.trainings ? <MyTrainings /> : <ComingSoon title="My Trainings" description="Enrolled training modules and course progress will appear here once trainings launch." />} />
               <Route path="/profile/my-resources" element={<MyResources />} />
               <Route path="/profile/purchases" element={<MyPurchases />} />
               <Route path="/receipt/:invoiceNumber" element={<ReceiptView />} />
-              <Route path="/profile/guide" element={<GuideView type="user" />} />
-              <Route path="/profile/sitemap" element={<UserSitemapView />} />
+              <Route path="/profile/guide" element={FEATURE_FLAGS.userGuide ? <GuideView type="user" /> : <ComingSoon title="User Guide" description="The official learner guide and step by step platform walkthroughs are currently being curated." />} />
+              <Route path="/profile/sitemap" element={FEATURE_FLAGS.userSitemap ? <UserSitemapView /> : <ComingSoon title="User Sitemap" description="The complete visual directory and sitemap for all learner areas will be available soon." />} />
 
               {/* Trainer Routes */}
               <Route path="/trainer/login" element={<TrainerLogin />} />

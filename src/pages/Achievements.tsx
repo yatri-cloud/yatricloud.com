@@ -946,7 +946,7 @@ const Achievements = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
-        title="Achievements · Celebrate Your Certification Win"
+        title="Achievements (Beta) · Celebrate Your Certification Win"
         description="You worked hard for that certificate. Share your achievement, create a celebration card and inspire 50K+ Yatris on their cloud journey."
       />
       <div className="noise-overlay" />
@@ -966,7 +966,7 @@ const Achievements = () => {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
-                  className="inline-flex items-center justify-center mb-8"
+                  className="inline-flex items-center justify-center mb-6"
                 >
                   <img
                     src="https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/certification.yatricloud.com/All/yatri-certified.png"
@@ -975,12 +975,24 @@ const Achievements = () => {
                   />
                 </motion.div>
 
+                <div>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1, duration: 0.4 }}
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-wider mb-6"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span>Early Access (Beta)</span>
+                  </motion.div>
+                </div>
+
                 <h1 className="text-4xl md:text-6xl font-bold font-display mb-4">
                   The <span className="gradient-text">Wall of Fame</span>
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
                   Every face here is a Yatri who studied, sat the exam, and passed.
-                  Real people, real certifications — and proof you can do it too.
+                  Real people, real certifications, and proof you can do it too.
                 </p>
 
                 {/* Stats */}
