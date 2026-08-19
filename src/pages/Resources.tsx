@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -10,13 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ResourceCard } from "@/components/resources/ResourceCard";
+import { LoginModal } from "@/components/LoginModal";
 import {
   listResources,
   unlockResource,
   listMyResources,
   type Resource,
 } from "@/lib/resources-api";
-import { getStoredUser } from "@/lib/yatris-api";
+import { getStoredUser, isAuthenticated } from "@/lib/yatris-api";
 import { ListPager } from "@/components/ui/list-pager";
 
 const PAGE_SIZE = 9;
@@ -27,10 +29,16 @@ const fadeUp = {
 };
 
 export default function Resources() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [resources, setResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
   const [unlockingId, setUnlockingId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(getStoredUser());
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingResource, setPendingResource] = useState<Resource | null>(null);
+  const handledPendingRef = useRef(false);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -39,9 +47,20 @@ export default function Resources() {
   const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
   const [page, setPage] = useState(1);
 
-  const user = getStoredUser();
-
   useEffect(() => { setPage(1); }, [search, providerFilter, categoryFilter, freeFilter]);
+
+  // Keep user in sync if changed in another tab or component
+  useEffect(() => {
+    const checkUser = () => {
+      if (isAuthenticated()) {
+        setUser(getStoredUser());
+      } else {
+        setUser(null);
+      }
+    };
+    const interval = setInterval(checkUser, 1500);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -60,7 +79,70 @@ export default function Resources() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.email]);
+
+  const handleAccess = async (resource: Resource) => {
+    // If already unlocked, open directly
+    if (unlockedIds.has(resource.id)) {
+      // Re-fetch access url from my-resources
+      const mine = await listMyResources().catch(() => []);
+      const found = mine.find((m) => m.resourceId === resource.id);
+      if (found?.accessUrl) {
+        window.open(found.accessUrl, "_blank", "noopener,noreferrer");
+      }
+      return;
+    }
+
+    if (!user) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("pending_access_resource_id", resource.id);
+      }
+      setPendingResource(resource);
+      navigate(`/certifiedyatris?redirect=/resources&accessResource=${encodeURIComponent(resource.id)}`);
+      return;
+    }
+
+    if (!resource.isFree) {
+      toast.info("Paid resources — payment integration coming soon. Contact us to get access.");
+      return;
+    }
+
+    setUnlockingId(resource.id);
+    try {
+      const accessUrl = await unlockResource(
+        { id: resource.id, name: resource.name, description: resource.description, provider: resource.provider },
+        user.email,
+        user.fullName || "Yatri",
+      );
+      setUnlockedIds((prev) => new Set([...prev, resource.id]));
+      toast.success("Access granted! Opening material…");
+      window.open(accessUrl, "_blank", "noopener,noreferrer");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to access resource");
+    } finally {
+      setUnlockingId(null);
+    }
+  };
+
+  // Auto-access resource if redirected from login with pending access param
+  useEffect(() => {
+    const pendingId = searchParams.get("accessResource") || (typeof window !== "undefined" ? sessionStorage.getItem("pending_access_resource_id") : null);
+    if (pendingId && user && !isLoading && resources.length > 0 && !handledPendingRef.current) {
+      const target = resources.find((r) => r.id === pendingId);
+      if (target) {
+        handledPendingRef.current = true;
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("pending_access_resource_id");
+        }
+        if (searchParams.has("accessResource")) {
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete("accessResource");
+          setSearchParams(newParams, { replace: true });
+        }
+        handleAccess(target);
+      }
+    }
+  }, [user, isLoading, resources, searchParams]);
 
   const providers = useMemo(() => {
     const set = new Set(resources.map((r) => r.provider).filter(Boolean));
@@ -87,40 +169,36 @@ export default function Resources() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const handleAccess = async (resource: Resource) => {
-    // If already unlocked, open directly
-    if (unlockedIds.has(resource.id)) {
-      // Re-fetch access url from my-resources
-      const mine = await listMyResources().catch(() => []);
-      const found = mine.find((m) => m.resourceId === resource.id);
-      if (found?.accessUrl) window.open(found.accessUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
+  const handleLoginSuccess = async (loggedInUser: any) => {
+    setUser(loggedInUser);
+    setShowLoginModal(false);
+    toast.success(`Welcome, ${loggedInUser.fullName || "Yatri"}!`);
 
-    if (!user) {
-      toast.error("Sign in to access this resource.");
-      return;
-    }
-
-    if (!resource.isFree) {
-      toast.info("Paid resources — payment integration coming soon. Contact us to get access.");
-      return;
-    }
-
-    setUnlockingId(resource.id);
     try {
-      const accessUrl = await unlockResource(
-        { id: resource.id, name: resource.name, description: resource.description, provider: resource.provider },
-        user.email,
-        user.fullName || "Yatri",
-      );
-      setUnlockedIds((prev) => new Set([...prev, resource.id]));
-      toast.success("Access granted! Check your email too.");
-      window.open(accessUrl, "_blank", "noopener,noreferrer");
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed to access resource");
+      const mine = await listMyResources();
+      setUnlockedIds(new Set(mine.map((m) => m.resourceId)));
+
+      if (pendingResource) {
+        const found = mine.find((m) => m.resourceId === pendingResource.id);
+        if (found?.accessUrl) {
+          window.open(found.accessUrl, "_blank", "noopener,noreferrer");
+        } else if (pendingResource.isFree) {
+          setUnlockingId(pendingResource.id);
+          const accessUrl = await unlockResource(
+            { id: pendingResource.id, name: pendingResource.name, description: pendingResource.description, provider: pendingResource.provider },
+            loggedInUser.email,
+            loggedInUser.fullName || "Yatri",
+          );
+          setUnlockedIds((prev) => new Set([...prev, pendingResource.id]));
+          toast.success("Access granted! Opening material…");
+          window.open(accessUrl, "_blank", "noopener,noreferrer");
+        }
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to access resource");
     } finally {
       setUnlockingId(null);
+      setPendingResource(null);
     }
   };
 
@@ -146,11 +224,6 @@ export default function Resources() {
               <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
                 Study smarter, certify faster
               </h1>
-              {!user && (
-                <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
-                  <span className="font-medium text-primary">Sign in</span> to unlock and access resources instantly.
-                </p>
-              )}
             </motion.div>
           </div>
         </section>
@@ -249,6 +322,15 @@ export default function Resources() {
           )}
         </section>
       </main>
+
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false);
+          setPendingResource(null);
+        }}
+        onSuccess={handleLoginSuccess}
+      />
 
       <Footer />
     </div>

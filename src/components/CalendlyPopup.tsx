@@ -23,7 +23,7 @@ export const CalendlyPopup = () => {
             <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                 <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-2.5 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 min-w-max">
                     <div className="text-sm font-bold text-primary mb-0.5">
-                        Schedule a Meeting
+                        Get 50% OFF
                     </div>
                     <p className="text-xs text-muted-foreground font-medium">Book time to start your exam process</p>
                 </div>
@@ -43,7 +43,7 @@ export const CalendlyPopup = () => {
                 {/* Shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
 
-                <span className="font-bold text-sm relative z-10 tracking-wide">Schedule Meet</span>
+                <span className="font-bold text-sm relative z-10 tracking-wide">Get 50% OFF</span>
             </motion.button>
         </div>
     );

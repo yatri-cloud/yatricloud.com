@@ -61,17 +61,34 @@ export const Footer = () => {
     FALLBACK_NAV_LINKS.footer_legal
   );
 
-  // TEMPORARY: hide Mentorship, Udemy Courses, Yatri Store, Practice Tests from
-  // the footer (applies whether links come from Supabase or the fallback).
-  const HIDDEN_FOOTER_HREFS = new Set(["/mentorship", "/udemy", "/yatristore", "#courses"]);
+  // TEMPORARY: hide Mentorship, Udemy Courses, Yatri Store, Practice Tests,
+  // Blog, Training, Events from the footer.
+  const HIDDEN_FOOTER_HREFS = new Set([
+    "/mentorship",
+    "/udemy",
+    "/yatristore",
+    "#courses",
+    "/blog",
+    "/training",
+    "/events",
+  ]);
+  const HIDDEN_FOOTER_LABELS = new Set([
+    "mentorship",
+    "udemy courses",
+    "yatri store",
+    "practice tests",
+    "blog",
+    "training",
+    "events",
+  ]);
   const exploreLinks = useSiteContent(
     () => getNavLinks("footer_explore"),
     FALLBACK_NAV_LINKS.footer_explore
-  ).filter((l) => !HIDDEN_FOOTER_HREFS.has(l.href));
+  ).filter((l) => !HIDDEN_FOOTER_HREFS.has(l.href) && !HIDDEN_FOOTER_LABELS.has(l.label?.toLowerCase()?.trim()));
   const quickLinks = useSiteContent(
     () => getNavLinks("footer_quick"),
     FALLBACK_NAV_LINKS.footer_quick
-  ).filter((l) => !HIDDEN_FOOTER_HREFS.has(l.href));
+  ).filter((l) => !HIDDEN_FOOTER_HREFS.has(l.href) && !HIDDEN_FOOTER_LABELS.has(l.label?.toLowerCase()?.trim()));
 
   const socialLinks = [
     {

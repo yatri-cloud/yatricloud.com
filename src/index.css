@@ -313,6 +313,14 @@
     background-color: hsl(var(--band-blue));
     color: hsl(0 0% 100%);
   }
+  .band-blue h1,
+  .band-blue h2,
+  .band-blue h3,
+  .band-blue h4,
+  .band-blue h5,
+  .band-blue h6 {
+    color: #ffffff;
+  }
   /* Inverts to near-black in light theme, near-white in dark theme */
   .band-invert {
     background-color: hsl(var(--foreground));

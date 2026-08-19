@@ -204,8 +204,9 @@ export const FALLBACK_TECH_LOGOS: TechLogo[] = [
 
 export const FALLBACK_STATS: SiteStat[] = [
   { key: "learners", value: "50K+", label: "Learners" },
-  { key: "rating", value: "4.8", label: "Rating" },
-  { key: "tracks", value: "6", label: "Cloud Tracks" },
+  { key: "rating", value: "4.9", label: "Rating" },
+  { key: "certified", value: "10000+", label: "Certified" },
+  { key: "tracks", value: "10000+", label: "Certified" },
   { key: "success_rate", value: "95%", label: "Success Rate" },
   { key: "communities", value: "17", label: "Communities" },
   { key: "reached", value: "400K+", label: "Reached" },
@@ -269,7 +270,7 @@ export const FALLBACK_TEAM_MEMBERS: TeamMember[] = [
     name: "Yatharth Chauhan",
     role: "Founder – Yatri Cloud",
     // Self-hosted 200px copy — the original remote PNG was 812 KB.
-    image: "/team/yatharth-chauhan-200.png",
+    image: "https://raw.githubusercontent.com/YatharthChauhan2362/prod-public-images/refs/heads/main/yatharth-chauhan-profile1.png",
     portfolio: "https://yatharthchauhan.me/",
   },
   {
@@ -419,29 +420,20 @@ export const FALLBACK_COMMUNITIES: CommunityEntry[] = [
 /* Nav links — copied verbatim from Navbar.tsx and Footer.tsx. */
 export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
   navbar: [
-    { href: "/training", label: "Training" },
     { href: "/examdumps", label: "Exam Dumps" },
-    { href: "/blog", label: "Blog" },
-    { href: "/jobs", label: "Jobs" },
-    { href: "/events", label: "Events" },
+    { href: "/resources", label: "Resources" },
     { href: "/community", label: "Community" },
     { href: "/achievements", label: "Achievements" },
     { href: "/partners", label: "Partners" },
   ],
   footer_explore: [
     { href: "/examdumps", label: "Exam Dumps" },
-    { href: "/training", label: "Training" },
-    { href: "/blog", label: "Blog" },
-    { href: "/events", label: "Events" },
-    { href: "/yatristore", label: "Yatri Store" },
-    { href: "/udemy", label: "Udemy Courses" },
+    { href: "/resources", label: "Resources" },
     { href: "/certifiedyatris", label: "Certified Yatris" },
-    { href: "/mentorship", label: "Mentorship" },
   ],
   footer_quick: [
     { href: "#certification-process", label: "Get Certified" },
     { href: "#benefits", label: "Benefits" },
-    { href: "#courses", label: "Practice Tests" },
     { href: "#team", label: "Team" },
     { href: "#faq", label: "FAQ" },
     { href: "/achievements", label: "Achievements" },

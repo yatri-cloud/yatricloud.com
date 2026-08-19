@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, User, Settings, LogOut, Calendar, BookOpen, Info, List, LayoutDashboard, Receipt, Award } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -73,8 +73,23 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
    * fallback, so nothing visibly changes). */
   const navLinks = useSiteContent(() => getNavLinks("navbar"), FALLBACK_NAV_LINKS.navbar);
 
-  // TEMPORARY: hide the Jobs link from the nav (both desktop + mobile).
-  const visibleNavLinks = navLinks.filter((l) => l.href !== "/jobs");
+  // Hide Jobs, Mentorship, Blog, Training, Events from the nav (both desktop + mobile).
+  const HIDDEN_NAV_HREFS = new Set(["/jobs", "/mentorship", "/blog", "/training", "/events"]);
+  const HIDDEN_NAV_LABELS = new Set(["jobs", "mentorship", "blog", "training", "events"]);
+  const visibleNavLinks = useMemo(() => {
+    const filtered = navLinks.filter(
+      (l) => !HIDDEN_NAV_HREFS.has(l.href) && !HIDDEN_NAV_LABELS.has(l.label?.toLowerCase()?.trim())
+    );
+    if (!filtered.some((l) => l.href === "/resources" || l.label?.toLowerCase() === "resources")) {
+      const dumpsIdx = filtered.findIndex((l) => l.href === "/examdumps");
+      if (dumpsIdx !== -1) {
+        filtered.splice(dumpsIdx + 1, 0, { href: "/resources", label: "Resources" });
+      } else {
+        filtered.push({ href: "/resources", label: "Resources" });
+      }
+    }
+    return filtered;
+  }, [navLinks]);
 
   return (
     <>

@@ -199,6 +199,8 @@ const App = () => (
               <Route path="/shipping-and-exchange" element={<ShippingExchangePolicy />} />
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/certifiedyatris" element={<CertifiedYatris />} />
+              <Route path="/login" element={<CertifiedYatris />} />
+              <Route path="/signin" element={<CertifiedYatris />} />
               <Route path="/resume-maker" element={<ResumeMaker />} />
               <Route path="/leads" element={<Leads />} />
               <Route path="/jobs" element={<JobBoard />} />

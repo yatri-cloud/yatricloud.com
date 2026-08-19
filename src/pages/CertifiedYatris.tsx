@@ -11,7 +11,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { SEO } from "@/components/SEO";
 import { isAuthenticated, getStoredUser, getCurrentUser, logout as logoutUser, isProfileComplete } from "@/lib/yatris-api";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface CertificationEntry {
   id: string;
@@ -22,6 +22,7 @@ interface CertificationEntry {
 
 const CertifiedYatris = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const prefersReducedMotion = useReducedMotion();
   const [certifications, setCertifications] = useState<CertificationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +36,19 @@ const CertifiedYatris = () => {
     checkAuthentication();
     loadCertifications();
   }, []);
+
+  const getDestinationUrl = () => {
+    const redirectParam = searchParams.get('redirect');
+    const accessResourceParam = searchParams.get('accessResource') || (typeof window !== 'undefined' ? sessionStorage.getItem('pending_access_resource_id') : null);
+    if (redirectParam || accessResourceParam) {
+      let dest = redirectParam || '/resources';
+      if (accessResourceParam && !dest.includes('accessResource=')) {
+        dest += (dest.includes('?') ? '&' : '?') + `accessResource=${encodeURIComponent(accessResourceParam)}`;
+      }
+      return dest;
+    }
+    return null;
+  };
 
   const checkAuthentication = async () => {
     setCheckingAuth(true);
@@ -50,6 +64,14 @@ const CertifiedYatris = () => {
           if (currentUser) {
             setUser(currentUser);
             setIsAuthenticated(true);
+
+            // Handle redirect if coming from resource access or custom redirect
+            const dest = getDestinationUrl();
+            if (dest) {
+              navigate(dest, { replace: true });
+              return;
+            }
+
             // Check profile completeness on auto-login too
             if (!isProfileComplete(currentUser)) {
               navigate('/edit-profile?complete=true');
@@ -59,11 +81,23 @@ const CertifiedYatris = () => {
             // Token expired, but keep user logged in with stored data
             setUser(storedUser);
             setIsAuthenticated(true);
+
+            const dest = getDestinationUrl();
+            if (dest) {
+              navigate(dest, { replace: true });
+              return;
+            }
           }
         } catch (error) {
           // If API call fails, still use stored user (persistent login)
           setUser(storedUser);
           setIsAuthenticated(true);
+
+          const dest = getDestinationUrl();
+          if (dest) {
+            navigate(dest, { replace: true });
+            return;
+          }
         }
       } else {
         setIsAuthenticated(false);
@@ -76,6 +110,12 @@ const CertifiedYatris = () => {
       if (storedUser) {
         setUser(storedUser);
         setIsAuthenticated(true);
+
+        const dest = getDestinationUrl();
+        if (dest) {
+          navigate(dest, { replace: true });
+          return;
+        }
       } else {
         setIsAuthenticated(false);
       }
@@ -99,6 +139,12 @@ const CertifiedYatris = () => {
   const handleLoginSuccess = (userData: any) => {
     setUser(userData);
     setIsAuthenticated(true);
+
+    const dest = getDestinationUrl();
+    if (dest) {
+      navigate(dest, { replace: true });
+      return;
+    }
 
     // Check if profile is complete (Google login users won't have all fields)
     if (!isProfileComplete(userData)) {

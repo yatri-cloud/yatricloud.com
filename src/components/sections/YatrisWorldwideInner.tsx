@@ -196,12 +196,12 @@ const YatrisWorldwideInner = () => {
             {/* Map Provider Filter */}
             <div className="flex justify-center mb-6">
               <div className="inline-flex bg-muted rounded-xl p-1 border border-border max-w-full overflow-x-auto scrollbar-hide">
-                <div className="inline-flex min-w-max">
+                <div className="inline-flex min-w-max gap-1">
                   <button
                     onClick={() => setSelectedMapProvider("all")}
-                    className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === "all"
-                      ? "bg-primary text-primary-foreground shadow-lg"
-                      : "text-muted-foreground hover:text-foreground"
+                    className={`flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === "all"
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                       }`}
                   >
                     <BadgeCheck className="w-4 h-4" />
@@ -224,23 +224,21 @@ const YatrisWorldwideInner = () => {
                       <button
                         key={provider}
                         onClick={() => setSelectedMapProvider(provider)}
-                        className={`flex items-center gap-2 px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === provider
-                          ? "bg-primary text-primary-foreground shadow-lg"
-                          : "text-muted-foreground hover:text-foreground"
+                        title={`${provider} (${providerCount})`}
+                        className={`group relative flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-lg font-semibold transition-all ${selectedMapProvider === provider
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                           }`}
                       >
                         <img
                           src={logoSrc}
                           alt={provider}
-                          className={`object-contain ${provider === "GITHUB" && theme === "light" ? "invert" : ""} ${provider === "ORACLE" || provider === "SERVICENOW"
-                            ? "w-7 h-7"
-                            : "w-5 h-5"
-                            }`}
+                          className={`w-5 h-5 object-contain transition-transform duration-200 group-hover:scale-110 ${provider === "GITHUB" && theme === "light" ? "invert" : ""}`}
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = "none";
                           }}
                         />
-                        <span className="hidden sm:inline">
+                        <span className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-semibold">
                           {provider} ({providerCount})
                         </span>
                       </button>

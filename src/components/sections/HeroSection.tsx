@@ -6,7 +6,7 @@ import {
   useReducedMotion,
   type Variants,
 } from "framer-motion";
-import { ArrowRight, Users, Star, Layers } from "lucide-react";
+import { ArrowRight, Users, Star, Layers, Award } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { YatriGreeting } from "@/components/YatriGreeting";
 import {
@@ -19,6 +19,7 @@ import {
   FALLBACK_SETTINGS,
   FALLBACK_PROMOTION,
 } from "@/lib/site-content";
+import { useReviews } from "@/hooks/use-reviews";
 import { FALLBACK_CERT_TRACKS } from "@/lib/cert-catalog";
 import { openCalendlyPopup } from "@/lib/third-party";
 
@@ -138,10 +139,37 @@ export const HeroSection = () => {
     void openCalendlyPopup(calendlyUrl);
   };
 
+  const { reviews } = useReviews(200);
+
+  const dynamicRating = reviews.length
+    ? (reviews.reduce((acc, r) => acc + Number(r.rating || 5), 0) / reviews.length).toFixed(1)
+    : statValue(siteStats, "rating", "4.9");
+
+  const certifiedStat = statValue(
+    siteStats,
+    "certified",
+    statValue(siteStats, "tracks", "10000+")
+  );
+
   const STATS = [
-    { ...parseStatValue(statValue(siteStats, "learners", "50K+")), label: "Learners", aria: statValue(siteStats, "learners", "50K+"), icon: Users },
-    { ...parseStatValue(statValue(siteStats, "rating", "4.8")), label: "Rating", aria: statValue(siteStats, "rating", "4.8"), icon: Star },
-    { ...parseStatValue(statValue(siteStats, "tracks", "6")), label: "Cloud Tracks", aria: statValue(siteStats, "tracks", "6"), icon: Layers },
+    {
+      ...parseStatValue(statValue(siteStats, "learners", "50K+")),
+      label: "Learners",
+      aria: statValue(siteStats, "learners", "50K+"),
+      icon: Users,
+    },
+    {
+      ...parseStatValue(dynamicRating),
+      label: "Rating",
+      aria: `${dynamicRating} Rating`,
+      icon: Star,
+    },
+    {
+      ...parseStatValue(certifiedStat),
+      label: "Certified",
+      aria: `${certifiedStat} Certified`,
+      icon: Award,
+    },
   ];
 
   const headlineWords = String(promotion?.headline || FALLBACK_PROMOTION.headline)

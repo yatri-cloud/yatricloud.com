@@ -10,6 +10,7 @@ import InstructorSection from "@/components/sections/InstructorSection";
 import { TrustSection } from "@/components/TrustSection";
 import { HomeReviewsSection } from "@/components/sections/HomeReviewsSection";
 import { VoucherPromoSection } from "@/components/sections/VoucherPromoSection";
+import { PerfectFitSection } from "@/components/sections/PerfectFitSection";
 import FAQSection from "@/components/sections/FAQSection";
 import CommunitySection from "@/components/sections/CommunitySection";
 import { ContactSection } from "@/components/sections/ContactSection";
@@ -45,6 +46,7 @@ const Index = () => {
         <HomeReviewsSection />
         <YatrisWorldwideSection />
         <RecognitionsSection />
+        <PerfectFitSection />
         <FAQSection />
         <CommunitySection />
         <ContactSection />

@@ -123,10 +123,10 @@ export const FAQSection = () => {
                             {faq.answer === "list" && faq.listItems ? (
                               <div className="text-muted-foreground text-base md:text-lg leading-relaxed">
                                 <p className="mb-4">We offer 50% OFF on the following AWS Associate exams:</p>
-                                <ul className="space-y-2 list-none">
+                                <ul className="space-y-2.5 list-none">
                                   {faq.listItems.map((item, idx) => (
                                     <li key={idx} className="flex items-start gap-3">
-                                      <span className="text-primary mt-1.5 flex-shrink-0">•</span>
+                                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2.5 flex-shrink-0" aria-hidden="true" />
                                       <span>{item}</span>
                                     </li>
                                   ))}

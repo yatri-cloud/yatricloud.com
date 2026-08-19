@@ -15,19 +15,50 @@ import {
 // light-theme logo variant (logoLight) where one exists.
 const COMPANIES_FALLBACK = FALLBACK_TECH_LOGOS.filter((l) => l.grp === "community");
 
-// Profile pictures for the globe - mix of actual and real profile images
+// Profile pictures for the community cloud outline
+// Index 3 = Top Left crown (Yatharth Chauhan)
+// Index 4 = Top Right crown (Nensi Ravaliya)
 const profilePictures = [
-  // Self-hosted 200px copies — the originals were 812 KB and 2 MB PNGs.
-  "/team/yatharth-chauhan-200.png",
-  "/team/nensi-ravaliya-200.png",
-  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces",
-  "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces",
-  "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=200&h=200&fit=crop&crop=faces",
-  "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop&crop=faces",
-  "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=200&h=200&fit=crop&crop=faces",
-  "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200&h=200&fit=crop&crop=faces",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces",
+  {
+    name: "Community Member",
+    url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces",
+  },
+  {
+    name: "Community Member",
+    url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces",
+  },
+  {
+    name: "Community Member",
+    url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces",
+  },
+  {
+    name: "Yatharth Chauhan",
+    url: "https://raw.githubusercontent.com/YatharthChauhan2362/prod-public-images/refs/heads/main/yatharth-chauhan-profile1.png",
+  },
+  {
+    name: "Nensi Ravaliya",
+    url: "/team/nensi-ravaliya-200.png",
+  },
+  {
+    name: "Community Member",
+    url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces",
+  },
+  {
+    name: "Community Member",
+    url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces",
+  },
+  {
+    name: "Community Member",
+    url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces",
+  },
+  {
+    name: "Community Member",
+    url: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&h=200&fit=crop&crop=faces",
+  },
+  {
+    name: "Community Member",
+    url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces",
+  },
 ];
 
 // ——— Yatri Cloud logo shape — the community visual traces the WHITE LINES
@@ -445,8 +476,8 @@ const CloudLogoVisualization = () => {
                 transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
               >
                 <img
-                  src={profilePictures[i % profilePictures.length]}
-                  alt={`Community member ${i + 1}`}
+                  src={profilePictures[i % profilePictures.length].url}
+                  alt={profilePictures[i % profilePictures.length].name}
                   width={56}
                   height={56}
                   loading="lazy"

@@ -141,7 +141,7 @@ const Community = () => {
               transition={{ duration: 0.6, ease: EASE }}
               className="mx-auto max-w-3xl text-center text-white"
             >
-              <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-7xl">
+              <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-7xl text-white">
                 You're not doing this alone, Yatri
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-lg text-white/85 md:text-xl">
@@ -221,8 +221,8 @@ Find <span className="gradient-text">your people</span>
         <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-white/10 blur-[120px]" />
         <div className="container relative z-10 mx-auto px-4 md:px-6">
           <div className="mx-auto max-w-2xl text-center text-white">
-            <h2 className="font-display text-3xl font-bold tracking-tight md:text-5xl">
-Stay close to the Yatri community
+            <h2 className="font-display text-3xl font-bold tracking-tight md:text-5xl text-white">
+              Stay close to the Yatri community
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-lg text-white/85">
               Free vouchers, fresh dumps, live sessions and real job openings reach the Yatri community first. Follow along so nothing that could change your career slips past you.
