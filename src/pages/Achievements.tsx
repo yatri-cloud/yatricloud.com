@@ -982,7 +982,6 @@ const Achievements = () => {
                     transition={{ delay: 0.1, duration: 0.4 }}
                     className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-semibold uppercase tracking-wider mb-6"
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                     <span>Early Access (Beta)</span>
                   </motion.div>
                 </div>

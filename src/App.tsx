@@ -55,6 +55,7 @@ const BlogSettings = lazy(() => import("./pages/BlogSettings"));
 const BlogDashboard = lazy(() => import("./pages/BlogDashboard"));
 const BlogNotifications = lazy(() => import("./pages/BlogNotifications"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const UdemyAdmin = lazy(() => import("./pages/admin/UdemyAdmin"));
 const AdminAddProduct = lazy(() => import("./pages/admin/AdminAddProduct"));
@@ -291,6 +292,7 @@ const App = () => (
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />}>
                 <Route index element={<AdminOverview />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="yatris" element={<AdminYatris />} />
                 <Route path="roles" element={<AdminRoleManagement />} />
                 <Route path="site" element={<AdminSiteContent />} />

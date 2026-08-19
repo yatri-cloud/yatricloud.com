@@ -2,7 +2,7 @@ import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
     CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag,
-    FilePen, Mail, ShieldCheck, Sparkles, LifeBuoy, BookMarked, type LucideIcon,
+    FilePen, Mail, ShieldCheck, Sparkles, LifeBuoy, BookMarked, TrendingUp, type LucideIcon,
 } from "lucide-react";
 
 
@@ -36,6 +36,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: Globe,
         items: [
             { name: "Site & Homepage", path: "/admin/site", icon: Globe, description: "Edit homepage sections, stats and site wide copy." },
+            { name: "Analytics", path: "/admin/analytics", icon: TrendingUp, description: "Monitor platform usage, downloads, and clicks." },
             { name: "Certifications", path: "/admin/certifications", icon: Award, description: "Manage the certification catalog and exam details." },
             { name: "Blog", path: "/admin/blog", icon: FilePen, description: "Feature, moderate, and manage blog posts." },
             { name: "Community", path: "/admin/community", icon: Users, description: "Manage the community links shown on the site." },
