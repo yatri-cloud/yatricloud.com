@@ -86,7 +86,7 @@ export default function MyResources() {
             </div>
           ) : resources.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 border border-border rounded-2xl bg-card text-center">
-              <div className="h-14 w-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+              <div className="h-14 w-14 rounded-2xl bg-primary text-white flex items-center justify-center mb-4">
                 <BookMarked className="h-6 w-6" />
               </div>
               <h2 className="font-display text-lg font-semibold tracking-tight">No resources yet</h2>
@@ -126,7 +126,7 @@ export default function MyResources() {
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="font-semibold truncate">{r.name}</h3>
                             {r.provider && (
-                              <Badge className="rounded-full bg-primary/10 text-primary text-xs font-medium border-transparent hover:bg-primary/10">
+                              <Badge className="rounded-full bg-primary text-white text-xs font-medium border-transparent hover:bg-primary/10">
                                 {r.provider}
                               </Badge>
                             )}

@@ -137,7 +137,7 @@ const RequestVoucher = () => {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.3, type: "spring" }}
-                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6"
+                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary text-white text-sm font-medium mb-6"
                   >
                     <Ticket className="w-4 h-4" />
                     <span>Your Potential is Priceless</span>
@@ -424,15 +424,15 @@ const RequestVoucher = () => {
                   </h3>
                   <ul className="space-y-4 text-sm text-muted-foreground">
                     <li className="flex gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex-shrink-0 flex items-center justify-center text-primary text-xs">1</div>
+                      <div className="w-6 h-6 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-xs text-white">1</div>
                       <span>Our team will review your request and check for available discount codes (up to 50% or more).</span>
                     </li>
                     <li className="flex gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex-shrink-0 flex items-center justify-center text-primary text-xs">2</div>
+                      <div className="w-6 h-6 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-xs text-white">2</div>
                       <span>We will contact you via WhatsApp or Email within 2-3 business days.</span>
                     </li>
                     <li className="flex gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex-shrink-0 flex items-center justify-center text-primary text-xs">3</div>
+                      <div className="w-6 h-6 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-xs text-white">3</div>
                       <span>Once verified, we'll guide you on how to apply the voucher and book your exam.</span>
                     </li>
                   </ul>

@@ -121,7 +121,7 @@ export default function SponsorSubmissionForm() {
 
             <div className="container mx-auto px-4 py-12 max-w-3xl">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white">
                         <Handshake className="w-6 h-6 text-primary" />
                     </div>
                     <div>

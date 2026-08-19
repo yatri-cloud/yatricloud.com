@@ -222,13 +222,13 @@ export default function AdminEvents() {
                         title="Total Events"
                         value={stats.totalEvents}
                         icon={Layers}
-                        color="bg-primary/10 text-primary"
+                        color="bg-primary text-white"
                     />
                     <StatsCard
                         title="Past Events"
                         value={stats.pastEvents}
                         icon={Clock}
-                        color="bg-primary/10 text-primary"
+                        color="bg-primary text-white"
                     />
                     <StatsCard
                         title="Draft Events"
@@ -460,7 +460,7 @@ export default function AdminEvents() {
                     ))
                 ) : (
                     <div className="text-center py-16 border border-dashed border-border rounded-2xl bg-card flex flex-col items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                        <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center">
                             <Calendar className="w-7 h-7" />
                         </div>
                         <div className="space-y-1">

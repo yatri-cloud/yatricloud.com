@@ -95,7 +95,7 @@ const Partners = () => {
                 <ul className="mt-6 space-y-3">
                   {o.benefits.map((b) => (
                     <li key={b} className="flex items-start gap-3 text-sm md:text-base">
-                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white">
                         <Check className="h-3.5 w-3.5" />
                       </span>
                       <span>{b}</span>

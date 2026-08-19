@@ -53,7 +53,7 @@ export const ServiceCard = ({ service, mentorSlug }: ServiceCardProps) => {
               </span>
             )}
         </p>
-        <span className="inline-flex items-center min-h-[44px] px-4 rounded-xl bg-primary/10 text-primary text-sm font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+        <span className="inline-flex items-center min-h-[44px] px-4 rounded-xl bg-primary text-white text-sm font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
           {service.cta_label}
         </span>
       </div>

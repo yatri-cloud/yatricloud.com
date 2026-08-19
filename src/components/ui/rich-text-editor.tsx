@@ -35,7 +35,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className={cn("h-8 w-8 p-0", isActive && "bg-primary/10 text-primary")}
+      className={cn("h-8 w-8 p-0", isActive && "bg-primary text-white")}
       title={title}
     >
       {children}

@@ -300,7 +300,7 @@ export default function AdminTrainingList() {
                         </div>
                     ) : filteredCourses.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-                            <div className="rounded-2xl bg-primary/10 text-primary p-4 mb-4">
+                            <div className="rounded-2xl bg-primary text-white p-4 mb-4">
                                 <FileText className="w-6 h-6" />
                             </div>
                             <h3 className="font-display text-lg font-semibold">No training found</h3>

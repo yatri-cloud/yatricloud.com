@@ -428,7 +428,7 @@ export default function TrainingDetail() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                                 {outcomes.length > 0 ? outcomes.map((outcome, i) => (
                                     <div key={i} className="flex items-start gap-3 text-sm text-foreground/80 leading-relaxed group">
-                                        <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+                                        <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center group-hover:bg-green-500 transition-colors text-white">
                                             <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
                                         </div>
                                         <span>{outcome}</span>
@@ -480,7 +480,7 @@ export default function TrainingDetail() {
                                     <AccordionItem key={mod.moduleId || i} value={`item-${i}`} className="border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border-border/50">
                                         <AccordionTrigger className="px-6 py-5 hover:no-underline transition-colors data-[state=open]:bg-muted/20">
                                             <div className="flex items-center gap-4 text-left">
-                                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
+                                                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-xs text-white">
                                                     {i + 1}
                                                 </div>
                                                 <div className="text-left">
@@ -522,7 +522,7 @@ export default function TrainingDetail() {
                         <CardContent className="p-8">
                             <h2 className="text-2xl font-bold mb-8">Meet your Instructor</h2>
                             <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary ring-4 ring-primary/5 shrink-0 overflow-hidden">
+                                <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-3xl font-bold ring-4 ring-primary/5 shrink-0 overflow-hidden text-white">
                                     {instructorProfile?.photoUrl ? (
                                         <img src={instructorProfile.photoUrl} alt={displayInstructor} className="w-full h-full object-cover" />
                                     ) : displayInstructor.charAt(0)}

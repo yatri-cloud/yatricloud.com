@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
+import { subscribeToNewsletter } from "@/lib/newsletter";
 import { useToast } from "@/hooks/use-toast";
 
 export function ExitIntentPopup() {
@@ -21,19 +22,19 @@ export function ExitIntentPopup() {
   // Exit intent detection (desktop)
   const handleMouseLeave = useCallback((e: MouseEvent) => {
     if (isAdmin) return;
-    if (e.clientY <= 0 && !sessionStorage.getItem("yc_exit_shown")) {
+    if (e.clientY <= 0 && !localStorage.getItem("yc_exit_shown")) {
       setShow(true);
-      sessionStorage.setItem("yc_exit_shown", "1");
+      localStorage.setItem("yc_exit_shown", "1");
     }
   }, [isAdmin]);
 
   // Mobile: show after 35 seconds on public pages
   useEffect(() => {
     if (isAdmin) return;
-    if (sessionStorage.getItem("yc_exit_shown")) return;
+    if (localStorage.getItem("yc_exit_shown")) return;
     const timer = setTimeout(() => {
       setShow(true);
-      sessionStorage.setItem("yc_exit_shown", "1");
+      localStorage.setItem("yc_exit_shown", "1");
     }, 35000);
 
     document.addEventListener("mouseleave", handleMouseLeave);
@@ -47,12 +48,9 @@ export function ExitIntentPopup() {
     e.preventDefault();
     if (!email.includes("@")) return;
     setSubscribing(true);
-    const { error } = await supabase.from("subscribers").insert({
-      email: email.toLowerCase().trim(),
-      source: "exit-popup",
-    });
+    const res = await subscribeToNewsletter(email.toLowerCase().trim());
     setSubscribing(false);
-    if (error && !error.message.includes("duplicate")) {
+    if (!res.ok) {
       toast({ title: "Could not subscribe", variant: "destructive" });
       return;
     }
@@ -90,7 +88,7 @@ export function ExitIntentPopup() {
 
             {submitted ? (
               <div className="py-2">
-                <div className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-xs">
+                <div className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-emerald-500 border border-emerald-500/20 flex items-center justify-center text-white shadow-xs">
                   <svg
                     className="w-6 h-6"
                     viewBox="0 0 24 24"
@@ -112,7 +110,7 @@ export function ExitIntentPopup() {
               </div>
             ) : (
               <div>
-                <div className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+                <div className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-primary border border-primary/20 flex items-center justify-center text-primary-foreground shadow-xs">
                   <svg
                     className="w-6 h-6"
                     viewBox="0 0 24 24"
@@ -129,11 +127,8 @@ export function ExitIntentPopup() {
                 <h2 className="font-display text-xl font-bold tracking-tight text-foreground mb-2">
                   Wait, before you go!
                 </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-1">
-                  Get our free AWS certification guide and exclusive 50% discount on exam vouchers.
-                </p>
-                <p className="text-xs text-muted-foreground/80 mb-6">
-                  Join 50,000+ Yatris who are already mastering cloud certifications.
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                  Stay updated with new certifications for free and get the highest discount updates earlier.
                 </p>
                 <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2.5">
                   <Input

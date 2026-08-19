@@ -110,7 +110,7 @@ export default function AdminOverviewPage() {
                     {/* ── Stats grid — 14 tiles ── */}
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                         <StatsCard title="Revenue in INR" value={formatInvoiceMoney(data.inrRevenue, "INR")} icon={IndianRupee} color="bg-emerald-500 text-white border-0" />
-                        <StatsCard title="Receipts" value={data.receipts} icon={Receipt} color="bg-primary/10 text-primary" />
+                        <StatsCard title="Receipts" value={data.receipts} icon={Receipt} color="bg-primary text-white" />
                         <StatsCard title="Registered Yatris" value={data.yatris} icon={Users} color="bg-blue-500 text-white border-0" />
                         <StatsCard title="Mentorship bookings" value={data.mentorshipBookings} icon={Handshake} color="bg-amber-500 text-white border-0" />
                         <StatsCard title="Events" value={data.events} icon={Calendar} color="bg-violet-500/10 text-violet-600" />

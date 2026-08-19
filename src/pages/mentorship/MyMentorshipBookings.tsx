@@ -55,7 +55,7 @@ import {
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-warning/10 text-warning",
-  confirmed: "bg-success/10 text-success",
+  confirmed: "bg-success text-white",
   completed: "bg-brand-50 text-brand-700",
   cancelled: "bg-muted text-muted-foreground",
   refunded: "bg-muted text-muted-foreground",

@@ -653,7 +653,7 @@ export default function CreateEvent() {
                                         <div key={s} className="flex items-center gap-2">
                                             <button
                                                 onClick={() => setStep(s as Step)}
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${step === s ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
+                                                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${step === s ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-muted'}`}
                                             >
                                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${step === s ? 'border-primary bg-primary text-primary-foreground' : 'border-border'}`}>
                                                     {s}

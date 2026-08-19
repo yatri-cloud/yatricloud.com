@@ -50,7 +50,7 @@ function dayKeyInZone(date: Date, timeZone: string): string {
 }
 
 const statusTint: Record<string, string> = {
-  confirmed: "bg-success/10 text-success",
+  confirmed: "bg-success text-white",
   pending: "bg-warning/10 text-warning",
   completed: "bg-brand-50 text-brand-700",
   cancelled: "bg-muted text-muted-foreground",

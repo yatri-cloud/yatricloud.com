@@ -7,7 +7,6 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import { sendEmail } from "@/lib/email";
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -153,82 +152,9 @@ export async function unlockResource(
 
   const accessUrl = data as string;
 
-  // Fire-and-forget confirmation email
-  sendEmail({
-    to: userEmail,
-    subject: `Your resource is ready — ${resource.name}`,
-    html: buildResourceUnlockEmail({ userName, resource, accessUrl }),
-  }).catch((e) => console.warn("Email send failed (non-fatal):", e));
-
   return accessUrl;
 }
 
-/** Build the HTML email for a resource unlock. */
-function buildResourceUnlockEmail({
-  userName,
-  resource,
-  accessUrl,
-}: {
-  userName: string;
-  resource: Pick<Resource, "name" | "description" | "provider">;
-  accessUrl: string;
-}): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><title>Resource Ready</title></head>
-<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:40px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-        <!-- Header -->
-        <tr>
-          <td style="background:linear-gradient(135deg,#1e40af,#3b82f6);padding:36px 40px;text-align:center;">
-            <img src="https://yatricloud.com/logo-64.png" alt="Yatri Cloud" width="48" height="48"
-                 style="border-radius:10px;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto;" />
-            <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Your resource is ready!</h1>
-          </td>
-        </tr>
-        <!-- Body -->
-        <tr>
-          <td style="padding:36px 40px;">
-            <p style="margin:0 0 16px;font-size:16px;color:#374151;">Hi ${userName},</p>
-            <p style="margin:0 0 24px;font-size:15px;color:#6b7280;">
-              You've successfully unlocked <strong style="color:#1e40af;">${resource.name}</strong>
-              ${resource.provider ? `from <strong>${resource.provider}</strong>` : ""}.
-              Click the button below to access it directly.
-            </p>
-            <!-- CTA -->
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr><td align="center" style="padding:8px 0 32px;">
-                <a href="${accessUrl}"
-                   style="display:inline-block;background:#1e40af;color:#ffffff;font-size:15px;font-weight:600;
-                          padding:14px 36px;border-radius:8px;text-decoration:none;">
-                  Access Now
-                </a>
-              </td></tr>
-            </table>
-            ${resource.description ? `<p style="margin:0 0 24px;font-size:14px;color:#6b7280;border-left:3px solid #3b82f6;padding-left:16px;">${resource.description}</p>` : ""}
-            <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
-            <p style="margin:0;font-size:13px;color:#9ca3af;">
-              This link was sent to you by Yatri Cloud. If you did not request this,
-              please contact <a href="mailto:support@yatricloud.com" style="color:#3b82f6;">support@yatricloud.com</a>.
-            </p>
-          </td>
-        </tr>
-        <!-- Footer -->
-        <tr>
-          <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #e5e7eb;">
-            <p style="margin:0;font-size:12px;color:#9ca3af;">
-              © ${new Date().getFullYear()} Yatri Cloud. All rights reserved.
-            </p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
 
 // ─────────────────────────────────────────────────────────────
 // My Resources (authenticated user)

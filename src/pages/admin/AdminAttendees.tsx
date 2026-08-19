@@ -378,7 +378,7 @@ export default function AdminAttendees() {
                             <Badge className={
                                 attendee.status === "attended"
                                     ? "rounded-full bg-success text-white text-xs"
-                                    : "rounded-full bg-primary/10 text-primary text-xs"
+                                    : "rounded-full bg-primary text-white text-xs"
                             }>
                                 {attendee.status === "attended" ? "Already Checked In" : "Ready to Check-in"}
                             </Badge>
@@ -608,7 +608,7 @@ export default function AdminAttendees() {
                                 <Badge className={
                                     detailAttendee.status === "attended"
                                         ? "bg-success text-white border-0"
-                                        : "bg-primary/10 text-primary border-0"
+                                        : "bg-primary text-white border-0"
                                 }>
                                     {detailAttendee.status === "attended" ? "Checked In" : "Pending Check-in"}
                                 </Badge>

@@ -1803,7 +1803,7 @@ const Achievements = () => {
                         <span className="text-sm font-semibold">Download</span>
                       </button>
                       */}
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/20 text-primary border border-primary/30">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-white border border-primary/30">
                         <span className="text-sm font-bold">{selectedPerson.certifications.length}x Certified</span>
                         {/* Certification Logos */}
                         {(() => {
@@ -1940,7 +1940,7 @@ const Achievements = () => {
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold border ${PROVIDER_COLORS[providerName]
                                         ? `${PROVIDER_COLORS[providerName].bg} ${PROVIDER_COLORS[providerName].text} ${PROVIDER_COLORS[providerName].border}`
-                                        : 'bg-primary/20 text-primary border-primary/30'
+                                        : 'bg-primary text-white border-primary/30'
                                         }`}>
                                         {cert.examCode}
                                       </div>

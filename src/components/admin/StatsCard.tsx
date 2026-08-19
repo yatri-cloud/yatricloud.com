@@ -9,7 +9,7 @@ interface StatsCardProps {
 }
 
 export const StatsCard = ({ title, value, icon: Icon, color }: StatsCardProps) => {
-    // `color` comes in as e.g. "bg-primary/10 text-primary" — derive the ink
+    // `color` comes in as e.g. "bg-primary text-white" — derive the ink
     // colour so the accent bar + watermark stay on the same token family.
     const textClass = color.split(" ").find((c) => c.startsWith("text-")) ?? "text-primary";
     const barClass = textClass.replace("text-", "bg-");

@@ -44,7 +44,7 @@ import {
  */
 
 const STATUS_STYLES: Record<TicketStatus, string> = {
-  open: "bg-primary/10 text-primary border-primary/20",
+  open: "bg-primary text-white border-primary/20",
   pending: "bg-warning/10 text-warning border-warning/20",
   resolved: "bg-success text-white border-0",
   closed: "bg-muted text-muted-foreground border-border",

@@ -370,7 +370,7 @@ export default function AdminAISettings() {
                 </div>
             ) : keys.length === 0 ? (
                 <Card className="rounded-2xl border border-dashed p-12 text-center space-y-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                    <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center mx-auto">
                         <Key className="w-6 h-6" />
                     </div>
                     <div className="space-y-1">

@@ -54,7 +54,7 @@ const STATUSES = ["pending", "confirmed", "completed", "cancelled", "refunded"] 
 
 const STATUS_STYLES: Record<string, string> = {
     pending: "bg-muted text-muted-foreground",
-    confirmed: "bg-primary/10 text-primary",
+    confirmed: "bg-primary text-white",
     completed: "bg-brand-100 text-brand-700",
     cancelled: "bg-destructive text-white",
     refunded: "bg-destructive text-white",

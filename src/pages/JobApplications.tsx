@@ -44,7 +44,7 @@ import {
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   queued: { label: "Queued", cls: "bg-brand-50 text-primary border-brand-100" },
   processing: { label: "Building", cls: "bg-brand-50 text-primary border-brand-100" },
-  ready: { label: "Ready", cls: "bg-success/10 text-success border-success/20" },
+  ready: { label: "Ready", cls: "bg-success text-white border-success/20" },
   failed: { label: "Failed", cls: "bg-destructive/10 text-destructive border-destructive/20" },
 };
 
@@ -242,7 +242,7 @@ const JobApplications = () => {
                   <Badge variant="outline" className="border-brand-100 bg-brand-50 text-primary">
                     {apps.length} selected
                   </Badge>
-                  <Badge variant="outline" className="border-success/20 bg-success/10 text-success">
+                  <Badge variant="outline" className="border-success/20 bg-success text-white">
                     {apps.filter((a) => a.resume_requests?.status === "ready").length} resumes ready
                   </Badge>
                   <Badge variant="outline">{drafted.length} emails drafted</Badge>

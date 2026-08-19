@@ -153,7 +153,7 @@ const GuideView: React.FC<GuideViewProps> = ({ type }) => {
           <div className="max-w-4xl">
             {/* Banner */}
             <div className="mb-10 p-6 rounded-2xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row items-center gap-6">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 text-white">
                 {isSitemap ? <List className="w-6 h-6 text-primary" /> : <Info className="w-6 h-6 text-primary" />}
               </div>
               <div className="flex-1 text-center sm:text-left">

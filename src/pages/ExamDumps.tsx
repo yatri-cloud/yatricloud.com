@@ -197,7 +197,7 @@ const ExamDumps = () => {
               </div>
             ) : filteredDumps.length === 0 ? (
               <div className="text-center py-20">
-                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-white">
                 </div>
                 <h3 className="font-display text-2xl font-bold">No dumps here yet, Yatris</h3>
                 <p className="mt-2 max-w-md mx-auto text-muted-foreground">

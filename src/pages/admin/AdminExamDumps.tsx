@@ -108,7 +108,7 @@ const AdminExamDumps = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1.5">
                         <h3 className="font-semibold truncate">{dump.title}</h3>
-                        <Badge className="rounded-full bg-primary/10 text-primary text-xs font-medium border-transparent hover:bg-primary/10">{dump.provider}</Badge>
+                        <Badge className="rounded-full bg-primary text-white text-xs font-medium border-transparent hover:bg-primary/10">{dump.provider}</Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>Price: <span className="tabular-nums text-foreground">₹{dump.price}</span></span>
@@ -141,7 +141,7 @@ const AdminExamDumps = () => {
             ))}
             {filteredDumps.length === 0 && (
               <div className="flex flex-col items-center justify-center text-center py-16 border border-border rounded-2xl bg-card">
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                <div className="h-14 w-14 rounded-2xl bg-primary text-white flex items-center justify-center mb-4">
                   <Search className="h-6 w-6" />
                 </div>
                 <h3 className="font-display text-lg font-semibold tracking-tight">No exam dumps yet</h3>

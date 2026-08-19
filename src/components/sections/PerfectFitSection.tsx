@@ -85,7 +85,7 @@ export const PerfectFitSection = () => {
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.06 }}
                     className="flex items-start gap-3"
                   >
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center mt-0.5 text-white">
                       <X className="w-4 h-4 text-primary" />
                     </div>
                     <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{point}</p>

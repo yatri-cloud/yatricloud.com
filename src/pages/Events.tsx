@@ -181,7 +181,7 @@ const Events = () => {
                                 {event.location.type === 'online' ? (
                                     <>
                                         <div className="flex-1">
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary text-white text-xs font-semibold">
                                                 Online Event
                                             </span>
                                         </div>
@@ -258,7 +258,7 @@ const Events = () => {
                                 <div className="mb-8">
                                     <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
                                         You're going, Yatri
-                                        <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 shadow-sm">
+                                        <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary text-white border border-primary/20 shadow-sm">
                                             {myRegistrations.length}
                                         </span>
                                     </h2>
@@ -396,7 +396,7 @@ const Events = () => {
                                                     setIsCountryDropdownOpen(false);
                                                 }}
                                                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between group ${selectedCountry === "All"
-                                                    ? 'bg-primary/10 text-primary font-medium'
+                                                    ? 'bg-primary text-white font-medium'
                                                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                     }`}
                                             >
@@ -414,7 +414,7 @@ const Events = () => {
                                                             setIsCountryDropdownOpen(false);
                                                         }}
                                                         className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between group ${selectedCountry === country
-                                                            ? 'bg-primary/10 text-primary font-medium'
+                                                            ? 'bg-primary text-white font-medium'
                                                             : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                             }`}
                                                     >
@@ -470,7 +470,7 @@ const Events = () => {
                                                         setIsStateDropdownOpen(false);
                                                     }}
                                                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${selectedState === "All"
-                                                        ? 'bg-primary/10 text-primary font-medium'
+                                                        ? 'bg-primary text-white font-medium'
                                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                         }`}
                                                 >
@@ -486,7 +486,7 @@ const Events = () => {
                                                             setIsStateDropdownOpen(false);
                                                         }}
                                                         className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${selectedState === state
-                                                            ? 'bg-primary/10 text-primary font-medium'
+                                                            ? 'bg-primary text-white font-medium'
                                                             : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                             }`}
                                                     >
@@ -535,7 +535,7 @@ const Events = () => {
                                                     setIsTechStackDropdownOpen(false);
                                                 }}
                                                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${selectedTechStack === "All"
-                                                    ? 'bg-primary/10 text-primary font-medium'
+                                                    ? 'bg-primary text-white font-medium'
                                                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                     }`}
                                             >
@@ -551,7 +551,7 @@ const Events = () => {
                                                         setIsTechStackDropdownOpen(false);
                                                     }}
                                                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${selectedTechStack === tech
-                                                        ? 'bg-primary/10 text-primary font-medium'
+                                                        ? 'bg-primary text-white font-medium'
                                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                                         }`}
                                                 >
@@ -598,7 +598,7 @@ const Events = () => {
                             <div className="mb-8">
                                 <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
                                     Coming up next
-                                    <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 shadow-sm">
+                                    <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary text-white border border-primary/20 shadow-sm">
                                         {filteredUpcomingCount} {filteredUpcomingCount === 1 ? 'Event' : 'Events'}
                                     </span>
                                 </h2>

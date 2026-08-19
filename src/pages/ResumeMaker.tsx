@@ -69,7 +69,7 @@ import {
 const STATUS_META: Record<ResumeRequest["status"], { label: string; cls: string }> = {
     queued: { label: "Queued", cls: "bg-brand-50 text-primary border-brand-100" },
     processing: { label: "Building", cls: "bg-brand-50 text-primary border-brand-100" },
-    ready: { label: "Ready", cls: "bg-success/10 text-success border-success/20" },
+    ready: { label: "Ready", cls: "bg-success text-white border-success/20" },
     failed: { label: "Failed", cls: "bg-destructive/10 text-destructive border-destructive/20" },
 };
 
@@ -441,7 +441,7 @@ export default function ResumeMaker() {
                                         {/* Score Header */}
                                         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pb-6 border-b border-border">
                                             <div className="space-y-2 text-center sm:text-left">
-                                                <Badge className="rounded-full bg-primary/10 text-primary border-0 text-xs font-semibold">
+                                                <Badge className="rounded-full bg-primary text-white border-0 text-xs font-semibold">
                                                     {atsResult.overall_verdict}
                                                 </Badge>
                                                 <h3 className="text-2xl font-bold font-display">ATS Match Score</h3>
@@ -519,7 +519,7 @@ export default function ResumeMaker() {
                                     </div>
                                 ) : (
                                     <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center space-y-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                                        <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center mx-auto">
                                             <Sparkles className="w-7 h-7" />
                                         </div>
                                         <div className="space-y-1">
@@ -590,7 +590,7 @@ export default function ResumeMaker() {
                             <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-6 shadow-sm">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div className="space-y-1">
-                                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-success bg-success/10 px-2.5 py-0.5 rounded-full">
+                                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold bg-success text-white px-2.5 py-0.5 rounded-full">
                                             <CheckCircle2 className="w-3.5 h-3.5" /> Recruiter-Approved Single Page Layout
                                         </div>
                                         <h3 className="font-display text-xl font-bold flex items-center gap-2">

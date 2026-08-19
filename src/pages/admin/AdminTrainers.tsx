@@ -610,7 +610,7 @@ export const AdminTrainersNew = () => {
                                             <TableRow>
                                                 <TableCell colSpan={7} className="text-center py-16">
                                                     <div className="flex flex-col items-center gap-4">
-                                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                        <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center">
                                                             <UserCheck className="w-7 h-7" />
                                                         </div>
                                                         <div className="space-y-1">
@@ -731,7 +731,7 @@ export const AdminTrainersNew = () => {
                                             <TableRow>
                                                 <TableCell colSpan={6} className="text-center py-16">
                                                     <div className="flex flex-col items-center gap-4">
-                                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                        <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center">
                                                             <UserCheck className="w-7 h-7" />
                                                         </div>
                                                         <div className="space-y-1">
@@ -795,7 +795,7 @@ export const AdminTrainersNew = () => {
                                             <Card key={trainer.trainerId} className="overflow-hidden border border-border rounded-2xl shadow-none hover:border-brand-200 hover:shadow-card transition">
                                                 <CardHeader className="pb-4">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary shrink-0">
+                                                        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-xl font-bold shrink-0 text-white">
                                                             {profile?.photoUrl ? (
                                                                 <img src={profile.photoUrl} alt={trainer.fullName} className="w-full h-full rounded-full object-cover" />
                                                             ) : trainer.fullName.charAt(0)}
@@ -828,7 +828,7 @@ export const AdminTrainersNew = () => {
 
                                 {trainers.length === 0 && !isLoadingTrainers && (
                                     <div className="text-center py-16 border border-dashed border-border rounded-2xl flex flex-col items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                        <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center">
                                             <UserCheck className="w-7 h-7" />
                                         </div>
                                         <div className="space-y-1">

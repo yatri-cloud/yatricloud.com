@@ -405,7 +405,7 @@ export default function AdminSubmissions() {
                                                 <span className="font-semibold">Sponsorship Areas:</span>
                                                 <div className="flex gap-2 mt-2 flex-wrap">
                                                     {sponsor.sponsorshipAreas.map((area, i) => (
-                                                        <Badge key={i} className="rounded-full border-0 bg-primary/10 text-primary text-xs font-medium">{area}</Badge>
+                                                        <Badge key={i} className="rounded-full border-0 bg-primary text-white text-xs font-medium">{area}</Badge>
                                                     ))}
                                                 </div>
                                             </div>

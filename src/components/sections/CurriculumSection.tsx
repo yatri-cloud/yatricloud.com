@@ -393,7 +393,7 @@ export const CurriculumSection = () => {
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-2 flex-wrap">
                               {course.certification && course.certification !== 'General' && (
-                                <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                                <span className="px-2.5 py-1 bg-primary text-white text-xs font-semibold rounded-full">
                                   {course.certification}
                                 </span>
                               )}

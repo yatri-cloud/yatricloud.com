@@ -290,7 +290,7 @@ export default function EventRegistrationsList() {
                                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Registrations</p>
                                 <p className="text-2xl font-bold tabular-nums mt-1">{stats.total}</p>
                             </div>
-                            <div className="rounded-2xl bg-primary/10 text-primary p-2.5">
+                            <div className="rounded-2xl bg-primary text-white p-2.5">
                                 <User className="w-5 h-5" />
                             </div>
                         </div>
@@ -301,7 +301,7 @@ export default function EventRegistrationsList() {
                                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Pending Check-in</p>
                                 <p className="text-2xl font-bold tabular-nums mt-1">{stats.registered}</p>
                             </div>
-                            <div className="rounded-2xl bg-primary/10 text-primary p-2.5">
+                            <div className="rounded-2xl bg-primary text-white p-2.5">
                                 <Calendar className="w-5 h-5" />
                             </div>
                         </div>
@@ -397,7 +397,7 @@ export default function EventRegistrationsList() {
                                 <TableRow className="hover:bg-transparent">
                                     <TableCell colSpan={8} className="text-center py-16">
                                         <div className="flex flex-col items-center gap-4">
-                                            <div className="rounded-2xl bg-primary/10 text-primary p-4">
+                                            <div className="rounded-2xl bg-primary text-white p-4">
                                                 <User className="w-6 h-6" />
                                             </div>
                                             <div>
@@ -444,7 +444,7 @@ export default function EventRegistrationsList() {
                                                     ? 'bg-success text-white'
                                                     : reg.status === 'cancelled'
                                                         ? 'bg-destructive text-white'
-                                                        : 'bg-primary/10 text-primary'
+                                                        : 'bg-primary text-white'
                                             }`}>
                                                 {reg.status === 'attended' ? 'Attended' : reg.status === 'cancelled' ? 'Cancelled' : 'Registered'}
                                             </Badge>
@@ -537,7 +537,7 @@ export default function EventRegistrationsList() {
                                                 entry.status === 'converted'
                                                     ? 'bg-success text-white'
                                                     : entry.status === 'notified'
-                                                        ? 'bg-primary/10 text-primary'
+                                                        ? 'bg-primary text-white'
                                                         : entry.status === 'cancelled'
                                                             ? 'bg-destructive text-white'
                                                             : 'bg-warning/10 text-warning'
@@ -603,7 +603,7 @@ export default function EventRegistrationsList() {
                                         ? 'bg-success text-white'
                                         : selectedRegistration.status === 'cancelled'
                                             ? 'bg-destructive text-white'
-                                            : 'bg-primary/10 text-primary'
+                                            : 'bg-primary text-white'
                                 }`}>
                                     {selectedRegistration.status.toUpperCase()}
                                 </Badge>

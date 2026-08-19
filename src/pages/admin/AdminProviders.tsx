@@ -201,7 +201,7 @@ export default function AdminProviders() {
                                         <TableRow>
                                             <TableCell colSpan={3} className="text-center py-16">
                                                 <div className="flex flex-col items-center gap-4">
-                                                    <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                    <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center">
                                                         <Database className="w-7 h-7" />
                                                     </div>
                                                     <div className="space-y-1">
@@ -239,7 +239,7 @@ export default function AdminProviders() {
                                                         {p.exams.length === 0 ? (
                                                             <span className="text-xs text-muted-foreground">No courses yet</span>
                                                         ) : p.exams.map((exam: string, j: number) => (
-                                                            <span key={j} className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                                            <span key={j} className="bg-primary text-white px-2.5 py-0.5 rounded-full text-xs font-medium">
                                                                 {exam}
                                                             </span>
                                                         ))}

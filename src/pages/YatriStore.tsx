@@ -374,7 +374,7 @@ const YatriStore = () => {
                     transition={{ delay: index * 0.08, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                     className="p-6 rounded-2xl bg-card border border-border/60 hover:border-primary/40 transition-colors"
                   >
-                    <div className="inline-flex items-center justify-center h-11 w-11 rounded-xl bg-primary/10 text-primary mb-4">
+                    <div className="inline-flex items-center justify-center h-11 w-11 rounded-xl bg-primary text-white mb-4">
                       <feature.icon className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <h3 className="font-display font-semibold text-lg mb-2">{feature.title}</h3>

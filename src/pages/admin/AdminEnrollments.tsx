@@ -188,7 +188,7 @@ export default function AdminEnrollments() {
                                         <TableRow>
                                             <TableCell colSpan={7} className="text-center py-16">
                                                 <div className="flex flex-col items-center gap-4">
-                                                    <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                    <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center">
                                                         <UserCheck className="w-7 h-7" />
                                                     </div>
                                                     <div className="space-y-1">
@@ -230,7 +230,7 @@ export default function AdminEnrollments() {
                                                             Paid ({enrollment.amount})
                                                         </Badge>
                                                     ) : (
-                                                        <Badge className="rounded-full text-primary bg-primary/10 hover:bg-primary/10 border-0">
+                                                        <Badge className="rounded-full bg-primary text-white hover:bg-primary/10 border-0">
                                                             Free
                                                         </Badge>
                                                     )}

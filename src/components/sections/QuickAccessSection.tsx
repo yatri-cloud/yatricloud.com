@@ -12,6 +12,7 @@ const SHORTCUTS = [
   { to: "/jobs", label: "Job board" },
   { to: "/jobs/applications", label: "My job profile" },
   { to: "/resume-maker", label: "Resume maker" },
+  { to: "https://draw.yatricloud.com/", label: "Yatri Draw" },
   { to: "/achievements", label: "Wall of fame" },
 ];
 
@@ -40,6 +41,16 @@ export const QuickAccessSection = () => {
                     e.preventDefault();
                     scrollToHash(s.to);
                   }}
+                  className={chipClass}
+                >
+                  {s.label}
+                </a>
+              ) : s.to.startsWith("http") ? (
+                <a
+                  key={s.label}
+                  href={s.to}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={chipClass}
                 >
                   {s.label}

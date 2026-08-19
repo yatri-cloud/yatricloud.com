@@ -83,7 +83,7 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
                 transition={{ duration: 0.25 }}
                 className="rounded-2xl border border-border bg-card/70 backdrop-blur-md p-6 text-center shadow-xs"
               >
-                <div className="w-12 h-12 rounded-full bg-success/10 border border-success/20 text-success flex items-center justify-center mx-auto mb-3">
+                <div className="w-12 h-12 rounded-full bg-success border border-success/20 flex items-center justify-center mx-auto mb-3 text-white">
                   <Check className="w-6 h-6" />
                 </div>
                 <h2 className="font-display font-semibold text-lg text-foreground mb-1">

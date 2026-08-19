@@ -30,7 +30,7 @@ import {
 } from "@/lib/admin-users-api";
 
 const roleTone: Record<string, string> = {
-    super_admin: "bg-primary/10 text-primary",
+    super_admin: "bg-primary text-white",
     admin: "bg-blue-500/10 text-primary",
     manager: "bg-amber-500 text-white border-0",
     support: "bg-emerald-500 text-white border-0",
@@ -282,7 +282,7 @@ export default function AdminRoleManagement() {
                                     <TableRow key={u.id} data-testid={`admin-user-${u.email}`}>
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
                                                     <ShieldCheck className="h-4 w-4" />
                                                 </div>
                                                 <div className="min-w-0">

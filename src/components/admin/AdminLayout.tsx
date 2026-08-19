@@ -124,7 +124,7 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
                             title={group.label}
                             aria-label={`${group.label} — expand menu`}
                             className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isGroupActive
-                                ? "bg-primary/10 text-primary"
+                                ? "bg-primary text-white"
                                 : "text-muted-foreground hover:bg-brand-50 hover:text-foreground"
                                 }`}
                         >

@@ -68,7 +68,7 @@ const ResetPassword = () => {
       <Navbar />
       <main className="container mx-auto flex min-h-[70vh] items-center justify-center px-4 py-28">
         <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-card">
-          <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white">
             {done ? <CheckCircle2 className="h-6 w-6" /> : <KeyRound className="h-6 w-6" />}
           </div>
           <h1 className="font-display text-2xl font-bold tracking-tight">Set a new password</h1>

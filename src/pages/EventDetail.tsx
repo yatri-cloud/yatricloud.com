@@ -518,7 +518,7 @@ const EventDetail = () => {
                                                 <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Topics covered</p>
                                                 <div className="flex flex-wrap gap-2">
                                                     {event.techStack.map((t, i) => (
-                                                        <span key={i} className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20">{t}</span>
+                                                        <span key={i} className="px-3 py-1.5 rounded-full bg-primary text-white text-sm font-medium border border-primary/20">{t}</span>
                                                     ))}
                                                 </div>
                                             </div>
@@ -578,7 +578,7 @@ const EventDetail = () => {
                                         <div className="flex items-center gap-3 mb-6">
                                             <h2 className="font-display text-2xl font-bold">Yatris who were there</h2>
                                             {event.attendees && event.attendees.length > 0 && (
-                                                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
+                                                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary text-white border border-primary/20">
                                                     {event.attendees.length}
                                                 </span>
                                             )}
@@ -918,7 +918,7 @@ const EventDetail = () => {
                             <div className="bg-card border border-border rounded-3xl p-6 space-y-6 h-full shadow-card">
                                 {/* Date */}
                                 <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white">
                                         <Calendar className="w-5 h-5 text-primary" />
                                     </div>
                                     <div>
@@ -929,7 +929,7 @@ const EventDetail = () => {
 
                                 {/* Time */}
                                 <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white">
                                         <Clock className="w-5 h-5 text-primary" />
                                     </div>
                                     <div>
@@ -940,7 +940,7 @@ const EventDetail = () => {
 
                                 {/* Location */}
                                 <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white">
                                         {event.location.type === 'online' ? (
                                             <Globe className="w-5 h-5 text-primary" />
                                         ) : (
@@ -965,7 +965,7 @@ const EventDetail = () => {
                                 {/* Price */}
                                 {event.price != null && (
                                     <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white">
                                             <Tag className="w-5 h-5 text-primary" />
                                         </div>
                                         <div>
@@ -1024,7 +1024,7 @@ const EventDetail = () => {
                                     {/* Registration Button */}
                                     {isRegistered ? (
                                         <div className="space-y-4">
-                                            <div className="w-full bg-success/10 text-success border border-success/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
+                                            <div className="w-full bg-success text-white border border-success/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
                                                 <CheckCircle2 className="w-5 h-5" />
                                                 <span>You're in, Yatri — see you there!</span>
                                             </div>
@@ -1039,7 +1039,7 @@ const EventDetail = () => {
                                         </div>
                                     ) : onWaitlist ? (
                                         <div className="space-y-2">
-                                            <div className="w-full bg-primary/10 text-primary border border-primary/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
+                                            <div className="w-full bg-primary text-white border border-primary/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-default">
                                                 <Check className="w-5 h-5" />
                                                 <span>You are on the waitlist</span>
                                             </div>
@@ -1184,7 +1184,7 @@ const EventDetail = () => {
                                                                     {formatEventPrice(ticket.price)}
                                                                 </div>
                                                                 {ticket.available && (
-                                                                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-success/10 text-success">
+                                                                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-success text-white">
                                                                         <Check className="w-3 h-3" /> Available
                                                                     </span>
                                                                 )}
@@ -1285,7 +1285,7 @@ const EventDetail = () => {
                                         <div className="flex items-center gap-3 mb-6">
                                             <h2 className="font-display text-2xl font-bold">Yatris going</h2>
                                             {event.attendees && event.attendees.length > 0 && (
-                                                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
+                                                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-semibold rounded-full bg-primary text-white border border-primary/20">
                                                     {event.attendees.length} {event.attendees.length === 1 ? 'Person' : 'People'}
                                                 </span>
                                             )}

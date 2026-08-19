@@ -102,7 +102,7 @@ const saveButtonClass =
 
 const STATUS_PILL: Record<ApplicationStatus, { label: string; className: string }> = {
     pending: { label: "Pending", className: "bg-brand-100 text-brand-700" },
-    approved: { label: "Approved", className: "bg-primary/10 text-primary" },
+    approved: { label: "Approved", className: "bg-primary text-white" },
     rejected: { label: "Rejected", className: "bg-destructive text-white" },
 };
 

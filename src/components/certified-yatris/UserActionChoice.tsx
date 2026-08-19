@@ -32,7 +32,7 @@ export const UserActionChoice = ({ onShareAchievement, userFullName }: UserActio
                     onClick={() => navigate('/events')}
                 >
                     <div className="h-full flex flex-col items-center text-center space-y-6">
-                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center group-hover:bg-primary transition-colors text-white">
                             <Calendar className="w-10 h-10 text-primary" />
                         </div>
                         <div>
@@ -55,7 +55,7 @@ export const UserActionChoice = ({ onShareAchievement, userFullName }: UserActio
                     onClick={onShareAchievement}
                 >
                     <div className="h-full flex flex-col items-center text-center space-y-6">
-                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center group-hover:bg-primary transition-colors text-white">
                             <Award className="w-10 h-10 text-primary" />
                         </div>
                         <div>

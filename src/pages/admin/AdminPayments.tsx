@@ -230,7 +230,7 @@ export default function AdminPayments() {
             ) : (
                 <>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                        <StatsCard title="Total receipts" value={dateFiltered.length} icon={Receipt} color="bg-primary/10 text-primary" />
+                        <StatsCard title="Total receipts" value={dateFiltered.length} icon={Receipt} color="bg-primary text-white" />
                         <StatsCard title="Revenue in INR" value={formatInvoiceMoney(inrRevenue, "INR")} icon={IndianRupee} color="bg-emerald-500 text-white border-0" />
                         <StatsCard title="Paid in other currencies" value={otherCurrencyCount} icon={Globe} color="bg-blue-500 text-white border-0" />
                         <StatsCard title="Categories" value={Object.keys(byKind).length} icon={Layers} color="bg-amber-500 text-white border-0" />

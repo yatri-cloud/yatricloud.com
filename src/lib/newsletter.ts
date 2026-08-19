@@ -70,6 +70,20 @@ export async function subscribeToNewsletter(
     if (error.message.includes("duplicate")) return { ok: true };
     return { ok: false, error: error.message };
   }
+
+  // Send the welcome email
+  const html = getSubscriberWelcomeEmail(name || "Yatri", email.toLowerCase().trim());
+  try {
+    await sendEmail({
+      to: email.toLowerCase().trim(),
+      subject: "Welcome to the Yatri Cloud newsletter",
+      html,
+    });
+  } catch (err) {
+    console.error("Failed to send welcome email:", err);
+    // We don't return an error here because the subscription was successful
+  }
+
   return { ok: true };
 }
 
