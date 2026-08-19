@@ -225,7 +225,12 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
   if (event === "SIGNED_OUT" || !session) {
     setMirror(null);
-  } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+  } else if (
+    event === "SIGNED_IN" ||
+    event === "TOKEN_REFRESHED" ||
+    event === "USER_UPDATED" ||
+    event === "INITIAL_SESSION"
+  ) {
     // fire-and-forget profile refresh; mirror updates when it lands
     void fetchMyProfile();
   }

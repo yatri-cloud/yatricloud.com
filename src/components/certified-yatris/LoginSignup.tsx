@@ -104,13 +104,16 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       try {
         window.google.accounts.id.initialize({
           client_id: client_id,
-          callback: handleGoogleResponse
+          callback: handleGoogleResponse,
+          auto_select: true,
         });
 
         window.google.accounts.id.renderButton(
           document.getElementById("googleSignInDiv"),
           { theme: "outline", size: "large" }
         );
+
+        window.google.accounts.id.prompt();
       } catch (e) {
         console.error("Google Auth Init Error", e);
       }

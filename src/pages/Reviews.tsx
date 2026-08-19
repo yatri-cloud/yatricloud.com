@@ -335,8 +335,20 @@ const Reviews = () => {
                             <div className="flex items-center gap-2 min-w-0">
                               <h4 className="font-semibold text-lg truncate">{r.name}</h4>
                               {r.linkedinProfile && (
-                                <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="flex-shrink-0 hover:opacity-80 transition">
-                                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/LinkedIn_icon.svg/960px-LinkedIn_icon.svg.png" alt="LinkedIn" className="w-4 h-4 object-contain" width={16} height={16} />
+                                <a
+                                  href={r.linkedinProfile}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="LinkedIn profile"
+                                  className="flex-shrink-0 inline-flex items-center justify-center transition-transform duration-200 hover:scale-110"
+                                >
+                                  <img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/500px-LinkedIn_logo_initials.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+                                    alt="LinkedIn"
+                                    className="w-4 h-4 object-contain"
+                                    width={16}
+                                    height={16}
+                                  />
                                 </a>
                               )}
                             </div>
@@ -353,22 +365,26 @@ const Reviews = () => {
                           <div className="mt-2 flex items-center justify-between">
                             <div>
                               {providerInfo && (
-                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm w-fit">
+                                <div className="inline-flex items-center justify-center p-1.5 rounded-full bg-muted/60 w-fit" title={providerInfo.label}>
                                   {isLinkedinProvider ? (
-                                    <Linkedin className="w-5 h-5 text-[#0A66C2] flex-shrink-0" aria-hidden="true" />
+                                    <img
+                                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/500px-LinkedIn_logo_initials.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+                                      alt={providerInfo.label}
+                                      className="w-5 h-5 object-contain flex-shrink-0"
+                                      width={20}
+                                      height={20}
+                                    />
                                   ) : logoUrl ? (
-                                    <img src={logoUrl} alt="" className="w-5 h-5 object-contain flex-shrink-0" width={20} height={20} />
+                                    <img src={logoUrl} alt={providerInfo.label} className="w-5 h-5 object-contain flex-shrink-0" width={20} height={20} />
                                   ) : null}
-                                  <span>{providerInfo.label}</span>
                                 </div>
                               )}
                             </div>
 
                             <div>
                               {r.country && (
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/60 border border-border/60 text-sm" title={getCountryName(r.country)}>
+                                <div className="inline-flex items-center justify-center p-1 rounded-lg bg-background/60 border border-border/60 text-base" title={getCountryName(r.country) || r.country}>
                                   <span className="text-lg leading-none">{getCountryFlag(r.country)}</span>
-                                  <span className="text-muted-foreground">{getCountryName(r.country) || r.country}</span>
                                 </div>
                               )}
                             </div>

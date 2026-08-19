@@ -50,7 +50,11 @@ const TrainerLogin = () => {
             const ready = await loadGoogleIdentity();
             if (!ready || cancelled || !window.google || !btnRef.current) return;
             try {
-                window.google.accounts.id.initialize({ client_id, callback: handleGoogleResponse });
+                window.google.accounts.id.initialize({
+                    client_id,
+                    callback: handleGoogleResponse,
+                    auto_select: true,
+                });
                 window.google.accounts.id.renderButton(btnRef.current, {
                     theme: "outline",
                     size: "large",
@@ -58,6 +62,7 @@ const TrainerLogin = () => {
                     text: "continue_with",
                     shape: "pill",
                 });
+                window.google.accounts.id.prompt();
             } catch (e) {
                 console.error("Google Auth init error", e);
             }

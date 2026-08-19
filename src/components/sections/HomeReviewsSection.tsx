@@ -1,17 +1,9 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Linkedin } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import ScrollReveal from "@/components/ScrollReveal";
-import { useTheme } from "@/components/ThemeProvider";
-import {
-  CERTIFICATION_PROVIDER_LOGOS,
-  getCertificationLogoUrl,
-} from "@/lib/certification-logos";
-import { getCountryFlag, getCountryName } from "@/lib/country-flag";
 import { useReviews } from "@/hooks/use-reviews";
 import { Button } from "@/components/ui/button";
-
-const REVIEWS_LIMIT = 6;
 
 // Soft top/bottom fade so cards enter/exit the wall smoothly.
 const WALL_MASK: React.CSSProperties = {
@@ -22,122 +14,128 @@ const WALL_MASK: React.CSSProperties = {
 };
 
 export const HomeReviewsSection = () => {
-  const { theme } = useTheme();
-  const { reviews, loading, error } = useReviews(REVIEWS_LIMIT);
-  const resolvedTheme = theme;
-  const displayReviews = reviews.slice(0, REVIEWS_LIMIT);
+  const { reviews, loading, error } = useReviews(100);
   const prefersReducedMotion = useReducedMotion();
 
-  // Presentational card renderer — identical markup/data to the previous grid.
+  // Filter strictly positive reviews (4-5 stars) and dynamically rotate them on each visit
+  const displayReviews = useMemo(() => {
+    if (!reviews || reviews.length === 0) return [];
+
+    // Strictly positive reviews only (rating >= 4) with non-empty text
+    const positiveOnly = reviews.filter(
+      (r) => (Number(r.rating) || 5) >= 4 && r.feedback && r.feedback.trim().length > 0
+    );
+
+    if (positiveOnly.length === 0) return [];
+
+    // Calculate quality score for each positive review (5-stars, detailed long text, linkedin verification)
+    const scored = positiveOnly.map((r) => {
+      const rating = Number(r.rating) || 5;
+      const len = r.feedback ? r.feedback.trim().length : 0;
+      const starBonus = rating === 5 ? 60 : 20;
+      const linkedinBonus = r.linkedinProfile ? 40 : 0;
+      const textScore = Math.min(len, 250);
+      const baseScore = starBonus + textScore + linkedinBonus;
+      // Add random factor so each visit yields a fresh, dynamic rotation of top reviews
+      const randomJitter = Math.random() * 35;
+      return { review: r, totalScore: baseScore + randomJitter };
+    });
+
+    // Sort by dynamic score descending
+    scored.sort((a, b) => b.totalScore - a.totalScore);
+
+    return scored.slice(0, 18).map((item) => item.review);
+  }, [reviews]);
+
+  // Presentational card renderer — clean name, stars, linkedin, feedback
   const renderCard = (
     r: (typeof displayReviews)[number],
     keyPrefix: string,
   ) => {
-    const providerKey = r.provider?.trim().toLowerCase();
-    const providerInfo = providerKey
-      ? CERTIFICATION_PROVIDER_LOGOS[providerKey] ||
-        Object.values(CERTIFICATION_PROVIDER_LOGOS).find(
-          (info) => info.label.toLowerCase() === providerKey
-        )
-      : null;
-    const providerId = providerKey === "linkedin" || providerInfo?.label?.toLowerCase() === "linkedin"
-      ? "linkedin"
-      : providerKey || "";
-    const logoUrl =
-      providerId && providerInfo
-        ? getCertificationLogoUrl(providerId, resolvedTheme)
-        : undefined;
-    const isLinkedinProvider = providerId === "linkedin";
     return (
       <article
         key={`${keyPrefix}-${r.id ?? Math.random()}`}
         className="bg-card border border-border rounded-2xl p-6 hover:border-primary/40 hover:shadow-card transition-all duration-300 flex flex-col"
       >
-        <div className="flex items-start justify-between gap-4 mb-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-display font-bold tracking-tight text-lg text-foreground truncate">
-                {r.name}
-              </h3>
-              {r.linkedinProfile && (
-                <a href={r.linkedinProfile} target="_blank" rel="noreferrer" title="LinkedIn profile" className="flex-shrink-0 text-primary hover:opacity-80 transition">
-                  {/* Inline icon — the Wikimedia-hosted logo set a third-party cookie */}
-                  <Linkedin className="w-4 h-4" aria-hidden="true" />
-                  <span className="sr-only">LinkedIn</span>
-                </a>
-              )}
-            </div>
-            {/* Provider on left */}
-            {providerInfo && (
-              <div className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm w-fit">
-                {isLinkedinProvider ? (
-                  <Linkedin className="w-5 h-5 text-[#0A66C2] flex-shrink-0" aria-hidden="true" />
-                ) : logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt=""
-                    className="w-5 h-5 object-contain flex-shrink-0"
-                    width={20}
-                    height={20}
-                  />
-                ) : null}
-                <span className="text-foreground">
-                  {providerInfo.label}
-                </span>
-              </div>
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="font-display font-bold tracking-tight text-lg text-foreground truncate">
+              {r.name}
+            </h3>
+            {r.linkedinProfile && (
+              <a
+                href={r.linkedinProfile}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="LinkedIn profile"
+                className="flex-shrink-0 inline-flex items-center justify-center transition-transform duration-200 hover:scale-110"
+              >
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/500px-LinkedIn_logo_initials.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+                  alt="LinkedIn"
+                  className="w-4 h-4 object-contain"
+                  width={16}
+                  height={16}
+                />
+                <span className="sr-only">LinkedIn</span>
+              </a>
             )}
           </div>
-          <div className="flex flex-col items-end gap-1 flex-shrink-0">
-            <div className="flex items-center gap-0.5" role="img" aria-label={`Rated ${Number(r.rating)} out of 5 stars`}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg
-                  key={i}
-                  viewBox="0 0 24 24"
-                  width={18}
-                  height={18}
-                  className={
-                    i < Number(r.rating)
-                      ? "text-amber-400"
-                      : "text-muted-foreground"
-                  }
-                  fill={
-                    i < Number(r.rating) ? "currentColor" : "none"
-                  }
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.2}
-                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                  />
-                </svg>
-              ))}
-            </div>
-            {r.country && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/60 border border-border/60 text-sm" title={getCountryName(r.country)}>
-                <span className="text-lg leading-none">{getCountryFlag(r.country)}</span>
-                <span className="text-muted-foreground">{getCountryName(r.country) || r.country}</span>
-              </div>
-            )}
+          <div className="flex items-center gap-0.5 flex-shrink-0" role="img" aria-label={`Rated ${Number(r.rating)} out of 5 stars`}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <svg
+                key={i}
+                viewBox="0 0 24 24"
+                width={18}
+                height={18}
+                className={
+                  i < Number(r.rating)
+                    ? "text-amber-400"
+                    : "text-muted-foreground"
+                }
+                fill={
+                  i < Number(r.rating) ? "currentColor" : "none"
+                }
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.2}
+                  d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                />
+              </svg>
+            ))}
           </div>
         </div>
 
-        <p className="mt-4 text-foreground text-sm flex-1 line-clamp-3">
+        <p className="mt-3 text-foreground text-sm flex-1 leading-relaxed line-clamp-4">
           {r.feedback}
         </p>
       </article>
     );
   };
 
+  // Helper to guarantee enough cards so columns loop smoothly without blank gaps
+  const prepareColCards = (items: typeof displayReviews) => {
+    if (items.length === 0) return [];
+    let list = [...items];
+    while (list.length < 5) {
+      list = [...list, ...items];
+    }
+    // Duplicate set for seamless continuous 50% loop
+    return [...list, ...list];
+  };
+
   // Split reviews round-robin into 3 columns for the animated wall.
   const columns: (typeof displayReviews)[] = [[], [], []];
   displayReviews.forEach((r, i) => columns[i % 3].push(r));
+
   // Column motion: up / down / up at staggered speeds.
   const columnConfig = [
     { className: "wall-up", duration: "44s" },
-    { className: "wall-down", duration: "34s" },
-    { className: "wall-up", duration: "52s" },
+    { className: "wall-down", duration: "36s" },
+    { className: "wall-up", duration: "50s" },
   ];
 
   return (
@@ -170,7 +168,7 @@ export const HomeReviewsSection = () => {
             {prefersReducedMotion ? (
               /* Reduced motion: calm static grid, no auto-scroll. */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                {displayReviews.map((r, index) => (
+                {displayReviews.slice(0, 6).map((r, index) => (
                   <ScrollReveal key={r.id ?? Math.random()} delay={index * 0.06}>
                     {renderCard(r, "static")}
                   </ScrollReveal>
@@ -189,17 +187,18 @@ export const HomeReviewsSection = () => {
                       className="wall-col wall-up group-hover:[animation-play-state:paused] flex w-full max-w-sm flex-col gap-6 px-1"
                       style={{ animationDuration: "40s" }}
                     >
-                      {[...displayReviews, ...displayReviews].map((r, i) =>
+                      {prepareColCards(displayReviews).map((r, i) =>
                         renderCard(r, `m-${i}`),
                       )}
                     </div>
                   </div>
 
-                  {/* Desktop: 3 columns auto-scrolling at different speeds/directions. */}
+                  {/* Desktop: 3 columns auto-scrolling at different speeds/directions without gaps. */}
                   <div className="hidden md:grid grid-cols-3 gap-6 h-full">
                     {columns.map((col, ci) => {
                       if (col.length === 0) return null;
                       const cfg = columnConfig[ci];
+                      const cards = prepareColCards(col);
                       return (
                         <div
                           key={`col-${ci}`}
@@ -209,7 +208,7 @@ export const HomeReviewsSection = () => {
                             className={`wall-col ${cfg.className} group-hover:[animation-play-state:paused] flex w-full flex-col gap-6`}
                             style={{ animationDuration: cfg.duration }}
                           >
-                            {[...col, ...col].map((r, i) =>
+                            {cards.map((r, i) =>
                               renderCard(r, `c${ci}-${i}`),
                             )}
                           </div>
@@ -222,7 +221,10 @@ export const HomeReviewsSection = () => {
             )}
 
             <ScrollReveal delay={0.2}>
-              <div className="text-center mt-10">
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
+                <Button asChild size="lg">
+                  <Link to="/review">Add review</Link>
+                </Button>
                 <Button asChild variant="outline" size="lg">
                   <Link to="/reviews">View all reviews</Link>
                 </Button>
@@ -234,3 +236,4 @@ export const HomeReviewsSection = () => {
     </section>
   );
 };
+
