@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, BookOpen, Calendar, Receipt, ArrowRight, MapPin, GraduationCap, ShoppingBag, Handshake, Award } from "lucide-react";
+import { Loader2, BookOpen, Calendar, Receipt, ArrowRight, MapPin, GraduationCap, ShoppingBag, Handshake, Award, BookMarked } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -19,8 +19,8 @@ import { format } from "date-fns";
 const BROWSE_LINKS = [
     { name: "Training", path: "/training", icon: GraduationCap, description: "Live and self paced courses." },
     { name: "Events", path: "/events", icon: Calendar, description: "Workshops and community events." },
+    { name: "Resources", path: "/resources", icon: BookMarked, description: "Free and premium study materials." },
     { name: "Store", path: "/yatristore", icon: ShoppingBag, description: "Vouchers, guides and more." },
-    { name: "Mentorship", path: "/mentorship", icon: Handshake, description: "Book a session with a mentor." },
 ];
 
 export default function YatriDashboard() {

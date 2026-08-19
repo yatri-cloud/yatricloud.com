@@ -2,7 +2,7 @@ import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
     CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag,
-    FilePen, Mail, ShieldCheck, Sparkles, LifeBuoy, type LucideIcon,
+    FilePen, Mail, ShieldCheck, Sparkles, LifeBuoy, BookMarked, type LucideIcon,
 } from "lucide-react";
 
 
@@ -116,6 +116,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: ShoppingBag,
         items: [
             { name: "Store products", path: "/admin/products", icon: Plus, description: "List, edit, publish, or remove store products." },
+            { name: "Resources", path: "/admin/resources", icon: BookMarked, description: "Manage free and paid learning resources (exam guides, practice tests, etc.)." },
             { name: "Exam dumps", path: "/admin/exam-dumps", icon: List, description: "Manage exam dump listings." },
             { name: "Udemy courses", path: "/admin/udemy", icon: GraduationCap, description: "Manage Udemy course listings." },
         ],

@@ -70,6 +70,7 @@ export const FALLBACK_FORM_PROVIDERS: FormProvider[] = [
   { slug: "openai", label: "OpenAI", enumValue: "OPENAI", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318" },
   { slug: "hashicorp", label: "HashiCorp Certified", enumValue: "HASHICORP", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
   { slug: "kubernetes", label: "Kubernetes Certified", enumValue: "KUBERNETES", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707", brandColor: "#326CE5" },
+  { slug: "redis", label: "Redis", enumValue: "REDIS", logoUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg", brandColor: "#DC382D" },
 ];
 
 /**
@@ -94,6 +95,7 @@ export const FALLBACK_HOME_PROVIDERS: HomeProvider[] = [
   { slug: "servicenow", name: "ServiceNow", short: "SNOW", count: 10, blurb: "ITSM & automation", logo: "/logos/servicenow.svg" },
   { slug: "cncf", name: "CNCF", short: "CNCF", count: 10, blurb: "Cloud-native tech", logo: "/logos/cncf.svg" },
   { slug: "nvidia", name: "NVIDIA", short: "NVIDIA", count: 8, blurb: "AI & deep learning", logo: "/logos/nvidia.svg" },
+  { slug: "redis", name: "Redis", short: "Redis", count: 6, blurb: "In-memory data & caching", logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg" },
 ];
 
 /** Provider logos used by the certification form. */
@@ -108,6 +110,7 @@ export const FALLBACK_PROVIDER_LOGOS: Record<string, ProviderLogo> = {
   openai: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318" },
   hashicorp: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/1280px-Terraform_Logo.svg.png?20181016201549" },
   kubernetes: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/1280px-Kubernetes_logo_without_workmark.svg.png?20190926210707" },
+  redis: { logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg" },
 };
 
 /** Brand hex colors per provider slug. */
@@ -123,6 +126,7 @@ export const FALLBACK_PROVIDER_COLORS: Record<string, string> = {
   salesforce: "#00A1E0",
   oracle: "#F80000",
   servicenow: "#00A82E",
+  redis: "#DC382D",
 };
 
 /** The provider choices on the review form, with their exact labels. */
@@ -138,6 +142,7 @@ export const FALLBACK_REVIEW_PROVIDERS: ReviewProvider[] = [
   { id: "salesforce", label: "Salesforce", color: "#00A1E0" },
   { id: "oracle", label: "Oracle", color: "#F80000" },
   { id: "servicenow", label: "ServiceNow", color: "#00A82E" },
+  { id: "redis", label: "Redis", color: "#DC382D" },
 ];
 
 /**
@@ -203,6 +208,10 @@ export const FALLBACK_CERTIFICATION_PROVIDER_LOGOS: Record<string, Certification
     label: "OpenAI",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318",
   },
+  redis: {
+    label: "Redis",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg",
+  },
 };
 
 /**
@@ -224,6 +233,7 @@ export const FALLBACK_VOUCHER_PROVIDERS: string[] = [
   "OpenAI",
   "HashiCorp Certified",
   "Kubernetes Certified",
+  "Redis",
   "Other",
 ];
 
@@ -239,6 +249,7 @@ const VOUCHER_LABELS_BY_SLUG: Record<string, string> = {
   openai: "OpenAI",
   hashicorp: "HashiCorp Certified",
   kubernetes: "Kubernetes Certified",
+  redis: "Redis",
 };
 
 /** Every certification per provider slug, copied from the live catalog. */
@@ -655,6 +666,14 @@ export const FALLBACK_PROVIDER_CERTS: Record<string, CatalogCert[]> = {
     { value: "ckad", label: "Certified Kubernetes Application Developer (CKAD)", examCode: "CKAD" },
     { value: "cka", label: "Certified Kubernetes Administrator (CKA)", examCode: "CKA" },
     { value: "cks", label: "Certified Kubernetes Security Specialist (CKS)", examCode: "CKS" },
+  ],
+  redis: [
+    { value: "redis-associate-cloud-operator", label: "Redis Associate Cloud Operator Certification Exam", examCode: "REDIS-CLOUD-OP" },
+    { value: "redis-associate-software-operator", label: "Redis Associate Software Operator Certification Exam", examCode: "REDIS-SW-OP" },
+    { value: "redis-associate-developer-java", label: "Redis Associate Developer Certification Exam (Java)", examCode: "REDIS-DEV-JAVA" },
+    { value: "redis-associate-developer-javascript", label: "Redis Associate Developer Certification (JavaScript)", examCode: "REDIS-DEV-JS" },
+    { value: "redis-associate-developer-python", label: "Redis Associate Developer Certification (Python)", examCode: "REDIS-DEV-PY" },
+    { value: "redis-associate-developer-dotnet", label: "Redis Associate Developer Certification (.NET)", examCode: "REDIS-DEV-NET" },
   ],
 };
 

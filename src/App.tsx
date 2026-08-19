@@ -139,6 +139,11 @@ const AdminMentorReviews = lazy(() => import("./pages/admin/AdminMentorReviews")
 const AdminTrainingReviews = lazy(() => import("./pages/admin/AdminTrainingReviews"));
 const AdminMentorshipOverview = lazy(() => import("./pages/admin/AdminMentorshipOverview"));
 const TrainerCreateCourse = lazy(() => import("@/pages/trainer/TrainerCreateCourse"));
+const Resources = lazy(() => import("./pages/Resources"));
+const MyResources = lazy(() => import("./pages/MyResources"));
+const AdminResources = lazy(() => import("./pages/admin/AdminResources"));
+const AdminAddResource = lazy(() => import("./pages/admin/AdminAddResource"));
+const AdminEditResource = lazy(() => import("./pages/admin/AdminEditResource"));
 const queryClient = new QueryClient();
 
 // Floating checkout pill: mounts only when the cart has items, and stays off
@@ -224,6 +229,7 @@ const App = () => (
               <Route path="/udemy" element={<Udemy />} />
               <Route path="/yatristore" element={<YatriStore />} />
               <Route path="/examdumps" element={<ExamDumps />} />
+              <Route path="/resources" element={<Resources />} />
               <Route path="/training" element={<Training />} />
               <Route path="/training/:slug/dashboard" element={<StudentTrainingDashboard />} />
               {/* Backward-compatible fallback: resolves by slug or id so old bookmarks keep working */}
@@ -266,6 +272,7 @@ const App = () => (
               <Route path="/certificates" element={<MyCertificates />} />
               <Route path="/profile/my-events" element={<MyEvents />} />
               <Route path="/my-trainings" element={<MyTrainings />} />
+              <Route path="/profile/my-resources" element={<MyResources />} />
               <Route path="/profile/purchases" element={<MyPurchases />} />
               <Route path="/receipt/:invoiceNumber" element={<ReceiptView />} />
               <Route path="/profile/guide" element={<GuideView type="user" />} />
@@ -329,6 +336,9 @@ const App = () => (
                 <Route path="exam-dumps" element={<AdminExamDumps />} />
                 <Route path="exam-dumps/add" element={<AdminAddExamDump />} />
                 <Route path="exam-dumps/edit/:id" element={<AdminEditExamDump />} />
+                <Route path="resources" element={<AdminResources />} />
+                <Route path="resources/add" element={<AdminAddResource />} />
+                <Route path="resources/edit/:id" element={<AdminEditResource />} />
                 <Route path="ai-settings" element={<AdminAISettings />} />
                 <Route path="guide" element={<GuideView type="admin" />} />
                 <Route path="sitemap" element={<AdminSitemapView />} />

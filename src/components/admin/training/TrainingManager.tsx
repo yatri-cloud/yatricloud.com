@@ -1070,7 +1070,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div>
                                                     <Label htmlFor="resource-name" className="block text-sm font-medium mb-1.5">Resource Name</Label>
-                                                    <Input id="resource-name" placeholder="e.g., Study Guide" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                                    <Input id="resource-name" placeholder="e.g., Exam Guide" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                                 </div>
                                                 <div>
                                                     <Label htmlFor="resource-url" className="block text-sm font-medium mb-1.5">Resource URL</Label>
@@ -1138,7 +1138,7 @@ export default function TrainingManager({ initialId, initialData, isTrainerMode 
                                                 </div>
                                                 <div>
                                                     <Label htmlFor="resource-name-upload" className="block text-sm font-medium mb-1.5">Resource Name</Label>
-                                                    <Input id="resource-name-upload" placeholder="e.g., Study Guide" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
+                                                    <Input id="resource-name-upload" placeholder="e.g., Exam Guide" className="h-11 rounded-xl border border-input bg-background focus:ring-2 focus:ring-ring focus:border-primary" />
                                                 </div>
                                             </div>
 
