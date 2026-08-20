@@ -22,6 +22,7 @@ import { getStoredUser, isAuthenticated } from "@/lib/yatris-api";
 import { getCachedUser } from "@/lib/auth";
 import { trackEvent } from "@/lib/analytics";
 import { ListPager } from "@/components/ui/list-pager";
+import { useSearchTracker } from "@/hooks/usePageTracker";
 
 const PAGE_SIZE = 12;
 
@@ -32,6 +33,7 @@ const fadeUp = {
 
 export default function Resources() {
   const navigate = useNavigate();
+  const trackSearch = useSearchTracker("Resource");
   const [searchParams, setSearchParams] = useSearchParams();
   const [resources, setResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -242,7 +244,10 @@ export default function Resources() {
                 placeholder="Search resources…"
                 className="min-h-[38px] h-9.5 rounded-lg text-xs sm:text-sm"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  trackSearch(e.target.value);
+                }}
               />
             </div>
 

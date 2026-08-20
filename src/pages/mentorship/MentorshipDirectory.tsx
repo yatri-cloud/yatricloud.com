@@ -12,6 +12,7 @@ import {
   getMentors,
   getAllServices,
 } from "@/lib/mentorship";
+import { useSearchTracker } from "@/hooks/usePageTracker";
 
 const SITE_URL = "https://www.yatricloud.com";
 
@@ -35,6 +36,7 @@ const SORT_OPTIONS: { id: SortOption; label: string }[] = [
 ];
 
 const MentorshipDirectory = () => {
+  const trackSearch = useSearchTracker("Mentorship");
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [services, setServices] = useState<MentorshipService[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -184,7 +186,10 @@ const MentorshipDirectory = () => {
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    trackSearch(e.target.value);
+                  }}
                   placeholder="Search by name, headline or expertise"
                   aria-label="Search mentors"
                   className="w-full min-h-[44px] rounded-full border border-border bg-card px-5 pr-11 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

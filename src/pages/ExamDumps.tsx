@@ -15,11 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ListPager } from "@/components/ui/list-pager";
+import { useSearchTracker } from "@/hooks/usePageTracker";
 
 const PAGE_SIZE = 9;
 
 const ExamDumps = () => {
   const navigate = useNavigate();
+  const trackSearch = useSearchTracker("ExamDump");
   const [dumps, setDumps] = useState<ExamDump[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   /* Community-size claim comes from admin-managed site_stats. */
@@ -151,7 +153,10 @@ const ExamDumps = () => {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <Input
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  trackSearch(e.target.value);
+                }}
                 placeholder="Search dumps by exam or provider"
                 aria-label="Search exam dumps"
                 className="h-10 rounded-full pl-9"

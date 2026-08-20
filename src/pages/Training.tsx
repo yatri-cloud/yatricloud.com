@@ -17,6 +17,7 @@ import {
     statValue,
     FALLBACK_STATS,
 } from "@/lib/site-content";
+import { useSearchTracker } from "@/hooks/usePageTracker";
 
 /* Expand "50K+" style stat values to "50,000+" so the trust cue reads
  * exactly like today's copy. Non K values pass through untouched. */
@@ -47,6 +48,7 @@ interface Course {
 }
 
 export default function Training() {
+    const trackSearch = useSearchTracker("Training");
     const [courses, setCourses] = useState<Course[]>([]);
     const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -153,7 +155,10 @@ export default function Training() {
                                     aria-label="Search training courses"
                                     className="h-14 border-none bg-transparent pl-12 text-base focus-visible:ring-0"
                                     value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
+                                    onChange={e => {
+                                        setSearchQuery(e.target.value);
+                                        trackSearch(e.target.value);
+                                    }}
                                 />
                             </div>
                         </motion.div>

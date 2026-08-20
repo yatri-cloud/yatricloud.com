@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
+import { useSearchTracker } from "@/hooks/usePageTracker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -63,6 +64,7 @@ const PostCard = ({ post }: { post: FeedPost }) => (
 );
 
 const Blog = () => {
+  const trackSearch = useSearchTracker("Blog");
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -110,7 +112,16 @@ const Blog = () => {
         {/* Toolbar */}
         <div className="mt-8 flex flex-col gap-3">
           <div className="relative">
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search stories…" aria-label="Search stories" className="h-11 rounded-full px-4" />
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                trackSearch(e.target.value);
+              }}
+              placeholder="Search stories…"
+              aria-label="Search stories"
+              className="h-11 rounded-full px-4"
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={() => setTag(null)} className={`rounded-full border px-3 py-1 text-xs font-semibold ${!tag ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>All</button>

@@ -1,19 +1,47 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { trackPageView } from "@/lib/analytics";
 
 /**
- * Drop this hook inside your root App component ONCE.
- * It will automatically track every page navigation across the entire site.
+ * Mounted once in App.tsx (inside BrowserRouter).
+ * Tracks every user-facing page navigation automatically.
+ * Admin routes (/admin/*) are intentionally excluded.
  */
 export function usePageTracker() {
   const location = useLocation();
 
   useEffect(() => {
-    // Small delay so the document title has time to update
+    // Skip all admin pages — we only want user-facing analytics
+    if (location.pathname.startsWith("/admin")) return;
+
+    // Small delay so document.title has time to update after navigation
     const timer = setTimeout(() => {
       trackPageView(location.pathname, document.title);
-    }, 100);
+    }, 150);
+
     return () => clearTimeout(timer);
   }, [location.pathname]);
+}
+
+/**
+ * Returns a debounced search tracker.
+ * Call the returned function in your search onChange handler.
+ * Fires after the user stops typing for `delay` ms (default 1500ms).
+ *
+ * Usage:
+ *   const trackSearchInput = useSearchTracker("Resource");
+ *   <input onChange={e => { setSearch(e.target.value); trackSearchInput(e.target.value); }} />
+ */
+export function useSearchTracker(category: string, delay = 1500) {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  return (query: string) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!query.trim() || query.trim().length < 2) return;
+    timerRef.current = setTimeout(async () => {
+      // Dynamically import to keep the initial bundle small
+      const { trackSearch } = await import("@/lib/analytics");
+      trackSearch(query.trim(), category as any);
+    }, delay);
+  };
 }

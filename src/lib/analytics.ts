@@ -2,6 +2,7 @@ import { supabase } from "./supabase";
 
 export type EventCategory =
   | "Resource"
+  | "ExamDump"
   | "Event"
   | "Training"
   | "Mentorship"
@@ -11,7 +12,9 @@ export type EventCategory =
   | "Certification"
   | "Community"
   | "Support"
+  | "Tool"
   | "System"
+  | "Homepage"
   | "Page";
 
 export type EventName =
@@ -79,7 +82,7 @@ export function trackPageView(pathname: string, title?: string) {
   const category = pathToCategory(pathname);
   trackEvent("visit", category, undefined, {
     page: pathname,
-    title: title || document?.title,
+    title: title || (typeof document !== "undefined" ? document.title : undefined),
   });
 }
 
@@ -95,16 +98,19 @@ export function trackSearch(query: string, category: EventCategory = "System", r
 }
 
 function pathToCategory(path: string): EventCategory {
-  if (path.startsWith("/resources")) return "Resource";
-  if (path.startsWith("/events") || path.startsWith("/upcoming-event")) return "Event";
-  if (path.startsWith("/training")) return "Training";
-  if (path.startsWith("/mentorship") || path.startsWith("/become-mentor")) return "Mentorship";
-  if (path.startsWith("/store") || path.startsWith("/yatri-store")) return "Store";
+  if (path === "/" || path === "") return "Homepage";
+  if (path.startsWith("/examdumps") || path.startsWith("/exam-dumps")) return "ExamDump";
+  if (path.startsWith("/yatristore") || path.startsWith("/store") || path.startsWith("/yatri-store") || path.startsWith("/mypurchases")) return "Store";
+  if (path.startsWith("/resources") || path.startsWith("/myresources")) return "Resource";
+  if (path.startsWith("/events") || path.startsWith("/upcoming-event") || path.startsWith("/myevents")) return "Event";
+  if (path.startsWith("/training") || path.startsWith("/mytrainings") || path.startsWith("/udemy") || path.startsWith("/student")) return "Training";
+  if (path.startsWith("/mentorship") || path.startsWith("/become-mentor") || path.startsWith("/mentor")) return "Mentorship";
   if (path.startsWith("/blog")) return "Blog";
-  if (path.startsWith("/job")) return "Job";
-  if (path.startsWith("/certification") || path.startsWith("/certified")) return "Certification";
-  if (path.startsWith("/community")) return "Community";
-  if (path.startsWith("/support")) return "Support";
+  if (path.startsWith("/jobs") || path.startsWith("/job")) return "Job";
+  if (path.startsWith("/certification") || path.startsWith("/certified") || path.startsWith("/achievements") || path.startsWith("/paths") || path.startsWith("/certificate")) return "Certification";
+  if (path.startsWith("/community") || path.startsWith("/reviews") || path.startsWith("/feedback")) return "Community";
+  if (path.startsWith("/support") || path.startsWith("/contact-us")) return "Support";
+  if (path.startsWith("/resume-maker") || path.startsWith("/requestvoucher")) return "Tool";
   return "Page";
 }
 

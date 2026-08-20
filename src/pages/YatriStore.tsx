@@ -17,11 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { ListPager } from "@/components/ui/list-pager";
 import { useSiteContent, getSiteStats, statValue, FALLBACK_STATS } from "@/lib/site-content";
 import { CartProvider, useCart } from "@/contexts/CartContext";
+import { useSearchTracker } from "@/hooks/usePageTracker";
 
 const PAGE_SIZE = 9;
 
 const YatriStore = () => {
   const navigate = useNavigate();
+  const trackSearch = useSearchTracker("Store");
   const prefersReducedMotion = useReducedMotion();
   const rise = prefersReducedMotion ? 0 : 18;
   /* Marketing claims come from admin-managed site_stats. */
@@ -177,7 +179,10 @@ const YatriStore = () => {
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <Input
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    trackSearch(e.target.value);
+                  }}
                   placeholder="Search vouchers by exam, provider or code"
                   aria-label="Search vouchers"
                   className="h-10 rounded-full pl-9"
