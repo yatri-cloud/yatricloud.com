@@ -122,7 +122,7 @@ const YatrisWorldwideInner = () => {
   const { theme } = useTheme();
   const [allMapMarkers, setAllMapMarkers] = useState<MapMarkerItem[]>([]);
   const [yatriMembers, setYatriMembers] = useState<MapMarkerItem[]>([]);
-  const [selectedMapProvider, setSelectedMapProvider] = useState<string>("YATRI");
+  const [selectedMapProvider, setSelectedMapProvider] = useState<string>("all");
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const refreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -178,96 +178,21 @@ const YatrisWorldwideInner = () => {
   return (
     <section className="py-14 md:py-24 band-tint">
       <div className="container mx-auto px-4 md:px-6 max-w-[1600px]">
-        <ScrollReveal delay={0.2}>
-          <div className="mb-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold font-display mb-2">
-                Yatris, <span className="gradient-text">worldwide</span>
-              </h2>
-              <p className="text-muted-foreground text-lg mb-3">
-                From your city to theirs — see where our certified Yatris call home.
-              </p>
-            </div>
+        <ScrollReveal>
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="font-display text-3xl md:text-5xl font-bold tracking-[-0.02em] text-foreground mb-4">
+              Our Yatris, worldwide
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto text-base md:text-lg">
+              Yatris learning, certifying, and building across states and countries.
+            </p>
+          </div>
+        </ScrollReveal>
 
-            {/* Map Provider Filter (temporarily hidden) */}
-            {/* 
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex bg-muted rounded-xl p-1 border border-border max-w-full overflow-x-auto scrollbar-hide">
-                <div className="inline-flex min-w-max gap-1">
-                  <button
-                    onClick={() => setSelectedMapProvider("YATRI")}
-                    className={`flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-lg font-semibold transition-all ${
-                      selectedMapProvider === "YATRI"
-                        ? "text-white shadow-md"
-                        : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                    }`}
-                    style={selectedMapProvider === "YATRI" ? { backgroundColor: YATRI_BLUE } : {}}
-                  >
-                    <img
-                      src="/logo-192.png"
-                      alt="Yatri Cloud"
-                      className="w-4 h-4 object-contain rounded-sm"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                    Our Yatris
-                  </button>
-
-                  <button
-                    onClick={() => setSelectedMapProvider("all")}
-                    className={`flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-lg font-semibold transition-all ${
-                      selectedMapProvider === "all"
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                    }`}
-                  >
-                    <BadgeCheck className="w-4 h-4" />
-                    All ({mergedMarkers.length})
-                  </button>
-
-                  {mapProviders.map((provider) => {
-                    const providerLogo = PROVIDER_LOGOS[provider];
-                    if (!providerLogo) return null;
-                    const providerCount = mergedMarkers.filter((m) => m.provider === provider).length;
-                    const logoSrc =
-                      provider === "AWS"
-                        ? theme === "dark" ? providerLogo.logo : (providerLogo.logoLight || providerLogo.logo)
-                        : theme === "dark"
-                        ? (providerLogo.logoLight || providerLogo.logo)
-                        : provider === "GITHUB"
-                        ? providerLogo.logo
-                        : (providerLogo.logoLight || providerLogo.logo);
-                    return (
-                      <button
-                        key={provider}
-                        onClick={() => setSelectedMapProvider(provider)}
-                        title={`${provider} (${providerCount})`}
-                        className={`group relative flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-lg font-semibold transition-all ${
-                          selectedMapProvider === provider
-                            ? "bg-primary text-primary-foreground shadow-md"
-                            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                        }`}
-                      >
-                        <img
-                          src={logoSrc}
-                          alt={provider}
-                          className={`w-5 h-5 object-contain transition-transform duration-200 group-hover:scale-110 ${
-                            provider === "GITHUB" && theme === "light" ? "invert" : ""
-                          }`}
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                        <span className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-out whitespace-nowrap text-xs font-semibold">
-                          {provider} ({providerCount})
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-            */}
-
+        <ScrollReveal delay={0.1}>
+          <div className="relative">
             <div className="bg-background rounded-2xl p-4 md:p-8 border border-border overflow-hidden">
-              <div className="w-full" style={{ height: "500px", minHeight: "500px", position: "relative" }}>
+              <div className="w-full" style={{ height: "520px", minHeight: "520px", position: "relative" }}>
                 <ComposableMap
                   projection="geoEquirectangular"
                   projectionConfig={{ scale: 147 }}
@@ -308,8 +233,9 @@ const YatrisWorldwideInner = () => {
                   {mapMarkers.map(({ country, state, city, provider, count, coordinates, color }, index) => {
                     const isYatri = provider === "YATRI";
                     const size = isYatri
-                      ? Math.max(4, Math.min(10, (count / maxCount) * 10))
-                      : Math.max(3, Math.min(8, (count / maxCount) * 8));
+                      ? Math.max(4, Math.min(8.5, 3.5 + Math.sqrt(count / maxCount) * 5))
+                      : Math.max(3.2, Math.min(7, 3 + Math.sqrt(count / maxCount) * 4));
+                    const locationLabel = [city, state, country].filter(Boolean).join(", ");
                     return (
                       <Marker
                         key={`${country}-${state}-${city}-${provider}-${index}`}
@@ -318,23 +244,23 @@ const YatrisWorldwideInner = () => {
                         <g>
                           <title>
                             {isYatri
-                              ? `Our Yatris in ${city || state || country}`
-                              : `${provider} — ${city || state || country}`}
+                              ? `Our Yatris in ${locationLabel}`
+                              : `${provider} — ${locationLabel}`}
                           </title>
 
                           {/* Pulse ring for Yatri member dots */}
                           {isYatri && (
                             <motion.circle
-                              r={size + 4}
+                              r={size + 3}
                               fill="none"
                               stroke={YATRI_BLUE}
-                              strokeWidth={1.2}
+                              strokeWidth={1}
                               opacity={0}
-                              animate={{ r: [size + 2, size + 9], opacity: [0.7, 0] }}
+                              animate={{ r: [size + 1, size + 7], opacity: [0.65, 0] }}
                               transition={{
-                                duration: 2,
+                                duration: 2.2,
                                 repeat: Infinity,
-                                delay: index * 0.15 % 2,
+                                delay: (index * 0.12) % 2,
                                 ease: "easeOut",
                               }}
                             />
@@ -344,12 +270,12 @@ const YatrisWorldwideInner = () => {
                           <motion.circle
                             r={size}
                             fill={color}
-                            stroke={isYatri ? "#ffffff" : "#ffffff"}
-                            strokeWidth={isYatri ? 1.2 : 0.8}
-                            opacity={isYatri ? 1 : 0.9}
+                            stroke="#ffffff"
+                            strokeWidth={1}
+                            opacity={isYatri ? 1 : 0.92}
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            transition={{ duration: 0.5, delay: index * 0.04 }}
+                            transition={{ duration: 0.4, delay: Math.min(index * 0.02, 0.6) }}
                             className="cursor-pointer"
                           />
                         </g>

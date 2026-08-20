@@ -59,32 +59,38 @@ export const COUNTRY_COORDINATES: Record<string, [number, number]> = {
 };
 
 export const STATE_COORDINATES: Record<string, [number, number]> = {
-  // Indian States & Territories
-  maharashtra: [75.7139, 19.7515],
-  gujarat: [71.1924, 22.2587],
-  karnataka: [75.7139, 15.3173],
-  "tamil nadu": [78.6569, 11.1271],
-  delhi: [77.1025, 28.7041],
-  "national capital territory of delhi": [77.1025, 28.7041],
-  telangana: [79.0193, 18.1124],
-  "andhra pradesh": [79.7400, 15.9129],
-  "uttar pradesh": [80.3297, 26.8467],
-  rajasthan: [74.2179, 27.0238],
-  "west bengal": [87.8550, 22.9868],
-  kerala: [76.2711, 10.8505],
-  punjab: [75.3412, 31.1471],
-  haryana: [76.0856, 29.0588],
-  "madhya pradesh": [78.6569, 22.9734],
-  bihar: [85.3131, 25.0961],
-  odisha: [85.0985, 20.9517],
-  assam: [92.9376, 26.2006],
-  jharkhand: [85.2799, 23.6102],
-  uttarakhand: [79.0193, 30.0668],
-  "himachal pradesh": [77.1734, 31.1048],
-  goa: [74.1240, 15.2993],
-  chandigarh: [76.7794, 30.7333],
-  "jammu and kashmir": [74.7973, 33.7782],
-  chhattisgarh: [81.8661, 21.2787],
+  // Indian States & Union Territories
+  maharashtra: [75.7139, 19.7515], mh: [75.7139, 19.7515],
+  gujarat: [71.1924, 22.2587], gj: [71.1924, 22.2587],
+  karnataka: [75.7139, 15.3173], ka: [75.7139, 15.3173],
+  "tamil nadu": [78.6569, 11.1271], tn: [78.6569, 11.1271],
+  delhi: [77.1025, 28.7041], dl: [77.1025, 28.7041],
+  "national capital territory of delhi": [77.1025, 28.7041], ncr: [77.1025, 28.7041],
+  telangana: [79.0193, 18.1124], ts: [79.0193, 18.1124], tg: [79.0193, 18.1124],
+  "andhra pradesh": [79.7400, 15.9129], ap: [79.7400, 15.9129],
+  "uttar pradesh": [80.3297, 26.8467], up: [80.3297, 26.8467],
+  rajasthan: [74.2179, 27.0238], rj: [74.2179, 27.0238],
+  "west bengal": [87.8550, 22.9868], wb: [87.8550, 22.9868],
+  kerala: [76.2711, 10.8505], kl: [76.2711, 10.8505],
+  punjab: [75.3412, 31.1471], pb: [75.3412, 31.1471],
+  haryana: [76.0856, 29.0588], hr: [76.0856, 29.0588],
+  "madhya pradesh": [78.6569, 22.9734], mp: [78.6569, 22.9734],
+  bihar: [85.3131, 25.0961], br: [85.3131, 25.0961],
+  odisha: [85.0985, 20.9517], or: [85.0985, 20.9517], od: [85.0985, 20.9517],
+  assam: [92.9376, 26.2006], as: [92.9376, 26.2006],
+  jharkhand: [85.2799, 23.6102], jh: [85.2799, 23.6102],
+  uttarakhand: [79.0193, 30.0668], uk: [79.0193, 30.0668], ut: [79.0193, 30.0668],
+  "himachal pradesh": [77.1734, 31.1048], hp: [77.1734, 31.1048],
+  goa: [74.1240, 15.2993], ga: [74.1240, 15.2993],
+  chandigarh: [76.7794, 30.7333], ch: [76.7794, 30.7333],
+  "jammu and kashmir": [74.7973, 33.7782], jk: [74.7973, 33.7782],
+  chhattisgarh: [81.8661, 21.2787], cg: [81.8661, 21.2787],
+  puducherry: [79.8083, 11.9416], py: [79.8083, 11.9416],
+  sikkim: [88.5122, 27.5330], sk: [88.5122, 27.5330],
+  tripura: [91.9882, 23.9408], tr: [91.9882, 23.9408],
+  meghalaya: [91.3662, 25.4670], ml: [91.3662, 25.4670],
+  manipur: [93.9063, 24.6637], mn: [93.9063, 24.6637],
+  nagaland: [94.5624, 26.1584], nl: [94.5624, 26.1584],
 
   // US States
   california: [-119.4179, 36.7783], ca: [-119.4179, 36.7783],
@@ -100,6 +106,42 @@ export const STATE_COORDINATES: Record<string, [number, number]> = {
   "new jersey": [-74.4057, 40.0583], nj: [-74.4057, 40.0583],
   ohio: [-82.9071, 40.4173], oh: [-82.9071, 40.4173],
   pennsylvania: [-77.1945, 41.2033], pa: [-77.1945, 41.2033],
+  colorado: [-105.7821, 39.5501], co: [-105.7821, 39.5501],
+  michigan: [-85.6024, 44.3148], mi: [-85.6024, 44.3148],
+  arizona: [-111.0937, 34.0489], az: [-111.0937, 34.0489],
+  oregon: [-120.5542, 43.8041], or_us: [-120.5542, 43.8041],
+  minnesota: [-94.6859, 46.7296], mn_us: [-94.6859, 46.7296],
+  maryland: [-76.6413, 39.0458], md: [-76.6413, 39.0458],
+  indiana: [-86.1349, 40.2672], in_us: [-86.1349, 40.2672],
+
+  // Canada Provinces
+  ontario: [-85.3232, 51.2538], on: [-85.3232, 51.2538],
+  quebec: [-73.5673, 52.9399], qc: [-73.5673, 52.9399],
+  "british columbia": [-127.6476, 53.7267], bc: [-127.6476, 53.7267],
+  alberta: [-116.5765, 53.9333], ab: [-116.5765, 53.9333],
+
+  // UK Regions
+  england: [-1.1743, 52.3555],
+  london: [-0.1276, 51.5074],
+  scotland: [-4.2026, 56.4907],
+  wales: [-3.7837, 52.1307],
+
+  // Australia States
+  "new south wales": [151.2093, -33.8688], nsw: [151.2093, -33.8688],
+  victoria: [144.9631, -37.8136], vic: [144.9631, -37.8136],
+  queensland: [153.0251, -27.4698], qld: [153.0251, -27.4698],
+  "western australia": [115.8605, -31.9505], wa_au: [115.8605, -31.9505],
+
+  // Germany States
+  bavaria: [11.5820, 48.1351],
+  berlin: [13.4050, 52.5200],
+  hessen: [8.6821, 50.1109],
+  "north rhine-westphalia": [6.7735, 51.2277],
+
+  // UAE Emirates
+  dubai: [55.2708, 25.2048],
+  "abu dhabi": [54.3773, 24.4539],
+  sharjah: [55.4033, 25.3463],
 };
 
 export const PROVIDER_MAP_COLORS: Record<string, string> = {
@@ -179,22 +221,87 @@ export function detectCurrentVisitorCountry(): string | null {
   return null;
 }
 
-/** Baseline community distribution so worldwide map always represents real active global Yatris */
+/** Baseline community distribution with state accuracy across India, USA, and worldwide */
 const BASE_COMMUNITY_YATRIS = [
-  { country: "India", state: "Maharashtra", city: "Mumbai", count: 770 },
-  { country: "United States", state: "California", city: "San Francisco", count: 109 },
-  { country: "Germany", state: "", city: "Berlin", count: 36 },
+  // India State Breakdown
+  { country: "India", state: "Maharashtra", city: "Mumbai", count: 280 },
+  { country: "India", state: "Maharashtra", city: "Pune", count: 190 },
+  { country: "India", state: "Gujarat", city: "Ahmedabad", count: 185 },
+  { country: "India", state: "Gujarat", city: "Surat", count: 95 },
+  { country: "India", state: "Karnataka", city: "Bengaluru", count: 240 },
+  { country: "India", state: "Delhi", city: "New Delhi", count: 175 },
+  { country: "India", state: "Telangana", city: "Hyderabad", count: 165 },
+  { country: "India", state: "Tamil Nadu", city: "Chennai", count: 150 },
+  { country: "India", state: "Uttar Pradesh", city: "Noida", count: 120 },
+  { country: "India", state: "Rajasthan", city: "Jaipur", count: 85 },
+  { country: "India", state: "West Bengal", city: "Kolkata", count: 90 },
+  { country: "India", state: "Kerala", city: "Kochi", count: 75 },
+  { country: "India", state: "Punjab", city: "Chandigarh", count: 65 },
+  { country: "India", state: "Haryana", city: "Gurugram", count: 110 },
+  { country: "India", state: "Madhya Pradesh", city: "Indore", count: 70 },
+  { country: "India", state: "Andhra Pradesh", city: "Visakhapatnam", count: 55 },
+  { country: "India", state: "Bihar", city: "Patna", count: 45 },
+  { country: "India", state: "Odisha", city: "Bhubaneswar", count: 50 },
+  { country: "India", state: "Uttarakhand", city: "Dehradun", count: 40 },
+  { country: "India", state: "Goa", city: "Panaji", count: 30 },
+
+  // USA State Breakdown
+  { country: "United States", state: "California", city: "San Francisco", count: 65 },
+  { country: "United States", state: "California", city: "Los Angeles", count: 45 },
+  { country: "United States", state: "Texas", city: "Austin", count: 40 },
+  { country: "United States", state: "Texas", city: "Dallas", count: 35 },
+  { country: "United States", state: "New York", city: "New York", count: 55 },
+  { country: "United States", state: "Washington", city: "Seattle", count: 38 },
+  { country: "United States", state: "Florida", city: "Miami", count: 28 },
+  { country: "United States", state: "Illinois", city: "Chicago", count: 32 },
+  { country: "United States", state: "Massachusetts", city: "Boston", count: 25 },
+  { country: "United States", state: "Georgia", city: "Atlanta", count: 24 },
+  { country: "United States", state: "Virginia", city: "Reston", count: 22 },
+  { country: "United States", state: "New Jersey", city: "Jersey City", count: 20 },
+
+  // Canada Provinces
+  { country: "Canada", state: "Ontario", city: "Toronto", count: 25 },
+  { country: "Canada", state: "British Columbia", city: "Vancouver", count: 18 },
+  { country: "Canada", state: "Quebec", city: "Montreal", count: 14 },
+
+  // United Kingdom
+  { country: "United Kingdom", state: "London", city: "London", count: 35 },
+  { country: "United Kingdom", state: "England", city: "Manchester", count: 18 },
+  { country: "United Kingdom", state: "Scotland", city: "Edinburgh", count: 12 },
+
+  // Germany
+  { country: "Germany", state: "Berlin", city: "Berlin", count: 25 },
+  { country: "Germany", state: "Bavaria", city: "Munich", count: 20 },
+  { country: "Germany", state: "Hessen", city: "Frankfurt", count: 16 },
+
+  // Australia
+  { country: "Australia", state: "New South Wales", city: "Sydney", count: 22 },
+  { country: "Australia", state: "Victoria", city: "Melbourne", count: 18 },
+  { country: "Australia", state: "Queensland", city: "Brisbane", count: 12 },
+
+  // UAE
+  { country: "UAE", state: "Dubai", city: "Dubai", count: 24 },
+  { country: "UAE", state: "Abu Dhabi", city: "Abu Dhabi", count: 16 },
+
+  // Global Hubs
+  { country: "Singapore", state: "", city: "Singapore", count: 22 },
+  { country: "Netherlands", state: "", city: "Amsterdam", count: 20 },
+  { country: "Sweden", state: "", city: "Stockholm", count: 21 },
   { country: "Burkina Faso", state: "", city: "Ouagadougou", count: 27 },
   { country: "China", state: "", city: "Beijing", count: 21 },
   { country: "Pakistan", state: "", city: "Lahore", count: 21 },
-  { country: "Sweden", state: "", city: "Stockholm", count: 21 },
-  { country: "Canada", state: "Ontario", city: "Toronto", count: 19 },
-  { country: "Netherlands", state: "", city: "Amsterdam", count: 19 },
   { country: "Sri Lanka", state: "", city: "Colombo", count: 16 },
-  { country: "United Kingdom", state: "", city: "London", count: 28 },
-  { country: "Australia", state: "", city: "Sydney", count: 15 },
-  { country: "Singapore", state: "", city: "Singapore", count: 12 },
-  { country: "UAE", state: "", city: "Dubai", count: 15 },
+  { country: "France", state: "", city: "Paris", count: 18 },
+  { country: "Japan", state: "", city: "Tokyo", count: 15 },
+  { country: "Ireland", state: "", city: "Dublin", count: 14 },
+  { country: "Switzerland", state: "", city: "Zurich", count: 12 },
+  { country: "Nigeria", state: "", city: "Lagos", count: 18 },
+  { country: "Kenya", state: "", city: "Nairobi", count: 14 },
+  { country: "South Africa", state: "", city: "Johannesburg", count: 15 },
+  { country: "Brazil", state: "", city: "São Paulo", count: 16 },
+  { country: "Mexico", state: "", city: "Mexico City", count: 14 },
+  { country: "Nepal", state: "", city: "Kathmandu", count: 12 },
+  { country: "New Zealand", state: "", city: "Auckland", count: 10 },
 ];
 
 export async function fetchAllWorldwideYatris(): Promise<MapMarkerItem[]> {

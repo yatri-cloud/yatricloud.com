@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogIn, UserPlus, X, Upload, Loader2 } from "lucide-react";
+import { LogIn, UserPlus, User, X, Upload, Loader2 } from "lucide-react";
 import { loginUser, registerUser, googleLogin, updateProfile, isProfileComplete, logout } from "@/lib/yatris-api";
 import { sendPasswordReset } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -571,7 +571,7 @@ export const LoginSignup = ({ onSuccess, initialUser, forceOnboarding, onClose }
         id: "phone",
         question: "What is your Contact / WhatsApp Number?",
         type: "tel",
-        placeholder: "9876543210"
+        placeholder: "Enter your contact number"
       },
       {
         id: "linkedinUrl",
@@ -680,8 +680,8 @@ export const LoginSignup = ({ onSuccess, initialUser, forceOnboarding, onClose }
                       className="w-12 h-12 sm:w-13 sm:h-13 rounded-full object-cover border-2 border-primary/30 shadow-md shrink-0 bg-muted"
                     />
                   ) : (
-                    <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                      <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                    <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-primary text-white flex items-center justify-center shrink-0 shadow-sm">
+                      <User className="w-6 h-6 text-white stroke-[2.2]" />
                     </div>
                   )}
 

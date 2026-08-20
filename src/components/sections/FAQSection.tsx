@@ -97,8 +97,7 @@ export const FAQSection = () => {
                         aria-hidden="true"
                         animate={{ rotate: isOpen ? 45 : 0 }}
                         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                        className="flex-shrink-0 grid place-items-center w-8 h-8 rounded-full text-white shadow-sm"
-                        style={{ backgroundColor: '#003087' }}
+                        className="flex-shrink-0 grid place-items-center w-8 h-8 rounded-full bg-primary text-primary-foreground shadow-sm"
                       >
                         <Plus className="w-4 h-4" />
                       </motion.span>

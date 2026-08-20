@@ -221,11 +221,8 @@ export const HomeReviewsSection = () => {
             )}
 
             <ScrollReveal delay={0.2}>
-              <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
-                <Button asChild size="lg">
-                  <Link to="/review">Add review</Link>
-                </Button>
-                <Button asChild variant="outline" size="lg">
+              <div className="flex items-center justify-center mt-10">
+                <Button asChild size="lg" className="rounded-xl px-7">
                   <Link to="/reviews">View all reviews</Link>
                 </Button>
               </div>
