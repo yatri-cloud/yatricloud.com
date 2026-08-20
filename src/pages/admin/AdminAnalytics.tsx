@@ -126,8 +126,11 @@ export default function AdminAnalytics() {
             <TrendingUp className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold truncate" title={data?.topResources[0]?.target_id || "None"}>
-              {data?.topResources[0]?.target_id || "None"}
+            <div
+              className="text-2xl font-bold truncate"
+              title={data?.topResources[0]?.name || data?.topResources[0]?.target_id || "None"}
+            >
+              {data?.topResources[0]?.name || "None"}
             </div>
             <p className="text-xs text-muted-foreground">Most downloaded resource</p>
           </CardContent>

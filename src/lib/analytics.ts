@@ -61,7 +61,7 @@ export interface AnalyticsSummary {
   totalDownloads: number;
   totalViews: number;
   eventsByDate: { date: string; downloads: number; views: number; other: number }[];
-  topResources: { target_id: string; count: number }[];
+  topResources: { target_id: string; count: number; name?: string }[];
 }
 
 export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsSummary | null> {
@@ -101,6 +101,26 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
       eventsByDate: Object.values(dateMap),
       topResources: result.topResources || []
     };
+
+    // Resolve resource names from the resources table so we show titles not UUIDs
+    const topResources = summary.topResources;
+    if (topResources.length > 0) {
+      const ids = topResources.map(r => r.target_id);
+      const { data: resourceRows } = await supabase
+        .from('resources')
+        .select('id, title')
+        .in('id', ids);
+      if (resourceRows) {
+        const nameMap: Record<string, string> = {};
+        resourceRows.forEach((r: any) => { nameMap[r.id] = r.title; });
+        summary.topResources = topResources.map(r => ({
+          ...r,
+          name: nameMap[r.target_id] || r.target_id,
+        }));
+      }
+    }
+
+    return summary;
   } catch (error) {
     console.error("Failed to load analytics summary via RPC:", error);
     return null;
