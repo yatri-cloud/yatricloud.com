@@ -28,6 +28,7 @@ export interface YatriUser {
   city?: string;
   countryCode?: string;
   phoneNumber?: string;
+  interestedCertifications?: string[];
   role?: "yatri" | "trainer" | "admin";
 }
 
@@ -70,6 +71,7 @@ function rowToUser(row: Record<string, unknown>): YatriUser {
     city: (row.city as string) || undefined,
     countryCode: (row.country_code as string) || undefined,
     phoneNumber: (row.phone_number as string) || undefined,
+    interestedCertifications: (row.interested_certifications as string[]) || undefined,
     role: (row.role as YatriUser["role"]) || "yatri",
   };
 }
@@ -89,7 +91,7 @@ export async function fetchMyProfile(): Promise<YatriUser | null> {
 export async function signUpWithPassword(input: {
   email: string; password: string; fullName: string;
   linkedinUrl?: string; country?: string; stateProvince?: string; city?: string;
-  countryCode?: string; phoneNumber?: string; photoUrl?: string;
+  countryCode?: string; phoneNumber?: string; photoUrl?: string; interestedCertifications?: string[];
 }): Promise<{ user: YatriUser | null; error: string | null; needsEmailConfirm?: boolean }> {
   const email = input.email.trim().toLowerCase();
   const { data, error } = await supabase.auth.signUp({
@@ -112,6 +114,7 @@ export async function signUpWithPassword(input: {
     country_code: input.countryCode ?? null,
     phone_number: input.phoneNumber ?? null,
     photo_url: input.photoUrl ?? null,
+    interested_certifications: input.interestedCertifications ?? [],
   }).eq("id", data.user!.id);
 
   const user = await fetchMyProfile();
@@ -196,6 +199,7 @@ export async function updateMyProfile(fields: Partial<Omit<YatriUser, "id" | "em
     ...(fields.city !== undefined && { city: fields.city }),
     ...(fields.countryCode !== undefined && { country_code: fields.countryCode }),
     ...(fields.phoneNumber !== undefined && { phone_number: fields.phoneNumber }),
+    ...(fields.interestedCertifications !== undefined && { interested_certifications: fields.interestedCertifications }),
   }).eq("id", user.id);
   if (error) return { user: currentUser, error: friendly(error.message) };
   const fresh = await fetchMyProfile();

@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Country } from "country-state-city";
+import { InterestedCertificationsPicker } from "@/components/certified-yatris/InterestedCertificationsPicker";
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ const EditProfile = () => {
     countryCode: "",
     phoneNumber: "",
     photoUrl: "",
+    interestedCertifications: [] as string[],
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -97,6 +99,7 @@ const EditProfile = () => {
         countryCode: userData.countryCode || "",
         phoneNumber: userData.phoneNumber || "",
         photoUrl: userData.photoUrl || "",
+        interestedCertifications: userData.interestedCertifications || [],
       };
 
       // Auto-set country code when country is selected
@@ -175,6 +178,7 @@ const EditProfile = () => {
         countryCode: profileData.countryCode,
         phoneNumber: profileData.phoneNumber,
         photoUrl: profileData.photoUrl,
+        interestedCertifications: profileData.interestedCertifications,
       });
 
       if (result.success) {
@@ -618,6 +622,18 @@ const EditProfile = () => {
                       placeholder={profileData.phoneNumber ? "" : "Enter phone number"}
                     />
                   </div>
+                </div>
+
+                {/* Interested Certifications / Technologies */}
+                <div className="pt-2 border-t border-border/50">
+                  <InterestedCertificationsPicker
+                    value={profileData.interestedCertifications}
+                    onChange={(items) =>
+                      setProfileData({ ...profileData, interestedCertifications: items })
+                    }
+                    label="Which certifications are you interested in?"
+                    description="Select providers from the list/checkboxes and/or add custom certification names."
+                  />
                 </div>
 
                 <div className="flex gap-2 pt-4">

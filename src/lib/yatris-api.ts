@@ -68,6 +68,7 @@ export async function registerUser(data: {
   city?: string;
   countryCode?: string;
   phoneNumber?: string;
+  interestedCertifications?: string[];
 }): Promise<RegisterResponse> {
   const { user, error, needsEmailConfirm } = await signUpWithPassword(data);
   if (error) return { success: false, error };
@@ -218,10 +219,11 @@ export async function updateProfile(data: {
   city?: string;
   countryCode?: string;
   phoneNumber?: string;
-}): Promise<{ success: boolean; error?: string; message?: string }> {
-  const { error } = await updateMyProfile(data);
+  interestedCertifications?: string[];
+}): Promise<{ success: boolean; user?: User; error?: string; message?: string }> {
+  const { user, error } = await updateMyProfile(data);
   if (error) return { success: false, error };
-  return { success: true, message: 'Profile updated!' };
+  return { success: true, user: user ?? undefined, message: 'Profile updated!' };
 }
 
 /**
