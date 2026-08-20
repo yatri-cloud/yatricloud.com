@@ -56,6 +56,6 @@ where not exists (select 1 from tech_logos);
 -- ---------- site_settings: hero subheadline (verbatim from HeroSection.tsx) ----------
 insert into site_settings (key, value) values
   ('hero', '{
-    "subheadline": "Get AWS certified at 50% OFF. Book your time slot and we''ll schedule your exam during the meeting. Dumps, resources, and support included!"
+    "subheadline": "Book your time slot and we''ll schedule your exam during the meeting. Dumps, resources, and support included!"
   }')
 on conflict (key) do nothing;

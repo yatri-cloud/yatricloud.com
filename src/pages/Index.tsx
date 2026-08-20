@@ -41,7 +41,8 @@ const Index = () => {
         {/* TEMPORARILY HIDDEN: entire Practice Tests / Curriculum section. */}
         {/* <CurriculumSection /> */}
         <LatestExamDumpsSection />
-        <IndustryLeadersSection />
+        {/* Temporarily hidden: Backed by industry leaders */}
+        {/* <IndustryLeadersSection /> */}
         <InstructorSection />
         <HomeReviewsSection />
         <YatrisWorldwideSection />

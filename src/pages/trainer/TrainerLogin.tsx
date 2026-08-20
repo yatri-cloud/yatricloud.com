@@ -15,7 +15,7 @@ declare global {
         google?: {
             accounts: {
                 id: {
-                    initialize: (config: { client_id: string; callback: (response: { credential: string }) => void }) => void;
+                    initialize: (config: { client_id: string; callback: (response: { credential: string }) => void; auto_select?: boolean; nonce?: string; }) => void;
                     renderButton: (parent: HTMLElement | null, options: Record<string, unknown>) => void;
                     prompt: () => void;
                 };
@@ -37,6 +37,7 @@ const TrainerLogin = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const btnRef = useRef<HTMLDivElement>(null);
+    const nonceRef = useRef<string>("");
 
     // Initialize GSI and render Google's official button into btnRef.
     useEffect(() => {
@@ -50,10 +51,20 @@ const TrainerLogin = () => {
             const ready = await loadGoogleIdentity();
             if (!ready || cancelled || !window.google || !btnRef.current) return;
             try {
+                // Generate nonce for secure Supabase Google sign in
+                const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+                nonceRef.current = nonce;
+                const encoder = new TextEncoder();
+                const encodedNonce = encoder.encode(nonce);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', encodedNonce);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashedNonce = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
                 window.google.accounts.id.initialize({
                     client_id,
                     callback: handleGoogleResponse,
                     auto_select: true,
+                    nonce: hashedNonce,
                 });
                 window.google.accounts.id.renderButton(btnRef.current, {
                     theme: "outline",
@@ -75,7 +86,7 @@ const TrainerLogin = () => {
         try {
             setIsLoading(true);
             // 1. Establish a real Yatri Cloud (Supabase) session from the Google ID token.
-            const { user, error } = await signInWithGoogleIdToken(response.credential);
+            const { user, error } = await signInWithGoogleIdToken(response.credential, nonceRef.current);
             if (error || !user) {
                 toast({ title: "Sign-in failed", description: error || "Could not sign in with Google.", variant: "destructive" });
                 return;

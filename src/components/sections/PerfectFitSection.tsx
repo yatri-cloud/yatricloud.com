@@ -8,11 +8,11 @@ import {
 } from "@/lib/site-content";
 
 const forYouPoints = [
-  "You want to get AWS certified with 50% OFF vouchers",
-  "You're ready to complete registration and join our WhatsApp group",
-  "You need exam dumps, study resources, and personal support",
-  "You value guided exam scheduling through our team's meeting calls",
-  "You want a complete certification package with full support",
+  "You're ambitious about getting cloud certified and saving 50% on official exam vouchers",
+  "You value step-by-step guidance to schedule and confidently pass on your first attempt",
+  "You want verified exam dumps, curated study kits, and Udemy course access in one place",
+  "You thrive in an active community with direct support whenever you hit a roadblock",
+  "You're ready to accelerate your career and see your achievement on the Wall of Fame",
 ];
 
 export const PerfectFitSection = () => {
@@ -39,13 +39,12 @@ export const PerfectFitSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-5xl mx-auto grid md:grid-cols-[1.05fr_0.95fr] rounded-3xl border border-primary/40 overflow-hidden shadow-card"
+            className="max-w-5xl mx-auto grid md:grid-cols-[1.05fr_0.95fr] rounded-3xl border border-border overflow-hidden shadow-card"
           >
             {/* Highlighted side — "for you" */}
-            <div className="relative bg-primary/[0.06] p-7 md:p-9">
-              <div className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden="true" />
+            <div className="relative bg-card p-7 md:p-9">
               <div className="mb-6 flex items-center gap-3">
-                <span className="inline-flex h-9 items-center rounded-full bg-primary px-4 font-display text-sm font-bold tracking-tight text-primary-foreground">
+                <span className="inline-flex h-9 items-center rounded-full bg-primary px-4 font-display text-sm font-bold tracking-tight text-primary-foreground shadow-sm">
                   This is for you if:
                 </span>
               </div>
@@ -85,8 +84,8 @@ export const PerfectFitSection = () => {
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: index * 0.06 }}
                     className="flex items-start gap-3"
                   >
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center mt-0.5 text-white">
-                      <X className="w-4 h-4 text-primary" />
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center mt-0.5 text-muted-foreground">
+                      <X className="w-3.5 h-3.5" />
                     </div>
                     <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{point}</p>
                   </motion.div>

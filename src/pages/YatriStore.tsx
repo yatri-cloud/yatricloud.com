@@ -135,7 +135,7 @@ const YatriStore = () => {
                 initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 text-sm font-semibold text-primary mb-6 shadow-sm"
+                className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-1.5 text-xs sm:text-sm font-semibold mb-6 shadow-sm"
               >
                 <Tag className="w-4 h-4" aria-hidden="true" />
                 Up to {storeDiscount} OFF · verified vouchers

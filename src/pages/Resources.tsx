@@ -103,7 +103,7 @@ export default function Resources() {
         sessionStorage.setItem("pending_access_resource_id", resource.id);
       }
       setPendingResource(resource);
-      navigate(`/certifiedyatris?redirect=/resources&accessResource=${encodeURIComponent(resource.id)}`);
+      setShowLoginModal(true);
       return;
     }
 

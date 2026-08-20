@@ -51,10 +51,12 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
         <div className="flex items-center justify-center min-h-screen bg-background px-4 py-10">
             <Card className="w-full max-w-md border border-border rounded-2xl shadow-elevated">
                 <CardHeader className="space-y-3 pt-8">
-                    <div className="flex justify-center">
-                        <div className="p-3.5 bg-brand-50 rounded-2xl">
-                            <Lock className="w-7 h-7 text-primary" />
-                        </div>
+                    <div className="flex justify-center mb-1">
+                        <img
+                            src="/logo-192.png"
+                            alt="Yatri Cloud Logo"
+                            className="w-12 h-12 object-contain"
+                        />
                     </div>
                     <CardTitle className="font-display text-2xl md:text-3xl font-bold tracking-tight text-center">Admin Login</CardTitle>
                     <CardDescription className="text-center text-muted-foreground">

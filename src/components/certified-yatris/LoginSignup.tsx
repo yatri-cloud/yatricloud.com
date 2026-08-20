@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogIn, UserPlus, X, Upload, Loader2, Globe, MapPin, Phone, Linkedin, ArrowRight, ArrowLeft, UserCheck } from "lucide-react";
+import { LogIn, UserPlus, X, Upload, Loader2 } from "lucide-react";
 import { loginUser, registerUser, googleLogin, updateProfile, isProfileComplete, logout } from "@/lib/yatris-api";
 import { sendPasswordReset } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import { sendEmail } from "@/lib/email";
 import { getWelcomeEmail } from "@/lib/email-templates";
 import { loadGoogleIdentity } from "@/lib/third-party";
 import { InterestedCertificationsPicker } from "./InterestedCertificationsPicker";
+import { OnboardingQuestion } from "../onboarding-ui/OnboardingQuestion";
+import { OnboardingQuestionType } from "@/types/onboarding-survey";
 
 /** Google Identity Services script attaches itself to window.google at runtime. */
 declare global {
@@ -38,17 +40,26 @@ declare global {
 
 interface LoginSignupProps {
   onSuccess: (user: any) => void;
+  initialUser?: any;
+  forceOnboarding?: boolean;
+  onClose?: () => void;
 }
 
-export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
+export const LoginSignup = ({ onSuccess, initialUser, forceOnboarding, onClose }: LoginSignupProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const nonceRef = useRef<string>("");
   const { toast } = useToast();
 
   // Step 2 Onboarding state (for Google login & incomplete profiles)
   const [isOnboarding, setIsOnboarding] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const [onboardingUser, setOnboardingUser] = useState<any>(null);
+  const [avatarImgError, setAvatarImgError] = useState(false);
+  const initializedUserRef = useRef<string | null>(null);
   const [onboardingData, setOnboardingData] = useState({
     country: "",
     stateProvince: "",
@@ -58,6 +69,29 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
     linkedinUrl: "",
     interestedCertifications: [] as string[],
   });
+
+  useEffect(() => {
+    if (initialUser && (forceOnboarding || !isProfileComplete(initialUser))) {
+      const userKey = String(initialUser.id || initialUser.email || "user");
+      if (initializedUserRef.current === userKey && isOnboarding) {
+        return; // Don't wipe inputs if user is currently filling out the form
+      }
+      initializedUserRef.current = userKey;
+
+      setOnboardingUser(initialUser);
+      setAvatarImgError(false);
+      setOnboardingData((prev) => ({
+        country: prev.country || initialUser.country || "",
+        stateProvince: prev.stateProvince || initialUser.stateProvince || "",
+        city: prev.city || initialUser.city || "",
+        countryCode: prev.countryCode || initialUser.countryCode || "",
+        phoneNumber: prev.phoneNumber || initialUser.phoneNumber || "",
+        linkedinUrl: prev.linkedinUrl || initialUser.linkedinUrl || "",
+        interestedCertifications: prev.interestedCertifications?.length ? prev.interestedCertifications : (initialUser.interestedCertifications || []),
+      }));
+      setIsOnboarding(true);
+    }
+  }, [initialUser, forceOnboarding]);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -130,10 +164,20 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       const ready = await loadGoogleIdentity();
       if (!ready || cancelled || !window.google) return;
       try {
+        // Generate nonce for secure Supabase Google sign in
+        const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+        nonceRef.current = nonce;
+        const encoder = new TextEncoder();
+        const encodedNonce = encoder.encode(nonce);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', encodedNonce);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashedNonce = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
         window.google.accounts.id.initialize({
           client_id: client_id,
           callback: handleGoogleResponse,
-          auto_select: true,
+          auto_select: false,
+          nonce: hashedNonce,
         });
 
         const btnContainer = document.getElementById("googleSignInDiv");
@@ -143,8 +187,6 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
             { theme: "outline", size: "large" }
           );
         }
-
-        window.google.accounts.id.prompt();
       } catch (e) {
         console.error("Google Auth Init Error", e);
       }
@@ -157,35 +199,42 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       setIsLoading(true);
       setError(null);
       const { jwtDecode } = await import("jwt-decode");
-      const userObject: any = jwtDecode(response.credential);
+      const payload: any = jwtDecode(response.credential);
 
       const result = await googleLogin({
-        email: userObject.email,
-        fullName: userObject.name,
-        photoUrl: userObject.picture,
+        email: payload.email,
+        fullName: payload.name,
+        photoUrl: payload.picture,
         idToken: response.credential,
+        nonce: nonceRef.current,
       });
 
       if (result.success && result.user) {
-        if (!isProfileComplete(result.user)) {
+        const enrichedUser = {
+          ...result.user,
+          photoUrl: result.user.photoUrl || payload.picture || undefined,
+          fullName: result.user.fullName || payload.name || "Yatri",
+        };
+        if (!isProfileComplete(enrichedUser)) {
           // Incomplete profile -> trigger Step 2 Onboarding
-          setOnboardingUser(result.user);
+          setAvatarImgError(false);
+          setOnboardingUser(enrichedUser);
           setOnboardingData({
-            country: result.user.country || "",
-            stateProvince: result.user.stateProvince || "",
-            city: result.user.city || "",
-            countryCode: result.user.countryCode || "",
-            phoneNumber: result.user.phoneNumber || "",
-            linkedinUrl: result.user.linkedinUrl || "",
-            interestedCertifications: result.user.interestedCertifications || [],
+            country: enrichedUser.country || "",
+            stateProvince: enrichedUser.stateProvince || "",
+            city: enrichedUser.city || "",
+            countryCode: enrichedUser.countryCode || "",
+            phoneNumber: enrichedUser.phoneNumber || "",
+            linkedinUrl: enrichedUser.linkedinUrl || "",
+            interestedCertifications: enrichedUser.interestedCertifications || [],
           });
           setIsOnboarding(true);
           toast({
-            title: "Almost there! 🎉",
+            title: "Almost there!",
             description: "Please complete your mandatory profile details.",
           });
         } else {
-          onSuccess(result.user);
+          onSuccess(enrichedUser);
           toast({
             title: "Welcome!",
             description: `Logged in as ${result.user.fullName}`,
@@ -204,7 +253,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
   const handleForgotPassword = async () => {
     const email = loginEmail.trim();
     if (!email || !email.includes("@")) {
-      setError("Enter your email above first, then tap “Forgot password”.");
+      setError("Please enter your email first.");
       return;
     }
     setResetting(true);
@@ -216,7 +265,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       return;
     }
     toast({
-      title: "Reset link sent 📧",
+      title: "Reset link sent",
       description: `Check ${email} for a link to set a new password. (Also check spam.)`,
     });
   };
@@ -318,52 +367,8 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       return;
     }
 
-    if (!registerData.linkedinUrl) {
-      setError("LinkedIn Profile URL is required");
-      return;
-    }
-
-    if (!registerData.linkedinUrl.match(/^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i)) {
-      setError("Please enter a valid LinkedIn profile URL (e.g., https://linkedin.com/in/username)");
-      return;
-    }
-
-    if (!registerData.country) {
-      setError("Country is required");
-      return;
-    }
-
-    if (!registerData.stateProvince.trim()) {
-      setError("State/Province is required");
-      return;
-    }
-
-    if (!registerData.city.trim()) {
-      setError("City is required");
-      return;
-    }
-
-    if (!registerData.phoneNumber.trim()) {
-      setError("Phone Number is required");
-      return;
-    }
-
-    if (registerData.countryCode && registerData.phoneNumber) {
-      try {
-        const fullNumber = `${registerData.countryCode}${registerData.phoneNumber}`;
-        const phoneNumber = parsePhoneNumber(fullNumber);
-        if (!phoneNumber.isValid()) {
-          setError("Please enter a valid phone number");
-          return;
-        }
-      } catch (error) {
-        setError("Please enter a valid phone number");
-        return;
-      }
-    }
-
-    if (!photoFile && !registerData.photoUrl) {
-      setError("Photo is required");
+    if (!registerData.fullName.trim()) {
+      setError("Full Name is required");
       return;
     }
 
@@ -376,32 +381,43 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       }
 
       const result = await registerUser({
-        email: registerData.email,
+        email: registerData.email.trim(),
         password: registerData.password,
-        fullName: registerData.fullName,
-        linkedinUrl: registerData.linkedinUrl,
+        fullName: registerData.fullName.trim(),
         photoUrl: photoUrl,
-        country: registerData.country,
-        stateProvince: registerData.stateProvince,
-        city: registerData.city,
-        countryCode: registerData.countryCode,
-        phoneNumber: registerData.phoneNumber,
-        interestedCertifications: registerData.interestedCertifications,
       });
 
-      if (result.success && result.user) {
-        try {
-          const emailHtml = getWelcomeEmail(registerData.fullName);
-          sendEmail({
-            to: registerData.email,
-            subject: "Welcome to Yatri Cloud!",
-            html: emailHtml
-          }).catch(err => console.error("Welcome email failed:", err));
-        } catch (emailErr) {
-          console.error("Failed to prepare welcome email:", emailErr);
+      if (result.success) {
+        if (result.message) {
+          toast({
+            title: "Account created",
+            description: result.message,
+          });
+          setIsLogin(true);
+          return;
         }
 
-        onSuccess(result.user);
+        if (result.user) {
+          try {
+            const emailHtml = getWelcomeEmail(registerData.fullName);
+            sendEmail({
+              to: registerData.email,
+              subject: "Welcome to Yatri Cloud!",
+              html: emailHtml
+            }).catch(err => console.error("Welcome email failed:", err));
+          } catch (emailErr) {
+            console.error("Failed to prepare welcome email:", emailErr);
+          }
+
+          if (!isProfileComplete(result.user)) {
+            setOnboardingUser(result.user);
+            setCurrentStep(0);
+            setIsOnboarding(true);
+            return;
+          }
+
+          onSuccess(result.user);
+        }
       } else {
         setError(result.error || "Registration failed");
       }
@@ -429,31 +445,47 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
       setError("City is mandatory");
       return;
     }
-    if (!onboardingData.phoneNumber.trim()) {
+
+    const rawPhone = (onboardingData.phoneNumber || "").trim();
+    const rawCode = (onboardingData.countryCode || "").trim();
+
+    if (!rawPhone) {
       setError("Contact number is mandatory");
       return;
     }
 
-    if (onboardingData.countryCode && onboardingData.phoneNumber) {
-      try {
-        const fullNumber = `${onboardingData.countryCode}${onboardingData.phoneNumber}`;
-        const phoneNumber = parsePhoneNumber(fullNumber);
-        if (!phoneNumber.isValid()) {
-          setError("Please enter a valid contact number for the selected country");
+    let fullNumber = rawPhone;
+    if (!rawPhone.startsWith("+")) {
+      const cleanCode = rawCode ? (rawCode.startsWith("+") ? rawCode : `+${rawCode}`) : "";
+      fullNumber = `${cleanCode}${rawPhone}`;
+    }
+
+    try {
+      const phoneNumber = parsePhoneNumber(fullNumber);
+      if (!phoneNumber || !phoneNumber.isValid()) {
+        const digits = fullNumber.replace(/\D/g, "");
+        if (digits.length < 7 || digits.length > 15) {
+          setError("Please enter a valid contact number (e.g. +91 9876543210)");
           return;
         }
-      } catch (err) {
-        setError("Please enter a valid contact number");
+      }
+    } catch {
+      const digits = fullNumber.replace(/\D/g, "");
+      if (digits.length < 7 || digits.length > 15) {
+        setError("Please enter a valid contact number (e.g. +91 9876543210)");
         return;
       }
     }
 
-    if (!onboardingData.linkedinUrl.trim()) {
-      setError("LinkedIn Profile URL is mandatory");
-      return;
+    if (onboardingData.linkedinUrl && onboardingData.linkedinUrl.trim().length > 0) {
+      if (!onboardingData.linkedinUrl.match(/^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i)) {
+        setError("Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/yourname)");
+        return;
+      }
     }
-    if (!onboardingData.linkedinUrl.match(/^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i)) {
-      setError("Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/yourname)");
+
+    if (!onboardingData.interestedCertifications || onboardingData.interestedCertifications.length === 0) {
+      setError("Please select at least one certification you are interested in");
       return;
     }
 
@@ -463,7 +495,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
         country: onboardingData.country,
         stateProvince: onboardingData.stateProvince.trim(),
         city: onboardingData.city.trim(),
-        countryCode: onboardingData.countryCode,
+        countryCode: onboardingData.countryCode.trim(),
         phoneNumber: onboardingData.phoneNumber.trim(),
         linkedinUrl: onboardingData.linkedinUrl.trim(),
         interestedCertifications: onboardingData.interestedCertifications,
@@ -484,7 +516,7 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
         }
 
         toast({
-          title: "Account Ready! 🎉",
+          title: "Account Ready!",
           description: `Welcome to Yatri Cloud, ${onboardingUser?.fullName || ""}!`,
         });
 
@@ -509,236 +541,203 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
     setError(null);
   };
 
+  const onboardingQuestions: {
+    id: string;
+    question: string;
+    type: OnboardingQuestionType;
+    placeholder?: string;
+    options?: { label: string; value: string }[];
+    optional?: boolean;
+  }[] = [
+      {
+        id: "country",
+        question: "Which country are you located in?",
+        type: "select",
+        options: countries.map(c => ({ label: c.label, value: c.value }))
+      },
+      {
+        id: "stateProvince",
+        question: "What is your State or Province?",
+        type: "text",
+        placeholder: "e.g. Maharashtra, California..."
+      },
+      {
+        id: "city",
+        question: "Which City do you live in?",
+        type: "text",
+        placeholder: "e.g. Mumbai, New York..."
+      },
+      {
+        id: "phone",
+        question: "What is your Contact / WhatsApp Number?",
+        type: "tel",
+        placeholder: "9876543210"
+      },
+      {
+        id: "linkedinUrl",
+        question: "What is your LinkedIn Profile URL? (Optional)",
+        type: "url",
+        placeholder: "https://linkedin.com/in/yourusername",
+        optional: true
+      },
+      {
+        id: "interestedCertifications",
+        question: "Which certifications are you interested in?",
+        type: "custom-certifications"
+      }
+    ];
+
+  const handleNextStep = () => {
+    if (currentStep < onboardingQuestions.length - 1) {
+      setCurrentStep(curr => curr + 1);
+    } else {
+      // Simulate form submission
+      const syntheticEvent = { preventDefault: () => { } } as React.FormEvent;
+      handleCompleteOnboarding(syntheticEvent);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(curr => curr - 1);
+    }
+  };
+
+  const currentQuestion = onboardingQuestions[currentStep];
+
+  const getQuestionValue = (id: string) => {
+    if (id === 'phone') {
+      return JSON.stringify({ code: onboardingData.countryCode || '+91', phone: onboardingData.phoneNumber });
+    }
+    if (id === 'interestedCertifications') {
+      return JSON.stringify(onboardingData.interestedCertifications);
+    }
+    return onboardingData[id as keyof typeof onboardingData] as string;
+  };
+
+  const setQuestionValue = (id: string, value: string) => {
+    if (id === 'phone') {
+      try {
+        const parsed = JSON.parse(value);
+        setOnboardingData(prev => ({ ...prev, countryCode: parsed.code, phoneNumber: parsed.phone }));
+      } catch {
+        setOnboardingData(prev => ({ ...prev, phoneNumber: value }));
+      }
+    } else if (id === 'interestedCertifications') {
+      try {
+        setOnboardingData(prev => ({ ...prev, interestedCertifications: JSON.parse(value) }));
+      } catch {
+        setOnboardingData(prev => ({ ...prev, interestedCertifications: [] }));
+      }
+    } else {
+      setOnboardingData(prev => ({ ...prev, [id]: value }));
+    }
+  };
+
   return (
-    <div className="flex min-h-full items-center justify-center px-4 py-10 bg-gradient-to-br from-background via-background/95 to-background">
+    <div className="w-full flex items-center justify-center">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md max-h-[calc(100vh-4rem)] overflow-hidden"
+        className={`w-full transition-all duration-300 ${isOnboarding
+          ? "max-w-xl sm:max-w-2xl"
+          : "max-w-[400px] sm:max-w-[420px]"
+          }`}
       >
-        <div className="bg-card border border-border rounded-2xl p-8 shadow-2xl overflow-y-auto max-h-[calc(100vh-5rem)]">
+        <div className="relative w-full bg-white dark:bg-card border border-border/70 rounded-2xl px-5 py-4 sm:px-7 sm:py-5 shadow-2xl overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {/* Top-Right Close Button */}
+          {onClose && !forceOnboarding && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute top-3.5 right-3.5 z-20 w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           <AnimatePresence mode="wait">
             {isOnboarding ? (
-              /* ================= STEP 2: COMPLETE PROFILE ONBOARDING ================= */
+              /* ================= STEP 2: COMPLETE PROFILE ONBOARDING (ONE BY ONE) ================= */
               <motion.div
                 key="onboarding-step"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.25 }}
+                className="space-y-3.5"
               >
-                {/* User avatar & welcome */}
-                <div className="text-center mb-6">
-                  {onboardingUser?.photoUrl ? (
-                    <div className="relative inline-block mb-3">
-                      <img
-                        src={onboardingUser.photoUrl}
-                        alt={onboardingUser.fullName || "User"}
-                        className="w-20 h-20 rounded-full object-cover border-4 border-primary/20 shadow-md mx-auto"
-                      />
-                      <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-2 border-background flex items-center justify-center">
-                        <UserCheck className="w-3.5 h-3.5 text-white" />
-                      </div>
-                    </div>
+                {/* Header Section */}
+                <div className="flex items-center gap-3.5 pb-3 border-b border-border/60">
+                  {onboardingUser?.photoUrl && !avatarImgError ? (
+                    <img
+                      src={onboardingUser.photoUrl}
+                      alt={onboardingUser.fullName || "User"}
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      onError={() => setAvatarImgError(true)}
+                      className="w-12 h-12 sm:w-13 sm:h-13 rounded-full object-cover border-2 border-primary/30 shadow-md shrink-0 bg-muted"
+                    />
                   ) : (
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                      <UserPlus className="w-8 h-8 text-primary" />
+                    <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                      <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
                   )}
 
-                  <div className="inline-block px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary mb-2">
-                    Step 2 of 2: Complete Profile
-                  </div>
+                  <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                        Welcome, {onboardingUser?.fullName?.split(" ")[0] || "Yatri"}!
+                      </h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Please complete your profile to continue.
+                      </p>
+                    </div>
 
-                  <h2 className="text-2xl font-bold mb-1">
-                    Welcome, {onboardingUser?.fullName?.split(" ")[0] || "Yatri"}!
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Please provide your mandatory location, contact details and certification interests.
-                  </p>
+                    {/* Step indicator on the right side */}
+                    <div className="shrink-0">
+                      <span className="inline-flex items-center px-3 py-1 bg-primary text-primary-foreground font-semibold text-xs rounded-full shadow-sm">
+                        Step {currentStep + 1} of {onboardingQuestions.length}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Error Message */}
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm"
+                <div className="py-0.5">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentStep}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <OnboardingQuestion
+                        question={currentQuestion as any}
+                        value={getQuestionValue(currentQuestion.id)}
+                        onChange={(val) => setQuestionValue(currentQuestion.id, val)}
+                        onSubmit={handleNextStep}
+                        onBack={handlePrevStep}
+                        isFirstQuestion={currentStep === 0}
+                        isLastQuestion={currentStep === onboardingQuestions.length - 1}
+                        error={error || undefined}
+                        isSubmitting={isLoading}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                <div className="flex justify-center pt-0.5">
+                  <button
+                    type="button"
+                    onClick={handleCancelOnboarding}
+                    disabled={isLoading}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5"
                   >
-                    {error}
-                  </motion.div>
-                )}
-
-                <form onSubmit={handleCompleteOnboarding} className="space-y-4">
-                  {/* Email & Name preview */}
-                  <div className="bg-muted/40 border border-border/60 rounded-xl p-3 text-xs space-y-1">
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Account Email:</span>
-                      <span className="font-medium text-foreground">{onboardingUser?.email}</span>
-                    </div>
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Name:</span>
-                      <span className="font-medium text-foreground">{onboardingUser?.fullName}</span>
-                    </div>
-                  </div>
-
-                  {/* Country */}
-                  <div>
-                    <Label htmlFor="onboard-country" className="flex items-center gap-1.5">
-                      <Globe className="w-3.5 h-3.5 text-muted-foreground" />
-                      Country <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={onboardingData.country}
-                      onValueChange={(value) => {
-                        setOnboardingData({ ...onboardingData, country: value });
-                      }}
-                      required
-                    >
-                      <SelectTrigger id="onboard-country" className="w-full mt-1">
-                        <SelectValue placeholder="Select your country" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[250px]">
-                        {countries.map((country) => (
-                          <SelectItem key={country.value} value={country.value}>
-                            {country.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* State & City */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="onboard-state" className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-                        State <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id="onboard-state"
-                        type="text"
-                        placeholder="e.g. Maharashtra"
-                        value={onboardingData.stateProvince}
-                        onChange={(e) =>
-                          setOnboardingData({ ...onboardingData, stateProvince: e.target.value })
-                        }
-                        className="mt-1"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="onboard-city">
-                        City <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id="onboard-city"
-                        type="text"
-                        placeholder="e.g. Mumbai"
-                        value={onboardingData.city}
-                        onChange={(e) =>
-                          setOnboardingData({ ...onboardingData, city: e.target.value })
-                        }
-                        className="mt-1"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Phone Number */}
-                  <div>
-                    <Label htmlFor="onboard-phone" className="flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                      Contact / WhatsApp Number <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="flex gap-2 mt-1">
-                      <div className="w-24 shrink-0">
-                        <Input
-                          value={onboardingData.countryCode || "+--"}
-                          readOnly
-                          placeholder="Code"
-                          className="bg-muted text-center font-mono text-xs cursor-default"
-                        />
-                      </div>
-                      <Input
-                        id="onboard-phone"
-                        type="tel"
-                        placeholder="9876543210"
-                        value={onboardingData.phoneNumber}
-                        onChange={(e) =>
-                          setOnboardingData({ ...onboardingData, phoneNumber: e.target.value })
-                        }
-                        className="flex-1"
-                        required
-                      />
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-1">
-                      Used for verified certification notifications and training updates.
-                    </p>
-                  </div>
-
-                  {/* LinkedIn */}
-                  <div>
-                    <Label htmlFor="onboard-linkedin" className="flex items-center gap-1.5">
-                      <Linkedin className="w-3.5 h-3.5 text-muted-foreground" />
-                      LinkedIn Profile URL <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="onboard-linkedin"
-                      type="url"
-                      placeholder="https://linkedin.com/in/username"
-                      value={onboardingData.linkedinUrl}
-                      onChange={(e) =>
-                        setOnboardingData({ ...onboardingData, linkedinUrl: e.target.value })
-                      }
-                      className="mt-1"
-                      required
-                    />
-                  </div>
-
-                  {/* Which certifications are you interested in */}
-                  <div className="pt-1 border-t border-border/50">
-                    <InterestedCertificationsPicker
-                      value={onboardingData.interestedCertifications}
-                      onChange={(items) =>
-                        setOnboardingData({ ...onboardingData, interestedCertifications: items })
-                      }
-                      label="Which certifications are you interested in?"
-                      description="Choose providers from the list/checkboxes and/or type custom exam names below."
-                    />
-                  </div>
-
-                  {/* Actions */}
-                  <div className="pt-3 space-y-2">
-                    <Button
-                      type="submit"
-                      className="w-full flex items-center justify-center gap-2"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Completing setup...
-                        </>
-                      ) : (
-                        <>
-                          Complete Setup & Continue
-                          <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
-                    </Button>
-
-                    <button
-                      type="button"
-                      onClick={handleCancelOnboarding}
-                      disabled={isLoading}
-                      className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors pt-1 flex items-center justify-center gap-1"
-                    >
-                      <ArrowLeft className="w-3 h-3" />
-                      Sign in with a different account
-                    </button>
-                  </div>
-                </form>
+                    Cancel and sign in with a different account
+                  </button>
+                </div>
               </motion.div>
             ) : (
               /* ================= STEP 1: LOGIN / SIGNUP ================= */
@@ -747,69 +746,80 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                className="space-y-2.5"
               >
-                {/* Header */}
-                <div className="text-center mb-8">
+                {/* Header with Proportionate Logo & Typography */}
+                <div className="text-center">
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.05 }}
+                    className="inline-flex items-center justify-center mb-1.5"
                   >
                     <img
                       src="/logo-192.png"
                       alt="Yatri Cloud Logo"
-                      className="w-12 h-12 object-contain"
+                      className="w-10 h-10 object-contain"
                     />
                   </motion.div>
-                  <h2 className="text-3xl font-bold mb-2">
-                    {isLogin ? "Welcome Back!" : "Join Yatri Cloud"}
+                  <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                    {isLogin ? "Welcome Back" : "Join Yatri Cloud"}
                   </h2>
-                  <p className="text-muted-foreground">
-                    {isLogin
-                      ? "Login to submit your certifications and join the Wall of Fame"
-                      : "Sign up to showcase your certifications on the Wall of Fame"}
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Hello Yatris 👋
                   </p>
                 </div>
 
                 {/* Error Message */}
                 {error && (
                   <motion.div
-                    initial={{ opacity: 0, y: -10 }}
+                    initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm"
+                    className="p-2 bg-destructive text-destructive-foreground font-medium rounded-xl text-xs text-center shadow-sm"
                   >
                     {error}
                   </motion.div>
                 )}
 
-                {/* Google Sign In - Always visible */}
-                <div className="mt-4 mb-6 flex justify-center w-full">
-                  <div id="googleSignInDiv" className="flex justify-center"></div>
+                {/* Google Sign In */}
+                <div className="flex justify-center w-full">
+                  <div id="googleSignInDiv" className="flex justify-center w-full"></div>
                 </div>
 
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                  <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with email</span></div>
+                {/* Divider */}
+                <div className="relative my-1.5">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-[10px] uppercase font-semibold tracking-wider">
+                    <span className="bg-white dark:bg-card px-2.5 text-muted-foreground">
+                      Or continue with email
+                    </span>
+                  </div>
                 </div>
 
                 {/* Login Form */}
                 {isLogin ? (
-                  <form onSubmit={handleLogin} className="space-y-4">
+                  <form onSubmit={handleLogin} className="space-y-2.5">
                     <div>
-                      <Label htmlFor="login-email">Email</Label>
+                      <Label htmlFor="login-email" className="text-xs font-semibold text-foreground">
+                        Email
+                      </Label>
                       <Input
                         id="login-email"
                         placeholder="your@email.com"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
+                        className="mt-1 h-9.5 text-sm bg-background rounded-xl border-border/80 focus-visible:ring-2 focus-visible:ring-primary/20"
                         required
                       />
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="login-password">Password</Label>
+                        <Label htmlFor="login-password" className="text-xs font-semibold text-foreground">
+                          Password
+                        </Label>
                         <button
                           type="button"
                           onClick={handleForgotPassword}
@@ -825,27 +835,47 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                         placeholder="••••••••"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
+                        className="mt-1 h-9.5 text-sm bg-background rounded-xl border-border/80 focus-visible:ring-2 focus-visible:ring-primary/20"
                         required
                       />
                     </div>
 
                     <Button
                       type="submit"
-                      className="w-full"
+                      className="w-full h-9.5 sm:h-10 text-sm font-semibold rounded-xl shadow-md mt-0.5"
                       disabled={isLoading}
                     >
-                      {isLoading ? "Logging in..." : "Login"}
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Logging in...
+                        </>
+                      ) : (
+                        "Login"
+                      )}
                     </Button>
-
-                    <p className="text-center text-xs text-muted-foreground">
-                      Had an account before our upgrade? Use <span className="font-medium text-foreground">Forgot password</span> to set a new one, or sign in with Google.
-                    </p>
                   </form>
                 ) : (
                   /* Register Form */
-                  <form onSubmit={handleRegister} className="space-y-4">
+                  <form onSubmit={handleRegister} className="space-y-2.5">
                     <div>
-                      <Label htmlFor="register-email">Email</Label>
+                      <Label htmlFor="register-name" className="text-xs font-semibold">Full Name</Label>
+                      <Input
+                        id="register-name"
+                        type="text"
+                        placeholder="Your Full Name"
+                        value={registerData.fullName}
+                        onChange={(e) =>
+                          setRegisterData({ ...registerData, fullName: e.target.value })
+                        }
+                        className="mt-1 h-9.5 text-sm bg-background rounded-xl"
+                        required
+                        autoFocus
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="register-email" className="text-xs font-semibold">Email</Label>
                       <Input
                         id="register-email"
                         type="email"
@@ -854,26 +884,13 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                         onChange={(e) =>
                           setRegisterData({ ...registerData, email: e.target.value })
                         }
+                        className="mt-1 h-9.5 text-sm bg-background rounded-xl"
                         required
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="register-name">Full Name</Label>
-                      <Input
-                        id="register-name"
-                        type="text"
-                        placeholder="Your Name"
-                        value={registerData.fullName}
-                        onChange={(e) =>
-                          setRegisterData({ ...registerData, fullName: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="register-password">Password</Label>
+                      <Label htmlFor="register-password" className="text-xs font-semibold">Password</Label>
                       <Input
                         id="register-password"
                         type="password"
@@ -882,13 +899,14 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                         onChange={(e) =>
                           setRegisterData({ ...registerData, password: e.target.value })
                         }
+                        className="mt-1 h-9.5 text-sm bg-background rounded-xl"
                         required
                         minLength={6}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="register-confirm-password">Confirm Password</Label>
+                      <Label htmlFor="register-confirm-password" className="text-xs font-semibold">Confirm Password</Label>
                       <Input
                         id="register-confirm-password"
                         type="password"
@@ -900,30 +918,17 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                             confirmPassword: e.target.value,
                           })
                         }
+                        className="mt-1 h-9.5 text-sm bg-background rounded-xl"
                         required
                         minLength={6}
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="register-linkedin">LinkedIn Profile URL <span className="text-destructive">*</span></Label>
-                      <Input
-                        id="register-linkedin"
-                        type="url"
-                        placeholder="https://linkedin.com/in/yourprofile"
-                        value={registerData.linkedinUrl}
-                        onChange={(e) =>
-                          setRegisterData({ ...registerData, linkedinUrl: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="register-photo">Photo <span className="text-destructive">*</span></Label>
+                      <Label htmlFor="register-photo" className="text-xs font-semibold">Profile Photo (Optional)</Label>
                       {photoPreview ? (
-                        <div className="space-y-2">
-                          <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-border">
+                        <div className="flex items-center gap-3 mt-1">
+                          <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 shadow-sm shrink-0">
                             <img
                               src={photoPreview}
                               alt="Preview"
@@ -932,17 +937,17 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                             <button
                               type="button"
                               onClick={removePhoto}
-                              className="absolute top-1 right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90 transition-colors"
+                              className="absolute top-0 right-0 w-4 h-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90 transition-colors"
                             >
-                              <X className="w-4 h-4" />
+                              <X className="w-2.5 h-2.5" />
                             </button>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {photoFile?.name} ({(photoFile?.size || 0) / 1024} KB)
+                          <p className="text-xs text-muted-foreground truncate">
+                            {photoFile?.name}
                           </p>
                         </div>
                       ) : (
-                        <div className="relative">
+                        <div className="mt-1">
                           <Input
                             id="register-photo"
                             type="file"
@@ -952,124 +957,34 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                           />
                           <Label
                             htmlFor="register-photo"
-                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/50"
+                            className="flex items-center justify-center gap-2 w-full h-9.5 border border-input rounded-xl cursor-pointer hover:bg-accent/50 transition-colors bg-background px-3 text-xs text-muted-foreground font-medium"
                           >
-                            <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                            <span className="text-sm text-muted-foreground">
-                              Click to upload photo
-                            </span>
-                            <span className="text-xs text-muted-foreground mt-1">
-                              PNG, JPG up to 5MB
-                            </span>
+                            <Upload className="w-4 h-4" />
+                            Upload Photo
                           </Label>
                         </div>
                       )}
                     </div>
 
-                    <div>
-                      <Label htmlFor="register-country">Country <span className="text-destructive">*</span></Label>
-                      <Select
-                        value={registerData.country}
-                        onValueChange={(value) => {
-                          setRegisterData({ ...registerData, country: value });
-                        }}
-                        required
-                      >
-                        <SelectTrigger id="register-country" className="w-full">
-                          <SelectValue placeholder="Select country" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                          {countries.map((country) => (
-                            <SelectItem key={country.value} value={country.value}>
-                              {country.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {!registerData.country && (
-                        <p className="text-sm text-destructive mt-1">Country is required</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="register-state">State/Province <span className="text-destructive">*</span></Label>
-                      <Input
-                        id="register-state"
-                        type="text"
-                        placeholder="Your state/province"
-                        value={registerData.stateProvince}
-                        onChange={(e) =>
-                          setRegisterData({ ...registerData, stateProvince: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="register-city">City <span className="text-destructive">*</span></Label>
-                      <Input
-                        id="register-city"
-                        type="text"
-                        placeholder="Your city"
-                        value={registerData.city}
-                        onChange={(e) =>
-                          setRegisterData({ ...registerData, city: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="register-country-code">Country Code <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="register-country-code"
-                          type="text"
-                          value={registerData.countryCode}
-                          readOnly
-                          className="bg-muted"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="register-phone">Phone Number <span className="text-destructive">*</span></Label>
-                        <Input
-                          id="register-phone"
-                          type="tel"
-                          placeholder="Enter phone number"
-                          value={registerData.phoneNumber}
-                          onChange={(e) =>
-                            setRegisterData({ ...registerData, phoneNumber: e.target.value })
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    {/* Interested Certifications / Technologies */}
-                    <div className="pt-2 border-t border-border/50">
-                      <InterestedCertificationsPicker
-                        value={registerData.interestedCertifications}
-                        onChange={(items) =>
-                          setRegisterData({ ...registerData, interestedCertifications: items })
-                        }
-                        label="Which certifications are you interested in?"
-                        description="Select from top providers and/or type custom exam names below."
-                      />
-                    </div>
-
                     <Button
                       type="submit"
-                      className="w-full"
+                      className="w-full h-9.5 sm:h-10 text-sm font-semibold rounded-xl shadow-md mt-0.5"
                       disabled={isLoading}
                     >
-                      {isLoading ? "Creating account..." : "Sign Up"}
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Creating account...
+                        </>
+                      ) : (
+                        "Create Account & Continue"
+                      )}
                     </Button>
                   </form>
                 )}
 
                 {/* Toggle Login/Signup */}
-                <div className="mt-6 text-center">
+                <div className="text-center pt-1">
                   <button
                     type="button"
                     onClick={() => {
@@ -1078,11 +993,19 @@ export const LoginSignup = ({ onSuccess }: LoginSignupProps) => {
                       setPhotoFile(null);
                       setPhotoPreview(null);
                     }}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
                   >
-                    {isLogin
-                      ? "Don't have an account? Sign up"
-                      : "Already have an account? Login"}
+                    {isLogin ? (
+                      <>
+                        Don't have an account?{" "}
+                        <span className="font-semibold text-primary">Sign up</span>
+                      </>
+                    ) : (
+                      <>
+                        Already have an account?{" "}
+                        <span className="font-semibold text-primary">Login</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </motion.div>

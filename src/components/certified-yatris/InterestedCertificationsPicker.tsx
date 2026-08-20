@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent } from "react";
-import { Award, Plus, X, Check } from "lucide-react";
+import { Plus, X, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,12 +42,11 @@ interface InterestedCertificationsPickerProps {
 export const InterestedCertificationsPicker = ({
   value = [],
   onChange,
-  label = "Which certifications/providers are you interested in?",
+  label = "Which certifications are you interested in?",
   description = "Select from top providers and/or type custom certifications (e.g. CKA, AWS SAA, AZ-104).",
   required = false,
 }: InterestedCertificationsPickerProps) => {
   const [customInput, setCustomInput] = useState("");
-  const [showAllProviders, setShowAllProviders] = useState(false);
 
   const handleToggle = (providerLabel: string) => {
     if (value.includes(providerLabel)) {
@@ -77,36 +76,30 @@ export const InterestedCertificationsPicker = ({
     onChange(value.filter((v) => v !== itemToRemove));
   };
 
-  const displayedProviders = showAllProviders
-    ? POPULAR_PROVIDERS
-    : POPULAR_PROVIDERS.slice(0, 8);
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-3.5">
       <div>
-        <Label className="flex items-center gap-1.5 text-sm font-medium">
-          <Award className="w-4 h-4 text-primary" />
+        <Label className="text-sm font-semibold text-foreground">
           {label} {required && <span className="text-destructive">*</span>}
         </Label>
         {description && (
-          <p className="text-[11px] text-muted-foreground mt-0.5">{description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
         )}
       </div>
 
       {/* Selected tags */}
       {value.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 p-2 bg-muted/40 border border-border/60 rounded-xl min-h-[38px] items-center">
+        <div className="flex flex-wrap gap-2 p-2.5 bg-muted/30 border border-border/70 rounded-xl min-h-[40px] items-center">
           {value.map((item) => (
             <Badge
               key={item}
-              variant="secondary"
-              className="bg-primary/15 text-primary border border-primary/30 hover:bg-primary/20 text-xs px-2 py-0.5 flex items-center gap-1.5 font-medium transition-all"
+              className="bg-primary text-primary-foreground border-transparent hover:bg-primary/90 text-xs px-2.5 py-1 flex items-center gap-1.5 font-medium shadow-xs transition-all"
             >
               <span>{item}</span>
               <button
                 type="button"
                 onClick={() => handleRemove(item)}
-                className="rounded-full hover:bg-primary/30 p-0.5 transition-colors"
+                className="rounded-full hover:bg-white/20 p-0.5 transition-colors ml-0.5 text-primary-foreground"
                 title={`Remove ${item}`}
               >
                 <X className="w-3 h-3" />
@@ -116,94 +109,85 @@ export const InterestedCertificationsPicker = ({
         </div>
       )}
 
-      {/* Quick Select from Provider Dropdown */}
-      <div>
-        <Select
-          onValueChange={(val) => {
-            if (val && !value.includes(val)) {
-              onChange([...value, val]);
-            }
-          }}
-        >
-          <SelectTrigger className="w-full text-xs h-9 bg-background">
-            <SelectValue placeholder="⚡ Choose from Provider dropdown..." />
-          </SelectTrigger>
-          <SelectContent className="max-h-[220px]">
-            {POPULAR_PROVIDERS.map((p) => {
-              const isSelected = value.includes(p.label);
-              return (
-                <SelectItem key={p.id} value={p.label} className="text-xs">
-                  <div className="flex items-center justify-between w-full gap-2">
-                    <span>{p.label}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-primary ml-auto" />}
-                  </div>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+      {/* Quick Select from Provider Dropdown & Custom Input in a responsive row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div>
+          <Select
+            onValueChange={(val) => {
+              if (val && !value.includes(val)) {
+                onChange([...value, val]);
+              }
+            }}
+          >
+            <SelectTrigger className="w-full text-xs h-9 bg-background border-border/80">
+              <SelectValue placeholder="Choose from Provider dropdown..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-[240px]">
+              {POPULAR_PROVIDERS.map((p) => {
+                const isSelected = value.includes(p.label);
+                return (
+                  <SelectItem key={p.id} value={p.label} className="text-xs py-2">
+                    <div className="flex items-center justify-between w-full gap-2">
+                      <span>{p.label}</span>
+                      {isSelected && <Check className="w-4 h-4 text-primary ml-auto" />}
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Custom input for typing specific exams or others */}
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Type custom (e.g. CKA, AWS SAA)..."
+            value={customInput}
+            onChange={(e) => setCustomInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="text-xs h-9 bg-background border-border/80"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleAddCustom}
+            disabled={!customInput.trim()}
+            className="h-9 px-3 shrink-0 text-xs gap-1 font-medium"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add
+          </Button>
+        </div>
       </div>
 
-      {/* Checkboxes Grid */}
-      <div className="grid grid-cols-2 gap-1.5 bg-card/60 border border-border/60 p-2.5 rounded-xl">
-        {displayedProviders.map((p) => {
+      {/* Checkboxes Grid - 2 cols on mobile, 3 cols on sm, 4 cols on md/lg */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 bg-muted/20 border border-border/60 p-2.5 rounded-xl">
+        {POPULAR_PROVIDERS.map((p) => {
           const isChecked = value.includes(p.label);
           return (
-            <label
+            <button
+              type="button"
               key={p.id}
-              onClick={(e) => {
-                e.preventDefault();
-                handleToggle(p.label);
-              }}
-              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs cursor-pointer select-none transition-colors ${
+              onClick={() => handleToggle(p.label)}
+              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs text-left cursor-pointer select-none transition-all ${
                 isChecked
-                  ? "bg-primary/10 border-primary/40 text-foreground font-medium"
-                  : "bg-background/80 border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-primary border-primary text-primary-foreground font-semibold shadow-xs"
+                  : "bg-background border-border/70 text-foreground hover:border-primary/50 hover:bg-muted/50"
               }`}
             >
-              <Checkbox
-                checked={isChecked}
-                className="w-3.5 h-3.5 pointer-events-none"
-              />
+              {isChecked ? (
+                <div className="w-4 h-4 rounded bg-white text-primary flex items-center justify-center shrink-0 shadow-xs">
+                  <Check className="w-3 h-3 stroke-[3]" />
+                </div>
+              ) : (
+                <div className="w-4 h-4 rounded border border-muted-foreground/40 bg-background shrink-0" />
+              )}
               <span className="truncate">{p.label}</span>
-            </label>
+            </button>
           );
         })}
-      </div>
-
-      {POPULAR_PROVIDERS.length > 8 && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => setShowAllProviders(!showAllProviders)}
-            className="text-[11px] text-primary hover:underline font-medium"
-          >
-            {showAllProviders ? "Show less providers" : `+ Show ${POPULAR_PROVIDERS.length - 8} more providers`}
-          </button>
-        </div>
-      )}
-
-      {/* Custom input for typing specific exams or others */}
-      <div className="flex gap-2">
-        <Input
-          type="text"
-          placeholder="Type other/custom (e.g. CKA, AWS SAA, CISSP)..."
-          value={customInput}
-          onChange={(e) => setCustomInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="text-xs h-9"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAddCustom}
-          disabled={!customInput.trim()}
-          className="h-9 px-3 shrink-0 text-xs gap-1"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add
-        </Button>
       </div>
     </div>
   );

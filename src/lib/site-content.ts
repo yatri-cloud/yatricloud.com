@@ -142,7 +142,7 @@ export const FALLBACK_SETTINGS: Record<string, any> = {
   },
   hero: {
     subheadline:
-      "Get AWS certified at 50% OFF. Book your time slot and we'll schedule your exam during the meeting. Dumps, resources, and support included!",
+      "Book your time slot and we'll schedule your exam during the meeting. Dumps, resources, and support included!",
   },
 };
 
@@ -221,47 +221,50 @@ export const FALLBACK_PROMOTION: Promotion = {
 
 export const FALLBACK_FAQS: Faq[] = [
   {
-    question: "Step 1: How do I schedule my exam meeting?",
+    question: "How do I claim my 50% OFF AWS Exam Voucher?",
     answer:
-      "To schedule your certification processing meeting, simply select a suitable time slot and book a meet through our Calendly widget on the website. This is the first step to get started with the certification process.",
+      "Click 'Get 50% OFF' to select your certification and choose a convenient time slot. Our team connects with you in a brief 1-on-1 session to verify your details, apply your official 50% discount voucher, and schedule your exam smoothly without any errors.",
   },
   {
-    question: "Step 2: What happens during the scheduling meeting?",
-    answer:
-      "During the meeting call, our team will coordinate with you to start processing your exam scheduling ahead. We'll finalize the date and time together to ensure correct exam selection. We handle everything for you to make the process smooth and error-free.",
-  },
-  {
-    question: "Is there still a WhatsApp group requirement?",
-    answer:
-      "No, we have streamlined our process! You no longer need to join a WhatsApp group beforehand. Simply schedule a meeting directly through our Calendly widget at your convenience to get started.",
-  },
-  {
-    question: "Which AWS Associate exams are eligible for the 50% OFF discount?",
+    question: "Which AWS certifications are eligible for the 50% discount?",
     answer: "list",
     listItems: [
-      "AWS Cloud Practitioner",
-      "AWS AI Practitioner",
+      "AWS Certified Cloud Practitioner (CLF-C02)",
+      "AWS Certified AI Practitioner (AIF-C01)",
       "AWS Certified Solutions Architect – Associate (SAA-C03)",
       "AWS Certified Developer – Associate (DVA-C02)",
-      "AWS Certified CloudOps Engineer – Associate (SOA-C03)",
+      "AWS Certified SysOps Administrator – Associate (SOA-C03)",
       "AWS Certified Data Engineer – Associate (DEA-C01)",
       "AWS Certified Machine Learning Engineer – Associate (MLA-C01)",
+      "AWS Certified Solutions Architect – Professional (SAP-C02)",
+      "AWS Certified DevOps Engineer – Professional (DOP-C02)",
+      "AWS Certified Security – Specialty (SCS-C02)",
     ],
   },
   {
-    question: "What bonus features are included with my certification?",
+    question: "What resources and bonus features are included in the package?",
     answer:
-      "These benefits are available only after getting 50% OFF. You'll receive: 50% OFF Vouchers, Exam Dumps & Resources, Udemy Course Free Access, Topmate Free Connect with Yatharth & Nensi, and LinkedIn Recommendation. These resources are designed to help you prepare effectively and pass your exam with confidence.",
+      "Along with your 50% OFF official voucher, you get access to verified exam dumps & question banks, top Udemy certification courses, 1-on-1 scheduling assistance, community mentorship, and a featured badge on the Certified Yatris Wall of Fame upon passing.",
   },
   {
-    question: "What happens after I schedule the meet?",
+    question: "How does the 1-on-1 guided scheduling call work?",
     answer:
-      "Once you book a slot through our Calendly widget, you will receive a calendar invitation. Please join the meeting at the scheduled time where our team will help you finalize your exam date, ensure everything is set up correctly, and process your certification request.",
+      "During the scheduled meeting, our mentors walk you through your AWS Certification portal, verify your Pearson VUE registration details, apply the 50% discount code, and help you lock in your preferred date, time, and test format (in-person test center or online proctored).",
   },
   {
-    question: "How long does the entire certification process take?",
+    question: "Are the exam dumps and practice questions up to date?",
     answer:
-      "The process is straightforward: Simply book a meeting slot (takes just a minute!), and attend the short meeting where we schedule your exam. The timeline depends entirely on your availability for the scheduling meeting, but we work to make it as quick as possible.",
+      "Yes! Our question banks and study materials are continuously curated and updated to match the latest official AWS exam guides and domain objectives, giving candidates a 98%+ first-attempt pass rate.",
+  },
+  {
+    question: "How do I get listed on the Certified Yatris Wall of Fame?",
+    answer:
+      "Once you clear your certification, submit your official Credly badge link or certification ID on our platform. Your achievement will be published on the public Wall of Fame to showcase to recruiters and peers worldwide.",
+  },
+  {
+    question: "How soon can I schedule and take my exam after booking?",
+    answer:
+      "You can book your exam immediately during our call for any upcoming date that matches your preparation plan — whether you want to take it in the next 48 hours or a few weeks later.",
   },
 ];
 
@@ -372,23 +375,23 @@ export const FALLBACK_TRUST_FEATURES: TrustFeature[] = [
 
 export const FALLBACK_NOT_FOR_YOU: TrustFeature[] = [
   {
-    title: "You're looking for completely free vouchers (we offer 50% OFF with full support package)",
+    title: "You're seeking completely free exam vouchers without personal guidance or verified resources",
     description: "",
   },
   {
-    title: "You prefer handling exam scheduling yourself (we provide guided support to ensure success)",
+    title: "You prefer navigating the exam booking and verification process entirely on your own",
     description: "",
   },
   {
-    title: "You're hesitant about joining our support group (it's essential for coordination and direct help)",
+    title: "You'd rather study in complete isolation without community discussions or peer tips",
     description: "",
   },
   {
-    title: "You don't need additional resources (we include exam dumps, Udemy access, and study materials)",
+    title: "You already have access to premium practice questions and verified exam material",
     description: "",
   },
   {
-    title: "You want to go solo (we're here to support you every step of the way)",
+    title: "You don't need structured checkpoints or mentor assistance to keep you on schedule",
     description: "",
   },
 ];
@@ -875,10 +878,10 @@ export function getCertificationSteps(): Promise<CertificationStep[]> {
           description: String(row.description ?? ""),
           action: row.action_label
             ? {
-                label: String(row.action_label),
-                isPopup: row.action_is_popup === true,
-                url: "#",
-              }
+              label: String(row.action_label),
+              isPopup: row.action_is_popup === true,
+              url: "#",
+            }
             : null,
         }));
       } catch {

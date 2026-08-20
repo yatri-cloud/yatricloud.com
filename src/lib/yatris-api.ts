@@ -11,6 +11,7 @@ import {
   signUpWithPassword, signInWithPassword, signInWithGoogleIdToken,
   signOut, hasSession, getCachedUser, fetchMyProfile, updateMyProfile,
   changePassword as authChangePassword, changeEmail as authChangeEmail,
+  deleteMyAccount,
   type YatriUser,
 } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -90,7 +91,8 @@ export async function loginUser(
 ): Promise<LoginResponse> {
   const { user, error } = await signInWithPassword(email, password);
   if (error) return { success: false, error };
-  return { success: true, token: 'supabase-session', user: user ?? undefined };
+  const fullProfile = await fetchMyProfile();
+  return { success: true, token: 'supabase-session', user: fullProfile ?? user ?? undefined };
 }
 
 /**
@@ -102,6 +104,7 @@ export async function googleLogin(userProfile: {
   photoUrl: string;
   /** Raw Google ID token (JWT credential) — required for secure verification. */
   idToken?: string;
+  nonce?: string;
 }): Promise<LoginResponse> {
   if (!userProfile.idToken) {
     return {
@@ -109,7 +112,7 @@ export async function googleLogin(userProfile: {
       error: 'Google sign-in needs a fresh credential — please try again.',
     };
   }
-  const { user, error } = await signInWithGoogleIdToken(userProfile.idToken);
+  const { user, error } = await signInWithGoogleIdToken(userProfile.idToken, userProfile.nonce);
   if (error) return { success: false, error };
   // Enrich profile with Google data on first login (photo/name may be empty)
   if (user && (!user.photoUrl || !user.fullName)) {
@@ -325,6 +328,13 @@ export async function changeEmail(
 }
 
 /**
+ * Delete current user account and all data
+ */
+export async function deleteAccount(): Promise<{ success: boolean; error?: string }> {
+  return deleteMyAccount();
+}
+
+/**
  * Get stored user
  */
 export function getStoredUser(): User | null {
@@ -333,17 +343,16 @@ export function getStoredUser(): User | null {
 
 /**
  * Check if user profile has all mandatory fields filled
- * Google login users will have incomplete profiles (missing linkedin, country, phone, etc.)
+ * Users will have incomplete profiles if missing country, state, city, phone, or interested certifications (LinkedIn is optional)
  */
-export function isProfileComplete(user: User | null): boolean {
+export function isProfileComplete(user: any | null): boolean {
   if (!user) return false;
-  return !!(
-    user.linkedinUrl &&
-    user.country &&
-    user.stateProvince &&
-    user.city &&
-    user.phoneNumber
-  );
+  const hasCountry = Boolean(user.country && String(user.country).trim().length > 0);
+  const hasState = Boolean(user.stateProvince && String(user.stateProvince).trim().length > 0);
+  const hasCity = Boolean(user.city && String(user.city).trim().length > 0);
+  const hasPhone = Boolean(user.phoneNumber && String(user.phoneNumber).trim().length > 0);
+  const hasCerts = Boolean(Array.isArray(user.interestedCertifications) && user.interestedCertifications.length > 0);
+  return hasCountry && hasState && hasCity && hasPhone && hasCerts;
 }
 
 // Event Registration Types

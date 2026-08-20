@@ -175,7 +175,7 @@ export default function UpcomingEventDetail() {
                                 {event.techStack?.filter((tech) => typeof tech === 'string' && tech.trim().length > 0).length > 0 && (
                                     <div className="flex flex-wrap gap-2">
                                         {event.techStack.filter((tech) => typeof tech === 'string' && tech.trim().length > 0).map((tech, i) => (
-                                            <span key={i} className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                            <span key={i} className="rounded-full bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold shadow-sm">
                                                 {tech.trim()}
                                             </span>
                                         ))}

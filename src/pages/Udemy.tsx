@@ -230,7 +230,7 @@ const Udemy = () => {
             <ScrollReveal>
               <div className="mb-10">
                 <div className="mb-6 flex items-center justify-between gap-4">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-brand-50 px-4 py-1.5 text-sm font-medium text-primary">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-1.5 text-sm font-semibold shadow-sm">
                     <GraduationCap className="h-4 w-4" aria-hidden="true" />
                     Udemy Courses
                   </span>

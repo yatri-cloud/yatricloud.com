@@ -335,7 +335,7 @@ export default function ResumeMaker() {
                 <section className="relative overflow-hidden pt-28 pb-12">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
                     <div className="container relative z-10 mx-auto px-4 md:px-6 text-center space-y-4">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-3.5 py-1 text-xs font-semibold shadow-sm">
                             <Sparkles className="h-3.5 w-3.5" /> AI ATS Intelligence Engine
                         </div>
                         <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">

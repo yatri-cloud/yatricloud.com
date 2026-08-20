@@ -97,13 +97,9 @@ export const FAQSection = () => {
                         aria-hidden="true"
                         animate={{ rotate: isOpen ? 45 : 0 }}
                         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                        className={`flex-shrink-0 grid place-items-center w-9 h-9 rounded-full border transition-colors ${
-                          isOpen
-                            ? "border-primary/40 bg-primary/10"
-                            : "border-border bg-secondary"
-                        }`}
+                        className="flex-shrink-0 grid place-items-center w-8 h-8 rounded-full bg-primary text-primary-foreground shadow-sm"
                       >
-                        <Plus className="w-5 h-5 text-primary" />
+                        <Plus className="w-4 h-4" />
                       </motion.span>
                     </button>
                     <AnimatePresence initial={false}>

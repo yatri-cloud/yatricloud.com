@@ -1,16 +1,13 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import ScrollReveal from "@/components/ScrollReveal";
-import { fetchExamDumps, getProviderGlowColor, type ExamDump } from "@/lib/exam-dumps";
-import { useCart } from "@/contexts/CartContext";
-import { toast } from "sonner";
+import { fetchExamDumps, type ExamDump } from "@/lib/exam-dumps";
+import { ExamDumpCard } from "@/components/exam-dumps/ExamDumpCard";
 
 export const LatestExamDumpsSection = () => {
   const [dumps, setDumps] = useState<ExamDump[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { addToCart } = useCart();
 
   useEffect(() => {
     const loadDumps = async () => {
@@ -54,115 +51,12 @@ export const LatestExamDumpsSection = () => {
             </div>
           </ScrollReveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {dumps.map((dump, index) => {
-              const discount = Math.round(
-                ((dump.originalPrice - dump.price) / dump.originalPrice) * 100
-              );
-              return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {dumps.map((dump, index) => (
               <ScrollReveal key={dump.id} delay={index * 0.06}>
-                <motion.div
-                  className="group relative h-full flex flex-col rounded-2xl border border-border transition-all duration-300 hover:border-transparent outline-none focus:outline-none"
-                >
-                  {/* Static Soft Glow Layer */}
-                  <div 
-                    className="absolute -inset-1 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-[24px] blur-xl"
-                    style={{ backgroundColor: getProviderGlowColor(dump.provider) }}
-                  />
-
-                  {/* Content Wrapper to mask inner shadow and clip corners */}
-                  <div className="relative z-10 flex flex-col flex-1 rounded-2xl overflow-hidden bg-card h-full">
-                  {/* Square image stage — artwork contained and centered,
-                      matching ExamDumpCard on /examdumps. The image links to
-                      the dumps page, same as the Details button. */}
-                  <Link
-                    to="/examdumps"
-                    aria-label={`View details of ${dump.title}`}
-                    className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50/60 via-card to-brand-50/30 p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <img
-                      src={dump.image || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60"}
-                      alt={dump.title}
-                      width={800}
-                      height={800}
-                      loading="lazy"
-                      decoding="async"
-                      className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
-                    />
-                    {/* Provider document tag */}
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground/80" />
-                        {dump.provider}
-                      </span>
-                    </div>
-                    {/* Discount rubber-stamp */}
-                    <div className="absolute top-3 right-3 rotate-[-8deg] group-hover:rotate-[-4deg] transition-transform duration-300">
-                      <span className="flex flex-col items-center justify-center rounded-full border-2 border-primary/60 bg-background/80 backdrop-blur-sm px-3 py-2 text-primary leading-none tabular-nums">
-                        <span className="text-base font-extrabold">-{discount}%</span>
-                        <span className="text-[9px] font-semibold uppercase tracking-widest">Off</span>
-                      </span>
-                    </div>
-                  </Link>
-
-                  {/* Card body */}
-                  <div className="relative flex flex-col flex-1 p-6">
-
-
-                    <h3 className="text-xl font-bold text-foreground mb-4 line-clamp-1 group-hover:text-primary transition-colors">
-                      <Link
-                        to="/examdumps"
-                        className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {dump.title}
-                      </Link>
-                    </h3>
-
-                    <div className="flex items-end justify-between mb-6 mt-auto">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-muted-foreground line-through tabular-nums">
-                          ₹{dump.originalPrice}
-                        </span>
-                        <span className="text-2xl font-bold text-primary tabular-nums">
-                          ₹{dump.price}
-                        </span>
-                      </div>
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Instant delivery
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => {
-                          addToCart({
-                            id: dump.id,
-                            title: dump.title,
-                            discountedPrice: dump.price,
-                            originalPrice: dump.originalPrice,
-                            image: dump.image,
-                            type: 'exam-dump',
-                            downloadUrl: dump.downloadUrl
-                          });
-                          toast.success("Added to cart");
-                        }}
-                        className="flex items-center justify-center gap-2 min-h-[44px] bg-primary text-primary-foreground font-semibold py-3 rounded-xl shadow-inset-btn hover:bg-primary/90 transition-colors"
-                      >
-                        Add
-                      </button>
-                      <Link
-                        to="/examdumps"
-                        className="flex items-center justify-center gap-2 min-h-[44px] border border-border text-foreground font-semibold py-3 rounded-xl hover:border-primary/40 hover:bg-secondary transition-colors"
-                      >
-                        Details
-                      </Link>
-                    </div>
-                  </div>
-                  </div>
-                </motion.div>
+                <ExamDumpCard dump={dump} />
               </ScrollReveal>
-              );
-            })}
+            ))}
           </div>
         </div>
       </div>

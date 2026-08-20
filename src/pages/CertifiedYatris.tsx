@@ -165,13 +165,15 @@ const CertifiedYatris = () => {
   // Show login/signup if not authenticated
   if (!isAuthenticated && !checkingAuth) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
         <SEO
           title="Certified Yatris · Wall of Cloud Achievers"
           description="Meet the Yatris who passed AWS, Azure, GCP and Kubernetes exams. Real people, real certificates. Add your name to the wall and inspire others."
         />
         <Navbar />
-        <LoginSignup onSuccess={handleLoginSuccess} />
+        <main className="flex-1 flex items-center justify-center px-4 py-16">
+          <LoginSignup onSuccess={handleLoginSuccess} />
+        </main>
         <Footer />
       </div>
     );

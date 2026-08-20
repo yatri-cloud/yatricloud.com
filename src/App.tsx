@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { usePageTracker } from "@/hooks/usePageTracker";
+import { ProfileCompletionGuard } from "@/components/ProfileCompletionGuard";
 
 // Route-level code splitting: every page below loads on demand, so the
 // initial bundle carries only the homepage and the shared shell.
@@ -151,7 +152,14 @@ const AdminEmailSettings = lazy(() => import("./pages/admin/AdminEmailSettings")
 const AdminEmailLogs = lazy(() => import("./pages/admin/AdminEmailLogs"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 import { FEATURE_FLAGS } from "@/config/features";
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 // Floating checkout pill: mounts only when the cart has items, and stays off
 // surfaces that carry their own cart UI (store) or aren't shopping (admin,
@@ -372,6 +380,7 @@ const App = () => (
             <CalendlyPopup />
             <ExitIntentPopup />
             <FloatingCartGate />
+            <ProfileCompletionGuard />
           </BrowserRouter>
           </ConfirmProvider>
         </CartProvider>

@@ -30,6 +30,7 @@ export interface YatriUser {
   phoneNumber?: string;
   interestedCertifications?: string[];
   role?: "yatri" | "trainer" | "admin";
+  authProvider?: string;
 }
 
 const MIRROR_KEY = "yatri:user";
@@ -83,6 +84,30 @@ export async function fetchMyProfile(): Promise<YatriUser | null> {
   const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
   if (error || !data) return currentUser; // keep last-known on transient errors
   const u = rowToUser(data);
+  const isGoogle = user.app_metadata?.provider === "google" ||
+                   user.app_metadata?.providers?.includes("google") ||
+                   user.identities?.some((id: any) => id.provider === "google");
+  u.authProvider = isGoogle ? "google" : (user.app_metadata?.provider || "email");
+
+  // Fallback to Google OAuth avatar if not set in profile table
+  const metaPhoto = (user.user_metadata?.avatar_url as string) || 
+                    (user.user_metadata?.picture as string) ||
+                    (user.identities?.[0]?.identity_data?.avatar_url as string) ||
+                    (user.identities?.[0]?.identity_data?.picture as string);
+  if (!u.photoUrl && metaPhoto) {
+    u.photoUrl = metaPhoto;
+    void supabase.from("profiles").update({ photo_url: metaPhoto }).eq("id", user.id);
+  }
+
+  const metaName = (user.user_metadata?.full_name as string) || 
+                   (user.user_metadata?.name as string) ||
+                   (user.identities?.[0]?.identity_data?.full_name as string) ||
+                   (user.identities?.[0]?.identity_data?.name as string);
+  if (!u.fullName && metaName) {
+    u.fullName = metaName;
+    void supabase.from("profiles").update({ full_name: metaName }).eq("id", user.id);
+  }
+
   setMirror(u);
   return u;
 }
@@ -100,12 +125,14 @@ export async function signUpWithPassword(input: {
     options: { data: { full_name: input.fullName } },
   });
   if (error) return { user: null, error: friendly(error.message) };
+  if (!data.user) return { user: null, error: "Sign-up failed — please try again." };
 
-  // If email confirmation is enabled there is no session yet.
-  if (!data.session) return { user: null, error: null, needsEmailConfirm: true };
+  if (data.session === null) {
+    return { user: null, error: null, needsEmailConfirm: true };
+  }
 
   // Profile row was auto-created by the DB trigger; enrich it.
-  await supabase.from("profiles").update({
+  const profilePayload: Record<string, any> = {
     full_name: input.fullName,
     linkedin_url: input.linkedinUrl ?? null,
     country: input.country ?? null,
@@ -115,7 +142,13 @@ export async function signUpWithPassword(input: {
     phone_number: input.phoneNumber ?? null,
     photo_url: input.photoUrl ?? null,
     interested_certifications: input.interestedCertifications ?? [],
-  }).eq("id", data.user!.id);
+  };
+
+  let profileUpdate = await supabase.from("profiles").update(profilePayload).eq("id", data.user!.id);
+  if (profileUpdate.error && profileUpdate.error.message && profileUpdate.error.message.includes("interested_certifications")) {
+    delete profilePayload.interested_certifications;
+    await supabase.from("profiles").update(profilePayload).eq("id", data.user!.id);
+  }
 
   const user = await fetchMyProfile();
   return { user, error: null };
@@ -146,21 +179,47 @@ export async function signInWithPassword(email: string, password: string):
  * Requires: Supabase Dashboard → Auth → Providers → Google → add the same
  * client ID used by VITE_GOOGLE_CLIENT_ID.
  */
-export async function signInWithGoogleIdToken(idToken: string):
+export async function signInWithGoogleIdToken(idToken: string, nonce?: string):
   Promise<{ user: YatriUser | null; error: string | null }> {
-  const { data, error } = await supabase.auth.signInWithIdToken({ provider: "google", token: idToken });
+  const { data, error } = await supabase.auth.signInWithIdToken({ provider: "google", token: idToken, nonce });
   if (error) return { user: null, error: friendly(error.message) };
+  
+  const photo = (data.user?.user_metadata?.avatar_url as string) || 
+                (data.user?.user_metadata?.picture as string) || 
+                (data.user?.identities?.[0]?.identity_data?.avatar_url as string) ||
+                (data.user?.identities?.[0]?.identity_data?.picture as string) ||
+                undefined;
+  const name = (data.user?.user_metadata?.full_name as string) || 
+               (data.user?.user_metadata?.name as string) || 
+               (data.user?.identities?.[0]?.identity_data?.full_name as string) ||
+               (data.user?.identities?.[0]?.identity_data?.name as string) ||
+               "";
+
   // Snappy return with session data; full profile loads in the background.
   const provisional: YatriUser = {
     id: data.user?.id,
     email: data.user?.email || "",
-    fullName: (data.user?.user_metadata?.full_name as string) || "",
-    photoUrl: (data.user?.user_metadata?.avatar_url as string) || undefined,
+    fullName: name,
+    photoUrl: photo,
     role: "yatri",
+    authProvider: "google",
   };
   setMirror(provisional);
-  void fetchMyProfile();
-  return { user: provisional, error: null };
+  
+  // Sync to database
+  if (data.user?.id && (photo || name)) {
+    try {
+      await supabase.from("profiles").update({
+        ...(name ? { full_name: name } : {}),
+        ...(photo ? { photo_url: photo } : {}),
+      }).eq("id", data.user.id);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  const fresh = await fetchMyProfile();
+  return { user: fresh || provisional, error: null };
 }
 
 export async function signOut(): Promise<void> {
@@ -190,7 +249,8 @@ export async function updateMyProfile(fields: Partial<Omit<YatriUser, "id" | "em
   Promise<{ user: YatriUser | null; error: string | null }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { user: null, error: "Not signed in" };
-  const { error } = await supabase.from("profiles").update({
+
+  const updatePayload: Record<string, any> = {
     ...(fields.fullName !== undefined && { full_name: fields.fullName }),
     ...(fields.linkedinUrl !== undefined && { linkedin_url: fields.linkedinUrl }),
     ...(fields.photoUrl !== undefined && { photo_url: fields.photoUrl }),
@@ -199,11 +259,55 @@ export async function updateMyProfile(fields: Partial<Omit<YatriUser, "id" | "em
     ...(fields.city !== undefined && { city: fields.city }),
     ...(fields.countryCode !== undefined && { country_code: fields.countryCode }),
     ...(fields.phoneNumber !== undefined && { phone_number: fields.phoneNumber }),
-    ...(fields.interestedCertifications !== undefined && { interested_certifications: fields.interestedCertifications }),
-  }).eq("id", user.id);
+  };
+
+  if (fields.interestedCertifications !== undefined) {
+    updatePayload.interested_certifications = fields.interestedCertifications;
+  }
+
+  let { error } = await supabase.from("profiles").update(updatePayload).eq("id", user.id);
+
+  if (error && error.message && error.message.includes("interested_certifications")) {
+    delete updatePayload.interested_certifications;
+    const retry = await supabase.from("profiles").update(updatePayload).eq("id", user.id);
+    error = retry.error;
+  }
+
   if (error) return { user: currentUser, error: friendly(error.message) };
   const fresh = await fetchMyProfile();
   return { user: fresh, error: null };
+}
+
+/**
+ * Permanently delete the user's profile and related data, then sign out.
+ */
+export async function deleteMyAccount(): Promise<{ success: boolean; error?: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not signed in" };
+
+  try {
+    // 1. Delete user's certifications
+    await supabase.from("certifications").delete().eq("user_id", user.id);
+    
+    // 2. Delete user's event registrations
+    await supabase.from("event_registrations").delete().eq("user_id", user.id);
+
+    // 3. Delete user's training enrollments
+    await supabase.from("training_enrollments").delete().eq("user_id", user.id);
+
+    // 4. Delete user's profile row
+    const { error: profileError } = await supabase.from("profiles").delete().eq("id", user.id);
+    if (profileError) {
+      console.warn("Profile deletion warning:", profileError.message);
+    }
+
+    // 5. Sign out and clear session mirror
+    await signOut();
+    return { success: true };
+  } catch (err: any) {
+    console.error("Delete account error:", err);
+    return { success: false, error: err.message || "Failed to delete account" };
+  }
 }
 
 // ---------- session lifecycle ----------

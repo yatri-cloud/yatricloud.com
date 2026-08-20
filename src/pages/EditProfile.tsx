@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Save, User, Mail, Linkedin, Globe, Upload, Loader2, AlertTriangle } from "lucide-react";
+import { Upload, Loader2, AlertTriangle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { getStoredUser, updateProfile, changePassword, changeEmail, logout } from "@/lib/yatris-api";
+import { getStoredUser, updateProfile, changePassword, changeEmail, logout, deleteAccount } from "@/lib/yatris-api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -18,6 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Country } from "country-state-city";
 import { InterestedCertificationsPicker } from "@/components/certified-yatris/InterestedCertificationsPicker";
 
@@ -27,9 +36,15 @@ const EditProfile = () => {
   const isCompleting = searchParams.get('complete') === 'true';
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // Delete Account State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteCheckboxChecked, setDeleteCheckboxChecked] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const [profileData, setProfileData] = useState({
     fullName: "",
@@ -73,6 +88,20 @@ const EditProfile = () => {
       }
       setUser(storedUser);
 
+      // Check if user authenticated via Google
+      try {
+        const { supabase } = await import("@/lib/supabase");
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const isGoogle = authUser.app_metadata?.provider === "google" ||
+                           authUser.app_metadata?.providers?.includes("google") ||
+                           authUser.identities?.some((id: any) => id.provider === "google");
+          setIsGoogleUser(Boolean(isGoogle));
+        }
+      } catch (err) {
+        console.warn("Could not determine auth provider:", err);
+      }
+
       // Initialize with stored data immediately
       let userData = storedUser;
 
@@ -83,6 +112,9 @@ const EditProfile = () => {
         if (freshUser) {
           userData = freshUser;
           setUser(freshUser);
+          if (freshUser.authProvider === "google") {
+            setIsGoogleUser(true);
+          }
         }
       } catch (error) {
         console.warn("Error fetching fresh user data, using stored data:", error);
@@ -142,12 +174,9 @@ const EditProfile = () => {
       toast({ title: "Error", description: "Full Name is required", variant: "destructive" });
       return;
     }
-    if (!profileData.linkedinUrl?.trim()) {
-      toast({ title: "Error", description: "LinkedIn Profile URL is required", variant: "destructive" });
-      return;
-    }
-    if (!profileData.linkedinUrl.match(/^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i)) {
-      toast({ title: "Error", description: "Please enter a valid LinkedIn profile URL", variant: "destructive" });
+    // LinkedIn is optional, but if entered it must be valid URL format
+    if (profileData.linkedinUrl?.trim() && !profileData.linkedinUrl.match(/^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i)) {
+      toast({ title: "Error", description: "Please enter a valid LinkedIn profile URL (e.g. https://linkedin.com/in/yourname)", variant: "destructive" });
       return;
     }
     if (!profileData.country) {
@@ -166,17 +195,21 @@ const EditProfile = () => {
       toast({ title: "Error", description: "Phone Number is required", variant: "destructive" });
       return;
     }
+    if (!profileData.interestedCertifications || profileData.interestedCertifications.length === 0) {
+      toast({ title: "Error", description: "Please select or type at least one certification you are interested in", variant: "destructive" });
+      return;
+    }
 
     setIsSaving(true);
     try {
       const result = await updateProfile({
-        fullName: profileData.fullName,
-        linkedinUrl: profileData.linkedinUrl,
+        fullName: profileData.fullName.trim(),
+        linkedinUrl: profileData.linkedinUrl?.trim() || "",
         country: profileData.country,
-        stateProvince: profileData.stateProvince,
-        city: profileData.city,
-        countryCode: profileData.countryCode,
-        phoneNumber: profileData.phoneNumber,
+        stateProvince: profileData.stateProvince.trim(),
+        city: profileData.city.trim(),
+        countryCode: profileData.countryCode.trim(),
+        phoneNumber: profileData.phoneNumber.trim(),
         photoUrl: profileData.photoUrl,
         interestedCertifications: profileData.interestedCertifications,
       });
@@ -211,6 +244,15 @@ const EditProfile = () => {
   };
 
   const handleChangePassword = async () => {
+    if (!passwordData.currentPassword) {
+      toast({
+        title: "Error",
+        description: "Please enter your current password",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
         title: "Error",
@@ -313,7 +355,7 @@ const EditProfile = () => {
       if (result.success) {
         toast({
           title: "Success",
-          description: "Email changed successfully. Please sign in with your new email.",
+          description: "Email confirmation sent. Please verify your new email.",
         });
 
         // Log out user and redirect to login
@@ -339,6 +381,44 @@ const EditProfile = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE" || !deleteCheckboxChecked) {
+      toast({
+        title: "Error",
+        description: "Please type DELETE and check the confirmation checkbox.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const res = await deleteAccount();
+      if (res.success) {
+        toast({
+          title: "Account Deleted",
+          description: "Your account and all associated records have been permanently removed.",
+        });
+        setShowDeleteModal(false);
+        navigate("/certifiedyatris");
+      } else {
+        toast({
+          title: "Error",
+          description: res.error || "Failed to delete account",
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to delete account",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
@@ -348,7 +428,7 @@ const EditProfile = () => {
       />
       <Navbar />
 
-      <main className="pt-24 pb-12">
+      <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {/* Header */}
           <motion.div
@@ -358,16 +438,15 @@ const EditProfile = () => {
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-2">
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-1.5">
                   {isCompleting ? "Complete Your Profile" : "Edit Profile"}
                 </h1>
-                <p className="text-muted-foreground text-lg">
+                <p className="text-muted-foreground text-sm sm:text-base">
                   {isCompleting
-                    ? "Please fill in all required fields to continue"
+                    ? "Please fill in all required fields to continue using Yatri Cloud"
                     : "Update your personal information and account settings"}
                 </p>
               </div>
-
             </div>
           </motion.div>
 
@@ -376,13 +455,13 @@ const EditProfile = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3"
+              className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-3"
             >
               <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-amber-500">Profile Incomplete</p>
-                <p className="text-sm text-muted-foreground">
-                  You signed in with Google. Please fill in your LinkedIn URL, location, and phone number to complete your profile.
+                <p className="font-semibold text-amber-600 dark:text-amber-400">Profile Incomplete</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  Please complete your required location, contact number, and interested certifications to unlock full access.
                 </p>
               </div>
             </motion.div>
@@ -407,16 +486,16 @@ const EditProfile = () => {
                         <img
                           src={profileData.photoUrl}
                           alt="Profile"
-                          className="w-24 h-24 rounded-full object-cover border-2 border-border"
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-border shadow-sm"
                         />
-                        <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                           <Upload className="w-6 h-6 text-white" />
                         </div>
                       </div>
                     )}
                     <div>
                       <Label htmlFor="photo-upload" className="cursor-pointer">
-                        <div className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-muted">
+                        <div className="flex items-center gap-2 px-3.5 py-1.5 border border-border rounded-lg hover:bg-muted text-xs sm:text-sm font-medium">
                           <Upload className="w-4 h-4" />
                           {profileData.photoUrl ? "Change Photo" : "Upload Photo"}
                         </div>
@@ -428,8 +507,8 @@ const EditProfile = () => {
                           className="hidden"
                         />
                       </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Max size: 5MB
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Max size: 5MB (JPG, PNG, WebP)
                       </p>
                     </div>
                   </div>
@@ -437,27 +516,41 @@ const EditProfile = () => {
 
                 {/* Full Name */}
                 <div>
-                  <Label>Full Name</Label>
+                  <Label>Full Name <span className="text-destructive">*</span></Label>
                   <Input
                     value={profileData.fullName}
                     onChange={(e) =>
                       setProfileData({ ...profileData, fullName: e.target.value })
                     }
                     placeholder="Your full name"
+                    className="mt-1"
                   />
                 </div>
 
                 {/* Email */}
                 <div>
-                  <Label>Email</Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Email</Label>
+                    {isGoogleUser && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                        </svg>
+                        Signed in via Google
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
                     <Input
                       type="email"
                       value={profileData.email}
                       disabled
                       className="bg-muted flex-1"
                     />
-                    {!showEmailChange && (
+                    {!isGoogleUser && !showEmailChange && (
                       <Button
                         type="button"
                         variant="outline"
@@ -468,9 +561,9 @@ const EditProfile = () => {
                       </Button>
                     )}
                   </div>
-                  {showEmailChange && (
-                    <div className="mt-4 p-4 border border-border rounded-lg bg-muted/50 space-y-4">
-                      <p className="text-sm font-medium">Change Email Address</p>
+                  {!isGoogleUser && showEmailChange && (
+                    <div className="mt-4 p-4 border border-border rounded-xl bg-muted/40 space-y-4">
+                      <p className="text-sm font-semibold">Change Email Address</p>
                       <div>
                         <Label>Current Password</Label>
                         <Input
@@ -480,6 +573,7 @@ const EditProfile = () => {
                             setEmailData({ ...emailData, currentPassword: e.target.value })
                           }
                           placeholder="Enter your current password"
+                          className="mt-1"
                         />
                       </div>
                       <div>
@@ -491,6 +585,7 @@ const EditProfile = () => {
                             setEmailData({ ...emailData, newEmail: e.target.value })
                           }
                           placeholder="Enter new email address"
+                          className="mt-1"
                         />
                       </div>
                       <div>
@@ -502,14 +597,14 @@ const EditProfile = () => {
                             setEmailData({ ...emailData, confirmEmail: e.target.value })
                           }
                           placeholder="Confirm new email address"
+                          className="mt-1"
                         />
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 pt-1">
                         <Button
                           type="button"
                           onClick={handleChangeEmail}
                           disabled={isChangingEmail}
-                          variant="default"
                           className="flex-1"
                         >
                           {isChangingEmail ? (
@@ -541,15 +636,16 @@ const EditProfile = () => {
                   )}
                 </div>
 
-                {/* LinkedIn URL */}
+                {/* LinkedIn URL (Optional) */}
                 <div>
-                  <Label>LinkedIn Profile URL <span className="text-destructive">*</span></Label>
+                  <Label>LinkedIn Profile URL <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
                   <Input
                     value={profileData.linkedinUrl || ""}
                     onChange={(e) =>
                       setProfileData({ ...profileData, linkedinUrl: e.target.value })
                     }
-                    placeholder={profileData.linkedinUrl ? "" : "https://linkedin.com/in/yourprofile"}
+                    placeholder="https://linkedin.com/in/yourusername"
+                    className="mt-1"
                   />
                 </div>
 
@@ -568,7 +664,7 @@ const EditProfile = () => {
                         });
                       }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
@@ -587,7 +683,8 @@ const EditProfile = () => {
                       onChange={(e) =>
                         setProfileData({ ...profileData, stateProvince: e.target.value })
                       }
-                      placeholder={profileData.stateProvince ? "" : "Enter state/province"}
+                      placeholder="e.g. Maharashtra, California"
+                      className="mt-1"
                     />
                   </div>
                   <div>
@@ -597,7 +694,8 @@ const EditProfile = () => {
                       onChange={(e) =>
                         setProfileData({ ...profileData, city: e.target.value })
                       }
-                      placeholder={profileData.city ? "" : "Enter city"}
+                      placeholder="e.g. Mumbai, New York"
+                      className="mt-1"
                     />
                   </div>
                 </div>
@@ -607,9 +705,12 @@ const EditProfile = () => {
                   <div>
                     <Label>Country Code</Label>
                     <Input
-                      value={profileData.countryCode}
-                      readOnly
-                      className="bg-muted"
+                      placeholder="+91"
+                      value={profileData.countryCode || ""}
+                      onChange={(e) =>
+                        setProfileData({ ...profileData, countryCode: e.target.value })
+                      }
+                      className="mt-1 bg-background"
                     />
                   </div>
                   <div>
@@ -619,24 +720,26 @@ const EditProfile = () => {
                       onChange={(e) =>
                         setProfileData({ ...profileData, phoneNumber: e.target.value })
                       }
-                      placeholder={profileData.phoneNumber ? "" : "Enter phone number"}
+                      placeholder="9876543210"
+                      className="mt-1"
                     />
                   </div>
                 </div>
 
-                {/* Interested Certifications / Technologies */}
-                <div className="pt-2 border-t border-border/50">
+                {/* Interested Certifications (Mandatory) */}
+                <div className="pt-3 border-t border-border/60">
                   <InterestedCertificationsPicker
                     value={profileData.interestedCertifications}
                     onChange={(items) =>
                       setProfileData({ ...profileData, interestedCertifications: items })
                     }
+                    required={true}
                     label="Which certifications are you interested in?"
-                    description="Select providers from the list/checkboxes and/or add custom certification names."
+                    description="Select providers and/or add custom certification names."
                   />
                 </div>
 
-                <div className="flex gap-2 pt-4">
+                <div className="flex gap-3 pt-4">
                   <Button
                     onClick={handleSaveProfile}
                     disabled={isSaving}
@@ -648,9 +751,7 @@ const EditProfile = () => {
                         Saving...
                       </>
                     ) : (
-                      <>
-                        Save Profile
-                      </>
+                      "Save Profile"
                     )}
                   </Button>
                   <Button
@@ -664,68 +765,174 @@ const EditProfile = () => {
               </CardContent>
             </Card>
 
-            {/* Change Password */}
-            <Card>
+            {/* Change Password - ONLY for Email/Password Users */}
+            {!isGoogleUser && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>
+                    Update your account password
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Current Password</Label>
+                    <Input
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) =>
+                        setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                      }
+                      placeholder="Enter current password"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>New Password</Label>
+                    <Input
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) =>
+                        setPasswordData({ ...passwordData, newPassword: e.target.value })
+                      }
+                      placeholder="Enter new password (min 6 characters)"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Confirm New Password</Label>
+                    <Input
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) =>
+                        setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                      }
+                      placeholder="Confirm new password"
+                      className="mt-1"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleChangePassword}
+                    disabled={isChangingPassword}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {isChangingPassword ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Changing...
+                      </>
+                    ) : (
+                      "Change Password"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Danger Zone: Delete Account */}
+            <Card className="border-destructive/40 bg-destructive/[0.02]">
               <CardHeader>
-                <CardTitle>Change Password</CardTitle>
+                <CardTitle className="text-destructive text-lg">
+                  Danger Zone
+                </CardTitle>
                 <CardDescription>
-                  Update your account password
+                  Permanently delete your account and all associated data.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label>Current Password</Label>
-                  <Input
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) =>
-                      setPasswordData({ ...passwordData, currentPassword: e.target.value })
-                    }
-                    placeholder="Enter current password"
-                  />
-                </div>
-                <div>
-                  <Label>New Password</Label>
-                  <Input
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) =>
-                      setPasswordData({ ...passwordData, newPassword: e.target.value })
-                    }
-                    placeholder="Enter new password (min 6 characters)"
-                  />
-                </div>
-                <div>
-                  <Label>Confirm New Password</Label>
-                  <Input
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) =>
-                      setPasswordData({ ...passwordData, confirmPassword: e.target.value })
-                    }
-                    placeholder="Confirm new password"
-                  />
-                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Deleting your account is permanent and cannot be reversed. All your profile information, certification badges, event registrations, course progress, and mentorship records will be immediately erased.
+                </p>
                 <Button
-                  onClick={handleChangePassword}
-                  disabled={isChangingPassword}
-                  variant="outline"
-                  className="w-full"
+                  variant="destructive"
+                  onClick={() => {
+                    setDeleteConfirmText("");
+                    setDeleteCheckboxChecked(false);
+                    setShowDeleteModal(true);
+                  }}
                 >
-                  {isChangingPassword ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Changing...
-                    </>
-                  ) : (
-                    <>Change Password</>
-                  )}
+                  Delete Account
                 </Button>
               </CardContent>
             </Card>
           </div>
         </div>
       </main>
+
+      {/* Double Confirmation Delete Account Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="max-w-[430px] p-5 sm:p-6 rounded-2xl">
+          <DialogHeader className="space-y-1.5">
+            <DialogTitle className="text-lg sm:text-xl font-bold text-destructive">
+              Delete Account Permanently?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              This action is <strong className="text-foreground">irreversible</strong>. You will lose access to all your records, including:
+            </DialogDescription>
+          </DialogHeader>
+
+          <ul className="text-xs space-y-1 text-muted-foreground list-disc pl-4.5 py-0.5">
+            <li>Your certified badges & public Wall of Fame listing</li>
+            <li>Your enrolled training courses & progress history</li>
+            <li>Your upcoming event passes & registered tickets</li>
+            <li>All saved personal profile details & preferences</li>
+          </ul>
+
+          <div className="space-y-3 pt-1">
+            <div>
+              <Label className="text-xs font-semibold text-foreground">
+                To confirm, type <span className="font-bold text-destructive">DELETE</span> below:
+              </Label>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE"
+                className="mt-1 h-9.5 text-sm border-border/80 focus-visible:ring-destructive rounded-xl"
+              />
+            </div>
+
+            <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+              <Checkbox
+                checked={deleteCheckboxChecked}
+                onCheckedChange={(checked) => setDeleteCheckboxChecked(Boolean(checked))}
+                className="mt-0.5"
+              />
+              <span className="leading-tight">
+                I understand that deleting my account is permanent and all my data will be erased forever.
+              </span>
+            </label>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowDeleteModal(false)}
+              disabled={isDeletingAccount}
+              className="w-full sm:w-auto h-9.5 rounded-xl text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteConfirmText !== "DELETE" || !deleteCheckboxChecked || isDeletingAccount}
+              onClick={handleDeleteAccount}
+              className="w-full sm:w-auto h-9.5 font-semibold rounded-xl text-xs"
+            >
+              {isDeletingAccount ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Permanently Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

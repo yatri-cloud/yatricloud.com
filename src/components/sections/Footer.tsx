@@ -302,14 +302,14 @@ export const Footer = () => {
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-6 text-sm md:flex-row md:px-6">
           <p className="text-muted-foreground">
             © {currentYear}{" "}
-            <a href="https://www.yatricloud.com" target="_blank" rel="noopener noreferrer" className="text-foreground/80 transition-colors hover:text-primary">
+            <a href="https://www.yatricloud.com" target="_blank" rel="noopener noreferrer" className="font-bold text-primary transition-colors hover:text-brand-600">
               Yatri Cloud
             </a>{" "}
             · All rights reserved.
           </p>
           <p className="text-muted-foreground">
             Designed by{" "}
-            <a href="https://uimitra.com" target="_blank" rel="noopener noreferrer" className="text-foreground/80 transition-colors hover:text-primary">
+            <a href="https://uimitra.com" target="_blank" rel="noopener noreferrer" className="font-bold text-primary transition-colors hover:text-brand-600">
               {designedBy}
             </a>
           </p>
