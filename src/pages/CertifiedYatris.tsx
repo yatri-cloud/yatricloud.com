@@ -53,51 +53,32 @@ const CertifiedYatris = () => {
   const checkAuthentication = async () => {
     setCheckingAuth(true);
     try {
-      // Always check stored user first (persistent login)
+      // Fast check with stored user mirror
       const storedUser = getStoredUser();
-      const token = localStorage.getItem('yatris_token');
+      if (storedUser) {
+        setUser(storedUser);
+        setIsAuthenticated(true);
+      }
 
-      if (storedUser && token) {
-        // User is logged in, verify token is still valid
-        try {
-          const currentUser = await getCurrentUser();
-          if (currentUser) {
-            setUser(currentUser);
-            setIsAuthenticated(true);
+      // Check live session with Supabase
+      const currentUser = await getCurrentUser();
+      const activeUser = currentUser || storedUser;
 
-            // Handle redirect if coming from resource access or custom redirect
-            const dest = getDestinationUrl();
-            if (dest) {
-              navigate(dest, { replace: true });
-              return;
-            }
+      if (activeUser) {
+        setUser(activeUser);
+        setIsAuthenticated(true);
 
-            // Check profile completeness on auto-login too
-            if (!isProfileComplete(currentUser)) {
-              navigate('/edit-profile?complete=true');
-              return;
-            }
-          } else {
-            // Token expired, but keep user logged in with stored data
-            setUser(storedUser);
-            setIsAuthenticated(true);
+        // Handle redirect if coming from resource access or custom redirect
+        const dest = getDestinationUrl();
+        if (dest) {
+          navigate(dest, { replace: true });
+          return;
+        }
 
-            const dest = getDestinationUrl();
-            if (dest) {
-              navigate(dest, { replace: true });
-              return;
-            }
-          }
-        } catch (error) {
-          // If API call fails, still use stored user (persistent login)
-          setUser(storedUser);
-          setIsAuthenticated(true);
-
-          const dest = getDestinationUrl();
-          if (dest) {
-            navigate(dest, { replace: true });
-            return;
-          }
+        // Check profile completeness
+        if (!isProfileComplete(activeUser)) {
+          navigate('/edit-profile?complete=true');
+          return;
         }
       } else {
         setIsAuthenticated(false);
@@ -105,19 +86,13 @@ const CertifiedYatris = () => {
       }
     } catch (error) {
       console.error("Auth check error:", error);
-      // On error, try to use stored user
       const storedUser = getStoredUser();
       if (storedUser) {
         setUser(storedUser);
         setIsAuthenticated(true);
-
-        const dest = getDestinationUrl();
-        if (dest) {
-          navigate(dest, { replace: true });
-          return;
-        }
       } else {
         setIsAuthenticated(false);
+        setUser(null);
       }
     } finally {
       setCheckingAuth(false);

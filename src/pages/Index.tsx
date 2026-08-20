@@ -16,6 +16,7 @@ import CommunitySection from "@/components/sections/CommunitySection";
 import { ContactSection } from "@/components/sections/ContactSection";
 import { QuickAccessSection } from "@/components/sections/QuickAccessSection";
 import { YatrisWorldwideSection } from "@/components/sections/YatrisWorldwideSection";
+import YouTubeVideosSection from "@/components/sections/YouTubeVideosSection";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 
@@ -30,7 +31,7 @@ const Index = () => {
       <Navbar />
       {/* Flow follows the buying journey: promise (hero) → instant access
           (launchpad) → proof (trust) → process → offer → product → authority
-          → belief (reviews + worldwide) → objections (FAQ) → belonging
+          → belief (reviews + worldwide + youtube) → objections (FAQ) → belonging
           (community) → contact. */}
       <main>
         <HeroSection />
@@ -40,6 +41,7 @@ const Index = () => {
         <VoucherPromoSection />
         {/* TEMPORARILY HIDDEN: entire Practice Tests / Curriculum section. */}
         {/* <CurriculumSection /> */}
+        <YouTubeVideosSection />
         <LatestExamDumpsSection />
         {/* Temporarily hidden: Backed by industry leaders */}
         {/* <IndustryLeadersSection /> */}

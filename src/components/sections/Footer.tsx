@@ -62,7 +62,7 @@ export const Footer = () => {
   );
 
   // TEMPORARY: hide Mentorship, Udemy Courses, Yatri Store, Practice Tests,
-  // Blog, Training, Events from the footer.
+  // Blog, Training, Events, Paths from the footer.
   const HIDDEN_FOOTER_HREFS = new Set([
     "/mentorship",
     "/udemy",
@@ -71,6 +71,7 @@ export const Footer = () => {
     "/blog",
     "/training",
     "/events",
+    "/paths",
   ]);
   const HIDDEN_FOOTER_LABELS = new Set([
     "mentorship",
@@ -80,6 +81,8 @@ export const Footer = () => {
     "blog",
     "training",
     "events",
+    "certification paths",
+    "paths",
   ]);
   const exploreLinks = useSiteContent(
     () => getNavLinks("footer_explore"),
@@ -300,18 +303,29 @@ export const Footer = () => {
       {/* ── Bottom bar ── */}
       <div className="relative z-10 border-t border-border">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-6 text-sm md:flex-row md:px-6">
-          <p className="text-muted-foreground">
-            © {currentYear}{" "}
-            <a href="https://www.yatricloud.com" target="_blank" rel="noopener noreferrer" className="font-bold text-primary transition-colors hover:text-brand-600">
+          <p className="text-muted-foreground text-center md:text-left flex flex-wrap items-center justify-center md:justify-start gap-x-2 gap-y-1">
+            <span>© {currentYear}</span>
+            <a
+              href="https://www.yatricloud.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-primary transition-colors hover:text-brand-600"
+            >
               Yatri Cloud
-            </a>{" "}
-            · All rights reserved.
-          </p>
-          <p className="text-muted-foreground">
-            Designed by{" "}
-            <a href="https://uimitra.com" target="_blank" rel="noopener noreferrer" className="font-bold text-primary transition-colors hover:text-brand-600">
-              {designedBy}
             </a>
+            <span>· All rights reserved.</span>
+            <span className="hidden sm:inline text-muted-foreground/40" aria-hidden="true">·</span>
+            <span>
+              Designed by{" "}
+              <a
+                href="https://uimitra.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-primary transition-colors hover:text-brand-600"
+              >
+                {designedBy}
+              </a>
+            </span>
           </p>
         </div>
       </div>
