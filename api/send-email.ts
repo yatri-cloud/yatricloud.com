@@ -154,7 +154,17 @@ export default async function handler(
 
         return response.status(405).json({ error: 'Method not allowed' });
     } catch (error: any) {
-        console.error('❌ Error:', error);
-        return response.status(500).json({ error: 'Internal error', details: error.message });
+        console.error('❌ Email send error:', {
+            message: error.message,
+            code: error.code,
+            command: error.command,
+            responseCode: error.responseCode,
+            response: error.response,
+        });
+        return response.status(500).json({
+            error: error.message || 'Internal error',
+            code: error.code,
+            smtp: error.response,
+        });
     }
 }

@@ -505,7 +505,7 @@ export default function AdminEmailTemplates() {
                       title="Email preview"
                       className="w-full border-0"
                       style={{ height: "600px" }}
-                      sandbox="allow-same-origin"
+                      sandbox="allow-same-origin allow-scripts"
                     />
                   </div>
                 </div>
