@@ -314,7 +314,9 @@ const AdminLayout = ({ children, onLogout }: AdminLayoutProps) => {
 
                 {/* Page Content */}
                 <main className="flex-1 overflow-auto bg-gradient-to-b from-brand-50/70 via-brand-50/40 to-brand-50/20">
-                    {children}
+                    <div className="px-4 md:px-8 py-6 max-w-screen-2xl mx-auto">
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>
