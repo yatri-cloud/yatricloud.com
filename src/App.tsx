@@ -12,6 +12,7 @@ import { ConfirmProvider } from "@/components/providers/ConfirmProvider";
 import Index from "./pages/Index";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
+import { usePageTracker } from "@/hooks/usePageTracker";
 
 // Route-level code splitting: every page below loads on demand, so the
 // initial bundle carries only the homepage and the shared shell.
@@ -183,6 +184,9 @@ const PageLoader = () => (
   </div>
 );
 
+/** Tracks every page navigation automatically — must be inside BrowserRouter. */
+const PageTracker = () => { usePageTracker(); return null; };
+
 const App = () => (
   <ThemeProvider defaultTheme="light">
     <SpeedInsights />
@@ -194,6 +198,7 @@ const App = () => (
             <Toaster />
             <Sonner />
           <BrowserRouter>
+            <PageTracker />
             <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* ... all routes ... */}
