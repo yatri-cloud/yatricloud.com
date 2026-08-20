@@ -2,7 +2,8 @@ import {
     Award, Calendar, BookOpen, Plus, GraduationCap, ClipboardList, Users,
     Server, Info, LayoutDashboard, List, ExternalLink, Globe, Handshake,
     CalendarClock, Star, Inbox, Receipt, CreditCard, ShoppingBag, Tag,
-    FilePen, Mail, ShieldCheck, Sparkles, LifeBuoy, BookMarked, TrendingUp, type LucideIcon,
+    FilePen, Mail, ShieldCheck, Sparkles, LifeBuoy, BookMarked, TrendingUp,
+    Palette, Settings, type LucideIcon,
 } from "lucide-react";
 
 
@@ -120,6 +121,16 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
             { name: "Resources", path: "/admin/resources", icon: BookMarked, description: "Manage free and paid learning resources (exam guides, practice tests, etc.)." },
             { name: "Exam dumps", path: "/admin/exam-dumps", icon: List, description: "Manage exam dump listings." },
             { name: "Udemy courses", path: "/admin/udemy", icon: GraduationCap, description: "Manage Udemy course listings." },
+        ],
+    },
+    {
+        id: "email",
+        label: "Email System",
+        icon: Mail,
+        items: [
+            { name: "Email Templates", path: "/admin/email/templates", icon: Palette, description: "Customize design, text, colors, and layout of all system emails." },
+            { name: "Email Settings", path: "/admin/email/settings", icon: Settings, description: "SMTP configuration, connection test, and sender settings." },
+            { name: "Send Logs", path: "/admin/email/logs", icon: ClipboardList, description: "View delivery history, audit logs, and retry failed emails." },
         ],
     },
     {

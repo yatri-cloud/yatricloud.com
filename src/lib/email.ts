@@ -3,16 +3,23 @@
  * Email Utility functions
  */
 
+import { logEmail } from "@/lib/email-logs-api";
+
 interface SendEmailParams {
     to: string;
     subject: string;
     html: string;
+    /** Optional: name of the template used — stored in email_logs for auditing. */
+    templateKey?: string;
+    /** Optional extra metadata to store alongside the log (e.g. user_id, event_id). */
+    metadata?: Record<string, unknown>;
 }
 
 /**
- * Send an email using the backend API
+ * Send an email using the backend API.
+ * Every attempt (success or failure) is automatically logged to the email_logs table.
  */
-export async function sendEmail({ to, subject, html }: SendEmailParams): Promise<{ success: boolean; error?: string }> {
+export async function sendEmail({ to, subject, html, templateKey, metadata }: SendEmailParams): Promise<{ success: boolean; error?: string }> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -34,13 +41,18 @@ export async function sendEmail({ to, subject, html }: SendEmailParams): Promise
             throw new Error(data.error || 'Failed to send email');
         }
 
+        // Log success (fire-and-forget)
+        void logEmail({ to, subject, templateKey, status: "sent", metadata });
+
         return { success: true };
     } catch (error: any) {
-        if (error?.name === 'AbortError') {
-            return { success: false, error: 'Email send timed out' };
-        }
+        const errMsg = error?.name === 'AbortError' ? 'Email send timed out' : error.message;
+
+        // Log failure (fire-and-forget)
+        void logEmail({ to, subject, templateKey, status: "failed", error: errMsg, metadata });
+
         console.error('❌ Failed to send email:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: errMsg };
     } finally {
         clearTimeout(timeoutId);
     }

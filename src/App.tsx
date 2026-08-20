@@ -145,6 +145,9 @@ const MyResources = lazy(() => import("./pages/MyResources"));
 const AdminResources = lazy(() => import("./pages/admin/AdminResources"));
 const AdminAddResource = lazy(() => import("./pages/admin/AdminAddResource"));
 const AdminEditResource = lazy(() => import("./pages/admin/AdminEditResource"));
+const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
+const AdminEmailSettings = lazy(() => import("./pages/admin/AdminEmailSettings"));
+const AdminEmailLogs = lazy(() => import("./pages/admin/AdminEmailLogs"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 import { FEATURE_FLAGS } from "@/config/features";
 const queryClient = new QueryClient();
@@ -346,6 +349,10 @@ const App = () => (
                 <Route path="resources/add" element={<AdminAddResource />} />
                 <Route path="resources/edit/:id" element={<AdminEditResource />} />
                 <Route path="ai-settings" element={<AdminAISettings />} />
+                <Route path="email/templates" element={<AdminEmailTemplates />} />
+                <Route path="email/settings" element={<AdminEmailSettings />} />
+                <Route path="email/logs" element={<AdminEmailLogs />} />
+                <Route path="email" element={<AdminEmailTemplates />} />
                 <Route path="guide" element={<GuideView type="admin" />} />
                 <Route path="sitemap" element={<AdminSitemapView />} />
               </Route>
