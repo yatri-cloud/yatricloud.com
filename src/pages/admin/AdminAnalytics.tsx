@@ -5,10 +5,12 @@ import {
 } from "recharts";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { getAnalyticsSummary, AnalyticsSummary } from "@/lib/analytics";
+import { fetchVercelAnalytics, VercelStatsResponse } from "@/lib/vercel-analytics-api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#f97316", "#84cc16"];
@@ -37,6 +39,7 @@ const StatCard = ({ label, value, sub }: { label: string; value: string | number
 
 export default function AdminAnalytics() {
   const [data, setData] = useState<AnalyticsSummary | null>(null);
+  const [vercelData, setVercelData] = useState<VercelStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(30);
@@ -48,10 +51,14 @@ export default function AdminAnalytics() {
       try {
         setLoading(true);
         setError(null);
-        const summary = await getAnalyticsSummary(days);
+        const [summary, vData] = await Promise.all([
+          getAnalyticsSummary(days),
+          fetchVercelAnalytics(days)
+        ]);
         if (!mounted) return;
         if (summary) setData(summary);
         else setError("Failed to load analytics. Ensure the analytics_events table exists in Supabase.");
+        if (vData) setVercelData(vData);
       } catch (err: any) {
         if (mounted) setError(err.message || "An unexpected error occurred");
       } finally {
@@ -81,16 +88,27 @@ export default function AdminAnalytics() {
           <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
           <p className="text-muted-foreground">Full-site monitoring — pages, searches, downloads, revenue events.</p>
         </div>
-        <Select value={days.toString()} onValueChange={(val) => setDays(Number(val))}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Timeframe" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <Select value={days.toString()} onValueChange={(val) => setDays(Number(val))}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Timeframe" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="90">Last 90 days</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl gap-1.5 font-medium border-border"
+            onClick={() => window.open("https://vercel.com/yatri-clouds-projects/yatricloud.com/analytics?tab=bounceRate", "_blank")}
+          >
+            Vercel Analytics ↗
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -104,15 +122,19 @@ export default function AdminAnalytics() {
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
         <StatCard label="Page Views" value={data?.totalViews ?? 0} sub={`In last ${days} days`} />
+        <StatCard
+          label="Bounce Rate (Vercel)"
+          value={vercelData?.bounceRate !== undefined && vercelData.bounceRate !== null ? `${(vercelData.bounceRate * 100).toFixed(1)}%` : "Live in Vercel"}
+          sub="Production bounce rate"
+        />
         <StatCard label="Downloads" value={data?.totalDownloads ?? 0} sub="Resources downloaded" />
         <StatCard label="Searches" value={data?.totalSearches ?? 0} sub="Search queries made" />
-        <StatCard label="Enrollments" value={data?.totalEnrollments ?? 0} sub="Training / event signups" />
       </div>
 
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
+        <StatCard label="Enrollments" value={data?.totalEnrollments ?? 0} sub="Training / event signups" />
         <StatCard label="Purchases" value={data?.totalPurchases ?? 0} sub="Store + paid events" />
         <StatCard label="Unique Visitors" value={data?.uniqueVisitors ?? 0} sub="Logged-in users tracked" />
-        <StatCard label="Total Events" value={data?.totalEvents ?? 0} sub="All tracked interactions" />
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Top Resource</CardTitle>
