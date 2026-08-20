@@ -259,12 +259,27 @@ export const FALLBACK_FAQS: Faq[] = [
   {
     question: "How do I get listed on the Certified Yatris Wall of Fame?",
     answer:
-      "Once you clear your certification, submit your official Credly badge link or certification ID on our platform. Your achievement will be published on the public Wall of Fame to showcase to recruiters and peers worldwide.",
+      "Once you clear your certification, submit your official Credly badge link or certification ID through your account on certification.yatricloud.com. Your achievement will be published on the public Wall of Fame, visible to recruiters and peers worldwide.",
   },
   {
     question: "How soon can I schedule and take my exam after booking?",
     answer:
       "You can book your exam immediately during our call for any upcoming date that matches your preparation plan — whether you want to take it in the next 48 hours or a few weeks later.",
+  },
+  {
+    question: "Do I need to join the WhatsApp group to participate?",
+    answer:
+      "Yes — the WhatsApp community group is an essential part of the support package. It's where you receive real-time updates, exam tips, peer discussions, and direct coordination with our team for scheduling and guidance.",
+  },
+  {
+    question: "Is the 50% voucher offer available for Azure, GCP, or GitHub certifications?",
+    answer:
+      "The 50% OFF voucher program is currently focused on AWS Associate and Specialty exams. Yatri Cloud also supports select Azure, GCP, and GitHub certifications — reach out to our team via WhatsApp or the contact form for current availability.",
+  },
+  {
+    question: "What is the Certified Yatris platform?",
+    answer:
+      "Certified Yatris is our public achievement showcase at certification.yatricloud.com. Create a free account, log your cloud certifications with official Credly badges, and appear on our interactive worldwide map alongside thousands of verified cloud professionals.",
   },
 ];
 

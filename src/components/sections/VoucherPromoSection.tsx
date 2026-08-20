@@ -1,6 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -53,14 +52,18 @@ export const VoucherPromoSection = () => {
                   transition={{ duration: 0.5, delay: 0.18, ease: EASE_OUT }}
                   className="flex flex-col sm:flex-row gap-4 pt-2"
                 >
-                  <Button asChild size="lg" className="h-14 px-8 rounded-2xl text-lg font-bold bg-white text-primary shadow-inset-btn hover:bg-white/90">
-                    <a href="/requestvoucher" className="flex items-center gap-2">
-                      Request Voucher <ChevronRight className="w-5 h-5" />
-                    </a>
-                  </Button>
-                  <Button asChild variant="outline" size="lg" className="h-14 px-8 rounded-2xl text-lg font-bold bg-transparent border border-white/40 text-white hover:bg-white/10 hover:text-white">
-                    <a href="/reviews">View Reviews</a>
-                  </Button>
+                  <a
+                    href="/requestvoucher"
+                    className="inline-flex items-center justify-center gap-2 h-14 px-8 rounded-2xl text-lg font-bold bg-white text-primary shadow-inset-btn hover:bg-white/90 transition-colors"
+                  >
+                    Request Voucher <ChevronRight className="w-5 h-5" />
+                  </a>
+                  <a
+                    href="/reviews"
+                    className="inline-flex items-center justify-center h-14 px-8 rounded-2xl text-lg font-bold bg-transparent border border-white/40 text-white hover:bg-white/10 transition-colors"
+                  >
+                    View Reviews
+                  </a>
                 </motion.div>
               </div>
 

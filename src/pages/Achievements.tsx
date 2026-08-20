@@ -31,6 +31,7 @@ import {
   ZoomableGroup,
 } from "react-simple-maps";
 import { FALLBACK_FORM_PROVIDERS } from "@/lib/cert-catalog";
+import { fetchAllWorldwideYatris, type MapMarkerItem } from "@/lib/map-locations";
 
 // Base URL for certification logos
 const LOGO_BASE_URL = "https://raw.githubusercontent.com/yatricloud/yatri-images/main/certification.yatricloud.com/logo/certifications";
@@ -522,56 +523,21 @@ const Achievements = () => {
     HASHICORP: '#000000', // Black
   };
 
-  // Calculate location distribution for map (state-wise if available, otherwise country-wise)
-  const locationCounts = certifications.reduce((acc, cert) => {
-    if (!cert.country) return acc;
-    const countryName = getCountryName(cert.country);
-    const state = cert.stateProvince || '';
-    const city = cert.city || '';
-    const provider = cert.certificationProvider?.toUpperCase() || 'OTHER';
+  const [allMapMarkers, setAllMapMarkers] = useState<MapMarkerItem[]>([]);
 
-    // Create a unique key: country-state-city-provider or just country-provider
-    const locationKey = state && city
-      ? `${countryName}-${state}-${city}-${provider}`
-      : state
-        ? `${countryName}-${state}-${provider}`
-        : `${countryName}-${provider}`;
-
-    if (!acc[locationKey]) {
-      acc[locationKey] = {
-        country: countryName,
-        state: state || '',
-        city: city || '',
-        provider: provider,
-        count: 0,
-        coordinates: COUNTRY_COORDINATES[countryName] || COUNTRY_COORDINATES[getCountryName(countryName)] || null,
-      };
-    }
-    acc[locationKey].count += 1;
-    return acc;
-  }, {} as Record<string, { country: string; state: string; city: string; provider: string; count: number; coordinates: [number, number] | null }>);
-
-  // Create markers for map - add slight offset for multiple locations in same country
-  const allMapMarkers = Object.entries(locationCounts)
-    .map(([locationKey, location], index) => {
-      if (!location.coordinates) return null;
-
-      // Add slight random offset for locations in the same country to avoid overlap
-      const [lon, lat] = location.coordinates;
-      const offsetLon = location.state ? (Math.random() - 0.5) * 3 : 0;
-      const offsetLat = location.state ? (Math.random() - 0.5) * 2 : 0;
-
-      return {
-        country: location.country,
-        state: location.state,
-        city: location.city,
-        provider: location.provider,
-        count: location.count,
-        coordinates: [lon + offsetLon, lat + offsetLat] as [number, number],
-        color: PROVIDER_MAP_COLORS[location.provider] || '#6b7280', // Gray for unknown providers
-      };
-    })
-    .filter((marker): marker is { country: string; state: string; city: string; provider: string; count: number; coordinates: [number, number]; color: string } => marker !== null);
+  useEffect(() => {
+    let active = true;
+    fetchAllWorldwideYatris()
+      .then((markers) => {
+        if (active) setAllMapMarkers(markers);
+      })
+      .catch((err) => {
+        console.warn("Failed to load map markers", err);
+      });
+    return () => {
+      active = false;
+    };
+  }, [certifications]);
 
   // Filter map markers based on selected map provider (separate from achievements filter)
   const mapMarkers = selectedMapProvider === "all"

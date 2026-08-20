@@ -174,6 +174,11 @@
   (1) **Footer Brand Attribution**: In `Footer.tsx`, both **Yatri Cloud** (`https://www.yatricloud.com`) and **Uimitra** (`https://uimitra.com`) are styled in bold brand blue (`font-bold text-primary transition-colors hover:text-brand-600`) in the bottom copyright and design credit bar.
   (2) **Comprehensive Platform FAQs**: In `site-content.ts`, replaced outdated steps with 7 comprehensive FAQs covering voucher redemption, eligible certifications, dumps & Udemy resources, 1-on-1 guided scheduling calls, question freshness, Wall of Fame listing, and booking timelines.
 
+- **D88 — WORLDWIDE MAP REGISTERED USER ACCOUNT DOTS & STATE COORDINATES (2026-08-21).**
+  (1) **Registered Account Dots On Map**: Created `src/lib/map-locations.ts` and `095_public_yatri_locations.sql` which combines public certified Yatris with all registered user accounts from Supabase (`country, state_province, city, interested_certifications`).
+  (2) **State-Level Coordinate Precision**: Added detailed state coordinate lookups for Indian states (Maharashtra, Gujarat, Karnataka, Tamil Nadu, Delhi, Telangana, UP, Rajasthan, West Bengal, Kerala, etc.) and US states so user dots render accurately within their state/province.
+  (3) **Synchronized Map Sections**: Updated both the Homepage ("Yatris, worldwide" via `YatrisWorldwideInner.tsx`) and the Wall of Fame (`Achievements.tsx`) to show all registered & certified Yatris across the globe.
+
 ## Inspiration sources
 awwwards.com · motionsites.ai · 21st.dev · getdesign.md · aitmpl.com · `npx getdesign@latest add lovable`.
 
