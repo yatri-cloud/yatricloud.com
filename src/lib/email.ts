@@ -9,6 +9,8 @@ interface SendEmailParams {
     to: string;
     subject: string;
     html: string;
+    /** Optional override for the FROM address (e.g. info@yatricloud.com instead of noreply) */
+    from?: string;
     /** Optional: name of the template used — stored in email_logs for auditing. */
     templateKey?: string;
     /** Optional extra metadata to store alongside the log (e.g. user_id, event_id). */
@@ -19,7 +21,7 @@ interface SendEmailParams {
  * Send an email using the backend API.
  * Every attempt (success or failure) is automatically logged to the email_logs table.
  */
-export async function sendEmail({ to, subject, html, templateKey, metadata }: SendEmailParams): Promise<{ success: boolean; error?: string }> {
+export async function sendEmail({ to, subject, html, from, templateKey, metadata }: SendEmailParams): Promise<{ success: boolean; error?: string }> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -31,7 +33,7 @@ export async function sendEmail({ to, subject, html, templateKey, metadata }: Se
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ to, subject, html }),
+            body: JSON.stringify({ to, subject, html, from }),
             signal: controller.signal,
         });
 

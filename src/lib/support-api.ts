@@ -87,7 +87,7 @@ function ticketUrl(ticketNumber: string): string {
 
 async function emailQuietly(to: string, subject: string, html: string) {
   try {
-    await sendEmail({ to, subject, html });
+    await sendEmail({ to, subject, html, from: "info@yatricloud.com" });
   } catch (e) {
     console.error("[support] email failed", e);
   }

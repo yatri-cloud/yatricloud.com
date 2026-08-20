@@ -161,7 +161,7 @@ export default function AdminInquiries() {
                  <p style="color:#667085;">— The Yatri Cloud team</p>`,
                 replyTo.subject
             );
-            await sendEmail({ to: replyTo.email, subject: replyTo.subject, html });
+            await sendEmail({ to: replyTo.email, subject: replyTo.subject, html, from: "info@yatricloud.com" });
         } catch {
             setReplySending(false);
             toast.error("The email did not send. Please try again.");

@@ -78,6 +78,7 @@ export async function subscribeToNewsletter(
       to: email.toLowerCase().trim(),
       subject: "Welcome to the Yatri Cloud newsletter",
       html,
+      from: "info@yatricloud.com",
     });
   } catch (err) {
     console.error("Failed to send welcome email:", err);
@@ -312,7 +313,7 @@ export async function sendNewsletter(
     );
 
     try {
-      const emailResult = await sendEmail({ to: sub.email, subject: nl.subject, html });
+      const emailResult = await sendEmail({ to: sub.email, subject: nl.subject, html, from: "info@yatricloud.com" });
       if (!emailResult.success) {
         throw new Error(emailResult.error || "Email send failed");
       }
