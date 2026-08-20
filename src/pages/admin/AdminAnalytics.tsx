@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
-  LineChart, Line, AreaChart, Area
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
+  AreaChart, Area, BarChart, Bar
 } from "recharts";
-import { Download, Eye, MousePointerClick, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { getAnalyticsSummary, AnalyticsSummary } from "@/lib/analytics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,11 +24,8 @@ export default function AdminAnalytics() {
       try {
         setLoading(true);
         setError(null);
-        
-        // RouteGuard in AdminDashboard handles permissions
         const summary = await getAnalyticsSummary(days);
         if (!mounted) return;
-        
         if (summary) {
           setData(summary);
         } else {
@@ -42,10 +39,7 @@ export default function AdminAnalytics() {
     }
 
     loadData();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [days, navigate]);
 
   if (loading && !data) {
@@ -57,6 +51,10 @@ export default function AdminAnalytics() {
     );
   }
 
+  // Truncate long resource names for the Y-axis label
+  const truncate = (str: string, n: number) =>
+    str && str.length > n ? str.slice(0, n) + "…" : str;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -64,7 +62,7 @@ export default function AdminAnalytics() {
           <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
           <p className="text-muted-foreground">Monitor platform usage, downloads, and clicks.</p>
         </div>
-        
+
         <Select value={days.toString()} onValueChange={(val) => setDays(Number(val))}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select timeframe" />
@@ -85,23 +83,21 @@ export default function AdminAnalytics() {
         </Alert>
       )}
 
-      {/* Overview Cards */}
+      {/* Overview Cards — no icons */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.totalEvents || 0}</div>
             <p className="text-xs text-muted-foreground">Tracked in last {days} days</p>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Downloads</CardTitle>
-            <Download className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.totalDownloads || 0}</div>
@@ -110,9 +106,8 @@ export default function AdminAnalytics() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-            <Eye className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.totalViews || 0}</div>
@@ -121,13 +116,12 @@ export default function AdminAnalytics() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Top Performing</CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div
-              className="text-2xl font-bold truncate"
+              className="text-xl font-bold truncate"
               title={data?.topResources[0]?.name || data?.topResources[0]?.target_id || "None"}
             >
               {data?.topResources[0]?.name || "None"}
@@ -137,9 +131,9 @@ export default function AdminAnalytics() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-7 lg:grid-cols-7">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-7">
         {/* Timeline Chart */}
-        <Card className="col-span-4 lg:col-span-4">
+        <Card className="col-span-1 md:col-span-4">
           <CardHeader>
             <CardTitle>Activity Timeline</CardTitle>
             <CardDescription>Daily downloads and views over the last {days} days</CardDescription>
@@ -147,7 +141,7 @@ export default function AdminAnalytics() {
           <CardContent className="px-2 sm:p-6">
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data?.eventsByDate || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <AreaChart data={data?.eventsByDate || []} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorDownloads" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -161,8 +155,8 @@ export default function AdminAnalytics() {
                   <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} minTickGap={30} />
                   <YAxis tickLine={false} axisLine={false} tickMargin={8} />
                   <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.2} />
-                  <RechartsTooltip 
-                    contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))' }} 
+                  <RechartsTooltip
+                    contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))' }}
                   />
                   <Area type="monotone" dataKey="downloads" name="Downloads" stroke="#3b82f6" fillOpacity={1} fill="url(#colorDownloads)" />
                   <Area type="monotone" dataKey="views" name="Views" stroke="#10b981" fillOpacity={1} fill="url(#colorViews)" />
@@ -172,21 +166,36 @@ export default function AdminAnalytics() {
           </CardContent>
         </Card>
 
-        {/* Top Resources Bar Chart */}
-        <Card className="col-span-3 lg:col-span-3">
+        {/* Top Resources Bar Chart — fixed left margin so labels don't overflow */}
+        <Card className="col-span-1 md:col-span-3">
           <CardHeader>
             <CardTitle>Top Resources</CardTitle>
             <CardDescription>Most downloaded resources</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pl-2 pr-4">
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data?.topResources || []} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
+                <BarChart
+                  data={(data?.topResources || []).map(r => ({
+                    ...r,
+                    label: truncate(r.name || r.target_id, 18),
+                  }))}
+                  layout="vertical"
+                  margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
+                >
                   <XAxis type="number" hide />
-                  <YAxis dataKey={(item) => item.name || item.target_id.split("-")[0]} type="category" axisLine={false} tickLine={false} width={100} tick={{ fontSize: 12 }} />
-                  <RechartsTooltip 
-                    cursor={{fill: 'transparent'}}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))' }} 
+                  <YAxis
+                    dataKey="label"
+                    type="category"
+                    axisLine={false}
+                    tickLine={false}
+                    width={120}
+                    tick={{ fontSize: 11 }}
+                  />
+                  <RechartsTooltip
+                    cursor={{ fill: 'transparent' }}
+                    contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--background))' }}
+                    formatter={(_: any, __: any, props: any) => [props.payload.count, props.payload.name || props.payload.target_id]}
                   />
                   <Bar dataKey="count" name="Downloads" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
                 </BarChart>
