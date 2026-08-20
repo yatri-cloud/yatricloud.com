@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
     Loader2, Search, Users, UserCheck, Download, Mail,
-    Linkedin, ShieldAlert, Ban, CheckCircle2, Trash2,
+    ShieldAlert, Ban, CheckCircle2, Trash2,
     Calendar, ArrowUpDown, Filter, ShieldCheck, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -313,11 +313,10 @@ export default function AdminYatris() {
                 </div>
 
                 {/* Stats inside header */}
-                <div className="relative mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div className="relative mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <StatsCard title="Total users" value={totalCount} icon={Users} color="bg-blue-500 text-white border-0" />
                     <StatsCard title="New this month" value={newThisMonth} icon={UserCheck} color="bg-emerald-500 text-white border-0" />
                     <StatsCard title="Trainers" value={roleCounts.trainer || 0} icon={Users} color="bg-violet-500/10 text-violet-600" />
-                    <StatsCard title="Disabled Accounts" value={roleCounts.disabled || 0} icon={Ban} color="bg-rose-500/10 text-rose-600" />
                 </div>
             </div>
 
@@ -516,9 +515,15 @@ export default function AdminYatris() {
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 title={`View ${user.full_name}'s LinkedIn Profile`}
-                                                                className="inline-flex items-center justify-center p-1.5 rounded-lg text-[#0A66C2] hover:bg-[#0A66C2]/10 transition-colors"
+                                                                className="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-muted/80 transition-transform duration-200 hover:scale-110"
                                                             >
-                                                                <Linkedin className="w-4 h-4" />
+                                                                <img
+                                                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/500px-LinkedIn_logo_initials.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+                                                                    alt="LinkedIn"
+                                                                    className="w-4 h-4 object-contain"
+                                                                    width={16}
+                                                                    height={16}
+                                                                />
                                                             </a>
                                                         ) : (
                                                             <span className="text-muted-foreground/40 text-xs">—</span>

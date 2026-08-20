@@ -14,9 +14,8 @@ dist-ssr
 
 # Environment variables
 .env
-.env.local
-.env.production
-.env.development
+.env*
+!.env.example
 
 # Editor directories and files
 .vscode/*
@@ -50,5 +49,4 @@ supabase/.temp/
 
 # Playwright saved auth state (never commit sessions)
 e2e/.auth/
-
-.env*.local
+node_modules

@@ -25,16 +25,36 @@ const formatResourceName = (nameOrId?: string) => {
   return nameOrId;
 };
 
-const COUNTRY_NAMES: Record<string, string> = {
-  IN: "India 🇮🇳",
-  US: "United States 🇺🇸",
-  DE: "Germany 🇩🇪",
-  GB: "United Kingdom 🇬🇧",
-  CA: "Canada 🇨🇦",
-  AU: "Australia 🇦🇺",
-  SG: "Singapore 🇸🇬",
-  AE: "UAE 🇦🇪",
-  Others: "Other Countries 🌐",
+const getCountryDisplay = (code?: string): string => {
+  if (!code || code.toLowerCase() === "others" || code.toLowerCase() === "other" || code.toLowerCase() === "unknown") {
+    return "Other Countries 🌐";
+  }
+
+  const clean = code.trim().toUpperCase();
+  if (clean.length === 2) {
+    let name = clean;
+    try {
+      if (typeof Intl !== "undefined" && Intl.DisplayNames) {
+        const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+        name = regionNames.of(clean) || clean;
+      }
+    } catch {
+      name = clean;
+    }
+
+    // Convert 2-letter ISO code to unicode emoji flag
+    let flag = "🌐";
+    try {
+      const codePoints = clean.split("").map((char) => 127397 + char.charCodeAt(0));
+      flag = String.fromCodePoint(...codePoints);
+    } catch {
+      flag = "🌐";
+    }
+
+    return `${name} ${flag}`;
+  }
+
+  return code;
 };
 
 const StatCard = ({ label, value, sub }: { label: string; value: string | number; sub?: string }) => (
@@ -258,7 +278,7 @@ export default function AdminAnalytics() {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="text-xs text-muted-foreground w-4 shrink-0 font-medium">{i + 1}.</span>
                       <span className="font-medium truncate">
-                        {COUNTRY_NAMES[c.country] || c.country || "Other"}
+                        {getCountryDisplay(c.country)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
