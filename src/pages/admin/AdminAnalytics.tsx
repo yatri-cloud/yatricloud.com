@@ -439,26 +439,62 @@ export default function AdminAnalytics() {
             {(data?.categoryBreakdown?.length ?? 0) === 0 ? (
               <p className="text-sm text-muted-foreground py-8 text-center">No data yet.</p>
             ) : (
-              <div className="h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data!.categoryBreakdown}
-                      dataKey="count"
-                      nameKey="category"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
-                      labelLine={false}
-                    >
-                      {data!.categoryBreakdown.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--background))" }} />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="h-[220px] w-full sm:w-[220px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={data!.categoryBreakdown}
+                        dataKey="count"
+                        nameKey="category"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={52}
+                        outerRadius={78}
+                        paddingAngle={3}
+                      >
+                        {data!.categoryBreakdown.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "1px solid hsl(var(--border))",
+                          backgroundColor: "hsl(var(--background))",
+                        }}
+                        formatter={(value: any, name: any) => [`${value} interactions`, name]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Clean Side Legend — No overlapping text */}
+                <div className="flex-1 w-full space-y-2 max-h-[220px] overflow-y-auto pr-2">
+                  {(() => {
+                    const total = data!.categoryBreakdown.reduce((acc, c) => acc + c.count, 0);
+                    return data!.categoryBreakdown.map((c, i) => {
+                      const pct = total > 0 ? ((c.count / total) * 100).toFixed(0) : 0;
+                      return (
+                        <div key={c.category} className="flex items-center justify-between text-xs sm:text-sm">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                            />
+                            <span className="font-medium truncate">{c.category}</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-muted-foreground">{pct}%</span>
+                            <Badge variant="secondary" className="text-[11px] px-1.5 py-0">
+                              {c.count}
+                            </Badge>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
               </div>
             )}
           </CardContent>
