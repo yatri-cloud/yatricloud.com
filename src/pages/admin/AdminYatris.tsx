@@ -327,7 +327,7 @@ export default function AdminYatris() {
                         <TabsTrigger value="directory" className="rounded-lg px-4 py-2 font-medium">
                             Directory & Profiles ({filtered.length})
                         </TabsTrigger>
-                        <TabsTrigger value="moderation" className="rounded-lg px-4 py-2 font-medium text-destructive-foreground data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">
+                        <TabsTrigger value="moderation" className="rounded-lg px-4 py-2 font-medium data-[state=active]:bg-destructive data-[state=active]:text-white">
                             User Moderation & Access Control
                         </TabsTrigger>
                     </TabsList>
