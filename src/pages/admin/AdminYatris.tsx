@@ -28,7 +28,7 @@ interface YatriRow {
     created_at: string;
 }
 
-type RoleFilter = "all" | "user" | "admin" | "trainer" | "mentor";
+type RoleFilter = "all" | "user" | "admin" | "trainer";
 type SortKey = "newest" | "oldest" | "name-asc" | "name-desc";
 
 const ROLE_BADGE: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -127,7 +127,7 @@ export default function AdminYatris() {
     const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     const roleCounts = useMemo(() => {
-        const counts: Record<string, number> = { user: 0, admin: 0, trainer: 0, mentor: 0 };
+        const counts: Record<string, number> = { user: 0, admin: 0, trainer: 0 };
         for (const u of users) {
             counts[u.role] = (counts[u.role] || 0) + 1;
         }
@@ -160,7 +160,7 @@ export default function AdminYatris() {
     };
 
     return (
-        <div className="px-4 md:px-8 py-8 md:py-10 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in">
+        <div className="space-y-6 md:space-y-8 animate-in fade-in">
             {/* Header band */}
             <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-card p-6 md:p-8">
                 <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
@@ -171,11 +171,10 @@ export default function AdminYatris() {
                 </div>
 
                 {/* Stats inside header */}
-                <div className="relative mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div className="relative mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
                     <StatsCard title="Total users" value={totalCount} icon={Users} color="bg-blue-500 text-white border-0" />
                     <StatsCard title="New this month" value={newThisMonth} icon={UserCheck} color="bg-emerald-500 text-white border-0" />
                     <StatsCard title="Trainers" value={roleCounts.trainer || 0} icon={Users} color="bg-violet-500/10 text-violet-600" />
-                    <StatsCard title="Mentors" value={roleCounts.mentor || 0} icon={Users} color="bg-amber-500 text-white border-0" />
                 </div>
             </div>
 
@@ -199,7 +198,6 @@ export default function AdminYatris() {
                             <SelectItem value="all">All roles</SelectItem>
                             <SelectItem value="user">Users</SelectItem>
                             <SelectItem value="trainer">Trainers</SelectItem>
-                            <SelectItem value="mentor">Mentors</SelectItem>
                             <SelectItem value="admin">Admins</SelectItem>
                         </SelectContent>
                     </Select>
