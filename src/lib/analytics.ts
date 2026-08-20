@@ -170,10 +170,20 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
       dateMap[ds] = { date: ds, downloads: 0, views: 0, other: 0 };
     }
 
+    const metadataNameMap: Record<string, string> = {};
+
     for (const ev of events) {
       if (ev.user_id) uniqueUserIds.add(ev.user_id);
 
       const ds = ev.created_at.split("T")[0];
+
+      // Save any names present in event metadata as instant cache
+      if (ev.target_id) {
+        const metaName = ev.metadata?.name || ev.metadata?.title || ev.metadata?.resource_name || ev.metadata?.exam_title;
+        if (metaName && typeof metaName === "string") {
+          metadataNameMap[ev.target_id] = metaName;
+        }
+      }
 
       // Event type aggregation
       if (ev.event_name === "download") {
@@ -206,20 +216,54 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
     // ── Top resources (with names resolved) ───────────────────────────────
     const topResourceEntries = Object.entries(resourceCounts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([id, count]) => ({ target_id: id, count, name: id }));
+      .slice(0, 8)
+      .map(([id, count]) => ({
+        target_id: id,
+        count,
+        name: metadataNameMap[id] || id
+      }));
 
     if (topResourceEntries.length > 0) {
       const ids = topResourceEntries.map(r => r.target_id);
-      const { data: resourceRows } = await supabase
-        .from("resources")
-        .select("id, title")
-        .in("id", ids);
-      if (resourceRows) {
-        const nameMap: Record<string, string> = {};
-        resourceRows.forEach((r: any) => { nameMap[r.id] = r.title; });
-        topResourceEntries.forEach(r => { r.name = nameMap[r.target_id] || r.target_id; });
+
+      // 1. Fetch from `resources` table (column name is `name`)
+      try {
+        const { data: resourceRows } = await supabase
+          .from("resources")
+          .select("id, name")
+          .in("id", ids);
+
+        if (resourceRows && resourceRows.length > 0) {
+          resourceRows.forEach((r: any) => {
+            if (r.name) metadataNameMap[r.id] = r.name;
+          });
+        }
+      } catch (err) {
+        console.warn("[Analytics] Could not query resources table:", err);
       }
+
+      // 2. Fetch from `exam_dumps` table (column name is `title`)
+      try {
+        const { data: dumpRows } = await supabase
+          .from("exam_dumps")
+          .select("id, title")
+          .in("id", ids);
+
+        if (dumpRows && dumpRows.length > 0) {
+          dumpRows.forEach((d: any) => {
+            if (d.title) metadataNameMap[d.id] = d.title;
+          });
+        }
+      } catch (err) {
+        console.warn("[Analytics] Could not query exam_dumps table:", err);
+      }
+
+      // Apply resolved names
+      topResourceEntries.forEach(r => {
+        if (metadataNameMap[r.target_id]) {
+          r.name = metadataNameMap[r.target_id];
+        }
+      });
     }
 
     // ── Top pages ─────────────────────────────────────────────────────────

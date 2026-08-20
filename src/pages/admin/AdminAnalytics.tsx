@@ -15,6 +15,14 @@ const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"
 
 const truncate = (s: string, n = 22) => s && s.length > n ? s.slice(0, n) + "…" : s;
 
+const formatResourceName = (nameOrId?: string) => {
+  if (!nameOrId || nameOrId === "None") return "None";
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nameOrId)) {
+    return `Resource #${nameOrId.slice(0, 8)}`;
+  }
+  return nameOrId;
+};
+
 const StatCard = ({ label, value, sub }: { label: string; value: string | number; sub?: string }) => (
   <Card>
     <CardHeader className="pb-2">
@@ -112,9 +120,9 @@ export default function AdminAnalytics() {
           <CardContent>
             <div
               className="text-base font-bold truncate"
-              title={topResource?.name || topResource?.target_id || "None"}
+              title={formatResourceName(topResource?.name || topResource?.target_id)}
             >
-              {topResource?.name || "None"}
+              {formatResourceName(topResource?.name) || "None"}
             </div>
             {topResource && (
               <p className="text-xs text-muted-foreground mt-0.5">{topResource.count} downloads</p>
@@ -234,13 +242,21 @@ export default function AdminAnalytics() {
               <div className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={data!.topResources.map(r => ({ ...r, label: truncate(r.name || r.target_id, 20) }))}
+                    data={data!.topResources.map(r => ({
+                      ...r,
+                      label: truncate(formatResourceName(r.name || r.target_id), 20),
+                      fullName: formatResourceName(r.name || r.target_id),
+                    }))}
                     layout="vertical"
                     margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
                   >
                     <XAxis type="number" hide />
                     <YAxis dataKey="label" type="category" axisLine={false} tickLine={false} width={130} tick={{ fontSize: 11 }} />
-                    <RechartsTooltip cursor={{ fill: "transparent" }} contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--background))" }} />
+                    <RechartsTooltip
+                      cursor={{ fill: "transparent" }}
+                      contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--background))" }}
+                      formatter={(v: any, _: any, p: any) => [v, p.payload.fullName || p.payload.label]}
+                    />
                     <Bar dataKey="count" name="Downloads" fill="#10b981" radius={[0, 4, 4, 0]} barSize={18} />
                   </BarChart>
                 </ResponsiveContainer>
