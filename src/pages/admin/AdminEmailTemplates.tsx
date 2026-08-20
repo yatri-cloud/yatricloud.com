@@ -180,6 +180,9 @@ export default function AdminEmailTemplates() {
   const [dbTemplates, setDbTemplates] = useState<Record<string, { subject: string; body_html: string; design_json?: any }>>({});
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  // Stores the original unmodified HTML (default or saved) so color changes
+  // are always applied from a clean base — not stacked on top of each other.
+  const baseHtmlRef = useRef<string>("");
 
   // Load all templates from DB on mount
   useEffect(() => {
@@ -200,16 +203,22 @@ export default function AdminEmailTemplates() {
   const openTemplate = (def: TemplateDefinition) => {
     setSelectedDef(def);
     const saved = dbTemplates[def.key];
-    setEditHtml(saved?.body_html ?? def.defaultHtmlFn());
+    // Always store the default HTML as the base (before any colour substitution)
+    const defaultHtml = def.defaultHtmlFn();
+    baseHtmlRef.current = defaultHtml;
+    // If a custom version is saved, show it in the editor but keep the default
+    // as the base so the colour-picker always works from a known starting point.
+    setEditHtml(saved?.body_html ?? defaultHtml);
     setColors(DEFAULT_COLORS);
-    
     setActiveTab("html");
   };
 
   // Re-render preview when html or colors change
   const buildPreviewHtml = (rawHtml: string, c: ColorSet): string => {
-    // Inline color overrides into the raw HTML
-    return rawHtml
+    // Always apply colours on top of the original DEFAULT html, not the
+    // already-substituted version — this way changes are never stacked.
+    const base = baseHtmlRef.current || rawHtml;
+    return base
       .replace(new RegExp(escapeRegex(COLORS.primary), "g"), c.primary)
       .replace(new RegExp(escapeRegex(COLORS.secondary), "g"), c.secondary)
       .replace(new RegExp(escapeRegex(COLORS.background), "g"), c.background)
