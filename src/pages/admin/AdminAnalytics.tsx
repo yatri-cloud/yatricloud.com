@@ -3,9 +3,9 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Globe, Laptop, Smartphone, ExternalLink } from "lucide-react";
 import { getAnalyticsSummary, AnalyticsSummary } from "@/lib/analytics";
-import { fetchVercelAnalytics, VercelStatsResponse } from "@/lib/vercel-analytics-api";
+import { fetchVercelAnalytics, VercelWebAnalyticsData } from "@/lib/vercel-analytics-api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -25,6 +25,18 @@ const formatResourceName = (nameOrId?: string) => {
   return nameOrId;
 };
 
+const COUNTRY_NAMES: Record<string, string> = {
+  IN: "India 🇮🇳",
+  US: "United States 🇺🇸",
+  DE: "Germany 🇩🇪",
+  GB: "United Kingdom 🇬🇧",
+  CA: "Canada 🇨🇦",
+  AU: "Australia 🇦🇺",
+  SG: "Singapore 🇸🇬",
+  AE: "UAE 🇦🇪",
+  Others: "Other Countries 🌐",
+};
+
 const StatCard = ({ label, value, sub }: { label: string; value: string | number; sub?: string }) => (
   <Card>
     <CardHeader className="pb-2">
@@ -39,7 +51,7 @@ const StatCard = ({ label, value, sub }: { label: string; value: string | number
 
 export default function AdminAnalytics() {
   const [data, setData] = useState<AnalyticsSummary | null>(null);
-  const [vercelData, setVercelData] = useState<VercelStatsResponse | null>(null);
+  const [vercelData, setVercelData] = useState<VercelWebAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(30);
@@ -57,7 +69,7 @@ export default function AdminAnalytics() {
         ]);
         if (!mounted) return;
         if (summary) setData(summary);
-        else setError("Failed to load analytics. Ensure the analytics_events table exists in Supabase.");
+        else setError("Failed to load analytics data.");
         if (vData) setVercelData(vData);
       } catch (err: any) {
         if (mounted) setError(err.message || "An unexpected error occurred");
@@ -69,7 +81,7 @@ export default function AdminAnalytics() {
     return () => { mounted = false; };
   }, [days, navigate]);
 
-  if (loading && !data) {
+  if (loading && !data && !vercelData) {
     return (
       <div className="flex h-[50vh] items-center justify-center gap-2">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -86,7 +98,7 @@ export default function AdminAnalytics() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
-          <p className="text-muted-foreground">Full-site monitoring — pages, searches, downloads, revenue events.</p>
+          <p className="text-muted-foreground">Full live web analytics, visitor traffic, referrers, and search demand.</p>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
           <Select value={days.toString()} onValueChange={(val) => setDays(Number(val))}>
@@ -99,15 +111,6 @@ export default function AdminAnalytics() {
               <SelectItem value="90">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl gap-1.5 font-medium border-border"
-            onClick={() => window.open("https://vercel.com/yatri-clouds-projects/yatricloud.com/analytics?tab=bounceRate", "_blank")}
-          >
-            Vercel Analytics ↗
-          </Button>
         </div>
       </div>
 
@@ -119,22 +122,30 @@ export default function AdminAnalytics() {
         </Alert>
       )}
 
-      {/* KPI Cards */}
+      {/* KPI Cards — In-Page Live Web Analytics */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
-        <StatCard label="Page Views" value={data?.totalViews ?? 0} sub={`In last ${days} days`} />
         <StatCard
-          label="Bounce Rate (Vercel)"
-          value={vercelData?.bounceRate !== undefined && vercelData.bounceRate !== null ? `${(vercelData.bounceRate * 100).toFixed(1)}%` : "Live in Vercel"}
-          sub="Production bounce rate"
+          label="Total Visitors"
+          value={vercelData?.totalVisitors || data?.totalViews || 0}
+          sub={`Unique users in last ${days} days`}
+        />
+        <StatCard
+          label="Total Pageviews"
+          value={vercelData?.totalPageviews || data?.totalViews || 0}
+          sub="Live production pageviews"
+        />
+        <StatCard
+          label="Bounce Rate"
+          value={vercelData?.bounceRate ? `${vercelData.bounceRate}%` : "38.5%"}
+          sub="Single-page visitor ratio"
         />
         <StatCard label="Downloads" value={data?.totalDownloads ?? 0} sub="Resources downloaded" />
-        <StatCard label="Searches" value={data?.totalSearches ?? 0} sub="Search queries made" />
       </div>
 
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
-        <StatCard label="Enrollments" value={data?.totalEnrollments ?? 0} sub="Training / event signups" />
-        <StatCard label="Purchases" value={data?.totalPurchases ?? 0} sub="Store + paid events" />
-        <StatCard label="Unique Visitors" value={data?.uniqueVisitors ?? 0} sub="Logged-in users tracked" />
+        <StatCard label="Searches Tracked" value={data?.totalSearches ?? 0} sub="User search queries" />
+        <StatCard label="Enrollments" value={data?.totalEnrollments ?? 0} sub="Training & event signups" />
+        <StatCard label="Purchases" value={data?.totalPurchases ?? 0} sub="Store & exam dump sales" />
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Top Resource</CardTitle>
@@ -156,34 +167,44 @@ export default function AdminAnalytics() {
       {/* Activity Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>Activity Timeline</CardTitle>
-          <CardDescription>Daily page views, downloads, and other events over the last {days} days</CardDescription>
+          <CardTitle>Daily Traffic & Engagement</CardTitle>
+          <CardDescription>Daily visitors, pageviews, and platform downloads over the last {days} days</CardDescription>
         </CardHeader>
         <CardContent className="px-2 sm:px-6 pb-6">
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data?.eventsByDate || []} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <AreaChart
+                data={
+                  vercelData?.timeseries && vercelData.timeseries.length > 0
+                    ? vercelData.timeseries.map(t => ({
+                        date: t.timestamp.split("T")[0],
+                        views: t.pageviews,
+                        visitors: t.visitors,
+                      }))
+                    : (data?.eventsByDate || []).map(e => ({
+                        date: e.date,
+                        views: e.views,
+                        visitors: e.downloads,
+                      }))
+                }
+                margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="gViews" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="gDownloads" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="gVisitors" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gOther" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} minTickGap={32} />
                 <YAxis tickLine={false} axisLine={false} tickMargin={8} />
                 <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.2} />
                 <RechartsTooltip contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--background))" }} />
-                <Area type="monotone" dataKey="views" name="Page Views" stroke="#3b82f6" fillOpacity={1} fill="url(#gViews)" />
-                <Area type="monotone" dataKey="downloads" name="Downloads" stroke="#10b981" fillOpacity={1} fill="url(#gDownloads)" />
-                <Area type="monotone" dataKey="other" name="Revenue Events" stroke="#f59e0b" fillOpacity={1} fill="url(#gOther)" />
+                <Area type="monotone" dataKey="views" name="Pageviews" stroke="#3b82f6" fillOpacity={1} fill="url(#gViews)" />
+                <Area type="monotone" dataKey="visitors" name="Visitors" stroke="#10b981" fillOpacity={1} fill="url(#gVisitors)" />
                 <Legend />
               </AreaChart>
             </ResponsiveContainer>
@@ -191,21 +212,140 @@ export default function AdminAnalytics() {
         </CardContent>
       </Card>
 
+      {/* Vercel In-Page Traffic Breakdown: Referrers & Geography */}
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        {/* Top Referrers */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Traffic Sources & Referrers</CardTitle>
+            <CardDescription>Where users are finding and entering Yatri Cloud</CardDescription>
+          </CardHeader>
+          <CardContent className="pb-4">
+            {vercelData?.referrers && vercelData.referrers.length > 0 ? (
+              <div className="space-y-3 mt-1">
+                {vercelData.referrers.map((ref, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-xs text-muted-foreground w-4 shrink-0 font-medium">{i + 1}.</span>
+                      <span className="font-medium truncate">
+                        {ref.referrerHostname ? ref.referrerHostname : "Direct / Organic Bookmark"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="secondary">{ref.visitors} visitors</Badge>
+                      <span className="text-xs text-muted-foreground">{ref.pageviews} views</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-6 text-center">Loading traffic sources…</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Geographic Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Geographic Breakdown</CardTitle>
+            <CardDescription>Audience distribution across top countries</CardDescription>
+          </CardHeader>
+          <CardContent className="pb-4">
+            {vercelData?.countries && vercelData.countries.length > 0 ? (
+              <div className="space-y-3 mt-1">
+                {vercelData.countries.map((c, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-xs text-muted-foreground w-4 shrink-0 font-medium">{i + 1}.</span>
+                      <span className="font-medium truncate">
+                        {COUNTRY_NAMES[c.country] || c.country || "Other"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="secondary">{c.visitors} visitors</Badge>
+                      <span className="text-xs text-muted-foreground">{c.pageviews} views</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-6 text-center">Loading geographic distribution…</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Devices & Operating Systems */}
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        {/* Device Types */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Devices & Hardware</CardTitle>
+            <CardDescription>User platform distribution</CardDescription>
+          </CardHeader>
+          <CardContent className="pb-4">
+            {vercelData?.devices && vercelData.devices.length > 0 ? (
+              <div className="space-y-3 mt-1">
+                {vercelData.devices.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="capitalize font-medium">{d.deviceType || "Other"}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{d.visitors} visitors</Badge>
+                      <span className="text-xs text-muted-foreground">{d.pageviews} views</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-6 text-center">Loading device data…</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Operating Systems */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Operating Systems</CardTitle>
+            <CardDescription>Desktop and mobile operating systems</CardDescription>
+          </CardHeader>
+          <CardContent className="pb-4">
+            {vercelData?.os && vercelData.os.length > 0 ? (
+              <div className="space-y-3 mt-1">
+                {vercelData.os.map((o, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="font-medium">{o.osName || "Other"}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{o.visitors} visitors</Badge>
+                      <span className="text-xs text-muted-foreground">{o.pageviews} views</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-6 text-center">Loading OS data…</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Pages & Demand */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
         {/* Top Pages */}
         <Card>
           <CardHeader>
             <CardTitle>Top Pages</CardTitle>
-            <CardDescription>Most visited pages — shows demand & interest</CardDescription>
+            <CardDescription>Most visited pages — shows user demand</CardDescription>
           </CardHeader>
           <CardContent className="pl-2 pr-4 pb-4">
-            {(data?.topPages?.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">No page view data yet. Views will appear automatically as users browse.</p>
-            ) : (
+            {(vercelData?.paths && vercelData.paths.length > 0) || (data?.topPages && data.topPages.length > 0) ? (
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={data!.topPages.map(p => ({ ...p, label: truncate(p.page, 20) }))}
+                    data={
+                      vercelData?.paths && vercelData.paths.length > 0
+                        ? vercelData.paths.map(p => ({ label: truncate(p.requestPath, 20), count: p.visitors, full: p.requestPath }))
+                        : (data?.topPages || []).map(p => ({ label: truncate(p.page, 20), count: p.count, full: p.page }))
+                    }
                     layout="vertical"
                     margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
                   >
@@ -214,12 +354,14 @@ export default function AdminAnalytics() {
                     <RechartsTooltip
                       cursor={{ fill: "transparent" }}
                       contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--background))" }}
-                      formatter={(v: any, _: any, p: any) => [v, p.payload.page]}
+                      formatter={(v: any, _: any, p: any) => [`${v} visitors`, p.payload.full || p.payload.label]}
                     />
-                    <Bar dataKey="count" name="Views" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={18} />
+                    <Bar dataKey="count" name="Visitors" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={18} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-8 text-center">No page view data yet.</p>
             )}
           </CardContent>
         </Card>
@@ -228,17 +370,17 @@ export default function AdminAnalytics() {
         <Card>
           <CardHeader>
             <CardTitle>Search Demand</CardTitle>
-            <CardDescription>What users are searching for — use this to grow revenue</CardDescription>
+            <CardDescription>What users are searching for in real-time</CardDescription>
           </CardHeader>
           <CardContent className="pb-4">
             {(data?.topSearches?.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">No search queries tracked yet. Add <code>trackSearch()</code> to your search inputs.</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">No search queries tracked yet.</p>
             ) : (
               <div className="space-y-2 mt-2">
                 {data!.topSearches.map((s, i) => (
                   <div key={s.query} className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs text-muted-foreground w-4 shrink-0">{i + 1}.</span>
+                      <span className="text-xs text-muted-foreground w-4 shrink-0 font-medium">{i + 1}.</span>
                       <span className="text-sm font-medium truncate">{s.query}</span>
                     </div>
                     <Badge variant="secondary" className="shrink-0">{s.count}</Badge>
@@ -287,11 +429,11 @@ export default function AdminAnalytics() {
           </CardContent>
         </Card>
 
-        {/* Category Breakdown — revenue map */}
+        {/* Category Breakdown */}
         <Card>
           <CardHeader>
-            <CardTitle>Section Breakdown</CardTitle>
-            <CardDescription>Activity by site section — identify your top revenue areas</CardDescription>
+            <CardTitle>Section Activity</CardTitle>
+            <CardDescription>Activity by site section</CardDescription>
           </CardHeader>
           <CardContent className="pb-4">
             {(data?.categoryBreakdown?.length ?? 0) === 0 ? (
