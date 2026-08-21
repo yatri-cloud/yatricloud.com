@@ -304,7 +304,11 @@ const App = () => (
               <Route path="/certificates" element={<MyCertificates />} />
               <Route path="/profile/my-events" element={FEATURE_FLAGS.events ? <MyEvents /> : <ComingSoon title="My Events" description="Event registrations and schedules will be accessible here once the events feature launches." />} />
               <Route path="/my-trainings" element={FEATURE_FLAGS.trainings ? <MyTrainings /> : <ComingSoon title="My Trainings" description="Enrolled training modules and course progress will appear here once trainings launch." />} />
+              <Route path="/my-resources" element={<MyResources />} />
+              <Route path="/myresources" element={<MyResources />} />
               <Route path="/profile/my-resources" element={<MyResources />} />
+              <Route path="/my-purchases" element={<MyPurchases />} />
+              <Route path="/mypurchases" element={<MyPurchases />} />
               <Route path="/profile/purchases" element={<MyPurchases />} />
               <Route path="/receipt/:invoiceNumber" element={<ReceiptView />} />
               <Route path="/profile/guide" element={FEATURE_FLAGS.userGuide ? <GuideView type="user" /> : <ComingSoon title="User Guide" description="The official learner guide and step by step platform walkthroughs are currently being curated." />} />
