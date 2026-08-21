@@ -20,8 +20,21 @@ const PROVIDER_ENUM: Record<string, string> = {
   AWS: "AWS", Azure: "AZURE", "Microsoft Azure": "AZURE", GCP: "GCP",
   "Google Cloud": "GCP", GitHub: "GITHUB", Oracle: "ORACLE",
   Salesforce: "SALESFORCE", ServiceNow: "SERVICENOW", OpenAI: "OPENAI",
+  Anthropic: "ANTHROPIC", "Anthropic (Claude AI)": "ANTHROPIC",
   HashiCorp: "HASHICORP", Kubernetes: "KUBERNETES",
 };
+
+function toVoucherProviderEnum(raw?: string | null): string {
+  if (!raw) return "OTHER";
+  const clean = raw.trim();
+  if (PROVIDER_ENUM[clean]) return PROVIDER_ENUM[clean];
+  const upper = clean.toUpperCase();
+  if (["AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "HASHICORP", "KUBERNETES", "OTHER"].includes(upper)) {
+    return upper;
+  }
+  if (/anthropic|claude/i.test(clean)) return "ANTHROPIC";
+  return "OTHER";
+}
 
 /**
  * Submit a voucher request.
@@ -33,7 +46,7 @@ export async function submitVoucherRequest(data: VoucherRequestData) {
     whatsapp: data.whatsapp || null,
     contact_number: data.contactNumber || null,
     country: data.country || null,
-    provider: PROVIDER_ENUM[data.provider] ?? "OTHER",
+    provider: toVoucherProviderEnum(data.provider),
     exams: data.exams,
     reason: data.reason || null,
   });

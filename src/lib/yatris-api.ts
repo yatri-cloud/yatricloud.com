@@ -20,9 +20,22 @@ import { ensurePhotoIsUrl } from '@/lib/google-sheets';
 /** Display provider name → DB enum. */
 const PROVIDER_TO_ENUM: Record<string, string> = {
   AWS: 'AWS', Azure: 'AZURE', GCP: 'GCP', GitHub: 'GITHUB', Oracle: 'ORACLE',
-  Salesforce: 'SALESFORCE', ServiceNow: 'SERVICENOW', OpenAI: 'OPENAI',
+  Salesforce: 'SALESFORCE', ServiceNow: 'SERVICENOW', OpenAI: 'OPENAI', Anthropic: 'ANTHROPIC',
   HashiCorp: 'HASHICORP', Kubernetes: 'KUBERNETES',
 };
+
+function normalizeProviderEnum(raw?: string | null): string {
+  if (!raw) return 'OTHER';
+  const clean = raw.trim();
+  if (PROVIDER_TO_ENUM[clean]) return PROVIDER_TO_ENUM[clean];
+  const upper = clean.toUpperCase();
+  if (['AWS', 'AZURE', 'GCP', 'GITHUB', 'ORACLE', 'SALESFORCE', 'SERVICENOW', 'OPENAI', 'ANTHROPIC', 'HASHICORP', 'KUBERNETES', 'OTHER'].includes(upper)) {
+    return upper;
+  }
+  if (/anthropic|claude/i.test(clean)) return 'ANTHROPIC';
+  return 'OTHER';
+}
+
 const ENUM_TO_PROVIDER: Record<string, string> = Object.fromEntries(
   Object.entries(PROVIDER_TO_ENUM).map(([k, v]) => [v, k])
 );
@@ -190,7 +203,7 @@ export async function submitCertification(data: {
     user_id: authUser.id,
     email: profile.email.toLowerCase(),
     full_name: profile.fullName,
-    provider: PROVIDER_TO_ENUM[data.certificationProvider] ?? 'OTHER',
+    provider: normalizeProviderEnum(data.certificationProvider),
     certification_name: data.certificationName,
     exam_code: data.examCode || null,
     certification_date: data.certificationDate || null,

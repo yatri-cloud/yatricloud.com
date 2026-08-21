@@ -52,12 +52,34 @@ const DISPLAY_TO_ENUM: Record<string, string> = {
   salesforce: "SALESFORCE", servicenow: "SERVICENOW", openai: "OPENAI", anthropic: "ANTHROPIC",
   hashicorp: "HASHICORP", kubernetes: "KUBERNETES",
 };
+
 /** DB enum → display name used across the UI. */
-const ENUM_TO_DISPLAY: Record<string, string> = {
+export const ENUM_TO_DISPLAY: Record<string, string> = {
   AWS: "AWS", AZURE: "Azure", GCP: "GCP", GITHUB: "GitHub", ORACLE: "Oracle",
   SALESFORCE: "Salesforce", SERVICENOW: "ServiceNow", OPENAI: "OpenAI", ANTHROPIC: "Anthropic",
   HASHICORP: "HashiCorp", KUBERNETES: "Kubernetes", OTHER: "Other",
 };
+
+const VALID_PROVIDER_ENUMS = new Set([
+  "AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "HASHICORP", "KUBERNETES", "OTHER",
+]);
+
+export function normalizeProviderEnum(raw?: string | null): string {
+  if (!raw) return "OTHER";
+  const clean = raw.trim();
+  const upper = clean.toUpperCase();
+  if (VALID_PROVIDER_ENUMS.has(upper)) return upper;
+  const lower = clean.toLowerCase();
+  if (DISPLAY_TO_ENUM[lower]) return DISPLAY_TO_ENUM[lower];
+  if (/anthropic|claude/i.test(clean)) return "ANTHROPIC";
+  if (/open\s*ai|chatgpt/i.test(clean)) return "OPENAI";
+  if (/k8s|kubernetes/i.test(clean)) return "KUBERNETES";
+  if (/terraform|hashicorp|vault/i.test(clean)) return "HASHICORP";
+  if (/google|gcp/i.test(clean)) return "GCP";
+  if (/azure|microsoft/i.test(clean)) return "AZURE";
+  if (/aws|amazon/i.test(clean)) return "AWS";
+  return "OTHER";
+}
 
 /**
  * Submit a certification for the signed-in user.
@@ -105,7 +127,7 @@ export async function submitCertification(data: CertificationSubmission): Promis
     user_id: user.id,
     email: data.email.trim().toLowerCase(),
     full_name: data.fullName,
-    provider: DISPLAY_TO_ENUM[data.certificationProvider.toLowerCase()] ?? "OTHER",
+    provider: normalizeProviderEnum(data.certificationProvider),
     certification_name: data.certificationName,
     exam_code: data.examCode || null,
     certification_date: data.certificationDate || null,
