@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
-import { ShoppingCart, IndianRupee } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { CartSheet } from "./CartSheet";
 
 export const MobileCartBar = () => {
   const { totalItems, totalPrice } = useCart();
+  const { formatInr } = useCurrency();
 
   return (
     <motion.div
@@ -29,9 +31,8 @@ export const MobileCartBar = () => {
                     {totalItems > 0 ? `${totalItems} item${totalItems > 1 ? 's' : ''}` : 'Cart'}
                   </span>
                   {totalItems > 0 && (
-                    <span className="text-sm font-bold flex items-center gap-1">
-                      <IndianRupee className="h-3 w-3" />
-                      {totalPrice.toLocaleString("en-IN")}
+                    <span className="text-sm font-bold">
+                      {formatInr(totalPrice)}
                     </span>
                   )}
                 </div>

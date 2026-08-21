@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCart } from "@/contexts/CartContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { useState } from "react";
 import {
   Dialog,
@@ -23,6 +24,7 @@ interface ExamDumpCardProps {
 
 export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
   const { addToCart } = useCart();
+  const { formatInr } = useCurrency();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
 
@@ -112,11 +114,11 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold tracking-tight text-foreground">
-                {"₹"}{dump.price.toLocaleString("en-IN")}
+                {formatInr(dump.price)}
               </span>
               {dump.originalPrice > dump.price && (
                 <span className="text-sm text-muted-foreground line-through">
-                  {"₹"}{dump.originalPrice.toLocaleString("en-IN")}
+                  {formatInr(dump.originalPrice)}
                 </span>
               )}
             </div>
@@ -164,11 +166,11 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
                 </div>
                 <div className="flex items-baseline gap-3">
                   <span className="text-3xl font-bold text-foreground">
-                    {"₹"}{dump.price.toLocaleString("en-IN")}
+                    {formatInr(dump.price)}
                   </span>
                   {dump.originalPrice > dump.price && (
                     <span className="text-lg text-muted-foreground line-through">
-                      {"₹"}{dump.originalPrice.toLocaleString("en-IN")}
+                      {formatInr(dump.originalPrice)}
                     </span>
                   )}
                 </div>

@@ -102,6 +102,40 @@ export function setPreferredCurrency(code: string): void {
   }
 }
 
+/** Heuristic fallback using client timezone and locale when geo headers are absent (e.g. localhost). */
+function guessBrowserCurrency(): string {
+  try {
+    const tz = (typeof Intl !== "undefined" && Intl.DateTimeFormat().resolvedOptions().timeZone) || "";
+    if (/Calcutta|Kolkata/i.test(tz)) return "INR";
+    if (/London/i.test(tz)) return "GBP";
+    if (/Dubai|Muscat/i.test(tz)) return "AED";
+    if (/Tokyo/i.test(tz)) return "JPY";
+    if (/Sydney|Melbourne|Brisbane|Perth|Adelaide/i.test(tz)) return "AUD";
+    if (/Toronto|Vancouver|Montreal|Calgary/i.test(tz)) return "CAD";
+    if (/Singapore/i.test(tz)) return "SGD";
+    if (/Auckland|Wellington/i.test(tz)) return "NZD";
+    if (/Berlin|Paris|Rome|Madrid|Amsterdam|Brussels|Vienna|Dublin|Helsinki|Lisbon|Athens/i.test(tz)) return "EUR";
+    if (/Europe/i.test(tz)) return "EUR";
+    if (/America/i.test(tz)) return "USD";
+    if (/Hong_Kong/i.test(tz)) return "HKD";
+    if (/Seoul/i.test(tz)) return "KRW";
+    if (/Riyadh/i.test(tz)) return "SAR";
+    if (/Zurich/i.test(tz)) return "CHF";
+
+    // Locale country fallback, e.g. "en-GB" -> GBP, "de-DE" -> EUR
+    if (typeof navigator !== "undefined" && navigator.language) {
+      const parts = navigator.language.split("-");
+      if (parts[1]) {
+        const c = currencyForCountry(parts[1]);
+        if (c) return c;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return "INR";
+}
+
 let detectPromise: Promise<string> | null = null;
 
 /** Guess the visitor's currency code from their location (cached per session). */
@@ -118,7 +152,7 @@ function detectCurrencyCode(): Promise<string> {
       } catch {
         /* ignore */
       }
-      return BASE_CURRENCY;
+      return guessBrowserCurrency();
     })();
   }
   return detectPromise;

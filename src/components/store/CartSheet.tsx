@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { sendEmail } from "@/lib/email";
 import { getProductPurchaseEmail } from "@/lib/email-templates";
 import { CurrencySelect } from "@/components/CurrencySelect";
-import { DEFAULT_CURRENCY, convertFromInr, formatMoney, toSmallestUnit, getInitialCurrency, setPreferredCurrency, type CurrencyOption } from "@/lib/currency";
+import { convertFromInr, formatMoney, toSmallestUnit } from "@/lib/currency";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface CartSheetProps {
   trigger?: ReactNode;
@@ -32,6 +33,7 @@ const OPEN_PENDING_KEY = "yc:open-cart-pending";
 
 export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
+  const { currency, setCurrency, formatInr } = useCurrency();
   const { showConfirm: confirm } = useConfirm();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -57,17 +59,6 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
   const [guestEmail, setGuestEmail] = useState("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [purchasedDumps, setPurchasedDumps] = useState<any[]>([]);
-  const [currency, setCurrency] = useState<CurrencyOption>(DEFAULT_CURRENCY);
-  // Default to the visitor's local currency (geo detected, or their last choice).
-  useEffect(() => {
-    let active = true;
-    getInitialCurrency().then((c) => {
-      if (active) setCurrency(c);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
   const testMode = isTestMode();
   const user = getStoredUser();
   // Coupon: discount applies to the INR total before currency conversion.
@@ -335,7 +326,7 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold">
-                              ₹{(item.discountedPrice * item.quantity).toLocaleString("en-IN")}
+                              {formatInr(item.discountedPrice * item.quantity)}
                             </span>
                             <Button
                               variant="ghost"
@@ -386,7 +377,7 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
                   <CurrencySelect
                     className="w-full justify-between"
                     value={currency.code}
-                    onChange={(code, option) => { setCurrency(option); setPreferredCurrency(code); }}
+                    onChange={(_code, option) => setCurrency(option)}
                     disabled={isProcessing}
                   />
                   <div className="space-y-1.5">

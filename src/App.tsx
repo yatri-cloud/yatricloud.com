@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { CalendlyPopup } from "@/components/CalendlyPopup";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { CartProvider, useCart } from "@/contexts/CartContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ConfirmProvider } from "@/components/providers/ConfirmProvider";
 import Index from "./pages/Index";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -202,8 +203,9 @@ const App = () => (
     <Analytics />
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <CartProvider>
-          <ConfirmProvider>
+        <CurrencyProvider>
+          <CartProvider>
+            <ConfirmProvider>
             <Toaster />
             <Sonner />
           <BrowserRouter>
@@ -388,6 +390,7 @@ const App = () => (
           </BrowserRouter>
           </ConfirmProvider>
         </CartProvider>
+      </CurrencyProvider>
       </TooltipProvider>
     </QueryClientProvider>
 

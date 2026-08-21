@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { CartSheet } from "./CartSheet";
 
 // Site-wide floating cart pill. Appears the moment the cart has items so a
@@ -10,6 +11,7 @@ import { CartSheet } from "./CartSheet";
 // own cart UI already lives) and lazy-loads this chunk.
 const FloatingCart = () => {
   const { totalItems, totalPrice } = useCart();
+  const { formatInr } = useCurrency();
   const reduce = useReducedMotion();
 
   return (
@@ -41,7 +43,7 @@ const FloatingCart = () => {
                 {totalItems} {totalItems === 1 ? "item" : "items"} in cart
               </span>
               <span className="text-sm font-bold tabular-nums">
-                Checkout · ₹{totalPrice.toLocaleString("en-IN")}
+                Checkout · {formatInr(totalPrice)}
               </span>
             </span>
           </motion.button>
