@@ -269,9 +269,8 @@ export const CertificationFlowSection = () => {
               {eligibleExams.length > 3 && (
                 <div className="mt-8 flex justify-center">
                   <Button
-                    variant="outline"
                     onClick={() => setShowAllExams(!showAllExams)}
-                    className="rounded-full px-6 py-2.5 font-semibold text-sm shadow-2xs hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all gap-2"
+                    className="rounded-full px-7 py-3 font-semibold text-sm bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 transition-all gap-2 min-h-[44px]"
                   >
                     {showAllExams ? (
                       <>

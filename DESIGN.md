@@ -173,8 +173,9 @@ Until approved, **do not apply these** — keep the existing values verbatim.
 ## 4. Component Styling
 
 ### Buttons
-- **Primary (blue):** `bg hsl(var(--primary))`, `text hsl(var(--primary-foreground))`, radius `calc(var(--radius) - 2px)` (~10px), padding `10px 18px`, weight 500. **Signature inset:** `inset 0 0.5px 0 hsl(0 0% 100% / .25), inset 0 0 0 0.5px hsl(0 0% 0% / .2), 0 1px 2px hsl(0 0% 0% / .08)`. Hover → `--blue-600`; active → `--blue-700` + `scale(.98)`; focus-visible → `--ring` + `--glow-soft`.
-- **Secondary / Ghost:** transparent or `--secondary`, `1px solid hsl(var(--border))`, text `--foreground`. Hover → `--blue-50` tint (light) / `--secondary` lift (dark).
+- **Primary (blue):** `bg hsl(var(--primary))`, `text hsl(var(--primary-foreground))`, radius `calc(var(--radius) - 2px)` (~10px), padding `10px 18px`, weight 500. **Signature inset:** `inset 0 0.5px 0 hsl(0 0% 100% / .25), inset 0 0 0 0.5px hsl(0 0% 0% / .2), 0 1px 2px hsl(0 0% 0% / .08)` (`shadow-inset-btn`). Hover → `--blue-600` (`hover:bg-brand-600`); active → `--blue-700` + `scale(.98)`; focus-visible → `--ring` + `--glow-soft`.
+- **STRICT COLOR RULE (NEVER VIOLATE):** **NEVER** use pale, baby-blue, or light washed-out blue backgrounds (`bg-primary/10`, `bg-brand-50`, or light-blue bordered outline pills with blue text) on buttons or call-to-action triggers. All interactive buttons/toggles must be **SOLID vibrant brand blue** (`bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600`) or clean neutral dark outline/solid.
+- **Secondary / Ghost:** transparent or `--secondary`, `1px solid hsl(var(--border))`, text `--foreground`. Hover → `--secondary` lift / clean neutral hover.
 - **Destructive:** `--destructive` bg, always paired with confirm dialog for irreversible actions.
 - Min hit area **44×44px**; add `touch-action: manipulation`.
 
