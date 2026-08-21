@@ -450,21 +450,21 @@ export default function ExamPracticeViewer() {
                         ? !!revealedAnswers[currentQuestion.id]
                         : isExamSubmitted;
 
-                    let cardStyle = "border-border/80 bg-background hover:border-primary/50";
-                    let badgeStyle = "border border-border bg-muted/60 text-muted-foreground";
+                    let cardStyle = "border-border/80 bg-card text-foreground hover:border-primary/50";
+                    let badgeStyle = "border border-border bg-muted/60 text-muted-foreground font-bold";
 
                     if (isSelected) {
-                      cardStyle = "border-primary bg-primary/5 ring-1 ring-primary";
-                      badgeStyle = "bg-primary text-primary-foreground font-bold border-primary";
+                      cardStyle = "border-primary bg-primary text-primary-foreground font-medium shadow-xs";
+                      badgeStyle = "bg-white text-primary font-extrabold border-white shadow-2xs";
                     }
 
                     if (isRevealed) {
                       if (isCorrect) {
-                        cardStyle = "border-emerald-600 bg-emerald-500/10 text-emerald-950 dark:text-emerald-200 ring-1 ring-emerald-600";
-                        badgeStyle = "bg-emerald-600 text-white font-bold";
+                        cardStyle = "border-emerald-600 bg-emerald-600 text-white font-medium shadow-xs";
+                        badgeStyle = "bg-white text-emerald-700 font-extrabold border-white shadow-2xs";
                       } else if (isSelected && !isCorrect) {
-                        cardStyle = "border-rose-600 bg-rose-500/10 text-rose-950 dark:text-rose-200 ring-1 ring-rose-600";
-                        badgeStyle = "bg-rose-600 text-white font-bold";
+                        cardStyle = "border-rose-600 bg-rose-600 text-white font-medium shadow-xs";
+                        badgeStyle = "bg-white text-rose-700 font-extrabold border-white shadow-2xs";
                       }
                     }
 
