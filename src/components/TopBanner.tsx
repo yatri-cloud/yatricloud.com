@@ -13,7 +13,7 @@ export function TopBanner() {
     >
       <div className="container mx-auto flex items-center justify-center gap-2 text-center flex-wrap">
         {ANNOUNCEMENT.badge && (
-          <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded-full shrink-0">
+          <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider bg-red-600 text-white px-2.5 py-0.5 rounded-full shrink-0 shadow-2xs">
             {ANNOUNCEMENT.badge}
           </span>
         )}
