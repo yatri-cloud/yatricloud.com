@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { listMyResources, type MyResource } from "@/lib/resources-api";
 import { getStoredUser } from "@/lib/yatris-api";
-import { getProviderMeta } from "@/lib/exam-dumps";
+import { getProviderMeta, normalizeProviderSlug } from "@/lib/exam-dumps";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -78,9 +78,21 @@ export default function MyResources() {
   };
 
   const handleShare = (r: MyResource) => {
-    const shareUrl = r.accessUrl.startsWith("http")
-      ? r.accessUrl
-      : `${window.location.origin}${r.accessUrl}`;
+    let shareUrl = "";
+    if (isDump(r)) {
+      if (r.accessUrl.startsWith("/examdumps/practice")) {
+        shareUrl = `${window.location.origin}${r.accessUrl}`;
+      } else {
+        const providerSlug = r.provider ? normalizeProviderSlug(r.provider) : "redis";
+        shareUrl = `${window.location.origin}/examdumps/${providerSlug}`;
+      }
+    } else {
+      const providerSlug = r.provider ? normalizeProviderSlug(r.provider) : "";
+      shareUrl = providerSlug
+        ? `${window.location.origin}/resources/${providerSlug}`
+        : `${window.location.origin}/resources?search=${encodeURIComponent(r.name)}`;
+    }
+
     if (navigator.share) {
       navigator.share({ title: r.name, url: shareUrl }).catch(() => {});
     } else {

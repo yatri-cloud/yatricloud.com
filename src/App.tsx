@@ -262,6 +262,7 @@ const App = () => (
               <Route path="/exam-dumps/practice" element={<ExamPracticeViewer />} />
               <Route path="/exam-dumps/:provider" element={<ExamDumps />} />
               <Route path="/resources" element={<Resources />} />
+              <Route path="/resources/:provider" element={<Resources />} />
               <Route path="/training" element={FEATURE_FLAGS.trainings ? <Training /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />
               <Route path="/training/:slug/dashboard" element={FEATURE_FLAGS.trainings ? <StudentTrainingDashboard /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />
               {/* Backward-compatible fallback: resolves by slug or id so old bookmarks keep working */}

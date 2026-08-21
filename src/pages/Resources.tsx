@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -23,6 +23,7 @@ import { getCachedUser } from "@/lib/auth";
 import { trackEvent } from "@/lib/analytics";
 import { ListPager } from "@/components/ui/list-pager";
 import { useSearchTracker } from "@/hooks/usePageTracker";
+import { normalizeProviderSlug, getProviderMeta } from "@/lib/exam-dumps";
 
 const PAGE_SIZE = 12;
 
@@ -33,6 +34,7 @@ const fadeUp = {
 
 export default function Resources() {
   const navigate = useNavigate();
+  const { provider: urlProvider } = useParams<{ provider?: string }>();
   const trackSearch = useSearchTracker("Resource");
   const [searchParams, setSearchParams] = useSearchParams();
   const [resources, setResources] = useState<Resource[]>([]);
@@ -46,10 +48,17 @@ export default function Resources() {
 
   // Filters
   const [search, setSearch] = useState("");
-  const [providerFilter, setProviderFilter] = useState("all");
+  const [providerFilter, setProviderFilter] = useState(() => (urlProvider ? normalizeProviderSlug(urlProvider) : "all"));
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
   const [page, setPage] = useState(1);
+
+  // Synchronize when URL provider parameter changes
+  useEffect(() => {
+    if (urlProvider) {
+      setProviderFilter(normalizeProviderSlug(urlProvider));
+    }
+  }, [urlProvider]);
 
   useEffect(() => { setPage(1); }, [search, providerFilter, categoryFilter, freeFilter]);
 
@@ -162,8 +171,10 @@ export default function Resources() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const targetProvider = providerFilter !== "all" ? normalizeProviderSlug(providerFilter) : "all";
+
     return resources.filter((r) => {
-      if (providerFilter !== "all" && r.provider !== providerFilter) return false;
+      if (targetProvider !== "all" && normalizeProviderSlug(r.provider) !== targetProvider) return false;
       if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
       if (freeFilter === "free" && !r.isFree) return false;
       if (freeFilter === "paid" && r.isFree) return false;
@@ -174,6 +185,11 @@ export default function Resources() {
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const activeProviderMeta = providerFilter !== "all" ? getProviderMeta(providerFilter) : null;
+  const pageTitle = activeProviderMeta
+    ? `${activeProviderMeta.name} Certification Resources & Study Guides | Yatri Cloud`
+    : "Resources | Yatri Cloud";
 
   const handleLoginSuccess = async (loggedInUser: any) => {
     setUser(loggedInUser);
@@ -212,7 +228,7 @@ export default function Resources() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
-        title="Resources | Yatri Cloud"
+        title={pageTitle}
         description="Free and premium exam guides, practice tests, cheat sheets and more curated for cloud and tech certification learners."
       />
       <Navbar />
