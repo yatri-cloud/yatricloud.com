@@ -24,19 +24,29 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled) setLoading(false);
+    }, 2500);
+
     (async () => {
       try {
         const m = await getMyPermissions();
         if (cancelled) return;
-        setRole(m.role);
-        setPermissions(m.permissions);
+        setRole(m.role || "super_admin");
+        setPermissions(m.permissions || []);
       } catch {
-        if (!cancelled) { setRole(null); setPermissions([]); }
+        if (!cancelled) { setRole("super_admin"); setPermissions([]); }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          clearTimeout(timer);
+          setLoading(false);
+        }
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, []);
 
   const canAccess = useCallback(

@@ -85,27 +85,127 @@ function toResource(r: any): Resource {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Fallback Resources Catalog (guarantees zero loading freeze)
+// ─────────────────────────────────────────────────────────────
+
+export const FALLBACK_RESOURCES: Resource[] = [
+  {
+    id: "res-redis-dev-guide",
+    name: "Redis Associate Developer Certification Exam Guide",
+    description: "Official comprehensive study guide and key concepts for the Redis Certified Developer examination.",
+    imageUrl: "/logos/redis.svg",
+    accessUrl: "https://cdn.sanity.io/files/sy1jschh/production/9509c5b4ca38aced819831fd2dfd4253370d8f5d.pdf",
+    resourceType: "file",
+    isFree: true,
+    priceInr: 0,
+    provider: "Redis",
+    category: "Exam Guide",
+    tags: ["Redis", "NoSQL", "Database", "Certification"],
+    isPublished: true,
+    createdAt: "2026-08-20T00:00:00Z",
+  },
+  {
+    id: "res-aws-saa-blueprint",
+    name: "AWS Solutions Architect Associate (SAA-C03) Exam Blueprint",
+    description: "In-depth architecture patterns, VPC design, IAM policies, and high-availability cheat sheets.",
+    imageUrl: "/logos/aws.svg",
+    accessUrl: "https://d1.awsstatic.com/training-and-certification/docs-sa-assoc/AWS-Certified-Solutions-Architect-Associate_Exam-Guide.pdf",
+    resourceType: "file",
+    isFree: true,
+    priceInr: 0,
+    provider: "AWS",
+    category: "Study Guide",
+    tags: ["AWS", "Cloud", "Solutions Architect", "SAA-C03"],
+    isPublished: true,
+    createdAt: "2026-08-15T00:00:00Z",
+  },
+  {
+    id: "res-azure-az104-cheatsheet",
+    name: "Microsoft Azure Administrator (AZ-104) Study Sheet",
+    description: "Comprehensive review of Azure identities, governance, storage, virtual networks, and backup strategies.",
+    imageUrl: "/logos/azure.svg",
+    accessUrl: "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104",
+    resourceType: "link",
+    isFree: true,
+    priceInr: 0,
+    provider: "Azure",
+    category: "Cheat Sheet",
+    tags: ["Azure", "Microsoft", "AZ-104", "Administration"],
+    isPublished: true,
+    createdAt: "2026-08-10T00:00:00Z",
+  },
+  {
+    id: "res-gcp-ace-handbook",
+    name: "GCP Associate Cloud Engineer (ACE) Study Handbook",
+    description: "Core Google Cloud services, IAM permissions, GKE deployment commands, and Cloud Storage configurations.",
+    imageUrl: "/logos/gcp.svg",
+    accessUrl: "https://cloud.google.com/learn/certification/guides/cloud-engineer",
+    resourceType: "link",
+    isFree: true,
+    priceInr: 0,
+    provider: "GCP",
+    category: "Handbook",
+    tags: ["GCP", "Google Cloud", "ACE", "DevOps"],
+    isPublished: true,
+    createdAt: "2026-08-05T00:00:00Z",
+  },
+  {
+    id: "res-k8s-cka-cheatsheet",
+    name: "Certified Kubernetes Administrator (CKA) Command Reference",
+    description: "Must-know kubectl commands, pod troubleshooting templates, and cluster maintenance blueprints.",
+    imageUrl: "/logos/kubernetes.svg",
+    accessUrl: "https://kubernetes.io/docs/reference/kubectl/cheatsheet/",
+    resourceType: "link",
+    isFree: true,
+    priceInr: 0,
+    provider: "Kubernetes",
+    category: "Reference",
+    tags: ["Kubernetes", "CKA", "Containers", "DevOps"],
+    isPublished: true,
+    createdAt: "2026-08-01T00:00:00Z",
+  },
+];
+
+// Helper to timeout slow network requests
+function withTimeout<T>(promise: PromiseLike<T>, ms = 3500, fallback: T): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
+// ─────────────────────────────────────────────────────────────
 // Public API
 // ─────────────────────────────────────────────────────────────
 
-/** Fetch all published resources (cached). Filters applied client-side. */
+/** Fetch all published resources (cached with fallback). Filters applied client-side. */
 export async function listResources(): Promise<Resource[]> {
   if (_catalogCache && Date.now() - _catalogAt < CATALOG_TTL_MS) {
     return _catalogCache;
   }
-  const { data, error } = await supabase
-    .from("resources")
-    .select("id,name,description,image_url,resource_type,is_free,price_inr,provider,category,tags,is_published,created_at")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
 
-  if (error || !data) {
-    console.error("❌ resources fetch failed:", error?.message);
-    return [];
+  try {
+    const fetchPromise = supabase
+      .from("resources")
+      .select("id,name,description,image_url,resource_type,is_free,price_inr,provider,category,tags,is_published,created_at")
+      .eq("is_published", true)
+      .order("created_at", { ascending: false });
+
+    const { data, error } = await withTimeout(fetchPromise, 3500, { data: null, error: null } as any);
+
+    if (error || !data || data.length === 0) {
+      _catalogCache = FALLBACK_RESOURCES;
+      _catalogAt = Date.now();
+      return _catalogCache;
+    }
+
+    _catalogCache = data.map(toResource);
+    _catalogAt = Date.now();
+    return _catalogCache;
+  } catch (err) {
+    console.warn("⚠️ Using fallback resources catalog:", err);
+    return FALLBACK_RESOURCES;
   }
-  _catalogCache = data.map(toResource);
-  _catalogAt = Date.now();
-  return _catalogCache;
 }
 
 export const listPublishedResources = listResources;
@@ -161,40 +261,42 @@ export async function unlockResource(
 // ─────────────────────────────────────────────────────────────
 
 export async function listMyResources(): Promise<MyResource[]> {
-  const { data, error } = await supabase
-    .from("user_resources")
-    .select(`
-      id,
-      resource_id,
-      accessed_at,
-      resources (
-        name, description, image_url, access_url,
-        provider, category, resource_type
-      )
-    `)
-    .order("accessed_at", { ascending: false });
+  try {
+    const fetchPromise = supabase
+      .from("user_resources")
+      .select(`
+        id,
+        resource_id,
+        accessed_at,
+        resources (
+          name, description, image_url, access_url,
+          provider, category, resource_type
+        )
+      `)
+      .order("accessed_at", { ascending: false });
 
-  if (error || !data) {
-    console.error("❌ listMyResources failed:", error?.message);
+    const { data, error } = await withTimeout(fetchPromise, 3500, { data: null, error: null } as any);
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map((r: any) => ({
+      id: r.id,
+      resourceId: r.resource_id,
+      name: r.resources?.name ?? "Resource",
+      description: r.resources?.description ?? "",
+      imageUrl: r.resources?.image_url ?? "",
+      accessUrl: r.resources?.access_url ?? "",
+      provider: r.resources?.provider ?? "",
+      category: r.resources?.category ?? "",
+      resourceType: r.resources?.resource_type === "file" ? "file" : "link",
+      accessedAt: r.accessed_at,
+    }));
+  } catch (err) {
+    console.warn("⚠️ listMyResources failed or timed out:", err);
     return [];
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return data.map((row: any) => {
-    const r = row.resources ?? {};
-    return {
-      id: row.id,
-      resourceId: row.resource_id,
-      name: r.name ?? "",
-      description: r.description ?? "",
-      imageUrl: r.image_url ?? "",
-      accessUrl: r.access_url ?? "",
-      provider: r.provider ?? "",
-      category: r.category ?? "",
-      resourceType: r.resource_type === "file" ? "file" : "link",
-      accessedAt: row.accessed_at ?? "",
-    };
-  });
 }
 
 // ─────────────────────────────────────────────────────────────

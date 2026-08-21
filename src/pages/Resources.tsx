@@ -65,15 +65,15 @@ export default function Resources() {
   // Keep user in sync if changed in another tab or component
   useEffect(() => {
     const checkUser = () => {
-      if (isAuthenticated()) {
-        setUser(getStoredUser());
-      } else {
-        setUser(null);
+      const isAuth = isAuthenticated();
+      const current = isAuth ? getStoredUser() : null;
+      if (current?.email !== user?.email) {
+        setUser(current);
       }
     };
-    const interval = setInterval(checkUser, 1500);
+    const interval = setInterval(checkUser, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?.email]);
 
   useEffect(() => {
     (async () => {
