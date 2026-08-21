@@ -1,3 +1,4 @@
+import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Users, Mic, Layers, MapPin, Clock, Pencil, Trash2, Loader2, MoreVertical, UserCheck, ClipboardList, Search, Lock, Link as LinkIcon, Image as ImageIcon, LayoutList, Globe, EyeOff } from "lucide-react";
@@ -28,7 +29,7 @@ type TabType = "active" | "draft" | "past";
 export default function AdminEvents() {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [activeTab, setActiveTab] = useState<TabType>("active");
     const [events, setEvents] = useState<Event[]>([]);
     const [deletingEventId, setDeletingEventId] = useState<string | null>(null);

@@ -71,7 +71,7 @@ type TrainerTab = "courses" | "sessions" | "attendance" | "results";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export const TrainerDashboard = () => {
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const navigate = useNavigate();
     const [trainerData,     setTrainerData]     = useState<TrainerData | null>(null);
     const [courses,         setCourses]         = useState<Course[]>([]);
@@ -139,7 +139,7 @@ export const TrainerDashboard = () => {
     };
 
     const handleDelete = async (courseId: string) => {
-        if (!confirm("Are you sure you want to delete this training? This cannot be undone.")) return;
+        if (!await confirm("Are you sure you want to delete this training? This cannot be undone.")) return;
         toast.loading("Deleting training...");
         try {
             await deleteTraining(courseId);

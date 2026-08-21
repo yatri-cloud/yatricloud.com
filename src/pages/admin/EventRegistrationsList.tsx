@@ -44,7 +44,7 @@ import { getEventById } from "@/lib/events-store";
 
 export default function EventRegistrationsList() {
     const { eventId } = useParams<{ eventId: string }>();
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const navigate = useNavigate();
     const { toast } = useToast();
     const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
@@ -164,7 +164,7 @@ export default function EventRegistrationsList() {
     };
 
     const handleDeleteClick = async (reg: EventRegistration) => {
-        if (!confirm(`Are you sure you want to cancel the registration for ${reg.userDetails.name}?`)) {
+        if (!await confirm(`Are you sure you want to cancel the registration for ${reg.userDetails.name}?`)) {
             return;
         }
         const success = await cancelRegistration(reg.id);
@@ -184,7 +184,7 @@ export default function EventRegistrationsList() {
     };
 
     const handleDeletePermanent = async (reg: EventRegistration) => {
-        if (!confirm(`Permanently delete registration ${reg.registrationCode}? This cannot be undone.`)) {
+        if (!await confirm(`Permanently delete registration ${reg.registrationCode}? This cannot be undone.`)) {
             return;
         }
         setDeletingId(reg.id);

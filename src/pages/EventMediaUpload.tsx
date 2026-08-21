@@ -23,7 +23,7 @@ export default function EventMediaUpload() {
     const { slug } = useParams<{ slug: string }>();
     const { toast } = useToast();
     const fileRef = useRef<HTMLInputElement>(null);
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [event, setEvent] = useState<{ id: string; name: string } | null>(null);

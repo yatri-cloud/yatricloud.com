@@ -41,7 +41,7 @@ import {
 const RequestVoucher = () => {
   // Provider names from the certification catalog, always ending with "Other"
   const PROVIDERS = useCertCatalog(getVoucherProviders, FALLBACK_VOUCHER_PROVIDERS);
-  const { confirm } = useConfirm();
+  const { showConfirm: confirm } = useConfirm();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [exams, setExams] = useState([""]);

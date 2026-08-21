@@ -26,7 +26,7 @@ const fmt = (iso: string | null) =>
     iso ? new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "never";
 
 export default function AdminJobs() {
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<CompanyRow[]>([]);
     const [search, setSearch] = useState("");

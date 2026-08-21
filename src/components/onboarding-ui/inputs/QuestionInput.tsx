@@ -1,5 +1,5 @@
 import React from 'react';
-import { OnboardingQuestion } from '../../types/onboarding-survey';
+import { OnboardingQuestion } from '@/types/onboarding-survey';
 import { InterestedCertificationsPicker } from '../../certified-yatris/InterestedCertificationsPicker';
 import { Input } from '../../ui/input';
 

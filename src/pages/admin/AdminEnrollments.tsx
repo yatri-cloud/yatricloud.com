@@ -34,7 +34,7 @@ interface Enrollment {
 
 export default function AdminEnrollments() {
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [sort, setSort] = useState<"newest" | "oldest" | "name" | "course">("newest");
@@ -62,7 +62,7 @@ export default function AdminEnrollments() {
     };
 
     const handleDelete = async (rowIndex: string) => {
-        if (!confirm("Are you sure you want to delete this enrollment?")) return;
+        if (!await confirm("Are you sure you want to delete this enrollment?")) return;
 
         try {
             await deleteEnrollment(rowIndex);

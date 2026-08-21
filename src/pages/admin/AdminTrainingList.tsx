@@ -98,7 +98,7 @@ const TIME_SLOTS = Array.from({ length: 96 }).map((_, i) => {
 export default function AdminTrainingList() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"All" | "Published" | "Draft" | "Review">("All");
@@ -147,7 +147,7 @@ export default function AdminTrainingList() {
     };
 
     const handleDelete = async (courseId: string) => {
-        if (!confirm("Are you sure you want to delete this training? This cannot be undone.")) return;
+        if (!await confirm("Are you sure you want to delete this training? This cannot be undone.")) return;
 
         toast.loading("Deleting training...");
         try {

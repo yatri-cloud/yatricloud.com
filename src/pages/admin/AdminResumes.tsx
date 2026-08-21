@@ -42,7 +42,7 @@ const formatDate = (iso: string) => {
 };
 
 export default function AdminResumes() {
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<AdminResumeRequest[]>([]);
     const [search, setSearch] = useState("");

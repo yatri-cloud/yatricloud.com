@@ -48,7 +48,7 @@ function majorAmount(smallest: number, currency: string): number {
 }
 
 export default function AdminRazorpayInvoices() {
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [invoices, setInvoices] = useState<RazorpayInvoice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");

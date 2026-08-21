@@ -24,19 +24,7 @@ import { OnboardingQuestion } from "../onboarding-ui/OnboardingQuestion";
 import { OnboardingQuestionType } from "@/types/onboarding-survey";
 
 /** Google Identity Services script attaches itself to window.google at runtime. */
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: { client_id: string; callback: (response: { credential: string }) => void; auto_select?: boolean }) => void;
-          renderButton: (parent: HTMLElement | null, options: Record<string, unknown>) => void;
-          prompt: () => void;
-        };
-      };
-    };
-  }
-}
+// Window.google global type is declared in src/types/globals.d.ts
 
 interface LoginSignupProps {
   onSuccess: (user: any) => void;

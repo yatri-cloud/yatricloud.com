@@ -152,7 +152,7 @@ const deleteIconButtonClass =
 const AdminMentorshipServices = () => {
     const { toast } = useToast();
 
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
 
     const [loading, setLoading] = useState(true);
     const [mentors, setMentors] = useState<MentorOption[]>([]);

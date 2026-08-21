@@ -100,7 +100,7 @@ export const AdminTrainersNew = () => {
     // Application states
     const [applications, setApplications] = useState<TrainerApplication[]>([]);
     const [filteredApplications, setFilteredApplications] = useState<TrainerApplication[]>([]);
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [isLoadingApplications, setIsLoadingApplications] = useState(true);
     const [selectedApplication, setSelectedApplication] = useState<TrainerApplication | null>(null);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -376,7 +376,7 @@ export const AdminTrainersNew = () => {
     };
 
     const handleApproveTrainer = async (application: TrainerApplication) => {
-        if (!confirm(`Are you sure you want to approve ${application.fullName}? They will be able to log in with their Google account.`)) return;
+        if (!await confirm(`Are you sure you want to approve ${application.fullName}? They will be able to log in with their Google account.`)) return;
 
         try {
             setIsProcessing(true);
@@ -399,7 +399,7 @@ export const AdminTrainersNew = () => {
     };
 
     const handleRejectApplication = async (application: TrainerApplication) => {
-        if (!confirm(`Are you sure you want to REJECT ${application.fullName}? This will revoke their access if they are already approved.`)) return;
+        if (!await confirm(`Are you sure you want to REJECT ${application.fullName}? This will revoke their access if they are already approved.`)) return;
 
         try {
             setIsProcessing(true);
@@ -462,7 +462,7 @@ export const AdminTrainersNew = () => {
 
 
     const handleDeleteApplication = async (application: TrainerApplication) => {
-        if (!confirm("Are you sure you want to delete this application?")) return;
+        if (!await confirm("Are you sure you want to delete this application?")) return;
 
         try {
             setIsProcessing(true);
@@ -485,7 +485,7 @@ export const AdminTrainersNew = () => {
     };
 
     const handleDeleteTrainer = async (trainer: Trainer) => {
-        if (!confirm(`Are you sure you want to delete trainer ${trainer.fullName}? This action cannot be undone.`)) return;
+        if (!await confirm(`Are you sure you want to delete trainer ${trainer.fullName}? This action cannot be undone.`)) return;
 
         try {
             setIsProcessing(true);

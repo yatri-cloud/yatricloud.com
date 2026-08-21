@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 const AdminResources = () => {
   const navigate = useNavigate();
-  const { confirm } = useConfirm();
+  const { showConfirm: confirm } = useConfirm();
   const [resources, setResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

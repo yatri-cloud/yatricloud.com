@@ -37,7 +37,7 @@ const groupLabel = (g: string) => GROUPS.find((x) => x.value === g)?.label || g;
 const EMPTY: Omit<Community, "id"> = { name: "", url: "", tagline: "", logo_url: "", grp: "main", sort_order: 0, active: true };
 
 export default function AdminCommunity() {
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [rows, setRows] = useState<Community[]>([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);

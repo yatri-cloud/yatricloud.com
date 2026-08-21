@@ -43,7 +43,7 @@ const SCOPE_ITEMS: Record<string, { table: string; nameCol: string; entityType: 
 const EMPTY = { code: "", percent_off: "10", applies_to: "all", max_uses: "", expires_at: "", entity_id: "", entity_label: "" };
 
 export default function AdminCoupons() {
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [rows, setRows] = useState<Coupon[]>([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);

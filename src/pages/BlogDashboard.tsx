@@ -12,7 +12,7 @@ import { getUserId, listMyPosts, deletePost, unreadCount, type MyPost } from "@/
 const fmt = (d: string | null) => d ? new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
 
 const BlogDashboard = () => {
-  const { confirm } = useConfirm();
+  const { showConfirm: confirm } = useConfirm();
   const [ready, setReady] = useState(false);
   const [uid, setUid] = useState<string | null>(null);
   const [posts, setPosts] = useState<MyPost[]>([]);
@@ -29,7 +29,7 @@ const BlogDashboard = () => {
   }, []);
 
   const remove = async (id: string) => {
-    if (!confirm("Delete this story? This cannot be undone.")) return;
+    if (!await confirm("Delete this story? This cannot be undone.")) return;
     if (await deletePost(id)) { setPosts((p) => p.filter((x) => x.id !== id)); toast.success("Deleted"); }
   };
 

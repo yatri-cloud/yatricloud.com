@@ -325,7 +325,7 @@ export default function Resources() {
 
               {totalPages > 1 && (
                 <div className="mt-8">
-                  <ListPager page={page} totalPages={totalPages} onPageChange={setPage} />
+                  <ListPager page={page} pageCount={totalPages} onPageChange={setPage} />
                 </div>
               )}
             </>

@@ -38,7 +38,7 @@ const TIME_SLOTS = Array.from({ length: 96 }, (_, i) => {
 export default function SessionsManager({ courses, onTakeAttendance }: SessionsManagerProps) {
   const [courseId, setCourseId] = useState<string>(courses[0]?.id || "");
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
-  const { confirm } = useConfirm();
+  const { showConfirm: confirm } = useConfirm();
   const [isLoading, setIsLoading] = useState(false);
   const [upcomingOpen, setUpcomingOpen] = useState(true);
   const [pastOpen, setPastOpen] = useState(false);
@@ -122,7 +122,7 @@ export default function SessionsManager({ courses, onTakeAttendance }: SessionsM
   };
 
   const handleDelete = async (sessionId: string) => {
-    if (!confirm("Delete this session? All attendance records for it will also be removed.")) return;
+    if (!await confirm("Delete this session? All attendance records for it will also be removed.")) return;
     try {
       await deleteSession(sessionId);
       setSessions(prev => prev.filter(s => s.id !== sessionId));

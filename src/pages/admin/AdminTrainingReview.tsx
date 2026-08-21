@@ -114,7 +114,7 @@ const fmtDate = (iso?: string) => {
 };
 
 export default function AdminTrainingReview() {
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(true);
     const [rows,      setRows]      = useState<MergedRow[]>([]);
     const [groupBy,   setGroupBy]   = useState<GroupBy>("trainer");
@@ -285,7 +285,7 @@ export default function AdminTrainingReview() {
     };
 
     const handleDelete = async (r: MergedRow) => {
-        if (!confirm(`Delete "${r.courseName}"? This cannot be undone.`)) return;
+        if (!await confirm(`Delete "${r.courseName}"? This cannot be undone.`)) return;
         toast.loading("Deleting training...");
         try {
             await deleteTraining(r.id);

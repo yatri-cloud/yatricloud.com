@@ -11,15 +11,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-interface ConfirmOptions {
+export interface ConfirmOptions {
   title?: string;
   description?: string;
   confirmText?: string;
   cancelText?: string;
 }
 
+/** Accept either a plain string (used as the description) or a full options object. */
+export type ConfirmInput = string | ConfirmOptions;
+
 interface ConfirmContextType {
-  confirm: (options: ConfirmOptions) => Promise<boolean>;
+  showConfirm: (options: ConfirmInput) => Promise<boolean>;
 }
 
 const ConfirmContext = createContext<ConfirmContextType | undefined>(undefined);
@@ -37,8 +40,9 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [config, setConfig] = useState<ConfirmOptions>({});
   const [resolveFn, setResolveFn] = useState<(value: boolean) => void>(() => () => {});
 
-  const confirm = (options: ConfirmOptions): Promise<boolean> => {
-    setConfig(options);
+  const showConfirm = (options: ConfirmInput): Promise<boolean> => {
+    const opts: ConfirmOptions = typeof options === 'string' ? { description: options } : options;
+    setConfig(opts);
     setIsOpen(true);
     return new Promise((resolve) => {
       setResolveFn(() => resolve);
@@ -56,7 +60,7 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   return (
-    <ConfirmContext.Provider value={{ confirm }}>
+    <ConfirmContext.Provider value={{ showConfirm }}>
       {children}
       <AlertDialog open={isOpen} onOpenChange={(open) => {
           if (!open) {

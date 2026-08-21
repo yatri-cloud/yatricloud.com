@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 const AdminExamDumps = () => {
   const navigate = useNavigate();
-  const { confirm } = useConfirm();
+  const { showConfirm: confirm } = useConfirm();
   const [dumps, setDumps] = useState<ExamDump[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

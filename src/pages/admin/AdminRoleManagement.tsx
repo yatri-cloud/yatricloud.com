@@ -54,7 +54,7 @@ const PERM_GROUPS = ADMIN_NAV_GROUPS.map((g) => ({
 
 export default function AdminRoleManagement() {
     const [users, setUsers] = useState<AdminUserRow[]>([]);
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(true);
 
     // Add dialog
@@ -167,7 +167,7 @@ export default function AdminRoleManagement() {
     };
 
     const handleDelete = async (u: AdminUserRow) => {
-        if (!confirm(`Delete admin "${u.fullName || u.email}"? This permanently removes their login.`)) return;
+        if (!await confirm(`Delete admin "${u.fullName || u.email}"? This permanently removes their login.`)) return;
         try {
             await deleteAdminUser(u.id);
             toast.success("Admin deleted");

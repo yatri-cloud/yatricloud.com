@@ -32,7 +32,7 @@ const OPEN_PENDING_KEY = "yc:open-cart-pending";
 
 export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
-  const { confirm } = useConfirm();
+  const { showConfirm: confirm } = useConfirm();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 

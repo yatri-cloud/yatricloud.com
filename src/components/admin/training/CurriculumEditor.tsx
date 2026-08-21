@@ -14,7 +14,7 @@ import { LESSON_TYPES, type TrainingForm } from "./training-form";
  * and data-testids unchanged.
  */
 export function CurriculumEditor({ control, register }: { control: Control<TrainingForm>, register: any }) {
-  const { confirm } = useConfirm();
+  const { showConfirm: confirm } = useConfirm();
     const { fields: moduleFields, append: appendModule, remove: removeModule } = useFieldArray({
         control,
         name: "curriculum"
@@ -62,7 +62,7 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                         className="font-semibold text-lg border-none shadow-none focus-visible:ring-0 px-0 h-auto rounded-none border-b focus-visible:border-primary"
                     />
                 </div>
-                <Button type="button" data-testid={`module-${moduleIndex}-remove`} variant="ghost" size="icon" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removeModule(moduleIndex); } }} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
+                <Button type="button" data-testid={`module-${moduleIndex}-remove`} variant="ghost" size="icon" onClick={async () => { if (await confirm("Are you sure? This cannot be undone.")) { removeModule(moduleIndex); } }} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
                     <Trash className="h-4 w-4" />
                 </Button>
             </div>
@@ -85,7 +85,7 @@ function ModuleItem({ control, register, moduleIndex, removeModule }: { control:
                                 <Input {...register(`curriculum.${moduleIndex}.lessons.${lessonIndex}.duration`)} data-testid={`module-${moduleIndex}-lesson-${lessonIndex}-duration`} placeholder="Dur." className="h-8 text-sm" />
                             </div>
                             <div className="col-span-1 flex justify-end">
-                                <Button type="button" variant="ghost" size="icon" onClick={async () => { if (await confirm({ title: "Confirm", description: "Are you sure? This cannot be undone." })) { removeLesson(lessonIndex); } }} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
+                                <Button type="button" variant="ghost" size="icon" onClick={async () => { if (await confirm("Are you sure? This cannot be undone.")) { removeLesson(lessonIndex); } }} className="h-8 w-8 rounded-full p-0 bg-destructive text-white hover:bg-destructive/90 hover:text-white">
                                     <Trash className="h-4 w-4" />
                                 </Button>
                             </div>

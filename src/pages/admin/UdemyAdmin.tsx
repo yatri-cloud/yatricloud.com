@@ -71,6 +71,7 @@ const UdemyAdmin = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const { showConfirm: confirm } = useConfirm();
 
     // Existing courses (manage: edit, delete, publish/unpublish).
     const [courses, setCourses] = useState<UdemyCourse[]>([]);

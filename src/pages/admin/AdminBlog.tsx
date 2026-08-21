@@ -18,7 +18,7 @@ interface Row {
 const AdminBlog = () => {
   const { toast } = useToast();
   const [rows, setRows] = useState<Row[]>([]);
-  const { confirm } = useConfirm();
+  const { showConfirm: confirm } = useConfirm();
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "published" | "draft" | "featured">("all");
@@ -51,7 +51,7 @@ const AdminBlog = () => {
     setField(r.id, status === "published" ? { status, published_at: r.published_at || new Date().toISOString() } : { status });
 
   const remove = async (r: Row) => {
-    if (!confirm(`Delete "${r.title}"? This cannot be undone.`)) return;
+    if (!await confirm(`Delete "${r.title}"? This cannot be undone.`)) return;
     const { error } = await supabase.from("blog_posts").delete().eq("id", r.id);
     if (error) { toast({ title: "Delete failed", variant: "destructive" }); return; }
     setRows((rs) => rs.filter((x) => x.id !== r.id));

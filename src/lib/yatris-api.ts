@@ -37,6 +37,8 @@ interface User {
   city?: string;
   countryCode?: string;
   phoneNumber?: string;
+  interestedCertifications?: string[];
+  authProvider?: string;
 }
 
 interface LoginResponse {

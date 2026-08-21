@@ -30,7 +30,7 @@ interface Cert {
 const PROVIDERS = ["AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "HASHICORP", "KUBERNETES", "OTHER"];
 
 export default function AdminAchievements() {
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [rows, setRows] = useState<Cert[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");

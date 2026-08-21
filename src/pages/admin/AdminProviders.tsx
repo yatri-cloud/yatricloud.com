@@ -46,7 +46,7 @@ function resolveProviderLogo(p: ProviderData): string | undefined {
 
 export default function AdminProviders() {
     const [providers, setProviders] = useState<ProviderData[]>([]);
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingRow, setEditingRow] = useState<number | null>(null);
@@ -84,7 +84,7 @@ export default function AdminProviders() {
     };
 
     const handleDelete = async (p: ProviderData) => {
-        if (!confirm(`Are you sure you want to delete ${p.name}?`)) return;
+        if (!await confirm(`Are you sure you want to delete ${p.name}?`)) return;
 
         setIsLoading(true);
         try {

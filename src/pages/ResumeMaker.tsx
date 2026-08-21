@@ -78,7 +78,7 @@ export default function ResumeMaker() {
     const [activeTab, setActiveTab] = useState<"ats-scanner" | "builder">("ats-scanner");
 
     // ATS Scanner State
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [atsResumeText, setAtsResumeText] = useState("");
     const [atsJdText, setAtsJdText] = useState("");
     const [isScanning, setIsScanning] = useState(false);

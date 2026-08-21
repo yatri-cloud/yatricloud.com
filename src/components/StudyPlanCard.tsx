@@ -38,7 +38,7 @@ const milestoneCopy = (days: number) => {
 export function StudyPlanCard() {
     const [plans, setPlans] = useState<StudyPlan[]>([]);
     const [options, setOptions] = useState<CertificationOption[]>([]);
-    const { confirm } = useConfirm();
+    const { showConfirm: confirm } = useConfirm();
     const [loading, setLoading] = useState(true);
     const [adding, setAdding] = useState(false);
     const [certId, setCertId] = useState("");

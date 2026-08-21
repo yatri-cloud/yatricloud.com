@@ -444,7 +444,7 @@ export async function listStudentScores(trainingId: string): Promise<{
         score: r.score === null ? null : Number(r.score),
         bucket: (r.bucket as string) || undefined,
       };
-      if (!studentMap.has(email)) studentMap.set(email, { email, fullName: r.full_name as string || email });
+      if (!studentMap.has(email)) studentMap.set(email, { email, fullName: r.full_name as string || email, bucket: undefined });
       if ((r.bucket as string) && studentMap.has(email)) {
         studentMap.get(email)!.bucket = r.bucket as string;
       }
