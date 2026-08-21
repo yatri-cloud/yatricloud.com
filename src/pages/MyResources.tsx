@@ -104,12 +104,12 @@ export default function MyResources() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button asChild variant="outline" size="sm" className="rounded-xl font-medium text-xs">
+              <Button asChild variant="outline" size="sm" className="rounded-xl font-semibold text-xs border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition">
                 <Link to="/examdumps">
                   Browse Dumps
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="sm" className="rounded-xl font-medium text-xs">
+              <Button asChild variant="outline" size="sm" className="rounded-xl font-semibold text-xs border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition">
                 <Link to="/resources">
                   Browse Resources
                 </Link>
@@ -229,7 +229,7 @@ export default function MyResources() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="rounded-xl min-h-[38px] text-xs font-medium border-border hover:bg-muted"
+                                  className="rounded-xl min-h-[38px] text-xs font-semibold border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition"
                                 >
                                   Cloud Link
                                 </Button>
@@ -241,7 +241,7 @@ export default function MyResources() {
                                 asChild
                                 variant="outline"
                                 size="sm"
-                                className="rounded-xl min-h-[38px] text-xs font-medium border-border hover:bg-muted"
+                                className="rounded-xl min-h-[38px] text-xs font-semibold border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition"
                               >
                                 <Link to={r.accessUrl}>
                                   Open
