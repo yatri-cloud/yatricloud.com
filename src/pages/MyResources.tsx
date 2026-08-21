@@ -1,12 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Loader2, BookMarked } from "lucide-react";
+import { Loader2, BookMarked, MoreVertical } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { listMyResources, type MyResource } from "@/lib/resources-api";
 import { getStoredUser } from "@/lib/yatris-api";
 import { getProviderMeta } from "@/lib/exam-dumps";
@@ -68,6 +75,23 @@ export default function MyResources() {
     }
     if (r.name.toLowerCase().includes("redis")) return "/logos/redis.svg";
     return null;
+  };
+
+  const handleShare = (r: MyResource) => {
+    const shareUrl = r.accessUrl.startsWith("http")
+      ? r.accessUrl
+      : `${window.location.origin}${r.accessUrl}`;
+    if (navigator.share) {
+      navigator.share({ title: r.name, url: shareUrl }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
+  const handleRemove = (id: string) => {
+    setResources((prev) => prev.filter((item) => item.id !== id));
+    toast.success("Resource removed from your library");
   };
 
   if (!user) {
@@ -206,9 +230,8 @@ export default function MyResources() {
                             </div>
                           </div>
 
-                          {/* Minimal Action Buttons */}
-                          {/* Single Access Button */}
-                          <div className="shrink-0">
+                          {/* Action Button & Three-dot menu */}
+                          <div className="flex items-center gap-2 shrink-0">
                             {isDump(r) ? (
                               <Button
                                 asChild
@@ -243,6 +266,34 @@ export default function MyResources() {
                                 </Link>
                               </Button>
                             )}
+
+                            {/* Three-dot menu for Share & Remove */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted"
+                                  aria-label="More options"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-36 rounded-xl shadow-lg">
+                                <DropdownMenuItem
+                                  onClick={() => handleShare(r)}
+                                  className="cursor-pointer text-xs font-medium"
+                                >
+                                  Share
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleRemove(r.id)}
+                                  className="cursor-pointer text-xs font-medium text-destructive focus:text-destructive focus:bg-destructive/10"
+                                >
+                                  Remove
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
                       </CardContent>
