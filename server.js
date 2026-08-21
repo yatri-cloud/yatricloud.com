@@ -206,47 +206,68 @@ const FALLBACK_USD = {
   UAH: 41, UGX: 3700, USD: 1, UYU: 42, UZS: 12800, VND: 25400, VUV: 120,
   XAF: 605, XCD: 2.7, XOF: 605, XPF: 110, YER: 250, ZAR: 18, ZMW: 27,
 };
-const SUPPORTED_CURRENCIES = Object.keys(FALLBACK_USD);
 
-function fallbackCurrencyRates() {
+const COUNTRY_CURRENCY = {
+  IN: 'INR', US: 'USD', UM: 'USD', PA: 'USD', SV: 'SVC', GB: 'GBP', GI: 'GIP',
+  AT: 'EUR', BE: 'EUR', CY: 'EUR', EE: 'EUR', FI: 'EUR', FR: 'EUR', DE: 'EUR',
+  GR: 'EUR', IE: 'EUR', IT: 'EUR', LV: 'EUR', LT: 'EUR', LU: 'EUR', MT: 'EUR',
+  NL: 'EUR', PT: 'EUR', SK: 'EUR', SI: 'EUR', ES: 'EUR', HR: 'EUR', AD: 'EUR',
+  MC: 'EUR', SM: 'EUR', VA: 'EUR', ME: 'EUR', XK: 'EUR',
+  AE: 'AED', AL: 'ALL', AM: 'AMD', AR: 'ARS', AU: 'AUD', AW: 'AWG', AZ: 'AZN',
+  BA: 'BAM', BB: 'BBD', BD: 'BDT', BG: 'BGN', BH: 'BHD', BI: 'BIF', BM: 'BMD',
+  BN: 'BND', BO: 'BOB', BR: 'BRL', BS: 'BSD', BT: 'BTN', BW: 'BWP', BZ: 'BZD',
+  CA: 'CAD', CH: 'CHF', LI: 'CHF', CL: 'CLP', CN: 'CNY', CO: 'COP', CR: 'CRC',
+  CU: 'CUP', CV: 'CVE', CZ: 'CZK', DJ: 'DJF', DK: 'DKK', FO: 'DKK', GL: 'DKK',
+  DO: 'DOP', DZ: 'DZD', EG: 'EGP', ET: 'ETB', FJ: 'FJD', GH: 'GHS', GM: 'GMD',
+  GN: 'GNF', GT: 'GTQ', GY: 'GYD', HK: 'HKD', HN: 'HNL', HT: 'HTG', HU: 'HUF',
+  ID: 'IDR', IL: 'ILS', PS: 'ILS', IQ: 'IQD', IS: 'ISK', JM: 'JMD', JO: 'JOD',
+  JP: 'JPY', KE: 'KES', KG: 'KGS', KH: 'KHR', KM: 'KMF', KR: 'KRW', KW: 'KWD',
+  KY: 'KYD', KZ: 'KZT', LA: 'LAK', LK: 'LKR', LR: 'LRD', LS: 'LSL', MA: 'MAD',
+  EH: 'MAD', MD: 'MDL', MG: 'MGA', MK: 'MKD', MM: 'MMK', MN: 'MNT', MO: 'MOP',
+  MU: 'MUR', MV: 'MVR', MW: 'MWK', MX: 'MXN', MY: 'MYR', MZ: 'MZN', NA: 'NAD',
+  NG: 'NGN', NI: 'NIO', NO: 'NOK', NP: 'NPR', NZ: 'NZD', CK: 'NZD', NU: 'NZD',
+  OM: 'OMR', PE: 'PEN', PG: 'PGK', PH: 'PHP', PK: 'PKR', PL: 'PLN', PY: 'PYG',
+  QA: 'QAR', RO: 'RON', RS: 'RSD', RU: 'RUB', RW: 'RWF', SA: 'SAR', SC: 'SCR',
+  SE: 'SEK', SGD: 'SGD', SO: 'SOS', SS: 'SSP', SZ: 'SZL', TH: 'THB', TN: 'TND',
+  TR: 'TRY', TT: 'TTD', TW: 'TWD', TZ: 'TZS', UA: 'UAH', UG: 'UGX', UY: 'UYU',
+  UZ: 'UZS', VN: 'VND', VU: 'VUV', YE: 'YER', ZA: 'ZAR', ZM: 'ZMW',
+  CM: 'XAF', CF: 'XAF', CG: 'XAF', TD: 'XAF', GQ: 'XAF', GA: 'XAF',
+  BJ: 'XOF', BF: 'XOF', CI: 'XOF', GW: 'XOF', ML: 'XOF', NE: 'XOF', SN: 'XOF', TG: 'XOF',
+  PF: 'XPF', NC: 'XPF', WF: 'XPF',
+  AG: 'XCD', DM: 'XCD', GD: 'XCD', KN: 'XCD', LC: 'XCD', VC: 'XCD', AI: 'XCD', MS: 'XCD',
+};
+
+function getFallbackRates() {
   const inrPerUsd = FALLBACK_USD.INR;
   const out = {};
   for (const [code, usd] of Object.entries(FALLBACK_USD)) out[code] = usd / inrPerUsd;
   return out;
 }
 
-let currencyRatesCache = null;
-const RATES_TTL_MS = 6 * 60 * 60 * 1000;
-
 app.get('/api/currency', async (req, res) => {
   try {
     const mode = String(req.query.mode || 'rates').toLowerCase();
 
     if (mode === 'detect') {
-      const raw = req.headers['x-vercel-ip-country'] || '';
-      const country = typeof raw === 'string' ? raw.toUpperCase() : '';
-      const currency = country === 'IN' ? 'INR' : country ? 'USD' : 'INR';
-      return res.status(200).json({ country: country || null, currency });
+      const raw = req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'] || '';
+      const country = String(raw).toUpperCase();
+      const currency = country ? COUNTRY_CURRENCY[country] || 'USD' : 'INR';
+      return res.json({ country: country || 'IN', currency });
     }
 
-    if (currencyRatesCache && Date.now() - currencyRatesCache.at < RATES_TTL_MS) {
-      return res.status(200).json({ base: 'INR', rates: currencyRatesCache.rates, source: currencyRatesCache.source, updatedAt: currencyRatesCache.updatedAt });
-    }
-
-    let rates = fallbackCurrencyRates();
+    let rates = getFallbackRates();
     let source = 'fallback';
     let updatedAt = new Date().toISOString();
-
     try {
       const r = await fetch('https://open.er-api.com/v6/latest/INR', {
         headers: { accept: 'application/json' },
-        signal: AbortSignal.timeout(4000),
+        signal: AbortSignal.timeout(3000),
       });
       if (r.ok) {
         const data = await r.json();
         if (data.result === 'success' && data.rates && typeof data.rates.INR === 'number') {
           const live = { INR: 1 };
-          for (const code of SUPPORTED_CURRENCIES) {
+          for (const code of Object.keys(FALLBACK_USD)) {
             const v = data.rates[code];
             if (typeof v === 'number' && v > 0) live[code] = v;
             else if (code !== 'INR') live[code] = rates[code];
@@ -257,14 +278,13 @@ app.get('/api/currency', async (req, res) => {
         }
       }
     } catch {
-      /* ignore, use fallback */
+      // keep fallback
     }
 
-    currencyRatesCache = { rates, source, updatedAt, at: Date.now() };
-    return res.status(200).json({ base: 'INR', rates, source, updatedAt });
+    return res.json({ base: 'INR', rates, source, updatedAt });
   } catch (error) {
-    console.error('❌ /api/currency:', error);
-    return res.status(200).json({ base: 'INR', rates: fallbackCurrencyRates(), source: 'fallback', updatedAt: new Date().toISOString() });
+    console.error('❌ currency endpoint error:', error);
+    return res.json({ base: 'INR', rates: getFallbackRates(), source: 'fallback', updatedAt: new Date().toISOString() });
   }
 });
 
@@ -274,5 +294,5 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOS
 app.listen(PORT, () => {
   console.log(`🚀 Yatri Cloud dev server on http://localhost:${PORT}`);
   console.log(`   💳 /api/razorpay/create-order · /api/razorpay/verify`);
-  console.log(`   📧 /api/send-email   💚 /health   👑 /api/razorpay/admin   💱 /api/currency`);
+  console.log(`   📧 /api/send-email   💚 /health   👑 /api/razorpay/admin`);
 });

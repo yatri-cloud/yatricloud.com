@@ -5,7 +5,7 @@ import { ShieldX, Loader2 } from "lucide-react";
 import AdminLogin from "./AdminLogin";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useTheme } from "@/components/ThemeProvider";
-import { fetchMyProfile, getCachedUser, signOut } from "@/lib/auth";
+import { fetchMyProfile, signOut } from "@/lib/auth";
 import { PermissionsProvider, usePermissions } from "@/lib/permissions-context";
 
 /** Blocks a permitted route from rendering when the user lacks access to it. */
@@ -57,38 +57,30 @@ const AdminDashboard = () => {
     useEffect(() => {
         let cancelled = false;
         if (!token) { setSessionChecked(false); return; }
-
-        const timer = setTimeout(() => {
-            if (!cancelled) setSessionChecked(true);
-        }, 2500); // 2.5s maximum fallback so it never hangs
-
         (async () => {
             try {
-                const profile = await fetchMyProfile();
+                const profile = await Promise.race([
+                    fetchMyProfile(),
+                    new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000))
+                ]);
                 if (cancelled) return;
                 if (!profile || profile.role !== "admin") {
-                    // Check if cached user has admin role before logging out
-                    const cached = getCachedUser();
-                    if (!cached || cached.role !== "admin") {
-                        await signOut().catch(() => {});
-                        localStorage.removeItem('admin_token');
-                        setToken(null);
-                    }
+                    // A non-admin session or expired session. Force a fresh admin login.
+                    try { await signOut(); } catch {}
+                    localStorage.removeItem('admin_token');
+                    setToken(null);
                 }
             } catch (err) {
-                console.warn("⚠️ Admin session check error:", err);
+                console.error("Admin session check error:", err);
+                localStorage.removeItem('admin_token');
+                setToken(null);
             } finally {
                 if (!cancelled) {
-                    clearTimeout(timer);
                     setSessionChecked(true);
                 }
             }
         })();
-
-        return () => {
-            cancelled = true;
-            clearTimeout(timer);
-        };
+        return () => { cancelled = true; };
     }, [token]);
 
     const handleLogin = (newToken: string) => {
