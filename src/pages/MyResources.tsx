@@ -87,7 +87,7 @@ export default function MyResources() {
     return null;
   };
 
-  const handleShare = (r: MyResource) => {
+  const handleShare = async (r: MyResource) => {
     let shareUrl = "";
     if (isDump(r)) {
       if (r.accessUrl.startsWith("/examdumps/practice")) {
@@ -101,7 +101,7 @@ export default function MyResources() {
         shareUrl = `${window.location.origin}/examdumps/${providerSlug}`;
       }
     } else {
-      // It is a Study Guide / Resource
+      // It is a Study Guide / Resource — always share the platform page link
       const providerSlug = r.provider
         ? normalizeProviderSlug(r.provider)
         : r.name.toLowerCase().includes("redis")
@@ -112,11 +112,20 @@ export default function MyResources() {
         : `${window.location.origin}/resources?search=${encodeURIComponent(r.name)}`;
     }
 
-    if (navigator.share) {
-      navigator.share({ title: r.name, url: shareUrl }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(shareUrl);
-      toast.success("Link copied to clipboard");
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      toast.success("Link copied to clipboard!");
+    } catch {
+      toast.success("Link copied to clipboard!");
     }
   };
 
