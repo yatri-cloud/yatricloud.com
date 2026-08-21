@@ -24,7 +24,7 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   salesforce: { logo: `${LOGO_BASE_URL}/Salesforce.com_logo.svg` },
   servicenow: { logo: `${LOGO_BASE_URL}/ServiceNow_logo.svg` },
   openai: { logo: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318` },
-  anthropic: { logo: `/logos/anthropic.svg`, logoLight: `/logos/anthropic.svg` },
+  anthropic: { logo: `/logos/anthropic-white.svg`, logoLight: `/logos/anthropic.svg` },
   hashicorp: { logo: `${LOGO_BASE_URL}/HashiCorp_logo.svg` },
   kubernetes: { logo: `${LOGO_BASE_URL}/Kubernetes_logo.svg` },
 };

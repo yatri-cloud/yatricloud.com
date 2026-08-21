@@ -159,8 +159,8 @@ export const KNOWN_EXAM_PROVIDERS: Record<string, ExamDumpProviderMeta> = {
     shortName: "Anthropic",
     description: "Verified practice exams, prompt engineering certifications, and Claude AI model implementation dumps.",
     logoUrl: "/logos/anthropic.svg",
-    brandColor: "#D97757",
-    glowColor: "rgba(217, 119, 87, 0.35)",
+    brandColor: "#181818",
+    glowColor: "rgba(24, 24, 24, 0.35)",
     badge: "Artificial Intelligence",
   },
   docker: {
