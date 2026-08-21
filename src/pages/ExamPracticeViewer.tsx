@@ -268,18 +268,18 @@ export default function ExamPracticeViewer() {
               </Link>
             </Button>
             <div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs font-bold uppercase tracking-wider text-primary border-primary/30">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="inline-flex items-center text-[11px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-2.5 py-1 rounded-md shadow-2xs">
                   {examData.provider}
-                </Badge>
-                <span className="text-xs text-muted-foreground font-mono">
+                </span>
+                <span className="text-xs font-semibold text-muted-foreground font-mono">
                   {examData.examCode}
                 </span>
-                <span className="text-[11px] text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   Verified Questions
                 </span>
               </div>
-              <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight mt-1">
+              <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight mt-1.5">
                 {examData.title}
               </h1>
             </div>
@@ -330,7 +330,7 @@ export default function ExamPracticeViewer() {
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all border ${
                   selectedDomain === "All"
                     ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                    : "bg-card text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground"
+                    : "bg-card text-foreground/80 border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
                 }`}
               >
                 All Domains ({examData.totalQuestions})
@@ -343,7 +343,7 @@ export default function ExamPracticeViewer() {
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all border ${
                     selectedDomain === d
                       ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                      : "bg-card text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground"
+                      : "bg-card text-foreground/80 border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
                   }`}
                 >
                   {d}
@@ -351,7 +351,7 @@ export default function ExamPracticeViewer() {
               ))}
             </div>
 
-            <div className="relative w-full md:w-64">
+            <div className="relative w-full md:w-64 shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 value={searchQuery}
@@ -392,15 +392,15 @@ export default function ExamPracticeViewer() {
                 {/* Question Header */}
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-primary px-2.5 py-1 rounded-md bg-primary/10">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-xs font-bold text-primary-foreground bg-primary px-3 py-1 rounded-lg shadow-2xs">
                         Q{currentQuestion.questionNumber} of {examData.totalQuestions}
                       </span>
-                      <Badge variant="outline" className="text-xs font-normal">
+                      <span className="text-xs font-semibold text-muted-foreground">
                         {currentQuestion.domain}
-                      </Badge>
+                      </span>
                       {currentQuestion.chooseCount > 1 && (
-                        <span className="text-xs font-bold text-amber-700 bg-amber-50 dark:bg-amber-950/30 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                        <span className="text-xs font-bold text-foreground bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-lg">
                           Choose {currentQuestion.chooseCount} answers
                         </span>
                       )}
@@ -493,14 +493,17 @@ export default function ExamPracticeViewer() {
                 {mode === "study" && (
                   <div className="mt-6 pt-5 border-t border-border/80 flex flex-col gap-3">
                     <Button
-                      variant={revealedAnswers[currentQuestion.id] ? "outline" : "default"}
                       onClick={() => {
                         setRevealedAnswers((prev) => ({
                           ...prev,
                           [currentQuestion.id]: !prev[currentQuestion.id],
                         }));
                       }}
-                      className="w-full sm:w-auto font-semibold rounded-xl"
+                      className={`w-full sm:w-auto font-semibold rounded-xl min-h-[42px] transition ${
+                        revealedAnswers[currentQuestion.id]
+                          ? "bg-card text-foreground border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                          : "bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
+                      }`}
                     >
                       {revealedAnswers[currentQuestion.id]
                         ? "Hide Answer & Explanation"
@@ -513,12 +516,12 @@ export default function ExamPracticeViewer() {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-4 text-xs space-y-2 mt-2"
+                          className="rounded-xl bg-card border border-border p-4 text-xs space-y-2 mt-2 shadow-xs"
                         >
-                          <div className="font-bold text-emerald-800 dark:text-emerald-300">
+                          <div className="font-bold text-emerald-600 dark:text-emerald-400">
                             Correct Answer: {currentQuestion.correctAnswers.join(", ")}
                           </div>
-                          <p className="text-muted-foreground leading-relaxed">
+                          <p className="text-foreground/90 leading-relaxed">
                             {currentQuestion.explanation}
                           </p>
                         </motion.div>
@@ -530,7 +533,7 @@ export default function ExamPracticeViewer() {
                 {/* Exam Mode Feedback after Submission */}
                 {mode === "exam" && isExamSubmitted && (
                   <div className="mt-6 pt-5 border-t border-border/80">
-                    <div className="rounded-xl bg-muted/60 border border-border p-4 text-xs space-y-2">
+                    <div className="rounded-xl bg-card border border-border p-4 text-xs space-y-2">
                       <div className="font-bold text-foreground">
                         Correct Answer:{" "}
                         <span className="text-emerald-600 font-extrabold">
@@ -552,7 +555,7 @@ export default function ExamPracticeViewer() {
                 variant="outline"
                 disabled={currentIndex === 0}
                 onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-                className="rounded-xl font-semibold min-h-[44px]"
+                className="rounded-xl font-semibold min-h-[44px] border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition"
               >
                 <ChevronLeft className="h-4 w-4 mr-1.5" /> Previous
               </Button>
@@ -561,9 +564,9 @@ export default function ExamPracticeViewer() {
                 <Button
                   variant="outline"
                   onClick={() => toggleFlagForReview(currentQuestion.id)}
-                  className={`rounded-xl text-xs font-semibold ${
+                  className={`rounded-xl text-xs font-semibold border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition ${
                     flaggedForReview.has(currentQuestion.id)
-                      ? "border-amber-500 text-amber-700 bg-amber-50 dark:bg-amber-950/30"
+                      ? "border-amber-500 text-amber-700 bg-amber-500/10"
                       : ""
                   }`}
                 >
