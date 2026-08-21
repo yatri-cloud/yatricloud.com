@@ -31,6 +31,7 @@ const WHITELIST = new Set([
   "HTMLParagraphElement", "HTMLTableElement", "HTMLTableSectionElement",
   "HTMLTableRowElement", "HTMLTableCellElement", "HTMLTableCaptionElement",
   "HTMLUListElement", "HTMLLIElement", "HTMLLabelElement", "SVGSVGElement",
+  "HTMLIFrameElement", // used as useRef<HTMLIFrameElement> generic type, not JSX
   "KeyboardEvent", "MouseEvent", "React", "Element", "Node", "T", "K", "V",
   // Generic type parameters used in shadcn form wrappers.
   "TFieldValues", "TName",
