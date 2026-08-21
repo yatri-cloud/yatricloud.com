@@ -172,7 +172,8 @@ const FloatingCartGate = () => {
   if (
     totalItems === 0 ||
     pathname === "/yatristore" ||
-    pathname === "/examdumps" ||
+    pathname.startsWith("/examdumps") ||
+    pathname.startsWith("/exam-dumps") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/trainer/")
   ) {
@@ -250,6 +251,9 @@ const App = () => (
               <Route path="/udemy" element={<Udemy />} />
               <Route path="/yatristore" element={<YatriStore />} />
               <Route path="/examdumps" element={<ExamDumps />} />
+              <Route path="/examdumps/:provider" element={<ExamDumps />} />
+              <Route path="/exam-dumps" element={<Navigate to="/examdumps" replace />} />
+              <Route path="/exam-dumps/:provider" element={<ExamDumps />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/training" element={FEATURE_FLAGS.trainings ? <Training /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />
               <Route path="/training/:slug/dashboard" element={FEATURE_FLAGS.trainings ? <StudentTrainingDashboard /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />

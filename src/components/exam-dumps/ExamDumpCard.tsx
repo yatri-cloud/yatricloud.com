@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { ShoppingCart, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import { EntityReviews } from "@/components/reviews/EntityReviews";
-import { ExamDump, getProviderGlowColor } from "@/lib/exam-dumps";
+import { ExamDump, getProviderGlowColor, normalizeProviderSlug } from "@/lib/exam-dumps";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,9 +88,12 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
         <CardHeader className="flex-1 px-5 pt-4 pb-2">
           {dump.provider && dump.provider.toUpperCase() !== "OTHER" && (
             <div className="mb-2">
-              <span className="inline-flex items-center rounded-full border border-slate-200/90 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+              <Link
+                to={`/examdumps/${normalizeProviderSlug(dump.provider)}`}
+                className="inline-flex items-center rounded-full border border-border bg-muted/80 px-2.5 py-0.5 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+              >
                 {dump.provider}
-              </span>
+              </Link>
             </div>
           )}
 
