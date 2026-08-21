@@ -47,11 +47,21 @@ export default function MyResources() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isDump = (r: MyResource) =>
-    r.accessUrl.startsWith("/examdumps/practice") ||
-    r.category?.toLowerCase().includes("dump") ||
-    r.name.toLowerCase().includes("redis") ||
-    r.name.toLowerCase().includes("exam");
+  const isDump = (r: MyResource) => {
+    // If it is explicitly a guide or study material, it belongs to resources
+    if (r.name.toLowerCase().includes("guide") || r.category?.toLowerCase().includes("guide")) {
+      return false;
+    }
+    return (
+      r.accessUrl.startsWith("/examdumps/practice") ||
+      r.category?.toLowerCase() === "dump" ||
+      r.category?.toLowerCase() === "exam-dump" ||
+      r.name.toLowerCase().includes("practice question") ||
+      r.name.toLowerCase().includes("practice exam") ||
+      r.name.toLowerCase().includes("exam dump") ||
+      r.name.toLowerCase().includes("question bank")
+    );
+  };
 
   const dumpCount = useMemo(() => resources.filter(isDump).length, [resources]);
   const resourceCount = useMemo(() => resources.filter((r) => !isDump(r)).length, [resources]);
@@ -83,11 +93,20 @@ export default function MyResources() {
       if (r.accessUrl.startsWith("/examdumps/practice")) {
         shareUrl = `${window.location.origin}${r.accessUrl}`;
       } else {
-        const providerSlug = r.provider ? normalizeProviderSlug(r.provider) : "redis";
+        const providerSlug = r.provider
+          ? normalizeProviderSlug(r.provider)
+          : r.name.toLowerCase().includes("redis")
+          ? "redis"
+          : "all";
         shareUrl = `${window.location.origin}/examdumps/${providerSlug}`;
       }
     } else {
-      const providerSlug = r.provider ? normalizeProviderSlug(r.provider) : "";
+      // It is a Study Guide / Resource
+      const providerSlug = r.provider
+        ? normalizeProviderSlug(r.provider)
+        : r.name.toLowerCase().includes("redis")
+        ? "redis"
+        : "";
       shareUrl = providerSlug
         ? `${window.location.origin}/resources/${providerSlug}`
         : `${window.location.origin}/resources?search=${encodeURIComponent(r.name)}`;
