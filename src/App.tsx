@@ -209,7 +209,7 @@ const App = () => (
             <ConfirmProvider>
             <Toaster />
             <Sonner />
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <BrowserRouter>
             <PageTracker />
             <Suspense fallback={<PageLoader />}>
             <Routes>

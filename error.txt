@@ -1,0 +1,138 @@
+Skip to content
+yatri-cloud
+yatricloud.com
+Repository navigation
+Code
+Issues
+Pull requests
+Agents
+Actions
+Projects
+Wiki
+Security and quality
+1
+ (1)
+Insights
+Settings
+CI
+fix: showHelpNeeded=false for published (upcoming) events #265
+All jobs
+Run details
+Annotations
+10 errors, 2 warnings, and 1 notice
+e2e
+failed 2 minutes ago in 10m 30s
+Search logs
+1s
+1s
+2s
+13s
+21s
+0s
+0s
+7s
+9m 38s
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: /Course Not Found/i })
+
+
+      15 |   test("an unknown course shows the not-found state", async ({ page }) => {
+      16 |     await page.goto("/training/no-such-course-xyz");
+    > 17 |     await expect(page.getByRole("heading", { name: /Course Not Found/i })).toBeVisible();
+         |                                                                            ^
+      18 |     await expect(page.getByRole("button", { name: /Back to Catalog/i })).toBeVisible();
+      19 |   });
+      20 |
+        at /home/runner/work/yatricloud.com/yatricloud.com/e2e/training.spec.ts:17:76
+
+  ✘   67 [public] › e2e/training.spec.ts:21:3 › Training — public › my-trainings shows the empty state when signed out (retry #1) (7.7s)::error file=e2e/training.spec.ts,title=[public] › e2e/training.spec.ts:21:3 › Training — public › my-trainings shows the empty state when signed out,line=23,col=79::  22) [public] › e2e/training.spec.ts:21:3 › Training — public › my-trainings shows the empty state when signed out %0A    Error: expect(locator).toBeVisible() failed%0A%0A    Locator: getByRole('heading', { name: /My Learning Journey/i })%0A    Expected: visible%0A    Timeout: 5000ms%0A    Error: element(s) not found%0A%0A    Call log:%0A      - Expect "toBeVisible" with timeout 5000ms%0A      - waiting for getByRole('heading', { name: /My Learning Journey/i })%0A%0A%0A      21 |   test("my-trainings shows the empty state when signed out", async ({ page }) => {%0A      22 |     await page.goto("/my-trainings");%0A    > 23 |     await expect(page.getByRole("heading", { name: /My Learning Journey/i })).toBeVisible();%0A         |                                                                               ^%0A      24 |     await expect(page.getByText(/No Enrollments Yet/i)).toBeVisible();%0A      25 |     await expect(page.getByRole("button", { name: /Explore Training/i })).toBeVisible();%0A      26 |   });%0A        at /home/runner/work/yatricloud.com/yatricloud.com/e2e/training.spec.ts:23:79
+Error:   22) [public] › e2e/training.spec.ts:21:3 › Training — public › my-trainings shows the empty state when signed out 
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: /My Learning Journey/i })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: /My Learning Journey/i })
+
+
+      21 |   test("my-trainings shows the empty state when signed out", async ({ page }) => {
+      22 |     await page.goto("/my-trainings");
+    > 23 |     await expect(page.getByRole("heading", { name: /My Learning Journey/i })).toBeVisible();
+         |                                                                               ^
+      24 |     await expect(page.getByText(/No Enrollments Yet/i)).toBeVisible();
+      25 |     await expect(page.getByRole("button", { name: /Explore Training/i })).toBeVisible();
+      26 |   });
+        at /home/runner/work/yatricloud.com/yatricloud.com/e2e/training.spec.ts:23:79
+
+  ✓   68 [admin] › e2e/events-admin.spec.ts:14:1 › events admin: list surface renders with search, tabs, and create (3.8s)
+  ✓   69 [admin] › e2e/events-admin.spec.ts:27:1 › events admin: search box accepts input (3.9s)
+  ✓   70 [admin] › e2e/events-admin.spec.ts:34:1 › events admin: Create Event opens the event builder (3.5s)
+  ✓   71 [admin] › e2e/events-flow-admin.spec.ts:60:1 › an event publishes end to end through the builder UI (4.3s)
+  ✓   72 [admin] › e2e/inquiries-coupons-admin.spec.ts:50:1 › admin replies to a contact message by email (3.6s)
+  ✘   73 [admin] › e2e/events-flow-admin.spec.ts:87:1 › a signed-in Yatri registers and the confirmation email is composed (5.9s)
+  -   75 [admin] › e2e/events-flow-admin.spec.ts:125:1 › the registration appears in My Events
+  -   76 [admin] › e2e/events-flow-admin.spec.ts:133:1 › a sold-out event offers the waitlist and lets a Yatri join
+  -   77 [admin] › e2e/events-flow-admin.spec.ts:152:1 › admin console lists the fixture with its row actions
+  -   78 [admin] › e2e/events-flow-admin.spec.ts:164:1 › registrations console shows the new attendee
+  -   79 [admin] › e2e/events-flow-admin.spec.ts:171:1 › admin gallery console opens for a past event
+  -   80 [admin] › e2e/events-flow-admin.spec.ts:187:1 › a past event's gallery unlocks for admins
+  -   81 [admin] › e2e/events-flow-admin.spec.ts:197:1 › attendee check-in verifies the code and confirms attendance
+  -   82 [admin] › e2e/events-flow-admin.spec.ts:222:1 › a venue proposal flows from the public form to admin approval
+  -   83 [admin] › e2e/events-flow-admin.spec.ts:246:1 › admin deletes the event from the console
+  ✓   74 [admin] › e2e/inquiries-coupons-admin.spec.ts:75:1 › a coupon pinned to one product is created in the admin console (4.6s)
+[WebServer] 5:18:53 AM [vite] http proxy error: /api/currency?mode=rates
+[WebServer] Error: connect ECONNREFUSED 127.0.0.1:3001
+[WebServer]     at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1638:16)
+[WebServer] 5:18:53 AM [vite] http proxy error: /api/currency?mode=detect
+[WebServer] Error: connect ECONNREFUSED 127.0.0.1:3001
+[WebServer]     at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1638:16)
+  ✓   85 [admin] › e2e/inquiries-coupons-admin.spec.ts:94:1 › the pinned coupon discounts only its product line in the cart (3.5s)
+  ✓   84 [admin] › e2e/events-flow-admin.spec.ts:60:1 › an event publishes end to end through the builder UI (retry #1) (6.3s)
+  ✓   86 [admin] › e2e/mentorship-admin.spec.ts:13:1 › mentorship admin: services page renders + add-service dialog opens (4.5s)
+  ✓   88 [admin] › e2e/mentorship-admin.spec.ts:26:1 › mentorship admin: mentors page renders with search + add (4.1s)
+  ✘   87 [admin] › e2e/events-flow-admin.spec.ts:87:1 › a signed-in Yatri registers and the confirmation email is composed (retry #1) (7.4s)::error file=e2e/events-flow-admin.spec.ts,title=[admin] › e2e/events-flow-admin.spec.ts:87:1 › a signed-in Yatri registers and the confirmation email is composed,line=98,col=69::  23) [admin] › e2e/events-flow-admin.spec.ts:87:1 › a signed-in Yatri registers and the confirmation email is composed %0A    Error: expect(locator).toBeVisible() failed%0A%0A    Locator: getByRole('heading', { name: 'E2E Throwaway Event 1787289519480-safrhw' })%0A    Expected: visible%0A    Timeout: 5000ms%0A    Error: element(s) not found%0A%0A    Call log:%0A      - Expect "toBeVisible" with timeout 5000ms%0A      - waiting for getByRole('heading', { name: 'E2E Throwaway Event 1787289519480-safrhw' })%0A%0A%0A       96 |%0A       97 |   await page.goto(`/events/${upcoming!.slug}`);%0A    >  98 |   await expect(page.getByRole("heading", { name: upcoming!.name })).toBeVisible();%0A          |                                                                     ^%0A       99 |%0A      100 |   await page.getByRole("button", { name: /Save my spot/i }).click();%0A      101 |   const dialog = page.getByRole("dialog");%0A        at /home/runner/work/yatricloud.com/yatricloud.com/e2e/events-flow-admin.spec.ts:98:69
+Error:   23) [admin] › e2e/events-flow-admin.spec.ts:87:1 › a signed-in Yatri registers and the confirmation email is composed 
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'E2E Throwaway Event 1787289531729-8th9i6' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: 'E2E Throwaway Event 1787289531729-8th9i6' })
+
+
+       96 |
+       97 |   await page.goto(`/events/${upcoming!.slug}`);
+    >  98 |   await expect(page.getByRole("heading", { name: upcoming!.name })).toBeVisible();
+          |                                                                     ^
+       99 |
+      100 |   await page.getByRole("button", { name: /Save my spot/i }).click();
+      101 |   const dialog = page.getByRole("dialog");
+        at /home/runner/work/yatricloud.com/yatricloud.com/e2e/events-flow-admin.spec.ts:98:69
+
+  -   90 [admin] › e2e/events-flow-admin.spec.ts:125:1 › the registration appears in My Events (retry #1)
+  -   91 [admin] › e2e/events-flow-admin.spec.ts:133:1 › a sold-out event offers the waitlist and lets a Yatri join (retry #1)
+  -   92 [admin] › e2e/events-flow-admin.spec.ts:152:1 › admin console lists the fixture with its row actions (retry #1)
+  -   93 [admin] › e2e/events-flow-admin.spec.ts:164:1 › registrations console shows the new attendee (retry #1)
+  -   94 [admin] › e2e/events-flow-admin.spec.ts:171:1 › admin gallery console opens for a past event (retry #1)
+  -   95 [admin] › e2e/events-flow-admin.spec.ts:187:1 › a past event's gallery unlocks for admins (retry #1)
+  -   96 [admin] › e2e/events-flow-admin.spec.ts:197:1 › attendee check-in verifies the code and confirms attendance (retry #1)
+  -   97 [admin] › e2e/events-flow-admin.spec.ts:222:1 › a venue proposal flows from the public form to admin approval (retry #1)
+5s
+0s
+0s
+0s

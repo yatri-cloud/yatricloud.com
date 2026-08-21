@@ -58,27 +58,16 @@ const AdminDashboard = () => {
         let cancelled = false;
         if (!token) { setSessionChecked(false); return; }
         (async () => {
-            try {
-                const profile = await Promise.race([
-                    fetchMyProfile(),
-                    new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000))
-                ]);
-                if (cancelled) return;
-                if (!profile || profile.role !== "admin") {
-                    // A non-admin session or expired session. Force a fresh admin login.
-                    try { await signOut(); } catch {}
-                    localStorage.removeItem('admin_token');
-                    setToken(null);
-                }
-            } catch (err) {
-                console.error("Admin session check error:", err);
+            const profile = await fetchMyProfile();
+            if (cancelled) return;
+            if (!profile || profile.role !== "admin") {
+                // A non admin session (for example a test account used on the
+                // public site) took over this browser. Force a fresh admin login.
+                await signOut();
                 localStorage.removeItem('admin_token');
                 setToken(null);
-            } finally {
-                if (!cancelled) {
-                    setSessionChecked(true);
-                }
             }
+            setSessionChecked(true);
         })();
         return () => { cancelled = true; };
     }, [token]);

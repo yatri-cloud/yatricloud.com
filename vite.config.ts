@@ -3,36 +3,6 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 
-function devCurrencyPlugin() {
-  return {
-    name: 'dev-currency-plugin',
-    configureServer(server: any) {
-      server.middlewares.use((req: any, res: any, next: any) => {
-        if (req.url && req.url.startsWith('/api/currency')) {
-          const url = new URL(req.url, 'http://localhost:8080');
-          const mode = (url.searchParams.get('mode') || 'rates').toLowerCase();
-          res.setHeader('Content-Type', 'application/json');
-          if (mode === 'detect') {
-            res.end(JSON.stringify({ country: 'IN', currency: 'INR' }));
-            return;
-          }
-          res.end(JSON.stringify({
-            base: 'INR',
-            rates: {
-              INR: 1, USD: 0.0117, EUR: 0.0108, GBP: 0.0093, AED: 0.043, CAD: 0.016, AUD: 0.0179,
-              SGD: 0.0158, JPY: 1.76, SAR: 0.044, QAR: 0.0428, NZD: 0.0195, CHF: 0.0106
-            },
-            source: 'dev-fallback',
-            updatedAt: new Date().toISOString()
-          }));
-          return;
-        }
-        next();
-      });
-    },
-  };
-}
-
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -73,8 +43,19 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
+        // Long-lived shared vendors get their own chunks so route updates don't
+        // invalidate them in users' caches, and so the entry chunk stays lean.
+        // Route-specific heavies (html2canvas, maps, country data, the admin
+        // console, TrainingManager, payments) fall into their own chunks
+        // automatically via the lazy routes in App.tsx.
+        // Only hoist the broadly-shared vendors into their own long-lived chunks.
+        // Everything else is left to Rollup's default splitting, so a library used
+        // only by a lazy route stays IN that route's chunk instead of being pulled
+        // into an eagerly-loaded catch-all "vendor" bundle.
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
+          // Keep all of React in ONE chunk so there's a single copy of the
+          // shared singleton, initialised before anything that depends on it.
           if (/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler)\//.test(id)) return "react-vendor";
           if (id.includes("@supabase")) return "supabase";
           if (id.includes("framer-motion")) return "motion";
@@ -85,7 +66,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: [devCurrencyPlugin(), react()],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
