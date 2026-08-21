@@ -48,18 +48,25 @@ export default function MyResources() {
   }, []);
 
   const isDump = (r: MyResource) => {
-    // If it is explicitly a guide or study material, it belongs to resources
-    if (r.name.toLowerCase().includes("guide") || r.category?.toLowerCase().includes("guide")) {
+    const nameLower = r.name.toLowerCase();
+    const catLower = (r.category || "").toLowerCase();
+    // Explicitly exclude guides, cheat sheets, books from dumps
+    if (
+      nameLower.includes("guide") ||
+      nameLower.includes("cheat sheet") ||
+      nameLower.includes("ebook") ||
+      nameLower.includes("whitepaper") ||
+      catLower.includes("guide") ||
+      catLower.includes("resource")
+    ) {
       return false;
     }
     return (
       r.accessUrl.startsWith("/examdumps/practice") ||
-      r.category?.toLowerCase() === "dump" ||
-      r.category?.toLowerCase() === "exam-dump" ||
-      r.name.toLowerCase().includes("practice question") ||
-      r.name.toLowerCase().includes("practice exam") ||
-      r.name.toLowerCase().includes("exam dump") ||
-      r.name.toLowerCase().includes("question bank")
+      catLower.includes("dump") ||
+      nameLower.includes("dump") ||
+      nameLower.includes("practice test") ||
+      nameLower.includes("exam questions")
     );
   };
 
@@ -87,7 +94,7 @@ export default function MyResources() {
     return null;
   };
 
-  const handleShare = async (r: MyResource) => {
+  const handleShare = (r: MyResource) => {
     let shareUrl = "";
     if (isDump(r)) {
       if (r.accessUrl.startsWith("/examdumps/practice")) {
@@ -97,11 +104,12 @@ export default function MyResources() {
           ? normalizeProviderSlug(r.provider)
           : r.name.toLowerCase().includes("redis")
           ? "redis"
-          : "all";
-        shareUrl = `${window.location.origin}/examdumps/${providerSlug}`;
+          : "";
+        shareUrl = providerSlug
+          ? `${window.location.origin}/examdumps/${providerSlug}`
+          : `${window.location.origin}/examdumps`;
       }
     } else {
-      // It is a Study Guide / Resource — always share the platform page link
       const providerSlug = r.provider
         ? normalizeProviderSlug(r.provider)
         : r.name.toLowerCase().includes("redis")
@@ -112,20 +120,11 @@ export default function MyResources() {
         : `${window.location.origin}/resources?search=${encodeURIComponent(r.name)}`;
     }
 
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareUrl);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = shareUrl;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-      }
-      toast.success("Link copied to clipboard!");
-    } catch {
-      toast.success("Link copied to clipboard!");
+    if (navigator.share) {
+      navigator.share({ title: r.name, url: shareUrl }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copied to clipboard");
     }
   };
 
