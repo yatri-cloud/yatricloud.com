@@ -185,11 +185,94 @@ app.post('/api/razorpay/admin', async (req, res) => {
   }
 });
 
+// ── Currency rates & detection ──────────────────────────────────────────
+const FALLBACK_USD = {
+  INR: 85, AED: 3.67, ALL: 92, AMD: 388, ARS: 1000, AUD: 1.52, AWG: 1.79,
+  AZN: 1.7, BAM: 1.8, BBD: 2, BDT: 120, BGN: 1.8, BHD: 0.376, BIF: 2900,
+  BMD: 1, BND: 1.35, BOB: 6.9, BRL: 5.5, BSD: 1, BTN: 85, BWP: 13.6, BZD: 2,
+  CAD: 1.38, CHF: 0.9, CLP: 950, CNY: 7.2, COP: 4100, CRC: 515, CUP: 24,
+  CVE: 101, CZK: 23, DJF: 178, DKK: 6.9, DOP: 60, DZD: 134, EGP: 49, ETB: 126,
+  EUR: 0.92, FJD: 2.25, GBP: 0.79, GHS: 15, GIP: 0.79, GMD: 71, GNF: 8600,
+  GTQ: 7.7, GYD: 209, HKD: 7.8, HNL: 25, HRK: 6.9, HTG: 132, HUF: 360,
+  IDR: 16000, ILS: 3.7, IQD: 1310, ISK: 138, JMD: 157, JOD: 0.71, JPY: 150,
+  KES: 129, KGS: 87, KHR: 4050, KMF: 452, KRW: 1350, KWD: 0.307, KYD: 0.83,
+  KZT: 480, LAK: 21500, LKR: 295, LRD: 190, LSL: 18, MAD: 9.9, MDL: 17.8,
+  MGA: 4600, MKD: 57, MMK: 2100, MNT: 3400, MOP: 8, MUR: 46, MVR: 15.4,
+  MWK: 1730, MXN: 18.5, MYR: 4.5, MZN: 63.5, NAD: 18, NGN: 1550, NIO: 36.7,
+  NOK: 10.7, NPR: 136, NZD: 1.66, OMR: 0.385, PEN: 3.75, PGK: 3.9, PHP: 58,
+  PKR: 278, PLN: 3.95, PYG: 7600, QAR: 3.64, RON: 4.6, RSD: 108, RUB: 92,
+  RWF: 1350, SAR: 3.75, SCR: 13.5, SEK: 10.5, SGD: 1.35, SOS: 571, SSP: 3000,
+  SVC: 8.75, SZL: 18, THB: 34, TND: 3.1, TRY: 34, TTD: 6.8, TWD: 32, TZS: 2650,
+  UAH: 41, UGX: 3700, USD: 1, UYU: 42, UZS: 12800, VND: 25400, VUV: 120,
+  XAF: 605, XCD: 2.7, XOF: 605, XPF: 110, YER: 250, ZAR: 18, ZMW: 27,
+};
+const SUPPORTED_CURRENCIES = Object.keys(FALLBACK_USD);
+
+function fallbackCurrencyRates() {
+  const inrPerUsd = FALLBACK_USD.INR;
+  const out = {};
+  for (const [code, usd] of Object.entries(FALLBACK_USD)) out[code] = usd / inrPerUsd;
+  return out;
+}
+
+let currencyRatesCache = null;
+const RATES_TTL_MS = 6 * 60 * 60 * 1000;
+
+app.get('/api/currency', async (req, res) => {
+  try {
+    const mode = String(req.query.mode || 'rates').toLowerCase();
+
+    if (mode === 'detect') {
+      const raw = req.headers['x-vercel-ip-country'] || '';
+      const country = typeof raw === 'string' ? raw.toUpperCase() : '';
+      const currency = country === 'IN' ? 'INR' : country ? 'USD' : 'INR';
+      return res.status(200).json({ country: country || null, currency });
+    }
+
+    if (currencyRatesCache && Date.now() - currencyRatesCache.at < RATES_TTL_MS) {
+      return res.status(200).json({ base: 'INR', rates: currencyRatesCache.rates, source: currencyRatesCache.source, updatedAt: currencyRatesCache.updatedAt });
+    }
+
+    let rates = fallbackCurrencyRates();
+    let source = 'fallback';
+    let updatedAt = new Date().toISOString();
+
+    try {
+      const r = await fetch('https://open.er-api.com/v6/latest/INR', {
+        headers: { accept: 'application/json' },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (r.ok) {
+        const data = await r.json();
+        if (data.result === 'success' && data.rates && typeof data.rates.INR === 'number') {
+          const live = { INR: 1 };
+          for (const code of SUPPORTED_CURRENCIES) {
+            const v = data.rates[code];
+            if (typeof v === 'number' && v > 0) live[code] = v;
+            else if (code !== 'INR') live[code] = rates[code];
+          }
+          rates = live;
+          source = 'open.er-api.com';
+          updatedAt = data.time_last_update_utc || updatedAt;
+        }
+      }
+    } catch {
+      /* ignore, use fallback */
+    }
+
+    currencyRatesCache = { rates, source, updatedAt, at: Date.now() };
+    return res.status(200).json({ base: 'INR', rates, source, updatedAt });
+  } catch (error) {
+    console.error('❌ /api/currency:', error);
+    return res.status(200).json({ base: 'INR', rates: fallbackCurrencyRates(), source: 'fallback', updatedAt: new Date().toISOString() });
+  }
+});
+
 // ── Health ──────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
 app.listen(PORT, () => {
   console.log(`🚀 Yatri Cloud dev server on http://localhost:${PORT}`);
   console.log(`   💳 /api/razorpay/create-order · /api/razorpay/verify`);
-  console.log(`   📧 /api/send-email   💚 /health   👑 /api/razorpay/admin`);
+  console.log(`   📧 /api/send-email   💚 /health   👑 /api/razorpay/admin   💱 /api/currency`);
 });

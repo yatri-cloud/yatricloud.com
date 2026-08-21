@@ -31,6 +31,19 @@ export default defineConfig(({ mode }) => ({
         target: 'http://127.0.0.1:3001',
         changeOrigin: true,
         secure: false,
+        configure: (proxy) => {
+          proxy.on('error', (_err, req, res) => {
+            if (res && !res.headersSent && typeof res.writeHead === 'function') {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              const url = req.url || '';
+              if (url.includes('currency')) {
+                res.end(JSON.stringify({ currency: 'INR', base: 'INR', rates: { INR: 1, USD: 0.012 }, country: null }));
+              } else {
+                res.end(JSON.stringify({ ok: true, status: 'dev_mock' }));
+              }
+            }
+          });
+        },
       },
     },
   },
