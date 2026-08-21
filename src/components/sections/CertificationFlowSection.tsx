@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
 import { openCalendlyPopup, loadCalendlyInline } from "@/lib/third-party";
 import {
@@ -154,6 +155,9 @@ export const CertificationFlowSection = () => {
   const eligibleExams = useSiteContent(getEligibleExams, FALLBACK_ELIGIBLE_EXAMS);
   const benefitRows = useSiteContent(getPackageBenefits, FALLBACK_PACKAGE_BENEFITS).slice(0, 3);
   const stepRows = useSiteContent(getCertificationSteps, FALLBACK_CERTIFICATION_STEPS);
+  const [showAllExams, setShowAllExams] = useState(false);
+
+  const visibleExams = showAllExams ? eligibleExams : eligibleExams.slice(0, 3);
 
   return (
     <section id="certification-flow" className="py-20 md:py-28 bg-background relative overflow-hidden">
@@ -184,7 +188,7 @@ export const CertificationFlowSection = () => {
 
               {/* Credential Grid — Soft Blue Gradient Glow Cards */}
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {eligibleExams.map((exam, index) => {
+                {visibleExams.map((exam, index) => {
                   const codeMatch = exam.title.match(/\(([^)]+)\)/);
                   const code =
                     codeMatch?.[1] ??
@@ -260,6 +264,27 @@ export const CertificationFlowSection = () => {
                   );
                 })}
               </div>
+
+              {/* View All / Show Less Toggle Button */}
+              {eligibleExams.length > 3 && (
+                <div className="mt-8 flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAllExams(!showAllExams)}
+                    className="rounded-full px-6 py-2.5 font-semibold text-sm shadow-2xs hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all gap-2"
+                  >
+                    {showAllExams ? (
+                      <>
+                        Show Less <ChevronUp className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        View All {eligibleExams.length} AWS Certifications <ChevronDown className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </ScrollReveal>
 
