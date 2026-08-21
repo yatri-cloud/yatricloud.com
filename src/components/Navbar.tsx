@@ -221,6 +221,9 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                       <DropdownMenuItem onClick={() => navigate("/certificates")}>
                         My Certificates
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/my-resources")}>
+                        My Resources
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate("/profile/purchases")}>
                         My Receipts
                       </DropdownMenuItem>
@@ -390,6 +393,16 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                       className="w-full"
                     >
                       Profile
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigate("/my-resources");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full"
+                    >
+                      My Resources
                     </Button>
                     <Button
                       variant="outline"
