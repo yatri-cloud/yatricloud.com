@@ -77,7 +77,7 @@ const ExamDumps = () => {
     const allSlugs = new Set([...prominentSlugs, ...Array.from(countsBySlug.keys())]);
 
     const result: Array<{ slug: string; name: string; count: number; logoUrl?: string; badge?: string }> = [
-      { slug: "all", name: "All Providers", count: dumps.length },
+      { slug: "all", name: "All", count: dumps.length },
     ];
 
     for (const slug of allSlugs) {
@@ -259,13 +259,6 @@ const ExamDumps = () => {
                         <img src={tab.logoUrl} alt="" className="mr-1.5 h-3.5 w-3.5 object-contain" />
                       )}
                       <span>{tab.name}</span>
-                      {tab.count > 0 && (
-                        <span className={`ml-1.5 text-[11px] px-1.5 py-0.2 rounded-full tabular-nums ${
-                          isActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
-                        }`}>
-                          {tab.count}
-                        </span>
-                      )}
                     </Link>
                   </Button>
                 );
