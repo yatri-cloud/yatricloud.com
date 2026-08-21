@@ -21,7 +21,7 @@ const PROVIDER_ENUM: Record<string, string> = {
   "Google Cloud": "GCP", GitHub: "GITHUB", Oracle: "ORACLE",
   Salesforce: "SALESFORCE", ServiceNow: "SERVICENOW", OpenAI: "OPENAI",
   Anthropic: "ANTHROPIC", "Anthropic (Claude AI)": "ANTHROPIC",
-  HashiCorp: "HASHICORP", Kubernetes: "KUBERNETES",
+  HashiCorp: "HASHICORP", Kubernetes: "KUBERNETES", "Snowflake": "SNOWFLAKE",
 };
 
 function toVoucherProviderEnum(raw?: string | null): string {
@@ -29,9 +29,10 @@ function toVoucherProviderEnum(raw?: string | null): string {
   const clean = raw.trim();
   if (PROVIDER_ENUM[clean]) return PROVIDER_ENUM[clean];
   const upper = clean.toUpperCase();
-  if (["AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "HASHICORP", "KUBERNETES", "OTHER"].includes(upper)) {
+  if (["AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "SNOWFLAKE", "HASHICORP", "KUBERNETES", "OTHER"].includes(upper)) {
     return upper;
   }
+  if (/snowflake/i.test(clean)) return "SNOWFLAKE";
   if (/anthropic|claude/i.test(clean)) return "ANTHROPIC";
   return "OTHER";
 }

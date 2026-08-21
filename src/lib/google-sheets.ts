@@ -49,19 +49,19 @@ export interface CertificationEntry {
 /** Display provider name → DB enum. */
 const DISPLAY_TO_ENUM: Record<string, string> = {
   aws: "AWS", azure: "AZURE", gcp: "GCP", github: "GITHUB", oracle: "ORACLE",
-  salesforce: "SALESFORCE", servicenow: "SERVICENOW", openai: "OPENAI", anthropic: "ANTHROPIC",
+  salesforce: "SALESFORCE", servicenow: "SERVICENOW", openai: "OPENAI", anthropic: "ANTHROPIC", snowflake: "SNOWFLAKE",
   hashicorp: "HASHICORP", kubernetes: "KUBERNETES",
 };
 
 /** DB enum → display name used across the UI. */
 export const ENUM_TO_DISPLAY: Record<string, string> = {
   AWS: "AWS", AZURE: "Azure", GCP: "GCP", GITHUB: "GitHub", ORACLE: "Oracle",
-  SALESFORCE: "Salesforce", SERVICENOW: "ServiceNow", OPENAI: "OpenAI", ANTHROPIC: "Anthropic",
+  SALESFORCE: "Salesforce", SERVICENOW: "ServiceNow", OPENAI: "OpenAI", ANTHROPIC: "Anthropic", SNOWFLAKE: "Snowflake",
   HASHICORP: "HashiCorp", KUBERNETES: "Kubernetes", OTHER: "Other",
 };
 
 const VALID_PROVIDER_ENUMS = new Set([
-  "AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "HASHICORP", "KUBERNETES", "OTHER",
+  "AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "SNOWFLAKE", "HASHICORP", "KUBERNETES", "OTHER",
 ]);
 
 export function normalizeProviderEnum(raw?: string | null): string {

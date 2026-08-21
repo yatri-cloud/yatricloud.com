@@ -58,9 +58,9 @@ const GOALS: Goal[] = [
     {
         id: "data-ai",
         label: "Data & AI",
-        tagline: "Turn data into decisions with analytics, ML and AI certifications.",
-        providers: ["aws", "azure", "gcp", "oracle", "openai", "anthropic"],
-        topic: /(data|ai|machine learning|analytics|database|claude|prompt)/i,
+        tagline: "Turn data into decisions with analytics, ML, Snowflake and AI certifications.",
+        providers: ["aws", "azure", "gcp", "snowflake", "oracle", "openai", "anthropic"],
+        topic: /(data|ai|machine learning|analytics|snowflake|database|claude|prompt)/i,
         stages: LEVEL_STAGES,
     },
     {

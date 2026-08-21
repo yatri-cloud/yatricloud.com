@@ -21,7 +21,7 @@ import { ensurePhotoIsUrl } from '@/lib/google-sheets';
 const PROVIDER_TO_ENUM: Record<string, string> = {
   AWS: 'AWS', Azure: 'AZURE', GCP: 'GCP', GitHub: 'GITHUB', Oracle: 'ORACLE',
   Salesforce: 'SALESFORCE', ServiceNow: 'SERVICENOW', OpenAI: 'OPENAI', Anthropic: 'ANTHROPIC',
-  HashiCorp: 'HASHICORP', Kubernetes: 'KUBERNETES',
+  Snowflake: 'SNOWFLAKE', HashiCorp: 'HASHICORP', Kubernetes: 'KUBERNETES',
 };
 
 function normalizeProviderEnum(raw?: string | null): string {
@@ -29,9 +29,10 @@ function normalizeProviderEnum(raw?: string | null): string {
   const clean = raw.trim();
   if (PROVIDER_TO_ENUM[clean]) return PROVIDER_TO_ENUM[clean];
   const upper = clean.toUpperCase();
-  if (['AWS', 'AZURE', 'GCP', 'GITHUB', 'ORACLE', 'SALESFORCE', 'SERVICENOW', 'OPENAI', 'ANTHROPIC', 'HASHICORP', 'KUBERNETES', 'OTHER'].includes(upper)) {
+  if (['AWS', 'AZURE', 'GCP', 'GITHUB', 'ORACLE', 'SALESFORCE', 'SERVICENOW', 'OPENAI', 'ANTHROPIC', 'SNOWFLAKE', 'HASHICORP', 'KUBERNETES', 'OTHER'].includes(upper)) {
     return upper;
   }
+  if (/snowflake/i.test(clean)) return 'SNOWFLAKE';
   if (/anthropic|claude/i.test(clean)) return 'ANTHROPIC';
   return 'OTHER';
 }

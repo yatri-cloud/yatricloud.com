@@ -41,6 +41,7 @@ const STANDARD_PROVIDERS = [
   { value: "ServiceNow", label: "ServiceNow", slug: "servicenow" },
   { value: "OpenAI", label: "OpenAI & AI Specialist", slug: "openai" },
   { value: "Anthropic", label: "Anthropic (Claude AI)", slug: "anthropic" },
+  { value: "Snowflake", label: "Snowflake Data Cloud", slug: "snowflake" },
   { value: "Docker", label: "Docker", slug: "docker" },
   { value: "Linux", label: "Linux Foundation", slug: "linux" },
 ];

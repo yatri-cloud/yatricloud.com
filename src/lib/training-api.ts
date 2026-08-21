@@ -25,7 +25,7 @@ import { getFormProviders } from "@/lib/cert-catalog";
 /** Display-cased provider labels shown in the UI (fallback list). */
 export const PROVIDERS_DISPLAY = [
   "AWS", "Azure", "GCP", "GitHub", "Oracle", "Salesforce",
-  "ServiceNow", "OpenAI", "HashiCorp", "Kubernetes", "Other",
+  "ServiceNow", "OpenAI", "Anthropic", "Snowflake", "HashiCorp", "Kubernetes", "Other",
 ];
 
 /**
@@ -53,7 +53,7 @@ async function providerDisplayLabels(): Promise<string[]> {
 /** Map a free-text provider/track label to the provider_t enum value. */
 function toProviderEnum(s: string | null | undefined): string {
   const x = String(s || "").toUpperCase();
-  for (const p of ["AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "HASHICORP", "KUBERNETES"]) {
+  for (const p of ["AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "SNOWFLAKE", "HASHICORP", "KUBERNETES"]) {
     if (x.includes(p) || (p === "GCP" && x.includes("GOOGLE")) || (p === "ANTHROPIC" && (x.includes("CLAUDE") || x.includes("ANTHROPIC")))) return p;
   }
   return "OTHER";

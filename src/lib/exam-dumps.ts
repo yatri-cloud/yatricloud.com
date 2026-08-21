@@ -163,6 +163,16 @@ export const KNOWN_EXAM_PROVIDERS: Record<string, ExamDumpProviderMeta> = {
     glowColor: "rgba(24, 24, 24, 0.35)",
     badge: "Artificial Intelligence",
   },
+  snowflake: {
+    slug: "snowflake",
+    name: "Snowflake Data Cloud",
+    shortName: "Snowflake",
+    description: "Real practice questions and exam dumps for SnowPro Core (COF-C02), Architect, and Data Engineer certifications.",
+    logoUrl: "/logos/snowflake.png",
+    brandColor: "#29B5E8",
+    glowColor: "rgba(41, 181, 232, 0.35)",
+    badge: "Data Cloud & Analytics",
+  },
   docker: {
     slug: "docker",
     name: "Docker",
@@ -207,6 +217,7 @@ export function normalizeProviderSlug(providerStr?: string): string {
   if (/^oracle/.test(raw)) return "oracle";
   if (/^servicenow/.test(raw)) return "servicenow";
   if (/^openai/.test(raw)) return "openai";
+  if (/^snowflake/.test(raw)) return "snowflake";
   if (/^docker/.test(raw)) return "docker";
   if (/^linux/.test(raw)) return "linux";
 
@@ -305,7 +316,7 @@ export async function fetchExamDumpsByProvider(providerSlug: string): Promise<Ex
 }
 
 const VALID_DB_PROVIDER_ENUMS = new Set([
-  "AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "HASHICORP", "KUBERNETES", "OTHER",
+  "AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "SNOWFLAKE", "HASHICORP", "KUBERNETES", "OTHER",
 ]);
 
 /** Convert any free-text provider input to the exact PostgreSQL provider_t enum value. */
@@ -314,6 +325,7 @@ export function toDbProviderEnum(providerStr?: string | null): string {
   const clean = providerStr.trim();
   const upper = clean.toUpperCase();
   if (VALID_DB_PROVIDER_ENUMS.has(upper)) return upper;
+  if (/snowflake/i.test(clean)) return "SNOWFLAKE";
   if (/anthropic|claude/i.test(clean)) return "ANTHROPIC";
   if (/open\s*ai|chatgpt/i.test(clean)) return "OPENAI";
   if (/k8s|kubernetes|cncf/i.test(clean)) return "KUBERNETES";
