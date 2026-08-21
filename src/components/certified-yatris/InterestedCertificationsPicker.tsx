@@ -26,6 +26,7 @@ export const POPULAR_PROVIDERS = [
   { id: "salesforce", label: "Salesforce", code: "Salesforce" },
   { id: "servicenow", label: "ServiceNow", code: "ServiceNow" },
   { id: "openai", label: "OpenAI / Generative AI", code: "AI / ML" },
+  { id: "anthropic", label: "Anthropic / Claude AI", code: "Claude AI" },
   { id: "oracle", label: "Oracle", code: "Oracle" },
   { id: "docker", label: "Docker", code: "Docker" },
   { id: "redis", label: "Redis", code: "Redis" },

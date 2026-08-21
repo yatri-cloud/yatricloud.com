@@ -39,6 +39,7 @@ const STANDARD_PROVIDERS = [
   { value: "Oracle", label: "Oracle Cloud", slug: "oracle" },
   { value: "ServiceNow", label: "ServiceNow", slug: "servicenow" },
   { value: "OpenAI", label: "OpenAI & AI Specialist", slug: "openai" },
+  { value: "Anthropic", label: "Anthropic (Claude AI)", slug: "anthropic" },
   { value: "Docker", label: "Docker", slug: "docker" },
   { value: "Linux", label: "Linux Foundation", slug: "linux" },
 ];

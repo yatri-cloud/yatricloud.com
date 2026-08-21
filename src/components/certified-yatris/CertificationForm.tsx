@@ -159,6 +159,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
   const SALESFORCE_CERTIFICATIONS = toSelectedCerts("salesforce");
   const SERVICENOW_CERTIFICATIONS = toSelectedCerts("servicenow");
   const OPENAI_CERTIFICATIONS = toSelectedCerts("openai");
+  const ANTHROPIC_CERTIFICATIONS = toSelectedCerts("anthropic");
   const HASHICORP_CERTIFICATIONS = toSelectedCerts("hashicorp");
   const KUBERNETES_CERTIFICATIONS = toSelectedCerts("kubernetes");
 
@@ -356,6 +357,9 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     if (selectedProviders.includes("openai")) {
       allCerts.push(...OPENAI_CERTIFICATIONS);
     }
+    if (selectedProviders.includes("anthropic")) {
+      allCerts.push(...ANTHROPIC_CERTIFICATIONS);
+    }
     if (selectedProviders.includes("hashicorp")) {
       allCerts.push(...HASHICORP_CERTIFICATIONS);
     }
@@ -375,6 +379,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     if (SALESFORCE_CERTIFICATIONS.some(c => c.value === certValue)) return "salesforce";
     if (SERVICENOW_CERTIFICATIONS.some(c => c.value === certValue)) return "servicenow";
     if (OPENAI_CERTIFICATIONS.some(c => c.value === certValue)) return "openai";
+    if (ANTHROPIC_CERTIFICATIONS.some(c => c.value === certValue)) return "anthropic";
     if (HASHICORP_CERTIFICATIONS.some(c => c.value === certValue)) return "hashicorp";
     if (KUBERNETES_CERTIFICATIONS.some(c => c.value === certValue)) return "kubernetes";
     return "other";
@@ -408,6 +413,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
     if (provider === "salesforce") return SALESFORCE_CERTIFICATIONS;
     if (provider === "servicenow") return SERVICENOW_CERTIFICATIONS;
     if (provider === "openai") return OPENAI_CERTIFICATIONS;
+    if (provider === "anthropic") return ANTHROPIC_CERTIFICATIONS;
     if (provider === "hashicorp") return HASHICORP_CERTIFICATIONS;
     if (provider === "kubernetes") return KUBERNETES_CERTIFICATIONS;
     return [];
@@ -727,7 +733,9 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                         ? "certified-servicenow-yatris"
                         : certProvider === "openai"
                           ? "certified-openai-yatris"
-                          : certProvider === "hashicorp"
+                          : certProvider === "anthropic"
+                            ? "certified-anthropic-yatris"
+                            : certProvider === "hashicorp"
                             ? "certified-hashicorp-yatris"
                             : certProvider === "kubernetes"
                               ? "certified-kubernetes-yatris"
@@ -1398,6 +1406,7 @@ export const CertificationForm = ({ user }: CertificationFormProps) => {
                       salesforce: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
                       servicenow: "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800",
                       openai: "text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
+                      anthropic: "text-amber-700 dark:text-amber-500 border-amber-200 dark:border-amber-800",
                       hashicorp: "text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800",
                       kubernetes: "text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800",
                       other: "text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800"

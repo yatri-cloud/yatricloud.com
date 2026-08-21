@@ -59,8 +59,8 @@ const GOALS: Goal[] = [
         id: "data-ai",
         label: "Data & AI",
         tagline: "Turn data into decisions with analytics, ML and AI certifications.",
-        providers: ["aws", "azure", "gcp", "oracle", "openai"],
-        topic: /(data|ai|machine learning|analytics|database)/i,
+        providers: ["aws", "azure", "gcp", "oracle", "openai", "anthropic"],
+        topic: /(data|ai|machine learning|analytics|database|claude|prompt)/i,
         stages: LEVEL_STAGES,
     },
     {

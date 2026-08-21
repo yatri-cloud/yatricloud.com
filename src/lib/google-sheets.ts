@@ -49,13 +49,13 @@ export interface CertificationEntry {
 /** Display provider name → DB enum. */
 const DISPLAY_TO_ENUM: Record<string, string> = {
   aws: "AWS", azure: "AZURE", gcp: "GCP", github: "GITHUB", oracle: "ORACLE",
-  salesforce: "SALESFORCE", servicenow: "SERVICENOW", openai: "OPENAI",
+  salesforce: "SALESFORCE", servicenow: "SERVICENOW", openai: "OPENAI", anthropic: "ANTHROPIC",
   hashicorp: "HASHICORP", kubernetes: "KUBERNETES",
 };
 /** DB enum → display name used across the UI. */
 const ENUM_TO_DISPLAY: Record<string, string> = {
   AWS: "AWS", AZURE: "Azure", GCP: "GCP", GITHUB: "GitHub", ORACLE: "Oracle",
-  SALESFORCE: "Salesforce", SERVICENOW: "ServiceNow", OPENAI: "OpenAI",
+  SALESFORCE: "Salesforce", SERVICENOW: "ServiceNow", OPENAI: "OpenAI", ANTHROPIC: "Anthropic",
   HASHICORP: "HashiCorp", KUBERNETES: "Kubernetes", OTHER: "Other",
 };
 
