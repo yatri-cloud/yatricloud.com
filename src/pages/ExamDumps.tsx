@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Loader2, ArrowRight, Search, ShieldCheck, Zap, RefreshCw, ChevronRight, Building2, Sparkles } from "lucide-react";
+import { Loader2, ArrowRight, Search, ChevronRight, Building2 } from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
@@ -206,32 +206,38 @@ const ExamDumps = () => {
                 </>
               ) : (
                 <>
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border bg-card/80 backdrop-blur-md shadow-2xs mb-5">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="text-xs font-semibold text-foreground">Trusted by {learners} Cloud Engineers</span>
-                  </div>
-
-                  <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-4">
+                  <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] text-foreground mb-4">
                     Pass on your <span className="gradient-text">first attempt</span>
                   </h1>
-                  <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed mb-6">
-                    Real, verified practice questions & dumps organized by certification provider.
+                  <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                    Verified practice materials for AWS, Azure, GCP & top cloud exams.
                   </p>
+
+                  {/* How it works — clean 3-step pill timeline */}
+                  <ol className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-2 text-xs md:text-sm">
+                    {[
+                      "Pick your exam",
+                      "Pay securely",
+                      "Instant delivery",
+                    ].map((step, i) => (
+                      <li key={step} className="flex items-center">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-2xs">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+                            {i + 1}
+                          </span>
+                          <span className="font-medium text-foreground/90">{step}</span>
+                        </span>
+                        {i < 2 && (
+                          <span
+                            aria-hidden="true"
+                            className="mx-2 hidden h-px w-8 bg-border sm:block"
+                          />
+                        )}
+                      </li>
+                    ))}
+                  </ol>
                 </>
               )}
-
-              {/* Trust Guarantees */}
-              <div className="flex flex-wrap items-center justify-center gap-4 text-xs md:text-sm text-muted-foreground pt-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border/80 px-3.5 py-1.5 shadow-2xs">
-                  <ShieldCheck className="h-4 w-4 text-success" /> 100% Verified Questions
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border/80 px-3.5 py-1.5 shadow-2xs">
-                  <Zap className="h-4 w-4 text-amber-500" /> Instant Email Delivery
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border/80 px-3.5 py-1.5 shadow-2xs">
-                  <RefreshCw className="h-4 w-4 text-primary" /> Updated for 2026
-                </span>
-              </div>
             </motion.div>
           </div>
         </section>
