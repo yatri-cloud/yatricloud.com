@@ -272,7 +272,7 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
     };
 
     const handleSubmit = async () => {
-        if (step === 1) {
+        if (step === 1 && isPaid) {
             goToCheckout();
             return;
         }
@@ -470,11 +470,13 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-border bg-secondary/30 p-4">
-                                <p className="text-sm text-muted-foreground">
-                                    Complete your details first. On the next step, you'll review pricing and complete checkout.
-                                </p>
-                            </div>
+                            {isPaid && (
+                                <div className="rounded-xl border border-border bg-secondary/30 p-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Complete your details first. On the next step, you'll review pricing and complete checkout.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -556,11 +558,11 @@ export function RegistrationModal({ event, open, onClose, onSuccess }: Registrat
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        {step === 1 ? 'Validating...' : isPaid ? 'Processing...' : 'Registering...'}
+                                        {step === 1 && isPaid ? 'Validating...' : isPaid ? 'Processing...' : 'Registering...'}
                                     </>
                                 ) : (
                                     <>
-                                        {step === 1 ? (
+                                        {step === 1 && isPaid ? (
                                             'Next: Checkout'
                                         ) : isPaid ? (
                                             <>Pay {priceLabel}</>

@@ -82,7 +82,7 @@ export default function AdminOverviewPage() {
     return (
         <div className="space-y-8 animate-in fade-in">
             <div>
-                <h1 className="font-display text-3xl font-black tracking-tight">Dashboard Overview</h1>
+                <h1 className="font-display text-3xl font-black tracking-tight">Overview</h1>
                 <p className="text-muted-foreground text-sm mt-1">Platform overview, metrics and key activity across Yatri Cloud.</p>
             </div>
 

@@ -147,7 +147,7 @@ export function GlobalSearch({ isLightText }: { isLightText?: boolean } = {}) {
                 <CommandInput
                     value={searchQuery}
                     onValueChange={setSearchQuery}
-                    placeholder="Type to search exam dumps, certifications, vouchers… (⌘K or ⌘F)"
+                    placeholder="Search certifications, trainings, exam dumps, vouchers… (⌘K or ⌘F)"
                 />
                 <CommandList>
                     {searchQuery.trim().length > 0 && (

@@ -122,7 +122,7 @@ export default function Support() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6 mb-8">
                     <div>
                         <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-                            Support
+                            We've got your back, Yatri
                         </h1>
                         <p className="text-sm text-muted-foreground mt-1">
                             Create and manage your support requests.
@@ -138,7 +138,7 @@ export default function Support() {
                         <LifeBuoy className="w-9 h-9 text-muted-foreground mx-auto mb-3" />
                         <h2 className="text-base font-semibold mb-1">Sign in to view tickets</h2>
                         <p className="text-xs sm:text-sm text-muted-foreground mb-5 max-w-sm mx-auto">
-                            Sign in to access your support history and submit new requests.
+                            Please sign in first to access your support history and submit new requests.
                         </p>
                         <Button className="h-10 rounded-xl px-5 text-sm" onClick={() => setLoginOpen(true)}>
                             Sign In

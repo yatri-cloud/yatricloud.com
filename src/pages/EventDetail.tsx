@@ -288,6 +288,7 @@ const EventDetail = () => {
             { id: 'about', label: 'About' },
             { id: 'speakers', label: 'Speakers' },
             { id: 'attendees', label: 'Attendees' },
+            { id: 'gallery', label: 'Gallery' },
             { id: 'reviews', label: 'Reviews' },
         ].filter(tab => !(event.hiddenSections || []).includes(tab.id));
 
@@ -600,6 +601,42 @@ const EventDetail = () => {
                                             <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center">
                                                 <Users className="w-8 h-8 text-primary mx-auto mb-3" />
                                                 <p className="text-muted-foreground">Attendee list not available.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </ScrollReveal>
+                            )}
+
+                            {/* Gallery */}
+                            {activeTab === 'gallery' && (
+                                <ScrollReveal>
+                                    <div>
+                                        <h2 className="font-display text-2xl font-bold mb-6">Moments from the day</h2>
+                                        {!canViewGallery ? (
+                                            <div className="rounded-2xl border border-border band-tint p-8 text-center" data-testid="gallery-locked">
+                                                <Lock className="w-8 h-8 text-primary mx-auto mb-3" />
+                                                <p className="font-semibold text-foreground mb-1">Photos are shared with attendees</p>
+                                                <p className="text-muted-foreground text-sm">Only Yatris who attended this event can view the gallery. If you were there and checked in, sign in with that account to relive the day.</p>
+                                            </div>
+                                        ) : galleryItems.length > 0 ? (
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" data-testid="gallery-grid">
+                                                {galleryItems.map((item, idx) => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => setGalleryLightbox(idx)}
+                                                        className="aspect-square bg-muted rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer relative"
+                                                    >
+                                                        {item.mediaType === 'photo' ? (
+                                                            <img src={item.url} alt={item.caption || ''} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <video src={item.url} className="w-full h-full object-cover" />
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-2xl border border-border bg-muted/30 p-8 text-center">
+                                                <p className="text-muted-foreground">No photos uploaded yet for this event.</p>
                                             </div>
                                         )}
                                     </div>

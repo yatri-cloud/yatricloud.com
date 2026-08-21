@@ -27,7 +27,7 @@ test.describe("Mentorship — public", () => {
   test("my bookings prompts sign-in when logged out", async ({ page }) => {
     await page.goto("/mentorship/bookings");
     await expect(page.getByRole("heading", { name: /Your bookings live here/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^Sign in$/i })).toBeVisible();
+    await expect(page.getByRole("main").getByRole("button", { name: /^Sign in$/i })).toBeVisible();
   });
 });
 

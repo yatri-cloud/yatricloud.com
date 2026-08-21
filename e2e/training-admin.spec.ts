@@ -31,6 +31,10 @@ async function deleteCourseFromList(page: Page, name: string) {
   // actually fires (Playwright dismisses dialogs by default).
   page.once("dialog", (d) => d.accept());
   await page.getByTestId("training-menu-delete").click();
+  const alertConfirm = page.getByRole("alertdialog").getByRole("button", { name: /Yes|Confirm|Delete/i });
+  if (await alertConfirm.isVisible({ timeout: 1500 }).catch(() => false)) {
+    await alertConfirm.click();
+  }
   await expect(page.locator("tr", { hasText: name })).toHaveCount(0);
 }
 

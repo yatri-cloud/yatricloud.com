@@ -144,6 +144,15 @@ const AdminContentReviews = () => {
                   <Button size="sm" variant="outline" onClick={() => toggle(r)} className="rounded-lg" title={r.isPublic ? "Hide" : "Show"}>
                     {r.isPublic ? <><EyeOff className="mr-1 h-3.5 w-3.5" /> Hide</> : <><Eye className="mr-1 h-3.5 w-3.5" /> Show</>}
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setToDelete(r)}
+                    aria-label={`Delete the review by ${r.name || "user"}`}
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">
@@ -152,7 +161,6 @@ const AdminContentReviews = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => setToDelete(r)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
-                        
                         Delete Review
                       </DropdownMenuItem>
                     </DropdownMenuContent>

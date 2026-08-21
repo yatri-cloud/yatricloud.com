@@ -751,7 +751,7 @@ export const LoginSignup = ({ onSuccess, initialUser, forceOnboarding, onClose }
                     />
                   </motion.div>
                   <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
-                    {isLogin ? "Welcome Back" : "Join Yatri Cloud"}
+                    {isLogin ? "Welcome Back!" : "Join Yatri Cloud"}
                   </h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     Hello Yatris 👋

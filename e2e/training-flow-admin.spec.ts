@@ -158,5 +158,9 @@ test("the course is deleted from the manager", async ({ page }) => {
   await row.getByTestId("training-row-menu").click();
   page.once("dialog", (d) => d.accept());
   await page.getByTestId("training-menu-delete").click();
+  const alertConfirm = page.getByRole("alertdialog").getByRole("button", { name: /Yes|Confirm|Delete/i });
+  if (await alertConfirm.isVisible({ timeout: 1500 }).catch(() => false)) {
+    await alertConfirm.click();
+  }
   await expect(page.locator("tr", { hasText: COURSE })).toHaveCount(0);
 });
