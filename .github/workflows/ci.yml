@@ -74,6 +74,10 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
       VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
       VITE_USE_SUPABASE: "true"
+      # Enable all feature-flagged pages so Playwright e2e tests reach the real components.
+      VITE_FEATURE_EVENTS: "true"
+      VITE_FEATURE_TRAININGS: "true"
+      VITE_FEATURE_BLOGS: "true"
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}

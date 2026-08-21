@@ -1,12 +1,13 @@
 /**
  * Feature Flags Configuration
- * Set any flag to `true` to enable the respective section across the site.
+ * Override any flag via VITE_FEATURE_* env var (set to "true").
+ * Defaults to false so production stays clean until a feature is promoted.
  */
 export const FEATURE_FLAGS = {
-  myDashboard: false,
-  events: false,
-  trainings: false,
-  userGuide: false,
-  userSitemap: false,
-  myBlogs: false,
+  myDashboard: import.meta.env.VITE_FEATURE_DASHBOARD === 'true',
+  events:      import.meta.env.VITE_FEATURE_EVENTS     === 'true',
+  trainings:   import.meta.env.VITE_FEATURE_TRAININGS  === 'true',
+  userGuide:   import.meta.env.VITE_FEATURE_USERGUIDE  === 'true',
+  userSitemap: import.meta.env.VITE_FEATURE_SITEMAP    === 'true',
+  myBlogs:     import.meta.env.VITE_FEATURE_BLOGS      === 'true',
 } as const;
