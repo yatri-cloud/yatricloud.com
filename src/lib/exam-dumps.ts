@@ -304,11 +304,35 @@ export async function fetchExamDumpsByProvider(providerSlug: string): Promise<Ex
   return allDumps.filter((dump) => normalizeProviderSlug(dump.provider) === targetSlug);
 }
 
+const VALID_DB_PROVIDER_ENUMS = new Set([
+  "AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "HASHICORP", "KUBERNETES", "OTHER",
+]);
+
+/** Convert any free-text provider input to the exact PostgreSQL provider_t enum value. */
+export function toDbProviderEnum(providerStr?: string | null): string {
+  if (!providerStr) return "OTHER";
+  const clean = providerStr.trim();
+  const upper = clean.toUpperCase();
+  if (VALID_DB_PROVIDER_ENUMS.has(upper)) return upper;
+  if (/anthropic|claude/i.test(clean)) return "ANTHROPIC";
+  if (/open\s*ai|chatgpt/i.test(clean)) return "OPENAI";
+  if (/k8s|kubernetes|cncf/i.test(clean)) return "KUBERNETES";
+  if (/terraform|hashicorp|vault/i.test(clean)) return "HASHICORP";
+  if (/google|gcp/i.test(clean)) return "GCP";
+  if (/azure|microsoft/i.test(clean)) return "AZURE";
+  if (/aws|amazon/i.test(clean)) return "AWS";
+  if (/github/i.test(clean)) return "GITHUB";
+  if (/oracle/i.test(clean)) return "ORACLE";
+  if (/salesforce/i.test(clean)) return "SALESFORCE";
+  if (/servicenow/i.test(clean)) return "SERVICENOW";
+  return "OTHER";
+}
+
 /** Map the UI shape → DB columns. */
 function toRow(dump: Partial<ExamDump>) {
   const row: Record<string, unknown> = {};
   if (dump.title !== undefined) row.title = dump.title.trim();
-  if (dump.provider !== undefined) row.provider = dump.provider.trim();
+  if (dump.provider !== undefined) row.provider = toDbProviderEnum(dump.provider);
   if (dump.originalPrice !== undefined) row.original_price_inr = dump.originalPrice;
   if (dump.price !== undefined) row.price_inr = dump.price;
   if (dump.image !== undefined) row.image_url = dump.image.trim();
