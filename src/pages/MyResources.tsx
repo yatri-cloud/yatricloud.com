@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Loader2, BookMarked, ExternalLink, ArrowRight } from "lucide-react";
+import { Loader2, BookMarked } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
@@ -207,44 +207,39 @@ export default function MyResources() {
                           </div>
 
                           {/* Minimal Action Buttons */}
-                          <div className="flex items-center gap-2 shrink-0">
-                            {isDump(r) && (
+                          {/* Single Access Button */}
+                          <div className="shrink-0">
+                            {isDump(r) ? (
                               <Button
                                 asChild
                                 size="sm"
-                                className="rounded-xl min-h-[38px] px-4 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
+                                className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
                               >
                                 <Link to={r.accessUrl.startsWith("/examdumps/practice") ? r.accessUrl : "/examdumps/practice/redis-certified-developer"}>
-                                  Practice Online
+                                  Access
                                 </Link>
                               </Button>
-                            )}
-
-                            {r.accessUrl && (r.accessUrl.startsWith("http://") || r.accessUrl.startsWith("https://")) && (
+                            ) : r.accessUrl?.startsWith("http") ? (
                               <a
                                 href={r.accessUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
                                 <Button
-                                  variant="outline"
                                   size="sm"
-                                  className="rounded-xl min-h-[38px] text-xs font-semibold border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition"
+                                  className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
                                 >
-                                  Cloud Link
+                                  Access
                                 </Button>
                               </a>
-                            )}
-
-                            {!isDump(r) && r.accessUrl && !r.accessUrl.startsWith("http") && (
+                            ) : (
                               <Button
                                 asChild
-                                variant="outline"
                                 size="sm"
-                                className="rounded-xl min-h-[38px] text-xs font-semibold border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition"
+                                className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
                               >
-                                <Link to={r.accessUrl}>
-                                  Open
+                                <Link to={r.accessUrl || "/resources"}>
+                                  Access
                                 </Link>
                               </Button>
                             )}
