@@ -39,6 +39,7 @@ const PartnerApply = lazy(() => import("./pages/PartnerApply"));
 const Udemy = lazy(() => import("./pages/Udemy"));
 const YatriStore = lazy(() => import("./pages/YatriStore"));
 const AddProduct = lazy(() => import("./pages/AddProduct"));
+const ExamPracticeViewer = lazy(() => import("./pages/ExamPracticeViewer"));
 const ManageCertifications = lazy(() => import("./pages/ManageCertifications"));
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -253,8 +254,12 @@ const App = () => (
               <Route path="/udemy" element={<Udemy />} />
               <Route path="/yatristore" element={<YatriStore />} />
               <Route path="/examdumps" element={<ExamDumps />} />
+              <Route path="/examdumps/practice/:slug" element={<ExamPracticeViewer />} />
+              <Route path="/examdumps/practice" element={<ExamPracticeViewer />} />
               <Route path="/examdumps/:provider" element={<ExamDumps />} />
               <Route path="/exam-dumps" element={<Navigate to="/examdumps" replace />} />
+              <Route path="/exam-dumps/practice/:slug" element={<ExamPracticeViewer />} />
+              <Route path="/exam-dumps/practice" element={<ExamPracticeViewer />} />
               <Route path="/exam-dumps/:provider" element={<ExamDumps />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/training" element={FEATURE_FLAGS.trainings ? <Training /> : <ComingSoon title="Trainings" description="Comprehensive live and hands on cloud training programs are in development and will launch soon." />} />

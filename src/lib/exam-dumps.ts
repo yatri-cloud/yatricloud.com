@@ -193,6 +193,16 @@ export const KNOWN_EXAM_PROVIDERS: Record<string, ExamDumpProviderMeta> = {
     glowColor: "rgba(252, 198, 36, 0.35)",
     badge: "Open Source",
   },
+  redis: {
+    slug: "redis",
+    name: "Redis",
+    shortName: "Redis",
+    description: "Verified practice exams and question dumps for Redis Certified Developer (REDIS-DEV) certification.",
+    logoUrl: "/logos/redis.svg",
+    brandColor: "#DC382D",
+    glowColor: "rgba(220, 56, 45, 0.35)",
+    badge: "Database & In-Memory",
+  },
 };
 
 /**
@@ -217,7 +227,9 @@ export function normalizeProviderSlug(providerStr?: string): string {
   if (/^oracle/.test(raw)) return "oracle";
   if (/^servicenow/.test(raw)) return "servicenow";
   if (/^openai/.test(raw)) return "openai";
+  if (/^anthropic/.test(raw)) return "anthropic";
   if (/^snowflake/.test(raw)) return "snowflake";
+  if (/^redis/.test(raw)) return "redis";
   if (/^docker/.test(raw)) return "docker";
   if (/^linux/.test(raw)) return "linux";
 
@@ -316,7 +328,7 @@ export async function fetchExamDumpsByProvider(providerSlug: string): Promise<Ex
 }
 
 const VALID_DB_PROVIDER_ENUMS = new Set([
-  "AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "SNOWFLAKE", "HASHICORP", "KUBERNETES", "OTHER",
+  "AWS", "AZURE", "GCP", "GITHUB", "ORACLE", "SALESFORCE", "SERVICENOW", "OPENAI", "ANTHROPIC", "SNOWFLAKE", "REDIS", "HASHICORP", "KUBERNETES", "OTHER",
 ]);
 
 /** Convert any free-text provider input to the exact PostgreSQL provider_t enum value. */
@@ -325,6 +337,7 @@ export function toDbProviderEnum(providerStr?: string | null): string {
   const clean = providerStr.trim();
   const upper = clean.toUpperCase();
   if (VALID_DB_PROVIDER_ENUMS.has(upper)) return upper;
+  if (/redis/i.test(clean)) return "REDIS";
   if (/snowflake/i.test(clean)) return "SNOWFLAKE";
   if (/anthropic|claude/i.test(clean)) return "ANTHROPIC";
   if (/open\s*ai|chatgpt/i.test(clean)) return "OPENAI";

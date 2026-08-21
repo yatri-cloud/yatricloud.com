@@ -146,20 +146,32 @@ export default function MyResources() {
                         </div>
 
                         {/* Access button */}
-                        <a
-                          href={r.accessUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-shrink-0"
-                        >
+                        {r.accessUrl.startsWith("/examdumps/practice") || r.category?.toLowerCase().includes("dump") || r.name.toLowerCase().includes("redis") ? (
                           <Button
-                            variant="outline"
+                            asChild
                             size="sm"
-                            className="rounded-xl min-h-[40px] hover:bg-primary hover:text-primary-foreground hover:border-primary transition"
+                            className="rounded-xl min-h-[40px] font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 shrink-0"
                           >
-                            Open
+                            <Link to={r.accessUrl.startsWith("/examdumps/practice") ? r.accessUrl : "/examdumps/practice/redis-certified-developer"}>
+                              Practice Now
+                            </Link>
                           </Button>
-                        </a>
+                        ) : (
+                          <a
+                            href={r.accessUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0"
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="rounded-xl min-h-[40px] hover:bg-primary hover:text-primary-foreground hover:border-primary transition"
+                            >
+                              Open
+                            </Button>
+                          </a>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
