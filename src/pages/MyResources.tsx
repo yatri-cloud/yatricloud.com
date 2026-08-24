@@ -50,25 +50,24 @@ export default function MyResources() {
   const isDump = (r: MyResource) => {
     const nameLower = r.name.toLowerCase();
     const catLower = (r.category || "").toLowerCase();
-    // Explicitly exclude guides, cheat sheets, books from dumps
+
+    // ── Hard POSITIVE signals — always a dump, regardless of category label ──
+    // e.g. "SnowPro Core Certification Exam Dumps" must be a dump even if the
+    // admin set category = "Exam Guide" or "Resource".
     if (
-      nameLower.includes("guide") ||
-      nameLower.includes("cheat sheet") ||
-      nameLower.includes("ebook") ||
-      nameLower.includes("whitepaper") ||
-      catLower.includes("guide") ||
-      catLower.includes("resource")
-    ) {
-      return false;
-    }
-    return (
       r.accessUrl.startsWith("/examdumps/practice") ||
-      catLower.includes("dump") ||
       nameLower.includes("dump") ||
       nameLower.includes("practice test") ||
-      nameLower.includes("exam questions")
-    );
+      nameLower.includes("exam questions") ||
+      catLower.includes("dump")
+    ) {
+      return true;
+    }
+
+    // ── Everything else is a study guide / exam guide ──
+    return false;
   };
+
 
   const dumpCount = useMemo(() => resources.filter(isDump).length, [resources]);
   const resourceCount = useMemo(() => resources.filter((r) => !isDump(r)).length, [resources]);
