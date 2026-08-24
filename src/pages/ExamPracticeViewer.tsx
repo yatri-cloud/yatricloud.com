@@ -26,6 +26,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { ALL_EXAM_DUMPS_DATA, REDIS_DEVELOPER_EXAM, ExamQuestion, ExamDumpData } from "@/data/redis-cert-questions";
+import { trackEvent } from "@/lib/analytics";
 
 export default function ExamPracticeViewer() {
   const { slug } = useParams<{ slug: string }>();
@@ -60,6 +61,14 @@ export default function ExamPracticeViewer() {
   const [secondsRemaining, setSecondsRemaining] = useState<number>(examData.timeLimitMinutes * 60);
   const [isExamSubmitted, setIsExamSubmitted] = useState<boolean>(false);
   const [showScoreModal, setShowScoreModal] = useState<boolean>(false);
+
+  // Analytics: track exam simulator access
+  useEffect(() => {
+    trackEvent("download", "ExamDump", slug || "redis", {
+      name: examData.title,
+      provider: examData.provider,
+    });
+  }, [slug, examData.title, examData.provider]);
 
   // Anti-piracy: intercept copy and right-click context menu
   useEffect(() => {

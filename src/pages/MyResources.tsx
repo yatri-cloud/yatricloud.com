@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { listMyResources, removeMyResource, type MyResource } from "@/lib/resources-api";
+import { trackEvent } from "@/lib/analytics";
 import { getStoredUser } from "@/lib/yatris-api";
 import { getProviderMeta, normalizeProviderSlug } from "@/lib/exam-dumps";
 
@@ -141,6 +142,15 @@ export default function MyResources() {
       navigator.clipboard.writeText(shareUrl);
       toast.success("Link copied to clipboard");
     }
+  };
+
+  const handleAccessClick = (r: MyResource) => {
+    trackEvent("download", isDump(r) ? "ExamDump" : "Resource", r.resourceId || r.id, {
+      name: r.name,
+      provider: r.provider,
+      category: r.category,
+      access_url: r.accessUrl,
+    });
   };
 
   const handleRemove = async (resource: MyResource) => {
@@ -304,6 +314,7 @@ export default function MyResources() {
                                   <Button
                                     asChild
                                     size="sm"
+                                    onClick={() => handleAccessClick(r)}
                                     className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
                                   >
                                     <a
@@ -335,6 +346,7 @@ export default function MyResources() {
                                 <Button
                                   asChild
                                   size="sm"
+                                  onClick={() => handleAccessClick(r)}
                                   className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
                                 >
                                   <Link to={destination}>

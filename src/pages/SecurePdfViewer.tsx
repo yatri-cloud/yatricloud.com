@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Lock, ShieldCheck } from "lucide-react";
 import { isAuthenticated } from "@/lib/yatris-api";
 import { listMyResources } from "@/lib/resources-api";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * SecurePdfViewer — renders a PDF inside the website without exposing the raw URL.
@@ -129,6 +130,12 @@ export default function SecurePdfViewer() {
         }
 
         setResourceName(owned.name);
+
+        trackEvent("download", "Resource", owned.resourceId || owned.id, {
+          name: owned.name,
+          provider: owned.provider,
+          access_url: owned.accessUrl,
+        });
 
         if (url.includes("jioaicloud.com")) {
           // Immediately redirect directly to the document without showing intermediate page
