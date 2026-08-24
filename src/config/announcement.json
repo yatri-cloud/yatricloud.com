@@ -1,7 +1,7 @@
 {
   "enabled": true,
-  "badge": "",
-  "message": "We are currently performing scheduled maintenance. Some services may experience temporary delays. If you face any issues, please create a support ticket.",
-  "linkText": "Create Support Ticket",
+  "badge": "Maintenance",
+  "message": "Scheduled maintenance in progress. Services may experience brief delays.",
+  "linkText": "Facing issues? Create Support Ticket →",
   "linkHref": "/support"
 }
