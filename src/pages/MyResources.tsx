@@ -194,7 +194,7 @@ export default function MyResources() {
       <SEO title="My Resources | Yatri Cloud" description="Your unlocked learning resources and exam dumps." />
       <Navbar />
 
-      <main className="pt-24 pb-16">
+      <main className="pt-28 sm:pt-32 md:pt-24 pb-16">
         <div className="container mx-auto max-w-4xl px-4">
           {/* Minimal Header */}
           <div className="mb-6 flex items-center justify-between gap-4 flex-wrap pb-4 border-b border-border/80">

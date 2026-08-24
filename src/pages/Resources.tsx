@@ -233,7 +233,7 @@ export default function Resources() {
       />
       <Navbar />
 
-      <main className="pt-20 pb-12">
+      <main className="pt-28 sm:pt-32 md:pt-24 pb-12">
         {/* Hero */}
         <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/[0.05] via-background to-background py-5 md:py-7">
           <div aria-hidden="true" className="pointer-events-none absolute -top-16 right-0 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />

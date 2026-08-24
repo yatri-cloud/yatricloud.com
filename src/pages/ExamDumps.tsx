@@ -184,7 +184,7 @@ const ExamDumps = () => {
 
         {/* ── Breadcrumb Bar (if on provider page) ── */}
         {isProviderSpecific && activeProviderMeta && (
-          <div className="border-b border-border/60 bg-muted/20 pt-24 pb-3">
+          <div className="border-b border-border/60 bg-muted/20 pt-32 sm:pt-36 md:pt-28 pb-3">
             <div className="container mx-auto px-4 md:px-6 flex items-center gap-2 text-xs text-muted-foreground">
               <Link to="/" className="hover:text-primary transition-colors">Home</Link>
               <ChevronRight className="h-3.5 w-3.5 opacity-60" />
@@ -196,7 +196,7 @@ const ExamDumps = () => {
         )}
 
         {/* ── Hero Section ── */}
-        <section className={`relative ${isProviderSpecific ? "pt-8 md:pt-12" : "pt-28 md:pt-32"} pb-14 overflow-hidden border-b border-border`}>
+        <section className={`relative ${isProviderSpecific ? "pt-6 md:pt-10" : "pt-36 sm:pt-40 md:pt-32"} pb-12 md:pb-14 overflow-hidden border-b border-border`}>
           <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] via-brand-50/50 to-background" />
           <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 h-56 w-56 rounded-full bg-brand-200/20 blur-3xl" />
