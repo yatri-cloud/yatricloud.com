@@ -270,40 +270,37 @@ export default function MyResources() {
 
                           {/* Action Button & Three-dot menu */}
                           <div className="flex items-center gap-2 shrink-0">
-                            {isDump(r) ? (
-                              /* Exam dumps → interactive practice simulator */
-                              <Button
-                                asChild
-                                size="sm"
-                                className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
-                              >
-                                <Link to={r.accessUrl.startsWith("/examdumps/practice") ? r.accessUrl : "/examdumps/practice/redis-certified-developer"}>
-                                  Access
-                                </Link>
-                              </Button>
-                            ) : r.resourceType === "file" || r.accessUrl?.startsWith("http") ? (
-                              /* Study guides / PDF files → secure in-browser viewer (never raw URL) */
-                              <Button
-                                asChild
-                                size="sm"
-                                className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
-                              >
-                                <Link to={`/resources/view?id=${r.resourceId}`}>
-                                  Access
-                                </Link>
-                              </Button>
-                            ) : (
-                              /* Internal app route resources */
-                              <Button
-                                asChild
-                                size="sm"
-                                className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
-                              >
-                                <Link to={r.accessUrl || "/resources"}>
-                                  Access
-                                </Link>
-                              </Button>
-                            )}
+                            {(() => {
+                              let destination = "";
+                              if (r.resourceType === "file" || (r.accessUrl?.startsWith("http") && !r.accessUrl?.includes("/examdumps/"))) {
+                                // PDF / document files -> secure in-browser viewer
+                                destination = `/resources/view?id=${r.resourceId}`;
+                              } else if (r.accessUrl?.startsWith("/")) {
+                                destination = r.accessUrl;
+                              } else if (isDump(r)) {
+                                const providerSlug = r.provider
+                                  ? normalizeProviderSlug(r.provider)
+                                  : r.name.toLowerCase().includes("redis")
+                                  ? "redis"
+                                  : "";
+                                destination = providerSlug ? `/examdumps/${providerSlug}` : "/examdumps";
+                              } else {
+                                destination = "/resources";
+                              }
+
+                              return (
+                                <Button
+                                  asChild
+                                  size="sm"
+                                  className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
+                                >
+                                  <Link to={destination}>
+                                    Access
+                                  </Link>
+                                </Button>
+                              );
+                            })()}
+
 
                             {/* Three-dot menu for Share & Remove */}
                             <DropdownMenu>
