@@ -223,10 +223,18 @@ export async function listMyResources(): Promise<MyResource[]> {
 
   // Reconcile purchases from invoices (e.g. store checkout, exam dumps purchases)
   try {
-    const { data: invData } = await supabase
-      .from("invoices")
-      .select("invoice_number, kind, items, created_at")
-      .order("created_at", { ascending: false });
+    const [{ data: invData }, { data: dumpsData }, { data: allResourcesData }] = await Promise.all([
+      supabase
+        .from("invoices")
+        .select("invoice_number, kind, items, created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("exam_dumps")
+        .select("id, title, provider, download_url, image_url"),
+      supabase
+        .from("resources")
+        .select("id, name, provider, access_url, image_url, resource_type"),
+    ]);
 
     if (Array.isArray(invData)) {
       const existingNames = new Set(myResources.map((r) => r.name.toLowerCase().trim()));
@@ -238,8 +246,26 @@ export async function listMyResources(): Promise<MyResource[]> {
           const name = String(rawName).trim();
           if (!name || existingNames.has(name.toLowerCase())) continue;
 
-          const provider = detectProviderFromName(name);
+          // Find exact or closest match in exam_dumps table
+          const matchedDump = (dumpsData || []).find((d) => {
+            const dt = (d.title || "").toLowerCase().trim();
+            const nt = name.toLowerCase().trim();
+            return dt === nt || dt.includes(nt) || nt.includes(dt);
+          });
+
+          // Find match in resources table
+          const matchedResource = !matchedDump
+            ? (allResourcesData || []).find((r) => {
+                const rt = (r.name || "").toLowerCase().trim();
+                const nt = name.toLowerCase().trim();
+                return rt === nt || rt.includes(nt) || nt.includes(rt);
+              })
+            : null;
+
+          const provider = matchedDump?.provider || matchedResource?.provider || detectProviderFromName(name);
           const isDumpOrGuide =
+            Boolean(matchedDump) ||
+            Boolean(matchedResource) ||
             name.toLowerCase().includes("dump") ||
             name.toLowerCase().includes("exam") ||
             name.toLowerCase().includes("certification") ||
@@ -248,16 +274,24 @@ export async function listMyResources(): Promise<MyResource[]> {
 
           if (isDumpOrGuide) {
             existingNames.add(name.toLowerCase());
+
+            const accessUrl =
+              matchedDump?.download_url ||
+              matchedResource?.access_url ||
+              detectAccessUrlFromName(name, provider);
+
+            const resourceId = matchedDump?.id || matchedResource?.id || `inv_${inv.invoice_number}`;
+
             myResources.push({
-              id: `inv_${inv.invoice_number}_${name}`,
-              resourceId: `inv_${inv.invoice_number}`,
-              name: name,
+              id: `inv_${inv.invoice_number}_${resourceId}`,
+              resourceId: resourceId,
+              name: matchedDump?.title || matchedResource?.name || name,
               description: "Purchased Material",
-              imageUrl: provider ? `/logos/${provider}.svg` : "",
-              accessUrl: detectAccessUrlFromName(name, provider),
+              imageUrl: matchedDump?.image_url || matchedResource?.image_url || (provider ? `/logos/${provider}.svg` : ""),
+              accessUrl: accessUrl,
               provider: provider,
-              category: name.toLowerCase().includes("dump") ? "Exam Dumps" : "Exam Guide",
-              resourceType: "link",
+              category: name.toLowerCase().includes("dump") || matchedDump ? "Exam Dumps" : "Exam Guide",
+              resourceType: "file",
               accessedAt: inv.created_at || new Date().toISOString(),
             });
           }
@@ -267,6 +301,7 @@ export async function listMyResources(): Promise<MyResource[]> {
   } catch (invErr) {
     console.warn("Could not reconcile invoices into My Resources:", invErr);
   }
+
 
   return myResources;
 }

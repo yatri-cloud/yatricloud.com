@@ -272,9 +272,9 @@ export default function MyResources() {
                           <div className="flex items-center gap-2 shrink-0">
                             {(() => {
                               let destination = "";
-                              if (r.resourceType === "file" || (r.accessUrl?.startsWith("http") && !r.accessUrl?.includes("/examdumps/"))) {
+                              if (r.resourceType === "file" || r.accessUrl?.startsWith("http")) {
                                 // PDF / document files -> secure in-browser viewer
-                                destination = `/resources/view?id=${r.resourceId}`;
+                                destination = `/resources/view?id=${encodeURIComponent(r.resourceId || r.id)}`;
                               } else if (r.accessUrl?.startsWith("/")) {
                                 destination = r.accessUrl;
                               } else if (isDump(r)) {

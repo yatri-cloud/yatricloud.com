@@ -107,7 +107,14 @@ export default function SecurePdfViewer() {
 
     listMyResources()
       .then((myResources) => {
-        const owned = myResources.find((r) => r.resourceId === resourceId);
+        const owned = myResources.find(
+          (r) =>
+            r.resourceId === resourceId ||
+            r.id === resourceId ||
+            encodeURIComponent(r.resourceId) === resourceId ||
+            encodeURIComponent(r.id) === resourceId
+        );
+
         if (!owned) {
           setError("You do not have access to this resource.");
           setLoading(false);
@@ -122,8 +129,19 @@ export default function SecurePdfViewer() {
         }
 
         setResourceName(owned.name);
-        // Hide Chrome's native PDF toolbar (download / print buttons)
-        setPdfUrl(`${url}#toolbar=0&navpanes=0&statusbar=0&view=FitH&zoom=page-width`);
+
+        const isDirectPdf =
+          url.toLowerCase().includes(".pdf") ||
+          url.includes("supabase.co/storage") ||
+          url.includes("/storage/v1/object");
+
+        if (isDirectPdf) {
+          const sep = url.includes("#") ? "&" : "#";
+          setPdfUrl(`${url}${sep}toolbar=0&navpanes=0&statusbar=0&view=FitH&zoom=page-width`);
+        } else {
+          setPdfUrl(url);
+        }
+
         setLoading(false);
       })
       .catch(() => {
@@ -131,6 +149,7 @@ export default function SecurePdfViewer() {
         setLoading(false);
       });
   }, [resourceId]);
+
 
   /* ── Block Ctrl/Cmd+S/P/C/A/U ───────────────────────────── */
   useEffect(() => {
