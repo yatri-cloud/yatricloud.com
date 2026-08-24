@@ -160,11 +160,29 @@ export async function unlockResource(
 // My Resources (authenticated user)
 // ─────────────────────────────────────────────────────────────
 
+function detectProviderFromName(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes("snow") || n.includes("snowflake")) return "snowflake";
+  if (n.includes("aws") || n.includes("amazon")) return "aws";
+  if (n.includes("azure") || n.includes("microsoft")) return "azure";
+  if (n.includes("gcp") || n.includes("google")) return "gcp";
+  if (n.includes("redis")) return "redis";
+  if (n.includes("oracle") || n.includes("oci")) return "oracle";
+  if (n.includes("cisco")) return "cisco";
+  if (n.includes("salesforce")) return "salesforce";
+  if (n.includes("kubernetes") || n.includes("ckad") || n.includes("cka")) return "kubernetes";
+  return "";
+}
+
+function detectAccessUrlFromName(name: string, provider: string): string {
+  const n = name.toLowerCase();
+  if (n.includes("redis")) return "/examdumps/practice/redis-certified-developer";
+  if (provider) return `/examdumps/${provider}`;
+  return "/examdumps";
+}
+
 export async function listMyResources(): Promise<MyResource[]> {
   // Resolve the current user's UUID from the live Supabase session.
-  // This is critical: the admin RLS policy (user_resources_admin_all) lets admins
-  // read ALL rows, so without an explicit user_id filter the admin would see
-  // every user's resources. We always scope to the authenticated user's own rows.
   const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) return [];
 
@@ -182,13 +200,12 @@ export async function listMyResources(): Promise<MyResource[]> {
     .eq("user_id", authUser.id)
     .order("accessed_at", { ascending: false });
 
-  if (error || !data) {
-    console.error("❌ listMyResources failed:", error?.message);
-    return [];
+  if (error) {
+    console.error("❌ listMyResources user_resources query failed:", error.message);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return data.map((row: any) => {
+  const myResources: MyResource[] = (data || []).map((row: any) => {
     const r = row.resources ?? {};
     return {
       id: row.id,
@@ -203,7 +220,57 @@ export async function listMyResources(): Promise<MyResource[]> {
       accessedAt: row.accessed_at ?? "",
     };
   });
+
+  // Reconcile purchases from invoices (e.g. store checkout, exam dumps purchases)
+  try {
+    const { data: invData } = await supabase
+      .from("invoices")
+      .select("invoice_number, kind, items, created_at")
+      .order("created_at", { ascending: false });
+
+    if (Array.isArray(invData)) {
+      const existingNames = new Set(myResources.map((r) => r.name.toLowerCase().trim()));
+
+      for (const inv of invData) {
+        const items = Array.isArray(inv.items) ? inv.items : [];
+        for (const item of items) {
+          const rawName = typeof item === "string" ? item : (item?.name || item?.title || "");
+          const name = String(rawName).trim();
+          if (!name || existingNames.has(name.toLowerCase())) continue;
+
+          const provider = detectProviderFromName(name);
+          const isDumpOrGuide =
+            name.toLowerCase().includes("dump") ||
+            name.toLowerCase().includes("exam") ||
+            name.toLowerCase().includes("certification") ||
+            name.toLowerCase().includes("guide") ||
+            inv.kind === "store";
+
+          if (isDumpOrGuide) {
+            existingNames.add(name.toLowerCase());
+            myResources.push({
+              id: `inv_${inv.invoice_number}_${name}`,
+              resourceId: `inv_${inv.invoice_number}`,
+              name: name,
+              description: "Purchased Material",
+              imageUrl: provider ? `/logos/${provider}.svg` : "",
+              accessUrl: detectAccessUrlFromName(name, provider),
+              provider: provider,
+              category: name.toLowerCase().includes("dump") ? "Exam Dumps" : "Exam Guide",
+              resourceType: "link",
+              accessedAt: inv.created_at || new Date().toISOString(),
+            });
+          }
+        }
+      }
+    }
+  } catch (invErr) {
+    console.warn("Could not reconcile invoices into My Resources:", invErr);
+  }
+
+  return myResources;
 }
+
 
 
 // ─────────────────────────────────────────────────────────────
