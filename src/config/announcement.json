@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "badge": "Maintenance",
+  "badge": "",
   "message": "Scheduled maintenance in progress. Services may experience brief delays.",
   "linkText": "Facing issues? Create Support Ticket →",
   "linkHref": "/support"
