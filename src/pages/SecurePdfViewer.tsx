@@ -249,37 +249,79 @@ export default function SecurePdfViewer() {
             </div>
           )}
 
-          {/* PDF */}
+          {/* Content Area */}
           {!loading && !error && pdfUrl && (
-            <div
-              className="absolute inset-0"
-              onContextMenu={suppressCtxMenu}
-            >
-              {/*
-               * Pointer-events overlay:
-               * - Intercepts right-click before it reaches the iframe.
-               * - pointer-events: none lets normal scroll/clicks through to PDF.
-               * Switch to `pointer-events: all` to fully block all interaction
-               * (trades usability for stronger copy protection).
-               */}
-              <div
-                className="absolute inset-0 z-10"
-                style={{ pointerEvents: "none" }}
-                aria-hidden="true"
-                onContextMenu={suppressCtxMenu}
-              />
+            (() => {
+              const isJioCloud = pdfUrl.includes("jioaicloud.com");
 
-              <iframe
-                ref={iframeRef}
-                key={pdfUrl}
-                src={pdfUrl}
-                title={resourceName}
-                className="absolute inset-0 w-full h-full border-0 bg-muted"
-                allow="fullscreen; autoplay; clipboard-write; encrypted-media; picture-in-picture"
-                referrerPolicy="strict-origin-when-cross-origin"
-                onContextMenu={suppressCtxMenu}
-              />
-            </div>
+              if (isJioCloud) {
+                return (
+                  <div className="absolute inset-0 flex items-center justify-center p-4 bg-muted/20">
+                    <div className="w-full max-w-lg p-8 rounded-2xl bg-card border border-border/80 shadow-lg text-center space-y-6">
+                      <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                        <ShieldCheck className="w-8 h-8" />
+                      </div>
+                      <div className="space-y-2">
+                        <h2 className="text-xl font-bold font-display text-foreground">
+                          {resourceName}
+                        </h2>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          Your verified exam materials are ready. Because JioAICloud enforces strict browser cross-origin policies for large documents, click below to view your materials.
+                        </p>
+                      </div>
+                      <div className="pt-2 flex flex-col gap-3">
+                        <Button
+                          asChild
+                          size="lg"
+                          className="w-full rounded-xl font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600 h-12 text-sm"
+                        >
+                          <a
+                            href={pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Open Document on JioAICloud
+                          </a>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate("/my-resources")}
+                          className="rounded-xl text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          Back to My Learning Materials
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  className="absolute inset-0"
+                  onContextMenu={suppressCtxMenu}
+                >
+                  <div
+                    className="absolute inset-0 z-10"
+                    style={{ pointerEvents: "none" }}
+                    aria-hidden="true"
+                    onContextMenu={suppressCtxMenu}
+                  />
+
+                  <iframe
+                    ref={iframeRef}
+                    key={pdfUrl}
+                    src={pdfUrl}
+                    title={resourceName}
+                    className="absolute inset-0 w-full h-full border-0 bg-muted"
+                    allow="fullscreen; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    onContextMenu={suppressCtxMenu}
+                  />
+                </div>
+              );
+            })()
           )}
         </div>
       </main>
