@@ -213,7 +213,7 @@ export default function MyResources() {
                   : "bg-card text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground"
               }`}
             >
-              Study Guides ({resourceCount})
+              Exam Guide ({resourceCount})
             </button>
           </div>
 
