@@ -161,6 +161,13 @@ export async function unlockResource(
 // ─────────────────────────────────────────────────────────────
 
 export async function listMyResources(): Promise<MyResource[]> {
+  // Resolve the current user's UUID from the live Supabase session.
+  // This is critical: the admin RLS policy (user_resources_admin_all) lets admins
+  // read ALL rows, so without an explicit user_id filter the admin would see
+  // every user's resources. We always scope to the authenticated user's own rows.
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  if (!authUser) return [];
+
   const { data, error } = await supabase
     .from("user_resources")
     .select(`
@@ -172,6 +179,7 @@ export async function listMyResources(): Promise<MyResource[]> {
         provider, category, resource_type
       )
     `)
+    .eq("user_id", authUser.id)
     .order("accessed_at", { ascending: false });
 
   if (error || !data) {
@@ -196,6 +204,7 @@ export async function listMyResources(): Promise<MyResource[]> {
     };
   });
 }
+
 
 // ─────────────────────────────────────────────────────────────
 // Admin CRUD
