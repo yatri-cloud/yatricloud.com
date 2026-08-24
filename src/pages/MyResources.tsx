@@ -271,11 +271,26 @@ export default function MyResources() {
                           {/* Action Button & Three-dot menu */}
                           <div className="flex items-center gap-2 shrink-0">
                             {(() => {
+                              if (r.accessUrl?.startsWith("http")) {
+                                return (
+                                  <Button
+                                    asChild
+                                    size="sm"
+                                    className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
+                                  >
+                                    <a
+                                      href={r.accessUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      Access
+                                    </a>
+                                  </Button>
+                                );
+                              }
+
                               let destination = "";
-                              if (r.resourceType === "file" || r.accessUrl?.startsWith("http")) {
-                                // PDF / document files -> secure in-browser viewer
-                                destination = `/resources/view?id=${encodeURIComponent(r.resourceId || r.id)}`;
-                              } else if (r.accessUrl?.startsWith("/")) {
+                              if (r.accessUrl?.startsWith("/")) {
                                 destination = r.accessUrl;
                               } else if (isDump(r)) {
                                 const providerSlug = r.provider

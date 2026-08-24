@@ -130,6 +130,12 @@ export default function SecurePdfViewer() {
 
         setResourceName(owned.name);
 
+        if (url.includes("jioaicloud.com")) {
+          // Immediately redirect directly to the document without showing intermediate page
+          window.location.replace(url);
+          return;
+        }
+
         const isDirectPdf =
           url.toLowerCase().includes(".pdf") ||
           url.includes("supabase.co/storage") ||
