@@ -4,7 +4,7 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { AlertCircle, Loader2, Globe, Laptop, Smartphone, ExternalLink } from "lucide-react";
-import { getAnalyticsSummary, AnalyticsSummary } from "@/lib/analytics";
+import { getAnalyticsSummary, isAutomatedOrNoiseQuery, AnalyticsSummary } from "@/lib/analytics";
 import { fetchVercelAnalytics, VercelWebAnalyticsData } from "@/lib/vercel-analytics-api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -393,21 +393,39 @@ export default function AdminAnalytics() {
             <CardDescription>What users are searching for in real-time</CardDescription>
           </CardHeader>
           <CardContent className="pb-4">
-            {(data?.topSearches?.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">No search queries tracked yet.</p>
-            ) : (
-              <div className="space-y-2 mt-2">
-                {data!.topSearches.map((s, i) => (
-                  <div key={s.query} className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs text-muted-foreground w-4 shrink-0 font-medium">{i + 1}.</span>
-                      <span className="text-sm font-medium truncate">{s.query}</span>
+            {(() => {
+              const cleanSearches = (data?.topSearches || []).filter(
+                (s) => !isAutomatedOrNoiseQuery(s.query)
+              );
+
+              if (cleanSearches.length === 0) {
+                return (
+                  <p className="text-sm text-muted-foreground py-8 text-center">
+                    No organic search queries tracked yet.
+                  </p>
+                );
+              }
+
+              return (
+                <div className="space-y-2 mt-2">
+                  {cleanSearches.slice(0, 10).map((s, i) => (
+                    <div key={s.query} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xs text-muted-foreground w-4 shrink-0 font-medium">
+                          {i + 1}.
+                        </span>
+                        <span className="text-sm font-medium truncate capitalize">
+                          {s.query}
+                        </span>
+                      </div>
+                      <Badge variant="secondary" className="shrink-0">
+                        {s.count}
+                      </Badge>
                     </div>
-                    <Badge variant="secondary" className="shrink-0">{s.count}</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>

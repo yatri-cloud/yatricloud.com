@@ -86,11 +86,37 @@ export function trackPageView(pathname: string, title?: string) {
   });
 }
 
+export function isAutomatedOrNoiseQuery(query: string): boolean {
+  if (!query) return true;
+  const q = query.toLowerCase().trim();
+  if (q.length < 2 || q.length > 80) return true;
+
+  // Filter automated test queries, throwaway strings, random tokens, and timestamps
+  if (
+    q.includes("e2e") ||
+    q.includes("throwaway") ||
+    q.includes("voucher 178") ||
+    q.includes("test-") ||
+    q.includes("temp_") ||
+    q.includes("cypress") ||
+    q.includes("playwright") ||
+    q.includes("puppeteer") ||
+    q.includes("selenium") ||
+    /^[0-9a-f-]{16,}$/i.test(q) ||
+    /^\d{10,}/.test(q) ||
+    /\b\d{10,}\b/.test(q)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * Track a search query — call this when a user submits a search.
  */
 export function trackSearch(query: string, category: EventCategory = "System", resultCount?: number) {
-  if (!query?.trim()) return;
+  if (!query?.trim() || isAutomatedOrNoiseQuery(query)) return;
   trackEvent("search", category, undefined, {
     query: query.trim().toLowerCase(),
     result_count: resultCount,
@@ -196,9 +222,11 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
         const page = ev.metadata?.page || "unknown";
         pageCounts[page] = (pageCounts[page] || 0) + 1;
       } else if (ev.event_name === "search") {
-        totalSearches++;
-        const q = ev.metadata?.query;
-        if (q) searchCounts[q] = (searchCounts[q] || 0) + 1;
+        const q = ev.metadata?.query ? String(ev.metadata.query).trim().toLowerCase() : "";
+        if (q && !isAutomatedOrNoiseQuery(q)) {
+          totalSearches++;
+          searchCounts[q] = (searchCounts[q] || 0) + 1;
+        }
       } else if (ev.event_name === "enroll") {
         totalEnrollments++;
         if (dateMap[ds]) dateMap[ds].other++;
