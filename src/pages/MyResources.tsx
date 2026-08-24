@@ -272,6 +272,7 @@ export default function MyResources() {
                           {/* Action Button & Three-dot menu */}
                           <div className="flex items-center gap-2 shrink-0">
                             {isDump(r) ? (
+                              /* Exam dumps → interactive practice simulator */
                               <Button
                                 asChild
                                 size="sm"
@@ -281,20 +282,19 @@ export default function MyResources() {
                                   Access
                                 </Link>
                               </Button>
-                            ) : r.accessUrl?.startsWith("http") ? (
-                              <a
-                                href={r.accessUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            ) : r.resourceType === "file" || r.accessUrl?.startsWith("http") ? (
+                              /* Study guides / PDF files → secure in-browser viewer (never raw URL) */
+                              <Button
+                                asChild
+                                size="sm"
+                                className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
                               >
-                                <Button
-                                  size="sm"
-                                  className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
-                                >
+                                <Link to={`/resources/view?id=${r.resourceId}`}>
                                   Access
-                                </Button>
-                              </a>
+                                </Link>
+                              </Button>
                             ) : (
+                              /* Internal app route resources */
                               <Button
                                 asChild
                                 size="sm"

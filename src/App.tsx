@@ -146,6 +146,7 @@ const AdminMentorshipOverview = lazy(() => import("./pages/admin/AdminMentorship
 const TrainerCreateCourse = lazy(() => import("@/pages/trainer/TrainerCreateCourse"));
 const Resources = lazy(() => import("./pages/Resources"));
 const MyResources = lazy(() => import("./pages/MyResources"));
+const SecurePdfViewer = lazy(() => import("./pages/SecurePdfViewer"));
 const AdminResources = lazy(() => import("./pages/admin/AdminResources"));
 const AdminAddResource = lazy(() => import("./pages/admin/AdminAddResource"));
 const AdminEditResource = lazy(() => import("./pages/admin/AdminEditResource"));
@@ -209,7 +210,7 @@ const App = () => (
             <ConfirmProvider>
             <Toaster />
             <Sonner />
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <BrowserRouter>
             <PageTracker />
             <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -308,6 +309,7 @@ const App = () => (
               <Route path="/my-resources" element={<MyResources />} />
               <Route path="/myresources" element={<MyResources />} />
               <Route path="/profile/my-resources" element={<MyResources />} />
+              <Route path="/resources/view" element={<SecurePdfViewer />} />
               <Route path="/my-purchases" element={<MyPurchases />} />
               <Route path="/mypurchases" element={<MyPurchases />} />
               <Route path="/profile/purchases" element={<MyPurchases />} />
