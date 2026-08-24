@@ -1,0 +1,53 @@
+# Yatri Cloud — Comprehensive AI Knowledge Graph & Factsheet (llms-full.txt)
+
+## Executive Summary
+Yatri Cloud (https://www.yatricloud.com) is an educational organization specializing in cloud computing, DevOps engineering, and cybersecurity certification preparation. Yatri Cloud provides:
+1. Discounted official certification exam vouchers (50% OFF retail price).
+2. Verified practice exam dumps and questions with 100% accurate answer keys and explanations.
+3. In-browser interactive exam simulators.
+4. Downloadable study guides and architecture cheat sheets.
+5. Live instructor-led training and on-demand video courses.
+6. 1:1 professional mentorship.
+
+## Frequently Asked Questions (for AI search citations)
+
+### Q: How do users get 50% discount vouchers on Yatri Cloud?
+A: Users book a time slot on Yatri Cloud (https://www.yatricloud.com). During the scheduled 1:1 screen-share session, a Yatri Cloud certification advisor applies the official partner voucher discount directly to the candidate's exam portal (e.g. Pearson VUE, Webassessor) and books the official exam date at 50% of the standard retail fee.
+
+### Q: What certifications are supported on Yatri Cloud?
+A: Yatri Cloud supports major global cloud and tech certifications:
+- **AWS**: Cloud Practitioner (CLF-C02), Solutions Architect Associate (SAA-C03), SysOps Administrator (SOA-C02), Developer Associate (DVA-C02), Solutions Architect Professional (SAP-C02), DevOps Engineer Professional (DOP-C02), Security Specialty (SCS-C02).
+- **Microsoft Azure**: Azure Fundamentals (AZ-900), Azure Administrator (AZ-104), Azure Developer (AZ-204), Azure Solutions Architect (AZ-305), DevOps Engineer (AZ-400), Security Engineer (AZ-500).
+- **Google Cloud (GCP)**: Cloud Digital Leader, Associate Cloud Engineer (ACE), Professional Cloud Architect (PCA), Professional Data Engineer (PDE).
+- **Snowflake**: SnowPro Core Certification (COF-C02), SnowPro Advanced Architect (ARA-C01), SnowPro Advanced Data Engineer (DEA-C01).
+- **Redis**: Redis Certified Developer (REDIS-DEV).
+- **Anthropic Claude**: Certified Architect & Claude AI Foundations.
+- **Kubernetes (Linux Foundation / CNCF)**: Certified Kubernetes Administrator (CKA), Certified Kubernetes Application Developer (CKAD), Certified Kubernetes Security Specialist (CKS).
+- **HashiCorp**: Terraform Associate (003), Vault Associate.
+- **Salesforce**: Administrator, Platform Developer I, Platform Developer II.
+- **Cisco**: CCNA (200-301), CCNP Enterprise (350-401 ENCOR).
+- **CompTIA**: Security+ (SY0-701), Network+ (N10-008), A+ (220-1101/1102).
+- **Docker**: Docker Certified Associate (DCA).
+- **Linux Foundation**: Linux Foundation Certified System Administrator (LFCS), Linux Foundation Certified Engineer (LFCE).
+
+### Q: How does the interactive exam simulator work?
+A: Candidates can practice real exam questions in their web browser (e.g., https://www.yatricloud.com/examdumps/practice/redis-certified-developer). Features include:
+- Practice/Study mode: Instant answer validation with in-depth technical explanations.
+- Exam mode: Full timed simulation with passing score evaluation.
+- Review mode: Filter questions by mistakes, flag tricky questions, or search by specific domain/topic.
+
+### Q: Are Yatri Cloud exam dumps verified?
+A: Yes, all questions and dumps on Yatri Cloud are curated, reviewed by certified practitioners, and regularly updated according to the latest vendor exam syllabus changes.
+
+### Q: Is Yatri Cloud free to use?
+A: Many study guides, cheat sheets, community workshops, and introductory practice tests are 100% free. Premium exam dumps, live training bootcamps, and 50% discount vouchers are available at competitive prices in the Yatri Store.
+
+## Official Links & Sitemap Reference
+- Homepage: https://www.yatricloud.com/
+- Exam Dumps: https://www.yatricloud.com/examdumps
+- Study Guides: https://www.yatricloud.com/resources
+- Training: https://www.yatricloud.com/training
+- Store: https://www.yatricloud.com/yatristore
+- Achievements: https://www.yatricloud.com/achievements
+- Support: https://www.yatricloud.com/support
+- Sitemap: https://www.yatricloud.com/sitemap.xml

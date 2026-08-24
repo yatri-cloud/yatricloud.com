@@ -1,4 +1,5 @@
 # robots.txt for yatricloud.com
+# Enables Google Search, Bing, and AI Search crawlers (ChatGPT, Claude, Gemini, Perplexity)
 
 User-agent: *
 Allow: /
@@ -12,5 +13,60 @@ Disallow: /manage-certifications
 Disallow: /profile
 Disallow: /api/
 
-# Sitemap index (references the page, blog, and course sitemaps)
+# ── AI & LLM Search Crawlers (Explicitly Allowed for GEO) ──
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /api/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /api/
+
+User-agent: Amazonbot
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /api/
+
+User-agent: cohere-ai
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /api/
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /api/
+
+# AI knowledge base files
+# https://llmstxt.org/
+# https://www.yatricloud.com/llms.txt
+# https://www.yatricloud.com/llms-full.txt
+
+# Sitemap indexes
+Sitemap: https://www.yatricloud.com/sitemap.xml
 Sitemap: https://www.yatricloud.com/sitemap-index.xml

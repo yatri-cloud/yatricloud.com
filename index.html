@@ -154,22 +154,96 @@
     }
   </style>
 
-  <!-- Structured Data (JSON-LD) -->
+  <!-- Structured Data (JSON-LD Graph for Google & AI Search Ranking) -->
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "Yatri Cloud",
-      "url": "https://www.yatricloud.com",
-      "logo": "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png",
-      "description": "Free cloud certification practice tests, verified exam dumps, training and 50% OFF exam vouchers for AWS, Azure, GCP, Kubernetes, DevOps and Terraform.",
-      "sameAs": [
-        "https://www.youtube.com/@yatricloud",
-        "https://linkedin.com/company/yatricloud",
-        "https://linktr.ee/yatricloud"
+      "@graph": [
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://www.yatricloud.com/#organization",
+          "name": "Yatri Cloud",
+          "url": "https://www.yatricloud.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png",
+            "caption": "Yatri Cloud"
+          },
+          "image": "https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png",
+          "description": "Premier cloud certification hub offering 50% discount vouchers, verified practice dumps, interactive exam simulators, and study guides for AWS, Azure, GCP, Snowflake, Redis, Anthropic Claude, and Kubernetes.",
+          "email": "info@yatricloud.com",
+          "sameAs": [
+            "https://www.youtube.com/@yatricloud",
+            "https://linkedin.com/company/yatricloud",
+            "https://linktr.ee/yatricloud",
+            "https://t.me/yatricloud"
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "52000",
+            "bestRating": "5",
+            "worstRating": "1"
+          },
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "INR",
+            "lowPrice": "0",
+            "highPrice": "4999",
+            "offerCount": "150"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.yatricloud.com/#website",
+          "url": "https://www.yatricloud.com",
+          "name": "Yatri Cloud",
+          "description": "50% OFF Cloud Certification Vouchers & Verified Practice Dumps",
+          "publisher": {
+            "@id": "https://www.yatricloud.com/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://www.yatricloud.com/resources?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://www.yatricloud.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "How do I get 50% OFF on cloud certification vouchers?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Select your desired certification exam on Yatri Cloud and book a 1:1 scheduling session. A certification specialist will apply the partner discount and schedule your official exam slot at 50% of the standard exam fee."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which cloud certification exam vouchers are available?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yatri Cloud provides discounted vouchers for AWS (Solutions Architect, Developer, Cloud Practitioner, DevOps), Microsoft Azure (AZ-900, AZ-104, AZ-204, AZ-305), Google Cloud (GCP ACE, PCA), Snowflake (COF-C02), Kubernetes (CKA, CKAD), and Redis."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Are the practice exam dumps and simulators verified?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, all question banks on Yatri Cloud are verified by certified cloud architects, continuously updated for syllabus revisions, and include detailed explanations for every question."
+              }
+            }
+          ]
+        }
       ]
     }
-    </script>
+  </script>
 </head>
 
 <body>

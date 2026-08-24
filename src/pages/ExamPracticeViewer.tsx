@@ -13,7 +13,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { SEO } from "@/components/SEO";
+import { SEO, buildQuizSchema } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -256,8 +256,18 @@ export default function ExamPracticeViewer() {
   return (
     <div className="min-h-screen bg-background text-foreground select-none pb-24">
       <SEO
-        title={`${examData.title} Practice Questions | Yatri Cloud`}
-        description={`Interactive practice questions and exam dumps for ${examData.title}.`}
+        title={`${examData.title} Practice Questions & Simulator | Yatri Cloud`}
+        description={`Interactive practice questions and mock exam simulator for ${examData.title}. Real questions, instant answer keys, and comprehensive explanations.`}
+        breadcrumbs={[
+          { name: "Home", url: "/" },
+          { name: "Exam Dumps", url: "/examdumps" },
+          { name: examData.title, url: `/examdumps/practice/${slug || "redis"}` },
+        ]}
+        jsonLd={buildQuizSchema(
+          examData.title,
+          `Practice questions for ${examData.title} certification with instant validation.`,
+          examData.totalQuestions
+        )}
       />
 
       <Navbar />

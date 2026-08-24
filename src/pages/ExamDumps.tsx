@@ -146,6 +146,23 @@ const ExamDumps = () => {
           title={pageTitle}
           description={pageDescription}
           canonical={canonicalUrl}
+          breadcrumbs={[
+            { name: "Home", url: "/" },
+            { name: "Exam Dumps", url: "/examdumps" },
+            ...(isProviderSpecific && activeProviderMeta
+              ? [{ name: activeProviderMeta.name, url: `/examdumps/${activeProviderMeta.slug}` }]
+              : []),
+          ]}
+          faqs={[
+            {
+              question: `What are ${isProviderSpecific && activeProviderMeta ? activeProviderMeta.name : "Cloud"} Exam Dumps?`,
+              answer: "Verified exam practice questions curated by certified architects with real exam scenarios, verified answer keys, and technical explanations."
+            },
+            {
+              question: "How frequently are the exam questions updated?",
+              answer: "Our question bank is reviewed weekly to align with the latest vendor syllabus updates."
+            }
+          ]}
           jsonLd={
             dumps.length > 0
               ? {

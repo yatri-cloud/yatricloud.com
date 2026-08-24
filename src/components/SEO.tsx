@@ -6,7 +6,17 @@ const SITE_NAME = 'Yatri Cloud';
 const DEFAULT_IMAGE =
   'https://raw.githubusercontent.com/yatricloud/yatri-images/refs/heads/main/Logo/yatricloud-round-transparent.png';
 
-interface SEOProps {
+export interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+export interface SEOProps {
   title?: string;
   description?: string;
   image?: string;
@@ -14,21 +24,93 @@ interface SEOProps {
   url?: string;
   canonical?: string;
   noindex?: boolean;
+  breadcrumbs?: BreadcrumbItem[];
+  faqs?: FAQItem[];
   jsonLd?: object | object[];
+}
+
+export function buildBreadcrumbSchema(items: BreadcrumbItem[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url.startsWith('http') ? item.url : `${SITE_URL}${item.url}`,
+    })),
+  };
+}
+
+export function buildFAQSchema(faqs: FAQItem[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+}
+
+export function buildQuizSchema(title: string, description: string, questionsCount: number) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Quiz',
+    name: title,
+    description: description,
+    educationalLevel: 'Professional',
+    about: {
+      '@type': 'Thing',
+      name: 'Cloud Computing Certification Exam',
+    },
+    hasPart: {
+      '@type': 'Question',
+      name: `Practice Questions (${questionsCount} total questions with explanations)`,
+    },
+  };
+}
+
+export function buildCourseSchema(name: string, description: string, provider: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: name,
+    description: description,
+    provider: {
+      '@type': 'EducationalOrganization',
+      name: 'Yatri Cloud',
+      sameAs: SITE_URL,
+    },
+    educationalCredentialAwarded: `${provider} Certification`,
+  };
 }
 
 // Sitewide structured data, rendered once and kept in <head> for every route.
 const SITE_JSON_LD = [
   {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': 'EducationalOrganization',
     name: SITE_NAME,
     url: SITE_URL,
     logo: DEFAULT_IMAGE,
     sameAs: [
       'https://www.youtube.com/@yatricloud',
       'https://linkedin.com/company/yatricloud',
+      'https://linktr.ee/yatricloud',
+      'https://t.me/yatricloud',
     ],
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.9',
+      reviewCount: '52000',
+      bestRating: '5',
+      worstRating: '1',
+    },
   },
   {
     '@context': 'https://schema.org',
@@ -46,11 +128,26 @@ export const SEO = ({
   url,
   canonical,
   noindex = false,
+  breadcrumbs,
+  faqs,
   jsonLd,
 }: SEOProps) => {
   const location = useLocation();
   const currentUrl = canonical || url || `${SITE_URL}${location.pathname}`;
-  const jsonLdString = jsonLd ? JSON.stringify(jsonLd) : '';
+
+  const schemas: object[] = [];
+  if (breadcrumbs && breadcrumbs.length > 0) {
+    schemas.push(buildBreadcrumbSchema(breadcrumbs));
+  }
+  if (faqs && faqs.length > 0) {
+    schemas.push(buildFAQSchema(faqs));
+  }
+  if (jsonLd) {
+    if (Array.isArray(jsonLd)) schemas.push(...jsonLd);
+    else schemas.push(jsonLd);
+  }
+
+  const jsonLdString = schemas.length > 0 ? JSON.stringify(schemas.length === 1 ? schemas[0] : schemas) : '';
 
   useEffect(() => {
     // Update document title

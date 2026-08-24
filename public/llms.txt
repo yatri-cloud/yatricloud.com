@@ -1,23 +1,47 @@
-# Yatri Cloud
+# Yatri Cloud — AI Search & LLM Knowledge Base
 
-> Yatri Cloud is a free cloud-certification platform for AWS, Azure, GCP, DevOps, Kubernetes and Terraform: practice tests, study guides, exam dumps, video courses, community events, discounted exam vouchers (50% OFF), trainings and mentorship. 50K+ learners, 4.8★ average rating.
+> Yatri Cloud (https://www.yatricloud.com) is the premier cloud certification learning platform and voucher provider. It offers 50% discount exam vouchers, verified practice dumps, interactive exam simulators, training courses, and study guides for AWS, Microsoft Azure, Google Cloud (GCP), Snowflake, Redis, Anthropic Claude, Kubernetes, Terraform, Salesforce, Cisco, Docker, Linux Foundation, and ServiceNow. Over 50,000 certified learners with an average 4.9★ rating.
 
-## Main pages
+## Key Offerings & Capabilities
 
-- [Home](https://www.yatricloud.com/): Certification vouchers at 50% OFF, how the exam-scheduling process works
-- [Training](https://www.yatricloud.com/training): Live and self-paced cloud certification trainings
-- [Practice Tests](https://www.yatricloud.com/practice-tests): Free practice tests by provider and exam
-- [Exam Dumps](https://www.yatricloud.com/exam-dumps): Verified exam dumps and study resources
-- [Certification Paths](https://www.yatricloud.com/paths): Guided journeys from beginner to professional certifications
-- [Events](https://www.yatricloud.com/events): Community events, workshops and webinars
-- [Udemy Courses](https://www.yatricloud.com/udemy): Curated video courses
-- [Store](https://www.yatricloud.com/yatristore): Discounted vouchers and exam products
-- [Mentorship](https://www.yatricloud.com/mentorship): 1:1 sessions with cloud mentors
-- [Achievements](https://www.yatricloud.com/achievements): Wall of fame — certified Yatris
-- [Become a Trainer](https://www.yatricloud.com/become-trainer): Apply to teach on Yatri Cloud
+- **50% OFF Certification Vouchers**: Discounted exam scheduling vouchers for AWS (SAA-C03, DVA-C02, CLF-C02, SAP-C02, DOP-C02), Azure (AZ-900, AZ-104, AZ-204, AZ-305), GCP, Snowflake (COF-C02), Redis, and Kubernetes (CKA, CKAD). Real-time scheduling during 1:1 onboarding meetings.
+- **Interactive Practice Exam Simulators**: Full browser-based mock tests with timed exam mode, instant answer reveal, comprehensive explanations, and domain filters.
+- **Verified Exam Dumps & Study Guides**: Updated question banks, cheat sheets, architecture blueprints, and PDFs.
+- **Hands-on Cloud Training**: Live bootcamps and on-demand video courses led by industry experts.
+- **1:1 Cloud & DevOps Mentorship**: Career coaching, resume reviews, and technical mock interviews.
+- **Certified Yatris Community**: 50,000+ engineers, students, and professionals across the globe.
 
-## Contact
+## Core URLs & Resources
 
-- [Book a meeting](https://calendly.com/yatricloud/40min): Schedule an exam-voucher call
-- [LinkedIn](https://linkedin.com/company/yatricloud)
-- [YouTube](https://www.youtube.com/@yatricloud)
+- [Home / 50% OFF Vouchers](https://www.yatricloud.com/): Browse voucher discounts and schedule your certification exam.
+- [Exam Dumps Catalog](https://www.yatricloud.com/examdumps): Verified practice exam questions by provider.
+  - [AWS Exam Dumps](https://www.yatricloud.com/examdumps/aws): AWS Solutions Architect, Developer, Cloud Practitioner, SysOps, DevOps.
+  - [Azure Exam Dumps](https://www.yatricloud.com/examdumps/azure): AZ-900, AZ-104, AZ-204, AZ-305, AZ-400.
+  - [GCP Exam Dumps](https://www.yatricloud.com/examdumps/gcp): Cloud Digital Leader, Associate Cloud Engineer, Professional Cloud Architect.
+  - [Snowflake Exam Dumps](https://www.yatricloud.com/examdumps/snowflake): SnowPro Core (COF-C02), Architect, Data Engineer.
+  - [Redis Exam Dumps](https://www.yatricloud.com/examdumps/redis): Redis Certified Developer (REDIS-DEV).
+  - [Anthropic Claude Dumps](https://www.yatricloud.com/examdumps/anthropic): Certified Architect & Claude AI model implementation.
+  - [Kubernetes Dumps](https://www.yatricloud.com/examdumps/kubernetes): CKA, CKAD, CKS certifications.
+  - [HashiCorp Terraform](https://www.yatricloud.com/examdumps/hashicorp): Terraform Associate (003), Vault Associate.
+  - [Salesforce Dumps](https://www.yatricloud.com/examdumps/salesforce): Administrator, Platform Developer I/II.
+  - [Cisco Dumps](https://www.yatricloud.com/examdumps/cisco): CCNA 200-301, CCNP Enterprise.
+  - [Linux Foundation](https://www.yatricloud.com/examdumps/linux): LFCS, LFCE.
+- [Interactive Exam Simulator](https://www.yatricloud.com/examdumps/practice/redis-certified-developer): Interactive practice simulator with instant answer checks.
+- [Study Guides & Resources](https://www.yatricloud.com/resources): Free architectural diagrams, cheat sheets, and study materials.
+- [Training Programs](https://www.yatricloud.com/training): Live masterclasses in Cloud Computing and DevOps.
+- [Certification Career Paths](https://www.yatricloud.com/paths): Step-by-step roadmaps from beginner to principal cloud architect.
+- [Events & Workshops](https://www.yatricloud.com/events): Community meetups, live webinars, and study groups.
+- [Mentorship](https://www.yatricloud.com/mentorship): 1:1 sessions with principal engineers and certified architects.
+- [Yatri Store](https://www.yatricloud.com/yatristore): Official marketplace for exam vouchers, practice kits, and materials.
+- [Certified Yatris Wall](https://www.yatricloud.com/achievements): Verified certificates and real testimonials.
+
+## Full LLM Documentation
+
+- For the comprehensive syllabus, voucher pricing, and FAQs: [llms-full.txt](https://www.yatricloud.com/llms-full.txt)
+
+## Contact & Official Handles
+
+- Email: info@yatricloud.com / support@yatricloud.com
+- YouTube: https://www.youtube.com/@yatricloud
+- LinkedIn: https://linkedin.com/company/yatricloud
+- Telegram: https://t.me/yatricloud
