@@ -162,6 +162,8 @@ export async function unlockResource(
 
 function detectProviderFromName(name: string): string {
   const n = name.toLowerCase();
+  if (n.includes("anthropic") || n.includes("claude")) return "anthropic";
+  if (n.includes("openai") || n.includes("chatgpt")) return "openai";
   if (n.includes("snow") || n.includes("snowflake")) return "snowflake";
   if (n.includes("aws") || n.includes("amazon")) return "aws";
   if (n.includes("azure") || n.includes("microsoft")) return "azure";
@@ -170,7 +172,13 @@ function detectProviderFromName(name: string): string {
   if (n.includes("oracle") || n.includes("oci")) return "oracle";
   if (n.includes("cisco")) return "cisco";
   if (n.includes("salesforce")) return "salesforce";
-  if (n.includes("kubernetes") || n.includes("ckad") || n.includes("cka")) return "kubernetes";
+  if (n.includes("github")) return "github";
+  if (n.includes("hashicorp") || n.includes("terraform") || n.includes("vault")) return "hashicorp";
+  if (n.includes("docker")) return "docker";
+  if (n.includes("linux") || n.includes("lfcs") || n.includes("lfce")) return "linux";
+  if (n.includes("comptia") || n.includes("security+") || n.includes("network+")) return "comptia";
+  if (n.includes("servicenow") || n.includes("csa") || n.includes("cad")) return "servicenow";
+  if (n.includes("kubernetes") || n.includes("ckad") || n.includes("cka") || n.includes("cks")) return "kubernetes";
   return "";
 }
 

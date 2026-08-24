@@ -89,7 +89,23 @@ export default function MyResources() {
       const meta = getProviderMeta(r.provider);
       if (meta.logoUrl) return meta.logoUrl;
     }
-    if (r.name.toLowerCase().includes("redis")) return "/logos/redis.svg";
+    const n = r.name.toLowerCase();
+    if (n.includes("anthropic") || n.includes("claude")) return "/logos/anthropic.svg";
+    if (n.includes("snow") || n.includes("snowflake")) return "/logos/snowflake.png";
+    if (n.includes("redis")) return "/logos/redis.svg";
+    if (n.includes("aws") || n.includes("amazon")) return "/logos/aws.svg";
+    if (n.includes("azure") || n.includes("microsoft")) return "/logos/azure.svg";
+    if (n.includes("gcp") || n.includes("google")) return "/logos/googlecloud.svg";
+    if (n.includes("oracle") || n.includes("oci")) return "/logos/oracle.svg";
+    if (n.includes("cisco")) return "/logos/cisco.svg";
+    if (n.includes("github")) return "/logos/github.svg";
+    if (n.includes("docker")) return "/logos/docker.svg";
+    if (n.includes("linux")) return "/logos/linux.svg";
+    if (n.includes("salesforce")) return "/logos/salesforce.svg";
+    if (n.includes("hashicorp") || n.includes("terraform")) return "/logos/terraform.svg";
+    if (n.includes("comptia")) return "/logos/comptia.svg";
+    if (n.includes("servicenow")) return "/logos/servicenow.svg";
+    if (n.includes("kubernetes")) return "/logos/kubernetes.svg";
     return null;
   };
 
