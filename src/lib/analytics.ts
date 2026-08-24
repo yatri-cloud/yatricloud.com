@@ -224,44 +224,50 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
       }));
 
     if (topResourceEntries.length > 0) {
-      const ids = topResourceEntries.map(r => r.target_id);
+      const ids = topResourceEntries.map((r) => r.target_id);
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const uuidIds = ids.filter((id) => uuidPattern.test(id));
 
-      // 1. Fetch from `resources` table (column name is `name`)
-      try {
-        const { data: resourceRows } = await supabase
-          .from("resources")
-          .select("id, name")
-          .in("id", ids);
+      if (uuidIds.length > 0) {
+        // 1. Fetch from `resources` table (column name is `name`)
+        try {
+          const { data: resourceRows } = await supabase
+            .from("resources")
+            .select("id, name")
+            .in("id", uuidIds);
 
-        if (resourceRows && resourceRows.length > 0) {
-          resourceRows.forEach((r: any) => {
-            if (r.name) metadataNameMap[r.id] = r.name;
-          });
+          if (resourceRows && resourceRows.length > 0) {
+            resourceRows.forEach((r: any) => {
+              if (r.name) metadataNameMap[r.id] = r.name;
+            });
+          }
+        } catch (err) {
+          console.warn("[Analytics] Could not query resources table:", err);
         }
-      } catch (err) {
-        console.warn("[Analytics] Could not query resources table:", err);
-      }
 
-      // 2. Fetch from `exam_dumps` table (column name is `title`)
-      try {
-        const { data: dumpRows } = await supabase
-          .from("exam_dumps")
-          .select("id, title")
-          .in("id", ids);
+        // 2. Fetch from `exam_dumps` table (column name is `title`)
+        try {
+          const { data: dumpRows } = await supabase
+            .from("exam_dumps")
+            .select("id, title")
+            .in("id", uuidIds);
 
-        if (dumpRows && dumpRows.length > 0) {
-          dumpRows.forEach((d: any) => {
-            if (d.title) metadataNameMap[d.id] = d.title;
-          });
+          if (dumpRows && dumpRows.length > 0) {
+            dumpRows.forEach((d: any) => {
+              if (d.title) metadataNameMap[d.id] = d.title;
+            });
+          }
+        } catch (err) {
+          console.warn("[Analytics] Could not query exam_dumps table:", err);
         }
-      } catch (err) {
-        console.warn("[Analytics] Could not query exam_dumps table:", err);
       }
 
       // Apply resolved names
-      topResourceEntries.forEach(r => {
+      topResourceEntries.forEach((r) => {
         if (metadataNameMap[r.target_id]) {
           r.name = metadataNameMap[r.target_id];
+        } else if (r.target_id === "redis") {
+          r.name = "Redis Certified Developer";
         }
       });
     }
