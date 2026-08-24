@@ -1,9 +1,12 @@
+import { Link } from "react-router-dom";
 import { ANNOUNCEMENT } from "@/config/announcement";
 
 export function TopBanner() {
   if (!ANNOUNCEMENT.enabled || !ANNOUNCEMENT.message) {
     return null;
   }
+
+  const isInternalLink = ANNOUNCEMENT.linkHref && ANNOUNCEMENT.linkHref.startsWith("/");
 
   return (
     <div
@@ -19,12 +22,23 @@ export function TopBanner() {
         )}
         <span className="leading-tight">{ANNOUNCEMENT.message}</span>
         {ANNOUNCEMENT.linkHref && ANNOUNCEMENT.linkText && (
-          <a
-            href={ANNOUNCEMENT.linkHref}
-            className="underline font-semibold hover:opacity-90 transition-opacity ml-1 shrink-0"
-          >
-            {ANNOUNCEMENT.linkText}
-          </a>
+          isInternalLink ? (
+            <Link
+              to={ANNOUNCEMENT.linkHref}
+              className="underline font-semibold hover:opacity-90 transition-opacity ml-1 shrink-0"
+            >
+              {ANNOUNCEMENT.linkText}
+            </Link>
+          ) : (
+            <a
+              href={ANNOUNCEMENT.linkHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-semibold hover:opacity-90 transition-opacity ml-1 shrink-0"
+            >
+              {ANNOUNCEMENT.linkText}
+            </a>
+          )
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "badge": "",
-  "message": "We are currently performing scheduled maintenance. Some services may experience temporary delays.",
-  "linkText": "",
-  "linkHref": ""
+  "message": "We are currently performing scheduled maintenance. Some services may experience temporary delays. If you face any issues, please create a support ticket.",
+  "linkText": "Create Support Ticket",
+  "linkHref": "/support"
 }
