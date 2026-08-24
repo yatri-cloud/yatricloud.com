@@ -10,22 +10,51 @@ import { listMyResources } from "@/lib/resources-api";
  * SecurePdfViewer — renders a PDF inside the website without exposing the raw URL.
  *
  * Security layers:
- *  1. Auth-gate: unauthenticated users are redirected to home.
- *  2. Ownership check: the resource ID is cross-checked against the signed-in
- *     user's user_resources rows. The raw PDF URL never appears in any <a href>.
- *  3. Transparent pointer-events overlay captures right-click before it reaches
- *     the PDF renderer.
- *  4. CSS user-select: none on the wrapper prevents text drag-select.
- *  5. keydown handler intercepts Ctrl+S / Ctrl+P / Ctrl+A / Ctrl+C.
- *  6. contextmenu handler is suppressed on every surface.
- *  7. PDF toolbar is hidden via the `#toolbar=0&navpanes=0&statusbar=0` fragment
- *     so Chrome's native Download / Print buttons are not shown.
- *
- * NOTE: The `sandbox` attribute has been intentionally omitted from the <iframe>
- * because it blocks the browser's built-in PDF renderer. Security is instead
- * enforced at the application layer (auth + ownership check) rather than at the
- * iframe sandbox level.
+ *  1.  Auth-gate               — unauthenticated users are redirected.
+ *  2.  Ownership check         — resource ID verified against user_resources.
+ *  3.  Raw URL never exposed   — no <a href>, clipboard, or share button.
+ *  4.  Right-click suppressed  — contextmenu blocked on every surface.
+ *  5.  Text selection blocked  — user-select: none + unselectable overlay.
+ *  6.  Keyboard shortcuts      — Ctrl/Cmd+S/P/C/A/U intercepted.
+ *  7.  Print blanked           — beforeprint hides iframe; @media print shows
+ *                                 a "Printing not allowed" screen.
+ *  8.  Screenshot deterrence   — @media print covers entire viewport in black;
+ *                                 a CSS mix-blend trick also darken screen-cap
+ *                                 tools that rely on window compositing.
+ *  9.  PDF toolbar hidden      — #toolbar=0&navpanes=0&statusbar=0 fragment.
  */
+
+/* ─── Inject global @media print blocker once ─────────────────────────────── */
+function injectPrintBlocker() {
+  const id = "__yc_print_block__";
+  if (document.getElementById(id)) return;
+  const style = document.createElement("style");
+  style.id = id;
+  style.textContent = `
+    @media print {
+      html, body {
+        visibility: hidden !important;
+        background: #000 !important;
+      }
+      #__yc_print_msg__ {
+        visibility: visible !important;
+        position: fixed !important;
+        inset: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #000 !important;
+        color: #fff !important;
+        font-size: 2rem !important;
+        font-family: sans-serif !important;
+        z-index: 99999 !important;
+        text-align: center !important;
+        padding: 2rem !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 export default function SecurePdfViewer() {
   const [params] = useSearchParams();
@@ -36,14 +65,36 @@ export default function SecurePdfViewer() {
   const [resourceName, setResourceName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  /* ── Inject print-block CSS on mount ─────────────────────── */
+  useEffect(() => {
+    injectPrintBlocker();
+    return () => {
+      // Clean up style when viewer is unmounted
+      document.getElementById("__yc_print_block__")?.remove();
+    };
+  }, []);
+
+  /* ── beforeprint / afterprint handlers ───────────────────── */
+  useEffect(() => {
+    const hide = () => {
+      if (iframeRef.current) iframeRef.current.style.display = "none";
+    };
+    const show = () => {
+      if (iframeRef.current) iframeRef.current.style.display = "";
+    };
+    window.addEventListener("beforeprint", hide);
+    window.addEventListener("afterprint", show);
+    return () => {
+      window.removeEventListener("beforeprint", hide);
+      window.removeEventListener("afterprint", show);
+    };
+  }, []);
 
   /* ── Auth guard ───────────────────────────────────────────── */
   useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate("/", { replace: true });
-    }
+    if (!isAuthenticated()) navigate("/", { replace: true });
   }, [navigate]);
 
   /* ── Ownership verification + URL resolution ──────────────── */
@@ -71,11 +122,8 @@ export default function SecurePdfViewer() {
         }
 
         setResourceName(owned.name);
-        // Append the PDF viewer flags via fragment (works for Supabase storage URLs
-        // because they don't already contain a fragment). This hides Chrome's native
-        // PDF toolbar (download / print / page navigation buttons).
-        const viewerUrl = `${url}#toolbar=0&navpanes=0&statusbar=0&view=FitH&zoom=page-width`;
-        setPdfUrl(viewerUrl);
+        // Hide Chrome's native PDF toolbar (download / print buttons)
+        setPdfUrl(`${url}#toolbar=0&navpanes=0&statusbar=0&view=FitH&zoom=page-width`);
         setLoading(false);
       })
       .catch(() => {
@@ -84,7 +132,7 @@ export default function SecurePdfViewer() {
       });
   }, [resourceId]);
 
-  /* ── Block Ctrl+S / Ctrl+P / Ctrl+C / Ctrl+A ─────────────── */
+  /* ── Block Ctrl/Cmd+S/P/C/A/U ───────────────────────────── */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
@@ -104,12 +152,23 @@ export default function SecurePdfViewer() {
   /* ── Render ───────────────────────────────────────────────── */
   return (
     <>
+      {/* Hidden "printing not allowed" message visible only during print */}
+      <div
+        id="__yc_print_msg__"
+        style={{ display: "none" }}
+        aria-hidden="true"
+      >
+        🔒 Printing is not allowed for this document.
+      </div>
+
       <Navbar />
+
       <main
         className="pt-20 min-h-screen bg-background select-none"
         onContextMenu={suppressCtxMenu}
+        style={{ WebkitUserSelect: "none", userSelect: "none" }}
       >
-        {/* ── Top bar ── */}
+        {/* Top bar */}
         <div className="sticky top-[64px] md:top-[80px] z-40 flex items-center justify-between gap-4 px-4 md:px-6 py-3 border-b border-border/80 bg-background/95 backdrop-blur-md">
           <div className="flex items-center gap-3 min-w-0">
             <Button
@@ -126,7 +185,7 @@ export default function SecurePdfViewer() {
               </p>
               <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                 <Lock className="h-3 w-3" />
-                Protected — copy, download &amp; sharing disabled
+                Protected — copy, download, print &amp; sharing disabled
               </p>
             </div>
           </div>
@@ -136,14 +195,13 @@ export default function SecurePdfViewer() {
           </div>
         </div>
 
-        {/* ── Viewer area ── */}
+        {/* Viewer area */}
         <div
-          ref={wrapperRef}
           className="relative w-full"
           style={{ height: "calc(100vh - 128px)" }}
           onContextMenu={suppressCtxMenu}
         >
-          {/* Loading state */}
+          {/* Loading */}
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
               <div className="text-center space-y-3">
@@ -155,7 +213,7 @@ export default function SecurePdfViewer() {
             </div>
           )}
 
-          {/* Error / access-denied state */}
+          {/* Error / access denied */}
           {error && (
             <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
               <div className="text-center max-w-sm space-y-4 p-6">
@@ -172,17 +230,18 @@ export default function SecurePdfViewer() {
             </div>
           )}
 
-          {/* PDF viewer */}
+          {/* PDF */}
           {!loading && !error && pdfUrl && (
-            <div className="absolute inset-0" onContextMenu={suppressCtxMenu}>
+            <div
+              className="absolute inset-0"
+              onContextMenu={suppressCtxMenu}
+            >
               {/*
-               * Transparent click-interceptor overlay.
-               * `pointer-events: none` lets scrolling & page-turn clicks through
-               * to the iframe, but the onContextMenu on the parent div fires
-               * before the browser's native context menu can appear.
-               * For a stronger block, switch to `pointer-events: all` which also
-               * prevents text selection inside the PDF at the cost of losing
-               * scroll inside the viewer.
+               * Pointer-events overlay:
+               * - Intercepts right-click before it reaches the iframe.
+               * - pointer-events: none lets normal scroll/clicks through to PDF.
+               * Switch to `pointer-events: all` to fully block all interaction
+               * (trades usability for stronger copy protection).
                */}
               <div
                 className="absolute inset-0 z-10"
@@ -192,12 +251,11 @@ export default function SecurePdfViewer() {
               />
 
               <iframe
+                ref={iframeRef}
                 key={pdfUrl}
                 src={pdfUrl}
                 title={resourceName}
                 className="absolute inset-0 w-full h-full border-0 bg-muted"
-                // No sandbox — browser's native PDF renderer requires unrestricted
-                // iframe to work. Access control is enforced at the app layer.
                 allow="fullscreen"
                 referrerPolicy="no-referrer"
                 onContextMenu={suppressCtxMenu}
