@@ -275,8 +275,8 @@ export default function SecurePdfViewer() {
                 src={pdfUrl}
                 title={resourceName}
                 className="absolute inset-0 w-full h-full border-0 bg-muted"
-                allow="fullscreen"
-                referrerPolicy="no-referrer"
+                allow="fullscreen; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                referrerPolicy="strict-origin-when-cross-origin"
                 onContextMenu={suppressCtxMenu}
               />
             </div>
