@@ -14,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { listMyResources, type MyResource } from "@/lib/resources-api";
+import { listMyResources, removeMyResource, type MyResource } from "@/lib/resources-api";
 import { getStoredUser } from "@/lib/yatris-api";
 import { getProviderMeta, normalizeProviderSlug } from "@/lib/exam-dumps";
 
@@ -143,9 +143,21 @@ export default function MyResources() {
     }
   };
 
-  const handleRemove = (id: string) => {
-    setResources((prev) => prev.filter((item) => item.id !== id));
-    toast.success("Resource removed from your library");
+  const handleRemove = async (resource: MyResource) => {
+    setResources((prev) =>
+      prev.filter(
+        (item) =>
+          item.id !== resource.id &&
+          item.resourceId !== resource.resourceId &&
+          item.name !== resource.name
+      )
+    );
+    try {
+      await removeMyResource(resource);
+      toast.success("Resource removed from your library");
+    } catch {
+      toast.error("Failed to remove resource");
+    }
   };
 
   if (!user) {
@@ -353,7 +365,7 @@ export default function MyResources() {
                                   Share
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => handleRemove(r.id)}
+                                  onClick={() => handleRemove(r)}
                                   className="cursor-pointer text-xs font-medium text-destructive focus:text-destructive focus:bg-destructive/10"
                                 >
                                   Remove

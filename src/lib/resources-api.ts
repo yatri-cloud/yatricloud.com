@@ -310,9 +310,68 @@ export async function listMyResources(): Promise<MyResource[]> {
     console.warn("Could not reconcile invoices into My Resources:", invErr);
   }
 
+  // Filter out any dismissed/removed items
+  try {
+    const key = `yatri_hidden_resources_${authUser.id}`;
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const hiddenList: string[] = JSON.parse(raw);
+      const hiddenSet = new Set(hiddenList.map((s) => String(s).toLowerCase().trim()));
+      return myResources.filter(
+        (r) =>
+          !hiddenSet.has(r.id.toLowerCase().trim()) &&
+          !hiddenSet.has(r.resourceId.toLowerCase().trim()) &&
+          !hiddenSet.has(r.name.toLowerCase().trim())
+      );
+    }
+  } catch (e) {
+    console.warn("Error checking hidden resources:", e);
+  }
 
   return myResources;
 }
+
+/**
+ * Remove a resource from the signed in user's library permanently.
+ */
+export async function removeMyResource(resource: MyResource): Promise<void> {
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  if (!authUser) return;
+
+  // 1. Delete from Supabase user_resources table if matching record exists
+  try {
+    if (resource.id && !resource.id.startsWith("inv_")) {
+      await supabase
+        .from("user_resources")
+        .delete()
+        .eq("id", resource.id)
+        .eq("user_id", authUser.id);
+    }
+    if (resource.resourceId && !resource.resourceId.startsWith("inv_")) {
+      await supabase
+        .from("user_resources")
+        .delete()
+        .eq("resource_id", resource.resourceId)
+        .eq("user_id", authUser.id);
+    }
+  } catch (dbErr) {
+    console.warn("Could not delete from user_resources in Supabase:", dbErr);
+  }
+
+  // 2. Persist in dismissed list so invoice-reconciled items also stay removed permanently
+  try {
+    const key = `yatri_hidden_resources_${authUser.id}`;
+    const raw = localStorage.getItem(key);
+    const list: string[] = raw ? JSON.parse(raw) : [];
+    if (resource.id) list.push(resource.id);
+    if (resource.resourceId) list.push(resource.resourceId);
+    if (resource.name) list.push(resource.name.toLowerCase().trim());
+    localStorage.setItem(key, JSON.stringify(Array.from(new Set(list))));
+  } catch (lsErr) {
+    console.warn("Could not save to hidden_resources localStorage:", lsErr);
+  }
+}
+
 
 
 
