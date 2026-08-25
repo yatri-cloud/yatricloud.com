@@ -79,17 +79,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { amount, currency, receipt, notes } = req.body || {};
 
-    if (!amount || !currency) {
-      return res.status(400).json({ message: 'amount and currency are required' });
+    const numericAmount = Number(amount);
+    if (!numericAmount || isNaN(numericAmount) || numericAmount <= 0 || numericAmount > 50000000) {
+      return res.status(400).json({ message: 'Invalid payment amount' });
+    }
+
+    const cleanCurrency = String(currency || 'INR').toUpperCase().trim();
+    if (!/^[A-Z]{3}$/.test(cleanCurrency)) {
+      return res.status(400).json({ message: 'Invalid currency code' });
     }
 
     const orderBody: Record<string, unknown> = {
-      amount,
-      currency,
-      receipt: receipt || `rcpt_${Date.now()}`,
+      amount: Math.round(numericAmount),
+      currency: cleanCurrency,
+      receipt: String(receipt || `rcpt_${Date.now()}`).slice(0, 40),
       payment_capture: 1,
       partial_payment: false,
-      notes: notes || {},
+      notes: typeof notes === 'object' && notes !== null ? notes : {},
     };
 
     // Mentorship commission split (only when eligible; safe no op otherwise).

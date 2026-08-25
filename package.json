@@ -15,7 +15,8 @@
     "test:e2e": "playwright test",
     "test:unit": "vitest run",
     "test:watch": "vitest",
-    "test:integrity": "node scripts/tests/curriculum-integrity.mjs"
+    "test:integrity": "node scripts/tests/curriculum-integrity.mjs",
+    "security:audit": "node scripts/security-audit.mjs"
   },
   "dependencies": {
     "@fontsource/geist-sans": "^5.2.5",

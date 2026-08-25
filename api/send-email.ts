@@ -42,7 +42,39 @@ const PIXEL = Buffer.from(
     'base64'
 );
 
-/* ── Newsletter tracking (GET /api/send-email?type=open|click) ────── */
+function getSafeRedirectUrl(rawUrl?: string | string[]): string {
+    const fallback = 'https://www.yatricloud.com';
+    const target = Array.isArray(rawUrl) ? rawUrl[0] : rawUrl;
+    if (!target || typeof target !== 'string') return fallback;
+    const trimmed = target.trim();
+
+    // Allow internal relative paths
+    if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.includes('\\')) {
+        return `https://www.yatricloud.com${trimmed}`;
+    }
+
+    try {
+        const parsed = new URL(trimmed);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return fallback;
+
+        const hostname = parsed.hostname.toLowerCase();
+        if (
+            hostname === 'yatricloud.com' ||
+            hostname.endsWith('.yatricloud.com') ||
+            hostname === 'yatri.cloud' ||
+            hostname.endsWith('.yatri.cloud') ||
+            hostname === 'github.com' ||
+            hostname.endsWith('.github.com') ||
+            hostname === 'linkedin.com' ||
+            hostname.endsWith('.linkedin.com')
+        ) {
+            return trimmed;
+        }
+    } catch {
+        return fallback;
+    }
+    return fallback;
+}
 
 async function handleTracking(req: VercelRequest, res: VercelResponse) {
     const { type, nl, sub, url } = req.query;
@@ -51,7 +83,6 @@ async function handleTracking(req: VercelRequest, res: VercelResponse) {
     }
 
     if (type === 'open') {
-        // Record open — fire-and-forget insert + counter bump
         (sb().from('newsletter_opens') as any).insert({
             newsletter_id: nl,
             subscriber_id: sub,
@@ -68,7 +99,7 @@ async function handleTracking(req: VercelRequest, res: VercelResponse) {
     }
 
     if (type === 'click') {
-        const targetUrl = Array.isArray(url) ? url[0] : url || 'https://www.yatricloud.com';
+        const targetUrl = getSafeRedirectUrl(url as string);
         (sb().from('newsletter_clicks') as any).insert({
             newsletter_id: nl,
             subscriber_id: sub,
