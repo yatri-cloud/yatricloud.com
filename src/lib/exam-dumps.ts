@@ -370,8 +370,17 @@ function toRow(dump: Partial<ExamDump>) {
  * Add an exam dump (admin — enforced by RLS).
  */
 export async function submitExamDump(dump: Omit<ExamDump, 'id' | 'status'>): Promise<void> {
-  const { error } = await supabase.from('exam_dumps').insert({ ...toRow(dump), status: 'published' });
+  const payload = { ...toRow(dump), status: 'published' };
+  const { error } = await supabase.from('exam_dumps').insert(payload);
   if (error) {
+    // If live PostgreSQL provider_t enum does not contain the new provider yet, retry with 'OTHER'
+    if (error.message && error.message.includes('provider_t')) {
+      console.warn('⚠️ Provider enum not yet in DB schema, falling back to OTHER:', error.message);
+      const fallbackPayload = { ...payload, provider: 'OTHER' };
+      const { error: fallbackError } = await supabase.from('exam_dumps').insert(fallbackPayload);
+      if (!fallbackError) return;
+      throw new Error(fallbackError.message);
+    }
     console.error('❌ Error submitting exam dump:', error.message);
     throw new Error(error.message);
   }
@@ -381,8 +390,16 @@ export async function submitExamDump(dump: Omit<ExamDump, 'id' | 'status'>): Pro
  * Update an existing exam dump (admin — enforced by RLS).
  */
 export async function updateExamDump(id: string, data: Partial<ExamDump>): Promise<void> {
-  const { error } = await supabase.from('exam_dumps').update(toRow(data)).eq('id', id);
+  const payload = toRow(data);
+  const { error } = await supabase.from('exam_dumps').update(payload).eq('id', id);
   if (error) {
+    if (error.message && error.message.includes('provider_t')) {
+      console.warn('⚠️ Provider enum not yet in DB schema, falling back to OTHER:', error.message);
+      const fallbackPayload = { ...payload, provider: 'OTHER' };
+      const { error: fallbackError } = await supabase.from('exam_dumps').update(fallbackPayload).eq('id', id);
+      if (!fallbackError) return;
+      throw new Error(fallbackError.message);
+    }
     console.error('❌ Error updating exam dump:', error.message);
     throw new Error(error.message);
   }
