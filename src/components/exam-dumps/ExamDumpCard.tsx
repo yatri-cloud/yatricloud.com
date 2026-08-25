@@ -71,18 +71,17 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
 
         {/* Content Wrapper to mask inner shadow and clip corners */}
         <div className="relative z-10 flex flex-col flex-1 rounded-2xl overflow-hidden bg-card h-full">
-        {/* Dump Image -- square tile, logo shown in full. Clicking it opens
-            the details dialog, same as the View Details button. */}
+        {/* Dump Image -- prominently scaled logo banner with clean subtle gradient backdrop */}
         <button
           type="button"
           onClick={() => setIsDialogOpen(true)}
           aria-label={`View details of ${dump.title}`}
-          className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-muted/20 p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="relative flex h-44 sm:h-48 md:h-52 w-full items-center justify-center overflow-hidden bg-gradient-to-b from-muted/50 via-muted/20 to-transparent p-4 sm:p-6 border-b border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <motion.img
             src={dump.image}
-            alt=""
-            className="max-h-full max-w-full rounded-2xl object-contain transition-transform duration-500 group-hover:scale-105"
+            alt={dump.title}
+            className="h-28 w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 object-contain drop-shadow-sm transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
           />
         </button>
@@ -157,11 +156,11 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
-                <div className="relative w-full max-w-sm mx-auto rounded-2xl overflow-hidden border aspect-square flex items-center justify-center bg-muted p-4">
+                <div className="relative w-full max-w-md mx-auto rounded-2xl overflow-hidden border border-border/60 h-48 sm:h-56 flex items-center justify-center bg-muted/30 p-6">
                   <img
                     src={dump.image}
                     alt={dump.title}
-                    className="max-w-full max-h-full rounded-2xl object-contain"
+                    className="h-32 w-32 sm:h-36 sm:w-36 object-contain drop-shadow-md"
                   />
                 </div>
                 <div className="flex items-baseline gap-3">

@@ -275,9 +275,9 @@ const ExamDumps = () => {
                       isActive ? "shadow-inset-btn font-semibold" : "hover:bg-muted"
                     }`}
                   >
-                    <Link to={linkHref}>
+                    <Link to={linkHref} className="flex items-center">
                       {tab.logoUrl && (
-                        <img src={tab.logoUrl} alt="" className="mr-1.5 h-3.5 w-3.5 object-contain" />
+                        <img src={tab.logoUrl} alt="" className="mr-2 h-4 w-4 shrink-0 object-contain" />
                       )}
                       <span>{tab.name}</span>
                     </Link>
