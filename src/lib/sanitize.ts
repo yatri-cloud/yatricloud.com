@@ -53,8 +53,13 @@ export function sanitizeUrl(url: string, fallback = "#"): string {
   if (!url || typeof url !== "string") return fallback;
   const trimmed = url.trim();
   
-  // Allow internal relative paths
-  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+  // Block protocol-relative, backslash bypasses, and control characters
+  if (trimmed.startsWith("//") || trimmed.startsWith("/\\") || trimmed.includes("\0")) {
+    return fallback;
+  }
+
+  // Allow internal relative paths without directory traversal
+  if (trimmed.startsWith("/") && !trimmed.includes("../") && !trimmed.includes("..\\")) {
     return trimmed;
   }
 
@@ -68,18 +73,31 @@ export function sanitizeUrl(url: string, fallback = "#"): string {
 
 /**
  * Validates if an IP address or hostname is a private/internal network target (SSRF Protection).
+ * Covers IPv4, IPv6, Hex/Octal notations, and Cloud metadata endpoints.
  */
 export function isInternalAddress(host: string): boolean {
   if (!host) return true;
   const clean = host.toLowerCase().trim();
 
-  // Block localhost and loopback
-  if (clean === "localhost" || clean === "127.0.0.1" || clean === "::1" || clean === "0.0.0.0") {
+  // Block localhost and loopback IPv4/IPv6
+  if (
+    clean === "localhost" ||
+    clean === "127.0.0.1" ||
+    clean === "::1" ||
+    clean === "0.0.0.0" ||
+    clean === "::" ||
+    clean.startsWith("127.")
+  ) {
     return true;
   }
 
-  // Block AWS / Cloud Instance Metadata Services
-  if (clean === "169.254.169.254" || clean.startsWith("169.254.")) {
+  // Block IPv6 link-local and unique local addresses (RFC 4193 / RFC 4291)
+  if (clean.startsWith("fe80:") || clean.startsWith("fc00:") || clean.startsWith("fd00:")) {
+    return true;
+  }
+
+  // Block AWS / GCP / Azure Cloud Instance Metadata Services
+  if (clean === "169.254.169.254" || clean.startsWith("169.254.") || clean === "metadata.google.internal") {
     return true;
   }
 
@@ -88,8 +106,13 @@ export function isInternalAddress(host: string): boolean {
   if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(clean)) return true;
   if (/^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(clean)) return true;
 
+  // Block Hex/Decimal encoded loopback IPs (e.g. 2130706433, 0x7f000001, 0177.0.0.1)
+  if (/^\d{8,10}$/.test(clean) || /^0x[0-9a-f]+$/i.test(clean) || /^0\d+\./.test(clean)) {
+    return true;
+  }
+
   // Block local domains
-  if (clean.endsWith(".local") || clean.endsWith(".internal") || clean.endsWith(".localhost")) {
+  if (clean.endsWith(".local") || clean.endsWith(".internal") || clean.endsWith(".localhost") || clean.endsWith(".localdomain")) {
     return true;
   }
 
