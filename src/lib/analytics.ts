@@ -40,7 +40,7 @@ export interface AnalyticsEvent {
 /**
  * Log an event to the analytics table.
  * Works for both authenticated and anonymous users.
- * Fails silently so it never breaks the user experience.
+ * Uses fast getSession() to never block user action or hang on network latency.
  */
 export async function trackEvent(
   eventName: EventName,
@@ -49,17 +49,16 @@ export async function trackEvent(
   metadata?: Record<string, any>
 ) {
   try {
-    // Try to get the logged-in user — but don't block tracking if not logged in
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id || null;
 
     const { error } = await supabase.from("analytics_events").insert({
       event_name: eventName,
       category,
       target_id: targetId || null,
-      user_id: user?.id || null,
+      user_id: userId,
       metadata: {
         ...metadata,
-        // Always capture page context for revenue insights
         url: typeof window !== "undefined" ? window.location.pathname : undefined,
         referrer: typeof document !== "undefined" ? document.referrer || undefined : undefined,
         user_agent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
@@ -67,10 +66,10 @@ export async function trackEvent(
     });
 
     if (error) {
-      console.error("[Analytics] Insert error:", error.message);
+      console.warn("[Analytics] Insert event warning:", error.message);
     }
   } catch (error) {
-    // Silent fail — analytics must never crash the app
+    console.warn("[Analytics] Tracking failed:", error);
   }
 }
 
@@ -215,7 +214,15 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
       if (ev.event_name === "download") {
         totalDownloads++;
         if (dateMap[ds]) dateMap[ds].downloads++;
-        if (ev.target_id) resourceCounts[ev.target_id] = (resourceCounts[ev.target_id] || 0) + 1;
+        const target = ev.target_id || ev.metadata?.name || ev.metadata?.title;
+        if (target) {
+          resourceCounts[target] = (resourceCounts[target] || 0) + 1;
+          if (ev.metadata?.name && !metadataNameMap[target]) {
+            metadataNameMap[target] = ev.metadata.name;
+          } else if (ev.metadata?.title && !metadataNameMap[target]) {
+            metadataNameMap[target] = ev.metadata.title;
+          }
+        }
       } else if (ev.event_name === "visit") {
         totalViews++;
         if (dateMap[ds]) dateMap[ds].views++;

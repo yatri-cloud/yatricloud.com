@@ -312,18 +312,14 @@ export default function MyResources() {
                               if (r.accessUrl?.startsWith("http")) {
                                 return (
                                   <Button
-                                    asChild
                                     size="sm"
-                                    onClick={() => handleAccessClick(r)}
+                                    onClick={() => {
+                                      handleAccessClick(r);
+                                      window.open(r.accessUrl, "_blank", "noopener,noreferrer");
+                                    }}
                                     className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
                                   >
-                                    <a
-                                      href={r.accessUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      Access
-                                    </a>
+                                    Access
                                   </Button>
                                 );
                               }
@@ -346,10 +342,9 @@ export default function MyResources() {
                                 <Button
                                   asChild
                                   size="sm"
-                                  onClick={() => handleAccessClick(r)}
                                   className="rounded-xl min-h-[38px] px-5 text-xs font-semibold bg-primary text-primary-foreground shadow-inset-btn hover:bg-brand-600"
                                 >
-                                  <Link to={destination}>
+                                  <Link to={destination} onClick={() => handleAccessClick(r)}>
                                     Access
                                   </Link>
                                 </Button>

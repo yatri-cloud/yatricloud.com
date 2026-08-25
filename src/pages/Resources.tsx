@@ -95,16 +95,23 @@ export default function Resources() {
   }, [user?.email]);
 
   const handleAccess = async (resource: Resource) => {
+    // Track download intent immediately on click
+    trackEvent("download", "Resource", resource.id, {
+      name: resource.name,
+      title: resource.name,
+      provider: resource.provider,
+      category: resource.category,
+      is_free: resource.isFree,
+    });
+
     // If already unlocked, open directly
     if (unlockedIds.has(resource.id)) {
-      // Re-fetch access url from my-resources
       const mine = await listMyResources().catch(() => []);
       const found = mine.find((m) => m.resourceId === resource.id);
       if (found?.accessUrl) {
-        trackEvent("download", "Resource", resource.id, { name: resource.name, provider: resource.provider });
         window.open(found.accessUrl, "_blank", "noopener,noreferrer");
+        return;
       }
-      return;
     }
 
     if (!user) {
@@ -129,7 +136,6 @@ export default function Resources() {
         user.fullName || "Yatri",
       );
       setUnlockedIds((prev) => new Set([...prev, resource.id]));
-      trackEvent("download", "Resource", resource.id, { name: resource.name, provider: resource.provider });
       toast.success("Access granted! Opening material…");
       window.open(accessUrl, "_blank", "noopener,noreferrer");
     } catch (err: any) {
@@ -201,6 +207,13 @@ export default function Resources() {
       setUnlockedIds(new Set(mine.map((m) => m.resourceId)));
 
       if (pendingResource) {
+        trackEvent("download", "Resource", pendingResource.id, {
+          name: pendingResource.name,
+          title: pendingResource.name,
+          provider: pendingResource.provider,
+          category: pendingResource.category,
+        });
+
         const found = mine.find((m) => m.resourceId === pendingResource.id);
         if (found?.accessUrl) {
           window.open(found.accessUrl, "_blank", "noopener,noreferrer");
@@ -212,7 +225,6 @@ export default function Resources() {
             loggedInUser.fullName || "Yatri",
           );
           setUnlockedIds((prev) => new Set([...prev, pendingResource.id]));
-          trackEvent("download", "Resource", pendingResource.id, { name: pendingResource.name, provider: pendingResource.provider });
           toast.success("Access granted! Opening material…");
           window.open(accessUrl, "_blank", "noopener,noreferrer");
         }
