@@ -15,6 +15,7 @@ import {
   normalizeProviderSlug,
   KNOWN_EXAM_PROVIDERS,
 } from "@/lib/exam-dumps";
+import { CENTRAL_PROVIDERS_LIST } from "@/lib/central-providers";
 import { useSiteContent, getSiteStats, statValue, FALLBACK_STATS } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +65,7 @@ const ExamDumps = () => {
     loadDumps();
   }, []);
 
-  // Compute all available providers present in current dumps + top recognized providers
+  // Compute all available providers present in current dumps + centralized recognized providers
   const providerTabs = useMemo(() => {
     const countsBySlug = new Map<string, number>();
     for (const d of dumps) {
@@ -72,9 +73,9 @@ const ExamDumps = () => {
       countsBySlug.set(slug, (countsBySlug.get(slug) || 0) + 1);
     }
 
-    // Always include top tier providers if present or prominent
-    const prominentSlugs = ["aws", "azure", "gcp", "kubernetes", "github", "hashicorp", "salesforce", "cisco", "comptia", "oracle", "servicenow"];
-    const allSlugs = new Set([...prominentSlugs, ...Array.from(countsBySlug.keys())]);
+    // Include all central standard providers
+    const prominentSlugs = CENTRAL_PROVIDERS_LIST.map((p) => p.slug);
+    const allSlugs = Array.from(new Set([...prominentSlugs, ...Array.from(countsBySlug.keys())]));
 
     const result: Array<{ slug: string; name: string; count: number; logoUrl?: string; badge?: string }> = [
       { slug: "all", name: "All", count: dumps.length },
@@ -82,17 +83,14 @@ const ExamDumps = () => {
 
     for (const slug of allSlugs) {
       const count = countsBySlug.get(slug) || 0;
-      // Show if it has dumps OR is one of the top 4 cloud providers
-      if (count > 0 || ["aws", "azure", "gcp", "kubernetes"].includes(slug)) {
-        const meta = getProviderMeta(slug);
-        result.push({
-          slug,
-          name: meta.shortName || meta.name,
-          count,
-          logoUrl: meta.logoUrl,
-          badge: meta.badge,
-        });
-      }
+      const meta = getProviderMeta(slug);
+      result.push({
+        slug,
+        name: meta.shortName || meta.name,
+        count,
+        logoUrl: meta.logoUrl,
+        badge: meta.badge,
+      });
     }
 
     return result;

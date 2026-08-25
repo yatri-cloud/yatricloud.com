@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchExamDumps, updateExamDump, getProviderMeta, type ExamDump } from "@/lib/exam-dumps";
+import { CENTRAL_PROVIDERS_LIST } from "@/lib/central-providers";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -26,24 +27,7 @@ const dumpSchema = z.object({
 
 type DumpFormData = z.infer<typeof dumpSchema>;
 
-const STANDARD_PROVIDERS = [
-  { value: "AWS", label: "Amazon Web Services (AWS)", slug: "aws" },
-  { value: "Azure", label: "Microsoft Azure", slug: "azure" },
-  { value: "GCP", label: "Google Cloud Platform (GCP)", slug: "gcp" },
-  { value: "Kubernetes", label: "Kubernetes (CNCF)", slug: "kubernetes" },
-  { value: "GitHub", label: "GitHub", slug: "github" },
-  { value: "HashiCorp", label: "HashiCorp / Terraform", slug: "hashicorp" },
-  { value: "Salesforce", label: "Salesforce", slug: "salesforce" },
-  { value: "Cisco", label: "Cisco", slug: "cisco" },
-  { value: "CompTIA", label: "CompTIA", slug: "comptia" },
-  { value: "Oracle", label: "Oracle Cloud", slug: "oracle" },
-  { value: "ServiceNow", label: "ServiceNow", slug: "servicenow" },
-  { value: "OpenAI", label: "OpenAI & AI Specialist", slug: "openai" },
-  { value: "Anthropic", label: "Anthropic (Claude AI)", slug: "anthropic" },
-  { value: "Snowflake", label: "Snowflake Data Cloud", slug: "snowflake" },
-  { value: "Docker", label: "Docker", slug: "docker" },
-  { value: "Linux", label: "Linux Foundation", slug: "linux" },
-];
+const STANDARD_PROVIDERS = CENTRAL_PROVIDERS_LIST;
 
 const AdminEditExamDump = () => {
   const { id } = useParams<{ id: string }>();

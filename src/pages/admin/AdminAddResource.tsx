@@ -13,8 +13,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { createResource, uploadResourceImage, type ResourceInput } from "@/lib/resources-api";
+import { CENTRAL_PROVIDER_NAMES } from "@/lib/central-providers";
 
-const PROVIDERS = ["AWS", "Azure", "GCP", "Oracle", "Cisco", "CompTIA", "HashiCorp", "Salesforce", "GitHub", "NVIDIA", "Redis", "Other"];
+const PROVIDERS = [...CENTRAL_PROVIDER_NAMES, "Other"];
 const CATEGORIES = ["Exam Guide", "Practice Test", "Cheat Sheet", "Lab Guide", "Video Course", "Ebook", "Template", "Other"];
 
 const schema = z.object({

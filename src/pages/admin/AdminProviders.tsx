@@ -23,11 +23,12 @@ interface ProviderData {
     exists?: boolean;
 }
 
-const KNOWN_LOGO_KEYS = ["aws", "azure", "gcp", "anthropic", "snowflake", "kubernetes", "terraform", "hashicorp", "docker", "github", "salesforce", "oracle", "servicenow", "openai"];
+const KNOWN_LOGO_KEYS = ["aws", "azure", "gcp", "redis", "anthropic", "snowflake", "kubernetes", "terraform", "hashicorp", "docker", "github", "salesforce", "oracle", "servicenow", "openai", "cisco", "comptia", "linux", "nvidia", "ibm", "alibaba"];
 
 /** Map a provider name/slug to a known logo key (handles common aliases). */
 function providerLogoKey(name?: string, slug?: string): string | undefined {
     const t = `${(name || "").toLowerCase()} ${(slug || "").toLowerCase()}`;
+    if (/redis/.test(t)) return "redis";
     if (/google\s*cloud|gcp/.test(t)) return "gcp";
     if (/microsoft|azure/.test(t)) return "azure";
     if (/amazon|aws/.test(t)) return "aws";
@@ -36,6 +37,7 @@ function providerLogoKey(name?: string, slug?: string): string | undefined {
     if (/service\s*now/.test(t)) return "servicenow";
     if (/open\s*ai/.test(t)) return "openai";
     if (/k8s|kubernetes/.test(t)) return "kubernetes";
+    if (/linux/.test(t)) return "linux";
     return KNOWN_LOGO_KEYS.find((k) => t.includes(k));
 }
 
