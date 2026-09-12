@@ -62,7 +62,7 @@ export const Footer = () => {
   );
 
   // TEMPORARY: hide Mentorship, Udemy Courses, Yatri Store, Practice Tests,
-  // Blog, Training, Events, Paths from the footer.
+  // Blog, Training, Paths from the footer. (Events is live)
   const HIDDEN_FOOTER_HREFS = new Set([
     "/mentorship",
     "/udemy",
@@ -70,7 +70,6 @@ export const Footer = () => {
     "#courses",
     "/blog",
     "/training",
-    "/events",
     "/paths",
   ]);
   const HIDDEN_FOOTER_LABELS = new Set([
@@ -80,7 +79,6 @@ export const Footer = () => {
     "practice tests",
     "blog",
     "training",
-    "events",
     "certification paths",
     "paths",
   ]);

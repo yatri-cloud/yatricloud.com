@@ -5,7 +5,7 @@
  */
 export const FEATURE_FLAGS = {
   myDashboard: import.meta.env.VITE_FEATURE_DASHBOARD === 'true',
-  events:      import.meta.env.VITE_FEATURE_EVENTS     === 'true',
+  events:      import.meta.env.VITE_FEATURE_EVENTS     !== 'false',
   trainings:   import.meta.env.VITE_FEATURE_TRAININGS  === 'true',
   userGuide:   import.meta.env.VITE_FEATURE_USERGUIDE  === 'true',
   userSitemap: import.meta.env.VITE_FEATURE_SITEMAP    === 'true',

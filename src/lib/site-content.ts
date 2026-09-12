@@ -440,6 +440,7 @@ export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
   navbar: [
     { href: "/examdumps", label: "Exam Dumps" },
     { href: "/resources", label: "Resources" },
+    { href: "/events", label: "Events" },
     { href: "/community", label: "Community" },
     { href: "/achievements", label: "Achievements" },
     { href: "/partners", label: "Partners" },
@@ -447,6 +448,7 @@ export const FALLBACK_NAV_LINKS: Record<NavLinkLocation, NavLink[]> = {
   footer_explore: [
     { href: "/examdumps", label: "Exam Dumps" },
     { href: "/resources", label: "Resources" },
+    { href: "/events", label: "Events" },
     { href: "/certifiedyatris", label: "Certified Yatris" },
   ],
   footer_quick: [

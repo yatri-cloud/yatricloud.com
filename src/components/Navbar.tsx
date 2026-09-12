@@ -81,9 +81,9 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
    * fallback, so nothing visibly changes). */
   const navLinks = useSiteContent(() => getNavLinks("navbar"), FALLBACK_NAV_LINKS.navbar);
 
-  // Hide Jobs, Mentorship, Blog, Training, Events from the nav (both desktop + mobile).
-  const HIDDEN_NAV_HREFS = new Set(["/jobs", "/mentorship", "/blog", "/training", "/events"]);
-  const HIDDEN_NAV_LABELS = new Set(["jobs", "mentorship", "blog", "training", "events"]);
+  // Hide Jobs, Mentorship, Blog, Training from the nav (both desktop + mobile). Events is live.
+  const HIDDEN_NAV_HREFS = new Set(["/jobs", "/mentorship", "/blog", "/training"]);
+  const HIDDEN_NAV_LABELS = new Set(["jobs", "mentorship", "blog", "training"]);
   const visibleNavLinks = useMemo(() => {
     const filtered = navLinks.filter(
       (l) => !HIDDEN_NAV_HREFS.has(l.href) && !HIDDEN_NAV_LABELS.has(l.label?.toLowerCase()?.trim())
@@ -223,6 +223,9 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                       <DropdownMenuItem onClick={() => navigate("/certificates")}>
                         My Certificates
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/profile/my-events")}>
+                        My Events
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate("/my-resources")}>
                         My Resources
                       </DropdownMenuItem>
@@ -249,16 +252,6 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                             className="flex items-center justify-between cursor-pointer"
                           >
                             <span>My Dashboard</span>
-                            <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Soon</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast.info("My Events is coming soon!");
-                              navigate("/profile/my-events");
-                            }}
-                            className="flex items-center justify-between cursor-pointer"
-                          >
-                            <span>My Events</span>
                             <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Soon</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -405,6 +398,16 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                       className="w-full"
                     >
                       My Resources
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        navigate("/profile/my-events");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full"
+                    >
+                      My Events
                     </Button>
                     <Button
                       variant="outline"
