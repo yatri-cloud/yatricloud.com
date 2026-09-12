@@ -955,8 +955,8 @@ const EventDetail = () => {
                             <div className="bg-card border border-border rounded-3xl p-6 space-y-6 h-full shadow-card">
                                 {/* Date */}
                                 <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white">
-                                        <Calendar className="w-5 h-5 text-primary" />
+                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-primary-foreground">
+                                        <Calendar className="w-5 h-5 text-primary-foreground" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Date</p>
@@ -966,8 +966,8 @@ const EventDetail = () => {
 
                                 {/* Time */}
                                 <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white">
-                                        <Clock className="w-5 h-5 text-primary" />
+                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-primary-foreground">
+                                        <Clock className="w-5 h-5 text-primary-foreground" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Time</p>
@@ -977,11 +977,11 @@ const EventDetail = () => {
 
                                 {/* Location */}
                                 <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white">
+                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-primary-foreground">
                                         {event.location.type === 'online' ? (
-                                            <Globe className="w-5 h-5 text-primary" />
+                                            <Globe className="w-5 h-5 text-primary-foreground" />
                                         ) : (
-                                            <MapPin className="w-5 h-5 text-primary" />
+                                            <MapPin className="w-5 h-5 text-primary-foreground" />
                                         )}
                                     </div>
                                     <div>
@@ -1002,8 +1002,8 @@ const EventDetail = () => {
                                 {/* Price */}
                                 {event.price != null && (
                                     <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white">
-                                            <Tag className="w-5 h-5 text-primary" />
+                                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-primary-foreground">
+                                            <Tag className="w-5 h-5 text-primary-foreground" />
                                         </div>
                                         <div>
                                             <p className="text-sm text-muted-foreground">Price</p>
