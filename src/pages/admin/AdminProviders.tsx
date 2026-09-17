@@ -23,11 +23,13 @@ interface ProviderData {
     exists?: boolean;
 }
 
-const KNOWN_LOGO_KEYS = ["aws", "azure", "gcp", "redis", "anthropic", "snowflake", "kubernetes", "terraform", "hashicorp", "docker", "github", "salesforce", "oracle", "servicenow", "openai", "cisco", "comptia", "linux", "nvidia", "ibm", "alibaba"];
+const KNOWN_LOGO_KEYS = ["aws", "azure", "gcp", "databricks", "universal", "redis", "anthropic", "snowflake", "kubernetes", "terraform", "hashicorp", "docker", "github", "salesforce", "oracle", "servicenow", "openai", "cisco", "comptia", "linux", "nvidia", "ibm", "alibaba"];
 
 /** Map a provider name/slug to a known logo key (handles common aliases). */
 function providerLogoKey(name?: string, slug?: string): string | undefined {
     const t = `${(name || "").toLowerCase()} ${(slug || "").toLowerCase()}`;
+    if (/databricks/.test(t)) return "databricks";
+    if (/universal|multi-?cloud|general/.test(t)) return "universal";
     if (/redis/.test(t)) return "redis";
     if (/google\s*cloud|gcp/.test(t)) return "gcp";
     if (/microsoft|azure/.test(t)) return "azure";

@@ -203,6 +203,26 @@ export const KNOWN_EXAM_PROVIDERS: Record<string, ExamDumpProviderMeta> = {
     glowColor: "rgba(220, 56, 45, 0.35)",
     badge: "Database & In-Memory",
   },
+  databricks: {
+    slug: "databricks",
+    name: "Databricks",
+    shortName: "Databricks",
+    description: "Complete practice questions and verified exam dumps for Databricks Data Engineer, ML Associate, and Lakehouse exams.",
+    logoUrl: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/databricks/databricks-original.svg",
+    brandColor: "#FF3621",
+    glowColor: "rgba(255, 54, 33, 0.35)",
+    badge: "Data & Lakehouse",
+  },
+  universal: {
+    slug: "universal",
+    name: "Universal / Multi-Cloud",
+    shortName: "Universal",
+    description: "Universal question banks, multi-cloud cheat sheets, interview guides, and cross-platform IT resources.",
+    logoUrl: "/favicon.ico",
+    brandColor: "#6366F1",
+    glowColor: "rgba(99, 102, 241, 0.35)",
+    badge: "Multi-Cloud & General",
+  },
 };
 
 /**
@@ -218,6 +238,8 @@ export function normalizeProviderSlug(providerStr?: string): string {
   if (/^(aws|amazon)/.test(raw)) return "aws";
   if (/^(azure|microsoft)/.test(raw)) return "azure";
   if (/^(gcp|google)/.test(raw)) return "gcp";
+  if (/^databricks/.test(raw)) return "databricks";
+  if (/^universal|^multi-?cloud|^general/.test(raw)) return "universal";
   if (/^(k8s|kubernetes|cncf)/.test(raw)) return "kubernetes";
   if (/^(github|gh)/.test(raw)) return "github";
   if (/^(hashicorp|terraform|vault)/.test(raw)) return "hashicorp";

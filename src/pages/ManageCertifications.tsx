@@ -26,6 +26,8 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   openai: { logo: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318`, logoLight: `https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/OpenAI_logo_2025_%28symbol%29.svg/1280px-OpenAI_logo_2025_%28symbol%29.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail&_=20260430054318` },
   anthropic: { logo: `/logos/anthropic-white.svg`, logoLight: `/logos/anthropic.svg` },
   snowflake: { logo: `/logos/snowflake.png`, logoLight: `/logos/snowflake.png` },
+  databricks: { logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/databricks/databricks-original.svg" },
+  universal: { logo: "/favicon.ico" },
   hashicorp: { logo: `${LOGO_BASE_URL}/HashiCorp_logo.svg` },
   kubernetes: { logo: `${LOGO_BASE_URL}/Kubernetes_logo.svg` },
 };
