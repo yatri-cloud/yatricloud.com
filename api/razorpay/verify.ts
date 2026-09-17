@@ -185,6 +185,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       buyer_name,
       buyer_email,
       item,
+      items_list,
     } = req.body || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -489,7 +490,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (paymentRowId) {
         try {
           // Fall back to the order row for buyer info + line items (store etc.).
-          let invoiceItems: unknown = invoiceItem ? [{ name: invoiceItem }] : [];
+          let invoiceItems: unknown = Array.isArray(items_list) && items_list.length > 0
+            ? items_list
+            : (invoiceItem ? [{ name: invoiceItem }] : []);
+
           if (order_id && (!invoiceKind || !invoiceBuyerEmail || !invoiceItem)) {
             const oRes = await fetch(
               `${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(order_id)}&select=kind,email,items`,

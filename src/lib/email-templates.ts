@@ -370,6 +370,48 @@ export const getExamDumpPurchaseEmail = (name: string, dumpTitle: string, amount
 };
 
 /**
+ * Multiple Exam Dumps purchase email template.
+ */
+export const getMultipleExamDumpsPurchaseEmail = (
+  name: string,
+  dumps: Array<{ title: string; downloadUrl: string }>,
+  amount: string,
+  paymentId: string
+) => {
+  const dumpListHtml = dumps
+    .map(
+      (d) => `
+      <div style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; text-align: left;">
+        <h3 style="margin: 0 0 8px; color: ${COLORS.secondary}; font-size: 16px;">${d.title}</h3>
+        <div style="text-align: center; margin: 12px 0;">
+          <a href="${d.downloadUrl}" style="background-color: ${COLORS.primary}; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block; font-size: 14px;">Download Exam Dump</a>
+        </div>
+        <p style="font-size: 12px; color: ${COLORS.textMuted}; text-align: center; margin: 0; word-break: break-all;">Link: ${d.downloadUrl}</p>
+      </div>`
+    )
+    .join("");
+
+  const content = `
+    <h2 style="color: ${COLORS.secondary}; margin-top: 0;">Exam Dumps Access!</h2>
+    <p>Hello ${name},</p>
+    <p>Thank you for purchasing <strong>${dumps.length} exam dumps</strong> from Yatri Cloud.</p>
+    
+    <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 25px 0; border-radius: 4px;">
+      <p style="margin: 5px 0;"><strong>Order ID:</strong> ${paymentId}</p>
+      <p style="margin: 5px 0;"><strong>Total Paid:</strong> ${amount}</p>
+      <p style="margin: 5px 0;"><strong>Total Items:</strong> ${dumps.length}</p>
+    </div>
+
+    <p><strong>Your Download Links:</strong></p>
+    ${dumpListHtml}
+
+    <p style="margin-top: 24px;">Success in your certification journey!</p>
+    <p>Best regards,<br>Team Yatri Cloud</p>
+  `;
+  return BASE_TEMPLATE(content, "Your Exam Dumps Download Links - Yatri Cloud");
+};
+
+/**
  * Newsletter email template.
  * DB template key: `newsletter_welcome` (welcome only).
  * The newsletter body is the admin-composed HTML.

@@ -147,6 +147,16 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
       const customerName = user?.fullName || "Yatris";
       const customerPhone = user?.phoneNumber || "";
 
+      const structuredItems = items.map(item => ({
+        id: item.id,
+        name: item.title,
+        title: item.title,
+        quantity: item.quantity,
+        price: item.price ?? item.discountedPrice ?? item.originalPrice ?? 0,
+        downloadUrl: item.downloadUrl,
+        provider: item.provider ?? (typeof item.category === "string" ? item.category : ""),
+      }));
+
       await initiatePayment(
         orderId,
         amountInSmallestUnit,
@@ -159,14 +169,54 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
           // Check if any item is an exam dump for both email and success popup
           const examDumps = items.filter(item => item.downloadUrl);
           
+          // Save recent purchases to localStorage for instant reconciliation in My Resources
+          try {
+            const rawRecent = localStorage.getItem("yatri_recent_purchases");
+            const existingRecent = rawRecent ? JSON.parse(rawRecent) : [];
+            const newPurchases = items.map(i => ({
+              id: i.id,
+              name: i.title,
+              title: i.title,
+              downloadUrl: i.downloadUrl,
+              accessUrl: i.downloadUrl,
+              provider: i.provider ?? (typeof i.category === "string" ? i.category : ""),
+              category: i.downloadUrl ? "Exam Dumps" : "Exam Guide",
+              purchasedAt: new Date().toISOString(),
+              paymentId,
+            }));
+            localStorage.setItem("yatri_recent_purchases", JSON.stringify([...newPurchases, ...existingRecent]));
+          } catch (e) {
+            console.warn("Failed to save to yatri_recent_purchases:", e);
+          }
+
           // Send Confirmation Email
           if (customerEmail) {
             try {
               console.log("🛒 Purchase Items:", JSON.stringify(items.map(i => ({ title: i.title, hasUrl: !!i.downloadUrl }))));
               console.log("📦 Detected Exam Dumps:", examDumps.length);
 
-              if (examDumps.length > 0) {
-                // Send Exam Dump Email
+              if (examDumps.length > 1) {
+                // Send Multi-item Exam Dumps Email
+                console.log("📧 Sending Multi-Exam-Dump email to:", customerEmail);
+                const { getMultipleExamDumpsPurchaseEmail } = await import("@/lib/email-templates");
+                const emailHtml = getMultipleExamDumpsPurchaseEmail(
+                  customerName,
+                  examDumps.map(d => ({ title: d.title, downloadUrl: d.downloadUrl! })),
+                  amountLabel,
+                  paymentId
+                );
+
+                const emailResult = await sendEmail({
+                  to: customerEmail,
+                  subject: "Your Exam Dumps Download Links - Yatri Cloud",
+                  html: emailHtml
+                });
+
+                if (!emailResult.success) {
+                  throw new Error(emailResult.error || "Email delivery failed");
+                }
+              } else if (examDumps.length === 1) {
+                // Send Single Exam Dump Email
                 console.log("📧 Sending Exam Dump email to:", customerEmail);
                 const { getExamDumpPurchaseEmail } = await import("@/lib/email-templates");
                 const firstDump = examDumps[0];
@@ -224,6 +274,7 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
           buyer_name: customerName,
           buyer_email: customerEmail,
           item: productNames,
+          items_list: structuredItems,
         }
       );
     } catch (error) {

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ShoppingCart, ExternalLink } from "lucide-react";
+import { ShoppingCart, Check, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { EntityReviews } from "@/components/reviews/EntityReviews";
 import { ExamDump, getProviderGlowColor, normalizeProviderSlug } from "@/lib/exam-dumps";
@@ -23,11 +23,10 @@ interface ExamDumpCardProps {
 }
 
 export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
-  const { addToCart } = useCart();
+  const { addToCart, items } = useCart();
   const { formatInr } = useCurrency();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-
+  const isInCart = items.some((i) => i.id === dump.id);
 
   const handleAddToCart = () => {
     // Adapter for cart context which expects StoreProduct
@@ -129,15 +128,36 @@ export const ExamDumpCard = ({ dump }: ExamDumpCardProps) => {
             )}
           </div>
         </CardContent>
-
         <CardFooter className="flex flex-col gap-2 p-5 pt-0">
-          <Button
-            onClick={handleBuyNow}
-            className="w-full font-semibold shadow-inset-btn"
-            size="lg"
-          >
-            Buy Now
-          </Button>
+          <div className="flex gap-2 w-full">
+            <Button
+              onClick={handleAddToCart}
+              className="flex-1 font-semibold shadow-inset-btn gap-1.5"
+              size="lg"
+              variant={isInCart ? "secondary" : "default"}
+            >
+              {isInCart ? (
+                <>
+                  <Check className="h-4 w-4 text-emerald-500" />
+                  <span>Added ({items.find(i => i.id === dump.id)?.quantity || 1})</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4" />
+                  <span>Add to Cart</span>
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleBuyNow}
+              variant="outline"
+              size="lg"
+              className="px-3.5 text-xs font-semibold shrink-0"
+              title="Instant Checkout"
+            >
+              Buy Now
+            </Button>
+          </div>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>

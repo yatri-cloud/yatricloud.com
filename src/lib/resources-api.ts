@@ -229,6 +229,62 @@ export async function listMyResources(): Promise<MyResource[]> {
     };
   });
 
+  // Helper to extract all individual items from invoice data
+  function extractItemsFromInvoice(rawItems: unknown): Array<{ name: string; downloadUrl?: string; id?: string; provider?: string }> {
+    let parsed = rawItems;
+    if (typeof parsed === "string") {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch {
+        parsed = String(parsed).split(",").map((s) => s.trim()).filter(Boolean);
+      }
+    }
+
+    const result: Array<{ name: string; downloadUrl?: string; id?: string; provider?: string }> = [];
+
+    const addName = (n: string, extra?: { downloadUrl?: string; id?: string; provider?: string }) => {
+      const cleaned = n.replace(/\s*\(x\d+\)\s*$/i, "").trim();
+      if (!cleaned) return;
+      if (cleaned.includes(",") && !cleaned.toLowerCase().includes("certified,")) {
+        cleaned.split(",").forEach((sub) => {
+          const subClean = sub.replace(/\s*\(x\d+\)\s*$/i, "").trim();
+          if (subClean) result.push({ name: subClean, ...extra });
+        });
+      } else {
+        result.push({ name: cleaned, ...extra });
+      }
+    };
+
+    if (Array.isArray(parsed)) {
+      for (const entry of parsed) {
+        if (typeof entry === "string") {
+          addName(entry);
+        } else if (entry && typeof entry === "object") {
+          const itemObj = entry as Record<string, any>;
+          const name = itemObj.name || itemObj.title || itemObj.productName || "";
+          const dlUrl = itemObj.downloadUrl || itemObj.download_url;
+          const id = itemObj.id || itemObj.resource_id;
+          const provider = itemObj.provider;
+          if (typeof name === "string") {
+            addName(name, { downloadUrl: dlUrl, id, provider });
+          }
+        }
+      }
+    } else if (parsed && typeof parsed === "object") {
+      const itemObj = parsed as Record<string, any>;
+      const name = itemObj.name || itemObj.title || "";
+      if (typeof name === "string") {
+        addName(name, {
+          downloadUrl: itemObj.downloadUrl || itemObj.download_url,
+          id: itemObj.id || itemObj.resource_id,
+          provider: itemObj.provider,
+        });
+      }
+    }
+
+    return result;
+  }
+
   // Reconcile purchases from invoices (e.g. store checkout, exam dumps purchases)
   try {
     const [{ data: invData }, { data: dumpsData }, { data: allResourcesData }] = await Promise.all([
@@ -248,14 +304,16 @@ export async function listMyResources(): Promise<MyResource[]> {
       const existingNames = new Set(myResources.map((r) => r.name.toLowerCase().trim()));
 
       for (const inv of invData) {
-        const items = Array.isArray(inv.items) ? inv.items : [];
-        for (const item of items) {
-          const rawName = typeof item === "string" ? item : (item?.name || item?.title || "");
-          const name = String(rawName).trim();
+        const extractedItems = extractItemsFromInvoice(inv.items);
+        let itemIdx = 0;
+        for (const item of extractedItems) {
+          itemIdx++;
+          const name = item.name.trim();
           if (!name || existingNames.has(name.toLowerCase())) continue;
 
           // Find exact or closest match in exam_dumps table
           const matchedDump = (dumpsData || []).find((d) => {
+            if (item.id && d.id === item.id) return true;
             const dt = (d.title || "").toLowerCase().trim();
             const nt = name.toLowerCase().trim();
             return dt === nt || dt.includes(nt) || nt.includes(dt);
@@ -264,16 +322,18 @@ export async function listMyResources(): Promise<MyResource[]> {
           // Find match in resources table
           const matchedResource = !matchedDump
             ? (allResourcesData || []).find((r) => {
+                if (item.id && r.id === item.id) return true;
                 const rt = (r.name || "").toLowerCase().trim();
                 const nt = name.toLowerCase().trim();
                 return rt === nt || rt.includes(nt) || nt.includes(rt);
               })
             : null;
 
-          const provider = matchedDump?.provider || matchedResource?.provider || detectProviderFromName(name);
+          const provider = item.provider || matchedDump?.provider || matchedResource?.provider || detectProviderFromName(name);
           const isDumpOrGuide =
             Boolean(matchedDump) ||
             Boolean(matchedResource) ||
+            Boolean(item.downloadUrl) ||
             name.toLowerCase().includes("dump") ||
             name.toLowerCase().includes("exam") ||
             name.toLowerCase().includes("certification") ||
@@ -284,21 +344,22 @@ export async function listMyResources(): Promise<MyResource[]> {
             existingNames.add(name.toLowerCase());
 
             const accessUrl =
+              item.downloadUrl ||
               matchedDump?.download_url ||
               matchedResource?.access_url ||
               detectAccessUrlFromName(name, provider);
 
-            const resourceId = matchedDump?.id || matchedResource?.id || `inv_${inv.invoice_number}`;
+            const resourceId = matchedDump?.id || matchedResource?.id || item.id || `inv_${inv.invoice_number}_${itemIdx}`;
 
             myResources.push({
-              id: `inv_${inv.invoice_number}_${resourceId}`,
+              id: `inv_${inv.invoice_number}_${resourceId}_${itemIdx}`,
               resourceId: resourceId,
               name: matchedDump?.title || matchedResource?.name || name,
               description: "Purchased Material",
               imageUrl: matchedDump?.image_url || matchedResource?.image_url || (provider ? `/logos/${provider}.svg` : ""),
               accessUrl: accessUrl,
               provider: provider,
-              category: name.toLowerCase().includes("dump") || matchedDump ? "Exam Dumps" : "Exam Guide",
+              category: name.toLowerCase().includes("dump") || matchedDump || item.downloadUrl ? "Exam Dumps" : "Exam Guide",
               resourceType: "file",
               accessedAt: inv.created_at || new Date().toISOString(),
             });
@@ -308,6 +369,44 @@ export async function listMyResources(): Promise<MyResource[]> {
     }
   } catch (invErr) {
     console.warn("Could not reconcile invoices into My Resources:", invErr);
+  }
+
+  // Also reconcile local recent purchases from this browser session/device
+  try {
+    const rawRecent = localStorage.getItem("yatri_recent_purchases");
+    if (rawRecent) {
+      const recentItems: Array<any> = JSON.parse(rawRecent);
+      const existingNames = new Set(myResources.map((r) => r.name.toLowerCase().trim()));
+      const existingIds = new Set(myResources.map((r) => r.id.toLowerCase().trim()));
+
+      for (const rec of recentItems) {
+        const recName = (rec.name || rec.title || "").trim();
+        const recId = rec.id || "";
+        if (!recName) continue;
+        if (existingNames.has(recName.toLowerCase()) || (recId && existingIds.has(recId.toLowerCase()))) {
+          continue;
+        }
+
+        existingNames.add(recName.toLowerCase());
+        const provider = rec.provider || detectProviderFromName(recName);
+        const accessUrl = rec.downloadUrl || rec.accessUrl || detectAccessUrlFromName(recName, provider);
+
+        myResources.unshift({
+          id: `recent_${recId || Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          resourceId: recId || `recent_${Date.now()}`,
+          name: recName,
+          description: "Purchased Material",
+          imageUrl: rec.image || (provider ? `/logos/${provider}.svg` : ""),
+          accessUrl: accessUrl,
+          provider: provider,
+          category: rec.category || (rec.downloadUrl || recName.toLowerCase().includes("dump") ? "Exam Dumps" : "Exam Guide"),
+          resourceType: "file",
+          accessedAt: rec.purchasedAt || new Date().toISOString(),
+        });
+      }
+    }
+  } catch (recentErr) {
+    console.warn("Could not reconcile recent purchases into My Resources:", recentErr);
   }
 
   // Filter out any dismissed/removed items
