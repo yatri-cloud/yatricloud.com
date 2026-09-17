@@ -336,14 +336,17 @@ export default function Resources() {
             >
               {isProviderSpecific && activeProviderMeta ? (
                 <>
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border bg-card/80 backdrop-blur-md shadow-2xs mb-4">
-                    {activeProviderMeta.logoUrl ? (
-                      <img src={activeProviderMeta.logoUrl} alt={activeProviderMeta.name} className="h-4 w-4 object-contain" />
-                    ) : (
-                      <Building2 className="h-4 w-4 text-primary" />
-                    )}
-                    <span className="text-xs font-semibold text-foreground">{activeProviderMeta.badge || "Certification Track"}</span>
-                  </div>
+                  {activeProviderMeta.logoUrl ? (
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="inline-flex items-center justify-center p-2.5 sm:p-3 rounded-2xl border border-border bg-card/80 backdrop-blur-md shadow-2xs">
+                        <img
+                          src={activeProviderMeta.logoUrl}
+                          alt={activeProviderMeta.name}
+                          className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
+                        />
+                      </div>
+                    </div>
+                  ) : null}
 
                   <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
                     {activeProviderMeta.name} <span className="gradient-text">Study Resources</span>

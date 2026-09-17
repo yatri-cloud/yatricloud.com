@@ -203,14 +203,17 @@ const ExamDumps = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-3xl mx-auto">
               {isProviderSpecific && activeProviderMeta ? (
                 <>
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border bg-card/80 backdrop-blur-md shadow-2xs mb-5">
-                    {activeProviderMeta.logoUrl ? (
-                      <img src={activeProviderMeta.logoUrl} alt={activeProviderMeta.name} className="h-4 w-4 object-contain" />
-                    ) : (
-                      <Building2 className="h-4 w-4 text-primary" />
-                    )}
-                    <span className="text-xs font-semibold text-foreground">{activeProviderMeta.badge || "Verified Certification Track"}</span>
-                  </div>
+                  {activeProviderMeta.logoUrl ? (
+                    <div className="flex items-center justify-center mb-5">
+                      <div className="inline-flex items-center justify-center p-2.5 sm:p-3 rounded-2xl border border-border bg-card/80 backdrop-blur-md shadow-2xs">
+                        <img
+                          src={activeProviderMeta.logoUrl}
+                          alt={activeProviderMeta.name}
+                          className="h-8 w-8 sm:h-10 sm:w-10 object-contain"
+                        />
+                      </div>
+                    </div>
+                  ) : null}
 
                   <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-4">
                     {activeProviderMeta.name} <span className="gradient-text">Exam Dumps</span>
