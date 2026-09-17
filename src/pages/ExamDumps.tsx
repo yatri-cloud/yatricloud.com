@@ -1,11 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Loader2, ArrowRight, Search, ChevronRight, Building2 } from "lucide-react";
+import {
+  Loader2, ArrowRight, Search, ChevronRight, Building2,
+  Sparkles, Compass, Users, Calendar, BookOpen
+} from "lucide-react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
 import { ExamDumpCard } from "@/components/exam-dumps/ExamDumpCard";
+import { ResourceCard } from "@/components/resources/ResourceCard";
 import { CartSheet } from "@/components/store/CartSheet";
 import { MobileCartBar } from "@/components/store/MobileCartBar";
 import {
@@ -15,6 +19,7 @@ import {
   normalizeProviderSlug,
   KNOWN_EXAM_PROVIDERS,
 } from "@/lib/exam-dumps";
+import { listResources, type Resource } from "@/lib/resources-api";
 import { CENTRAL_PROVIDERS_LIST } from "@/lib/central-providers";
 import { useSiteContent, getSiteStats, statValue, FALLBACK_STATS } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
@@ -32,6 +37,7 @@ const ExamDumps = () => {
   const trackSearch = useSearchTracker("ExamDump");
 
   const [dumps, setDumps] = useState<ExamDump[]>([]);
+  const [allResources, setAllResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const siteStats = useSiteContent(getSiteStats, FALLBACK_STATS);
   const learners = statValue(siteStats, "learners", "50K+");
@@ -53,8 +59,12 @@ const ExamDumps = () => {
     const loadDumps = async () => {
       try {
         setIsLoading(true);
-        const fetchedDumps = await fetchExamDumps();
+        const [fetchedDumps, fetchedResources] = await Promise.all([
+          fetchExamDumps(),
+          listResources().catch(() => []),
+        ]);
         setDumps(fetchedDumps);
+        setAllResources(fetchedResources);
       } catch (error) {
         console.error("Error loading exam dumps:", error);
         setDumps([]);
@@ -119,6 +129,16 @@ const ExamDumps = () => {
     else if (sort === "name") sorted.sort((a, b) => a.title.localeCompare(b.title));
     return sorted;
   }, [isProviderSpecific, activeProviderSlug, search, sort, dumps]);
+
+  const relatedResources = useMemo(() => {
+    if (isProviderSpecific) {
+      const match = allResources.filter(
+        (r) => normalizeProviderSlug(r.provider) === activeProviderSlug
+      );
+      if (match.length > 0) return match;
+    }
+    return allResources.slice(0, 4);
+  }, [allResources, isProviderSpecific, activeProviderSlug]);
 
   const pageCount = Math.max(1, Math.ceil(filteredDumps.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -381,6 +401,80 @@ const ExamDumps = () => {
                 )}
               </>
             )}
+
+            {/* Cross-Link Recommendation Rail: Related Study Resources & Cheat Sheets */}
+            {relatedResources.length > 0 && (
+              <section className="mt-16 pt-12 border-t border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary mb-1">
+                      <BookOpen className="h-3.5 w-3.5" />
+                      <span>Study Guides & Cheat Sheets</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                      {isProviderSpecific && activeProviderMeta
+                        ? `Official ${activeProviderMeta.name} Study Resources`
+                        : "Popular Certification Study Materials"}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                      Review key concepts, architectural diagrams, and exam objectives before testing.
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" asChild className="rounded-xl shrink-0 gap-1.5 text-xs h-9">
+                    <Link to={isProviderSpecific ? `/resources/${activeProviderSlug}` : "/resources"}>
+                      <span>View all {isProviderSpecific && activeProviderMeta ? activeProviderMeta.name : ""} resources</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                  {relatedResources.slice(0, 4).map((res) => (
+                    <ResourceCard
+                      key={res.id}
+                      resource={res}
+                      onAccess={(r) => {
+                        const slug = normalizeProviderSlug(r.provider);
+                        navigate(slug ? `/resources/${slug}?accessResource=${r.id}` : `/resources?accessResource=${r.id}`);
+                      }}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Next Steps on Your Certification Journey Banner */}
+            <section className="mt-12 rounded-3xl border border-border/80 bg-gradient-to-br from-card via-card/90 to-primary/[0.04] p-6 sm:p-8 shadow-xs overflow-hidden relative">
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2 max-w-xl">
+                  <Badge variant="secondary" className="text-xs font-medium px-2.5 py-0.5">Career Growth</Badge>
+                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight">Level up with structured learning paths</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    Follow multi-tier cloud certification tracks, join hands-on cohorts, and prepare for high-paying roles.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button asChild className="rounded-xl shadow-xs text-xs sm:text-sm h-10">
+                    <Link to="/paths" className="gap-1.5">
+                      <Compass className="h-4 w-4" />
+                      <span>Explore Career Paths</span>
+                    </Link>
+                  </Button>
+                  <Button variant="outline" asChild className="rounded-xl text-xs sm:text-sm h-10">
+                    <Link to="/community" className="gap-1.5">
+                      <Users className="h-4 w-4" />
+                      <span>Join Community</span>
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" asChild className="rounded-xl text-xs sm:text-sm h-10">
+                    <Link to="/training" className="gap-1.5">
+                      <Sparkles className="h-4 w-4" />
+                      <span>Live Cohorts</span>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </section>
           </div>
         </section>
 

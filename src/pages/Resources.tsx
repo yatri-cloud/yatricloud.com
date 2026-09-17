@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Share2, Check, Copy, ChevronRight, Building2, Search } from "lucide-react";
+import {
+  Loader2, Share2, Check, Copy, ChevronRight, Building2, Search,
+  Sparkles, ArrowRight, Compass, Users, Calendar, BookOpen
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -11,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ResourceCard } from "@/components/resources/ResourceCard";
+import { ExamDumpCard } from "@/components/exam-dumps/ExamDumpCard";
 import { LoginModal } from "@/components/LoginModal";
 import {
   listResources,
@@ -22,7 +26,7 @@ import { getStoredUser, isAuthenticated } from "@/lib/yatris-api";
 import { trackEvent } from "@/lib/analytics";
 import { ListPager } from "@/components/ui/list-pager";
 import { useSearchTracker } from "@/hooks/usePageTracker";
-import { normalizeProviderSlug, getProviderMeta } from "@/lib/exam-dumps";
+import { normalizeProviderSlug, getProviderMeta, fetchExamDumps, ExamDump } from "@/lib/exam-dumps";
 import { CENTRAL_PROVIDERS_LIST } from "@/lib/central-providers";
 
 const PAGE_SIZE = 12;
@@ -38,6 +42,7 @@ export default function Resources() {
   const trackSearch = useSearchTracker("Resource");
   const [searchParams, setSearchParams] = useSearchParams();
   const [resources, setResources] = useState<Resource[]>([]);
+  const [allExamDumps, setAllExamDumps] = useState<ExamDump[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
   const [unlockingId, setUnlockingId] = useState<string | null>(null);
@@ -83,12 +88,14 @@ export default function Resources() {
     (async () => {
       setIsLoading(true);
       try {
-        const [allRes, mine] = await Promise.all([
+        const [allRes, mine, allDumps] = await Promise.all([
           listResources(),
           user ? listMyResources() : Promise.resolve([]),
+          fetchExamDumps().catch(() => []),
         ]);
         setResources(allRes);
         setUnlockedIds(new Set(mine.map((m) => m.resourceId)));
+        setAllExamDumps(allDumps);
       } catch (e: any) {
         toast.error(e?.message ?? "Failed to load resources");
       } finally {
@@ -233,6 +240,16 @@ export default function Resources() {
       return true;
     });
   }, [resources, search, isProviderSpecific, activeProviderSlug, categoryFilter, freeFilter]);
+
+  const relatedDumps = useMemo(() => {
+    if (isProviderSpecific) {
+      const match = allExamDumps.filter(
+        (d) => normalizeProviderSlug(d.provider) === activeProviderSlug
+      );
+      if (match.length > 0) return match;
+    }
+    return allExamDumps.slice(0, 3);
+  }, [allExamDumps, isProviderSpecific, activeProviderSlug]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -531,6 +548,73 @@ export default function Resources() {
               )}
             </>
           )}
+
+          {/* Cross-Link Recommendation Rail: Related Exam Practice Dumps */}
+          {relatedDumps.length > 0 && (
+            <section className="mt-14 pt-10 border-t border-border">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary mb-1">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Practice & Test Your Knowledge</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                    {isProviderSpecific && activeProviderMeta
+                      ? `Verified ${activeProviderMeta.name} Practice Exam Dumps`
+                      : "Popular Certification Practice Dumps"}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Test yourself with real question sets, verified answers, and detailed explanations.
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" asChild className="rounded-xl shrink-0 gap-1.5 text-xs h-9">
+                  <Link to={isProviderSpecific ? `/examdumps/${activeProviderSlug}` : "/examdumps"}>
+                    <span>View all {isProviderSpecific && activeProviderMeta ? activeProviderMeta.name : ""} dumps</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                {relatedDumps.slice(0, 3).map((dump) => (
+                  <ExamDumpCard key={dump.id} dump={dump} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Next Steps on Your Certification Journey Banner */}
+          <section className="mt-12 rounded-3xl border border-border/80 bg-gradient-to-br from-card via-card/90 to-primary/[0.04] p-6 sm:p-8 shadow-xs overflow-hidden relative">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-xl">
+                <Badge variant="secondary" className="text-xs font-medium px-2.5 py-0.5">Next Steps</Badge>
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight">Need a structured path to get certified?</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Follow curated certification roadmaps, join live masterclasses, and connect with certified peers in the Yatri community.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button asChild className="rounded-xl shadow-xs text-xs sm:text-sm h-10">
+                  <Link to="/paths" className="gap-1.5">
+                    <Compass className="h-4 w-4" />
+                    <span>Explore Career Paths</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild className="rounded-xl text-xs sm:text-sm h-10">
+                  <Link to="/community" className="gap-1.5">
+                    <Users className="h-4 w-4" />
+                    <span>Join Community</span>
+                  </Link>
+                </Button>
+                <Button variant="ghost" asChild className="rounded-xl text-xs sm:text-sm h-10">
+                  <Link to="/events" className="gap-1.5">
+                    <Calendar className="h-4 w-4" />
+                    <span>Live Events</span>
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </section>
         </section>
       </main>
 
