@@ -75,12 +75,38 @@ function rowToInvoice(row: Record<string, any>): Invoice {
 
 /** All receipts for the signed in Yatri, newest first. Empty if none/not signed in. */
 export async function getMyInvoices(): Promise<Invoice[]> {
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("invoice_number, kind, buyer_name, buyer_email, amount, currency, items, created_at")
-    .order("created_at", { ascending: false });
-  if (error || !Array.isArray(data)) return [];
-  return data.map(rowToInvoice);
+  try {
+    const { data, error } = await supabase
+      .from("invoices")
+      .select("invoice_number, kind, buyer_name, buyer_email, amount, currency, items, created_at")
+      .order("created_at", { ascending: false });
+    if (!error && Array.isArray(data) && data.length > 0) {
+      return data.map(rowToInvoice);
+    }
+  } catch (err) {
+    console.warn("Client invoices fetch error:", err);
+  }
+
+  // Fallback to server endpoint to match email case-insensitively via service role
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (token) {
+      const res = await fetch("/api/user-purchases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: token }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (json.ok && Array.isArray(json.invoices)) {
+        return json.invoices.map(rowToInvoice);
+      }
+    }
+  } catch (apiErr) {
+    console.warn("API user-purchases invoices fallback error:", apiErr);
+  }
+
+  return [];
 }
 
 /**

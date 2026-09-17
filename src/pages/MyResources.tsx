@@ -49,23 +49,47 @@ export default function MyResources() {
   }, []);
 
   const isDump = (r: MyResource) => {
-    const nameLower = r.name.toLowerCase();
+    const nameLower = (r.name || "").toLowerCase();
     const catLower = (r.category || "").toLowerCase();
+    const urlLower = (r.accessUrl || "").toLowerCase();
 
-    // ── Hard POSITIVE signals — always a dump, regardless of category label ──
-    // e.g. "SnowPro Core Certification Exam Dumps" must be a dump even if the
-    // admin set category = "Exam Guide" or "Resource".
+    // ── Hard POSITIVE signals ──
+    if (catLower.includes("dump") || catLower === "exam dumps") {
+      return true;
+    }
+
     if (
-      r.accessUrl.startsWith("/examdumps/practice") ||
-      nameLower.includes("dump") ||
-      nameLower.includes("practice test") ||
-      nameLower.includes("exam questions") ||
-      catLower.includes("dump")
+      urlLower.includes("examdump") ||
+      urlLower.includes("practice") ||
+      urlLower.includes("drive.google.com") ||
+      urlLower.includes("download") ||
+      r.id.startsWith("inv_") ||
+      r.id.startsWith("recent_")
     ) {
       return true;
     }
 
-    // ── Everything else is a study guide / exam guide ──
+    if (
+      nameLower.includes("dump") ||
+      nameLower.includes("practice test") ||
+      nameLower.includes("exam questions") ||
+      nameLower.includes("certified") ||
+      nameLower.includes("certification") ||
+      nameLower.includes("specialist") ||
+      nameLower.includes("practitioner") ||
+      nameLower.includes("developer") ||
+      nameLower.includes("architect") ||
+      nameLower.includes("associate") ||
+      nameLower.includes("engineer") ||
+      nameLower.includes("administrator")
+    ) {
+      return true;
+    }
+
+    if (r.provider && (r.resourceType === "file" || !catLower.includes("guide"))) {
+      return true;
+    }
+
     return false;
   };
 

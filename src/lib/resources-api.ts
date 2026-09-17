@@ -215,6 +215,21 @@ export async function listMyResources(): Promise<MyResource[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const myResources: MyResource[] = (data || []).map((row: any) => {
     const r = row.resources ?? {};
+    const nameLower = (r.name ?? "").toLowerCase();
+    const isDumpCategory =
+      (r.category ?? "").toLowerCase().includes("dump") ||
+      (r.category ?? "").toLowerCase() === "exam dumps" ||
+      r.access_url?.includes("drive.google.com") ||
+      r.access_url?.includes("examdump") ||
+      r.resource_type === "file" ||
+      nameLower.includes("cert") ||
+      nameLower.includes("exam") ||
+      nameLower.includes("developer") ||
+      nameLower.includes("architect") ||
+      nameLower.includes("administrator") ||
+      nameLower.includes("specialist") ||
+      Boolean(r.provider);
+
     return {
       id: row.id,
       resourceId: row.resource_id,
@@ -223,7 +238,7 @@ export async function listMyResources(): Promise<MyResource[]> {
       imageUrl: r.image_url ?? "",
       accessUrl: r.access_url ?? "",
       provider: r.provider ?? "",
-      category: r.category ?? "",
+      category: isDumpCategory ? "Exam Dumps" : (r.category ?? "Exam Guide"),
       resourceType: r.resource_type === "file" ? "file" : "link",
       accessedAt: row.accessed_at ?? "",
     };
@@ -300,10 +315,31 @@ export async function listMyResources(): Promise<MyResource[]> {
         .select("id, name, provider, access_url, image_url, resource_type"),
     ]);
 
-    if (Array.isArray(invData)) {
+    let userInvoices: any[] = Array.isArray(invData) ? invData : [];
+    if (userInvoices.length === 0) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        if (token) {
+          const res = await fetch("/api/user-purchases", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ access_token: token }),
+          });
+          const json = await res.json().catch(() => ({}));
+          if (json.ok && Array.isArray(json.invoices)) {
+            userInvoices = json.invoices;
+          }
+        }
+      } catch (e) {
+        console.warn("Could not fetch user invoices from API:", e);
+      }
+    }
+
+    if (Array.isArray(userInvoices) && userInvoices.length > 0) {
       const existingNames = new Set(myResources.map((r) => r.name.toLowerCase().trim()));
 
-      for (const inv of invData) {
+      for (const inv of userInvoices) {
         const extractedItems = extractItemsFromInvoice(inv.items);
         let itemIdx = 0;
         for (const item of extractedItems) {
