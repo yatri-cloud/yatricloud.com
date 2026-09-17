@@ -220,17 +220,17 @@ export const Navbar = ({ heroTheme }: { heroTheme?: 'light' | 'dark' } = {}) => 
                       <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                         Edit Profile
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/my-resources?tab=dumps")}>
+                        My Resources & Dumps
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/my-purchases")}>
+                        My Receipts & Purchases
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate("/certificates")}>
                         My Certificates
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate("/profile/my-events")}>
                         My Events
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/my-resources")}>
-                        My Resources
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/profile/purchases")}>
-                        My Receipts
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate("/manage-certifications")}>
                         Manage Certifications

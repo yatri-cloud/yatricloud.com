@@ -1,8 +1,8 @@
 import { useConfirm } from "@/components/providers/ConfirmProvider";
 import { useState, useEffect, ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, IndianRupee, AlertCircle, CheckCircle2, ArrowRight, ExternalLink, Receipt, BookMarked } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ interface CartSheetProps {
 const OPEN_PENDING_KEY = "yc:open-cart-pending";
 
 export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
+  const navigate = useNavigate();
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
   const { currency, setCurrency, formatInr } = useCurrency();
   const { showConfirm: confirm } = useConfirm();
@@ -495,34 +496,66 @@ export const CartSheet = ({ trigger, openOnBuy }: CartSheetProps) => {
     </Sheet>
 
     <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-green-600">Payment Successful!</DialogTitle>
-          <DialogDescription>
-            Your order has been processed successfully. 
-            {purchasedDumps.length > 0 ? "You can access your exam dumps below." : "A confirmation email has been sent to you."}
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader className="text-center pb-2">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+            <CheckCircle2 className="h-7 w-7" />
+          </div>
+          <DialogTitle className="text-2xl font-bold font-display text-foreground">Payment Successful!</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground mt-1">
+            Your materials are now unlocked and added directly to your profile.
           </DialogDescription>
         </DialogHeader>
-        
+
         {purchasedDumps.length > 0 && (
-          <div className="space-y-4 my-4">
-            <p className="text-sm font-semibold">Purchased Exam Dumps:</p>
-            {purchasedDumps.map((dump, idx) => (
-              <div key={idx} className="p-3 bg-secondary/30 rounded-lg border border-border flex flex-col gap-2">
-                <p className="text-sm font-medium">{dump.title}</p>
-                <Button asChild size="sm" className="w-full">
-                  <a href={dump.downloadUrl} target="_blank" rel="noopener noreferrer">
-                    Access Exam Dump
-                  </a>
-                </Button>
-              </div>
-            ))}
+          <div className="space-y-3 my-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Unlocked Dumps & Materials:</p>
+            <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+              {purchasedDumps.map((dump, idx) => (
+                <div key={idx} className="p-3 bg-secondary/30 rounded-xl border border-border/80 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-foreground line-clamp-1">{dump.title}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{dump.provider || "Exam Dump"}</p>
+                  </div>
+                  {dump.downloadUrl && (
+                    <Button asChild size="sm" variant="outline" className="shrink-0 h-8 text-xs font-semibold rounded-lg hover:bg-primary hover:text-primary-foreground hover:border-primary">
+                      <a href={dump.downloadUrl} target="_blank" rel="noopener noreferrer">
+                        Download <ExternalLink className="ml-1 h-3 w-3" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        <DialogFooter>
-          <Button onClick={() => setIsSuccessModalOpen(false)} className="w-full sm:w-auto">
-            Close
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-muted-foreground flex items-center gap-2.5">
+          <BookMarked className="h-5 w-5 text-primary shrink-0" />
+          <span>
+            All your unlocked materials are always available under <strong>My Resources</strong>, and your receipts are in <strong>My Receipts</strong>.
+          </span>
+        </div>
+
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
+          <Button
+            onClick={() => {
+              setIsSuccessModalOpen(false);
+              navigate("/my-resources?tab=dumps");
+            }}
+            className="w-full sm:flex-1 font-semibold shadow-inset-btn gap-1.5"
+          >
+            Go to My Resources <ArrowRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setIsSuccessModalOpen(false);
+              navigate("/my-purchases");
+            }}
+            className="w-full sm:w-auto font-medium"
+          >
+            <Receipt className="h-4 w-4 mr-1.5" /> View Receipt
           </Button>
         </DialogFooter>
       </DialogContent>
