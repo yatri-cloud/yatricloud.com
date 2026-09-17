@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, Share2, Check, Copy, ChevronRight, Building2, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/sections/Footer";
 import { SEO } from "@/components/SEO";
@@ -19,11 +19,11 @@ import {
   type Resource,
 } from "@/lib/resources-api";
 import { getStoredUser, isAuthenticated } from "@/lib/yatris-api";
-import { getCachedUser } from "@/lib/auth";
 import { trackEvent } from "@/lib/analytics";
 import { ListPager } from "@/components/ui/list-pager";
 import { useSearchTracker } from "@/hooks/usePageTracker";
 import { normalizeProviderSlug, getProviderMeta } from "@/lib/exam-dumps";
+import { CENTRAL_PROVIDERS_LIST } from "@/lib/central-providers";
 
 const PAGE_SIZE = 12;
 
@@ -44,23 +44,27 @@ export default function Resources() {
   const [user, setUser] = useState<any>(getStoredUser());
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingResource, setPendingResource] = useState<Resource | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   const handledPendingRef = useRef(false);
+
+  // Active provider slug from URL param or query param
+  const activeProviderSlug = useMemo(() => {
+    const raw = urlProvider || searchParams.get("provider");
+    return raw ? normalizeProviderSlug(raw) : "all";
+  }, [urlProvider, searchParams]);
+
+  const isProviderSpecific = activeProviderSlug !== "all";
+  const activeProviderMeta = isProviderSpecific ? getProviderMeta(activeProviderSlug) : null;
 
   // Filters
   const [search, setSearch] = useState("");
-  const [providerFilter, setProviderFilter] = useState(() => (urlProvider ? normalizeProviderSlug(urlProvider) : "all"));
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
   const [page, setPage] = useState(1);
 
-  // Synchronize when URL provider parameter changes
   useEffect(() => {
-    if (urlProvider) {
-      setProviderFilter(normalizeProviderSlug(urlProvider));
-    }
-  }, [urlProvider]);
-
-  useEffect(() => { setPage(1); }, [search, providerFilter, categoryFilter, freeFilter]);
+    setPage(1);
+  }, [activeProviderSlug, search, categoryFilter, freeFilter]);
 
   // Keep user in sync if changed in another tab or component
   useEffect(() => {
@@ -165,9 +169,34 @@ export default function Resources() {
     }
   }, [user, isLoading, resources, searchParams]);
 
-  const providers = useMemo(() => {
-    const set = new Set(resources.map((r) => r.provider).filter(Boolean));
-    return Array.from(set).sort();
+  // Provider tabs computation with counts
+  const providerTabs = useMemo(() => {
+    const countsBySlug = new Map<string, number>();
+    for (const r of resources) {
+      const slug = normalizeProviderSlug(r.provider) || "other";
+      countsBySlug.set(slug, (countsBySlug.get(slug) || 0) + 1);
+    }
+
+    const prominentSlugs = CENTRAL_PROVIDERS_LIST.map((p) => p.slug);
+    const allSlugs = Array.from(new Set([...prominentSlugs, ...Array.from(countsBySlug.keys())]));
+
+    const result: Array<{ slug: string; name: string; count: number; logoUrl?: string; badge?: string }> = [
+      { slug: "all", name: "All Certifications", count: resources.length },
+    ];
+
+    for (const slug of allSlugs) {
+      const count = countsBySlug.get(slug) || 0;
+      const meta = getProviderMeta(slug);
+      result.push({
+        slug,
+        name: meta.shortName || meta.name,
+        count,
+        logoUrl: meta.logoUrl,
+        badge: meta.badge,
+      });
+    }
+
+    return result;
   }, [resources]);
 
   const categories = useMemo(() => {
@@ -175,27 +204,50 @@ export default function Resources() {
     return Array.from(set).sort();
   }, [resources]);
 
+  const handleProviderChange = (slugOrName: string) => {
+    const targetSlug = slugOrName === "all" ? "all" : normalizeProviderSlug(slugOrName);
+    if (targetSlug === "all") {
+      navigate("/resources");
+    } else {
+      navigate(`/resources/${targetSlug}`);
+    }
+  };
+
+  const handleCopyLink = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    toast.success("Shareable link copied to clipboard!");
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const targetProvider = providerFilter !== "all" ? normalizeProviderSlug(providerFilter) : "all";
 
     return resources.filter((r) => {
-      if (targetProvider !== "all" && normalizeProviderSlug(r.provider) !== targetProvider) return false;
+      if (isProviderSpecific && normalizeProviderSlug(r.provider) !== activeProviderSlug) return false;
       if (categoryFilter !== "all" && r.category !== categoryFilter) return false;
       if (freeFilter === "free" && !r.isFree) return false;
       if (freeFilter === "paid" && r.isFree) return false;
       if (q && !r.name.toLowerCase().includes(q) && !r.description.toLowerCase().includes(q) && !r.provider.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [resources, search, providerFilter, categoryFilter, freeFilter]);
+  }, [resources, search, isProviderSpecific, activeProviderSlug, categoryFilter, freeFilter]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const activeProviderMeta = providerFilter !== "all" ? getProviderMeta(providerFilter) : null;
-  const pageTitle = activeProviderMeta
+  const pageTitle = isProviderSpecific && activeProviderMeta
     ? `${activeProviderMeta.name} Certification Resources & Study Guides | Yatri Cloud`
     : "Resources | Yatri Cloud";
+
+  const pageDescription = isProviderSpecific && activeProviderMeta
+    ? `Free and premium ${activeProviderMeta.name} study guides, cheat sheets, practice questions, and exam preparation resources curated for tech professionals.`
+    : "Free and premium exam guides, practice tests, cheat sheets and more curated for cloud and tech certification learners.";
+
+  const canonicalUrl = isProviderSpecific && activeProviderMeta
+    ? `https://www.yatricloud.com/resources/${activeProviderMeta.slug}`
+    : "https://www.yatricloud.com/resources";
 
   const handleLoginSuccess = async (loggedInUser: any) => {
     setUser(loggedInUser);
@@ -241,36 +293,123 @@ export default function Resources() {
     <div className="min-h-screen bg-background text-foreground">
       <SEO
         title={pageTitle}
-        description="Free and premium exam guides, practice tests, cheat sheets and more curated for cloud and tech certification learners."
+        description={pageDescription}
+        canonical={canonicalUrl}
       />
       <Navbar />
 
-      <main className="pt-28 sm:pt-32 md:pt-24 pb-12">
+      <main className="pt-24 sm:pt-28 md:pt-20 pb-12">
+        {/* Breadcrumbs for provider-specific URLs */}
+        {isProviderSpecific && activeProviderMeta && (
+          <div className="border-b border-border/40 bg-muted/20">
+            <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
+                <ChevronRight className="h-3.5 w-3.5 opacity-60" />
+                <Link to="/resources" className="hover:text-foreground transition-colors">Resources</Link>
+                <ChevronRight className="h-3.5 w-3.5 opacity-60" />
+                <span className="text-foreground font-semibold">{activeProviderMeta.name}</span>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopyLink}
+                className="h-7 text-xs px-2 rounded-lg gap-1.5 hover:bg-card border border-border/60"
+              >
+                {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copiedLink ? "Copied!" : "Share Link"}</span>
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Hero */}
-        <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/[0.05] via-background to-background py-5 md:py-7">
+        <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/[0.05] via-background to-background py-7 md:py-10">
           <div aria-hidden="true" className="pointer-events-none absolute -top-16 right-0 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-          <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="container mx-auto max-w-7xl px-4 sm:px-6 relative z-10">
             <motion.div
               variants={fadeUp}
               initial="hidden"
               animate="show"
-              className="text-center"
+              className="text-center max-w-3xl mx-auto"
             >
-              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
-                Study smarter, certify faster
-              </h1>
+              {isProviderSpecific && activeProviderMeta ? (
+                <>
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border bg-card/80 backdrop-blur-md shadow-2xs mb-4">
+                    {activeProviderMeta.logoUrl ? (
+                      <img src={activeProviderMeta.logoUrl} alt={activeProviderMeta.name} className="h-4 w-4 object-contain" />
+                    ) : (
+                      <Building2 className="h-4 w-4 text-primary" />
+                    )}
+                    <span className="text-xs font-semibold text-foreground">{activeProviderMeta.badge || "Certification Track"}</span>
+                  </div>
+
+                  <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
+                    {activeProviderMeta.name} <span className="gradient-text">Study Resources</span>
+                  </h1>
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                    {activeProviderMeta.description || `Verified study materials, guides, and cheat sheets for ${activeProviderMeta.name} certifications.`}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
+                    Study smarter, <span className="gradient-text">certify faster</span>
+                  </h1>
+                  <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                    Free and premium exam guides, cheat sheets, and practice materials for top certifications.
+                  </p>
+                </>
+              )}
             </motion.div>
           </div>
         </section>
 
+        {/* Sticky Provider Quick Jump Bar */}
+        <section className="sticky top-16 z-30 bg-background/95 backdrop-blur-xl border-b border-border shadow-xs">
+          <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            {providerTabs.map((tab) => {
+              const isActive = tab.slug === "all" ? !isProviderSpecific : activeProviderSlug === tab.slug;
+              const linkHref = tab.slug === "all" ? "/resources" : `/resources/${tab.slug}`;
+              return (
+                <Button
+                  key={tab.slug}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  asChild
+                  className={`rounded-full text-xs min-h-[34px] whitespace-nowrap transition-all ${
+                    isActive ? "shadow-inset-btn font-semibold" : "hover:bg-muted"
+                  }`}
+                >
+                  <Link to={linkHref} className="flex items-center gap-1.5">
+                    {tab.logoUrl && (
+                      <img src={tab.logoUrl} alt="" className="h-3.5 w-3.5 shrink-0 object-contain" />
+                    )}
+                    <span>{tab.name}</span>
+                    {tab.count > 0 && (
+                      <span className={`ml-1 text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+                      }`}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </Link>
+                </Button>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Filters + Grid */}
-        <section className="container mx-auto max-w-7xl px-4 sm:px-6 py-5 md:py-6">
+        <section className="container mx-auto max-w-7xl px-4 sm:px-6 py-6">
           {/* Filter bar */}
-          <div className="mb-5 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:flex-wrap">
-            <div className="relative flex-1 min-w-[180px]">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <Input
                 placeholder="Search resources…"
-                className="min-h-[38px] h-9.5 rounded-lg text-xs sm:text-sm"
+                className="pl-9 min-h-[38px] h-9.5 rounded-lg text-xs sm:text-sm"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -279,15 +418,16 @@ export default function Resources() {
               />
             </div>
 
-            {/* Certification Provider */}
-            <Select value={providerFilter} onValueChange={setProviderFilter}>
-              <SelectTrigger className="w-full sm:w-[170px] min-h-[38px] h-9.5 rounded-lg text-xs sm:text-sm">
+            {/* Certification Provider Dropdown */}
+            <Select value={activeProviderSlug} onValueChange={handleProviderChange}>
+              <SelectTrigger className="w-full sm:w-[190px] min-h-[38px] h-9.5 rounded-lg text-xs sm:text-sm">
                 <SelectValue placeholder="All Certifications" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Certifications</SelectItem>
-                {providers.map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                {providerTabs.map((p) => (
+                  <SelectItem key={p.slug} value={p.slug}>
+                    {p.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -296,10 +436,10 @@ export default function Resources() {
             {categories.length > 0 && (
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-full sm:w-[160px] min-h-[38px] h-9.5 rounded-lg text-xs sm:text-sm">
-                  <SelectValue placeholder="All Resources" />
+                  <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Resources</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
@@ -321,6 +461,19 @@ export default function Resources() {
                 </Button>
               ))}
             </div>
+
+            {/* Share / Copy Filter URL */}
+            {isProviderSpecific && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyLink}
+                className="min-h-[38px] h-9.5 rounded-lg text-xs px-3 gap-1.5"
+              >
+                {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Share2 className="h-3.5 w-3.5" />}
+                <span>{copiedLink ? "Copied" : "Share URL"}</span>
+              </Button>
+            )}
           </div>
 
           {isLoading ? (
@@ -329,13 +482,30 @@ export default function Resources() {
               <p className="text-xs text-muted-foreground">Loading resources…</p>
             </div>
           ) : paged.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 border border-border rounded-xl bg-card text-center">
-              <h2 className="font-display text-base font-semibold tracking-tight">No resources found</h2>
+            <div className="flex flex-col items-center justify-center py-16 border border-border rounded-xl bg-card text-center px-4">
+              <Building2 className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <h2 className="font-display text-base font-semibold tracking-tight">
+                {isProviderSpecific && activeProviderMeta
+                  ? `No ${activeProviderMeta.name} resources found yet`
+                  : "No resources found"}
+              </h2>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                {search || providerFilter !== "All" || categoryFilter !== "All" || freeFilter !== "all"
-                  ? "Try adjusting your filters."
+                {search || categoryFilter !== "all" || freeFilter !== "all"
+                  ? "Try adjusting your filters or search keywords."
+                  : isProviderSpecific
+                  ? `New ${activeProviderMeta?.name} study materials are currently being prepared and curated. Check back soon!`
                   : "Resources are being added, check back soon!"}
               </p>
+              {isProviderSpecific && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/resources")}
+                  className="mt-4 rounded-lg text-xs"
+                >
+                  View All Resources
+                </Button>
+              )}
             </div>
           ) : (
             <>
