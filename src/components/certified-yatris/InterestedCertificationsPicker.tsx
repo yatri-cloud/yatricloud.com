@@ -31,7 +31,6 @@ export const POPULAR_PROVIDERS = [
   { id: "oracle", label: "Oracle", code: "Oracle" },
   { id: "docker", label: "Docker", code: "Docker" },
   { id: "databricks", label: "Databricks", code: "Databricks" },
-  { id: "universal", label: "Universal / Multi-Cloud", code: "Universal" },
   { id: "redis", label: "Redis", code: "Redis" },
 ];
 

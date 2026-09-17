@@ -481,7 +481,6 @@ export const getResourceProviderColor = (provider?: string): string => {
   if (p.includes("azure") || p.includes("microsoft")) return "rgba(0,137,214,0.35)";
   if (p.includes("gcp") || p.includes("google")) return "rgba(66,133,244,0.35)";
   if (p.includes("databricks")) return "rgba(255,54,33,0.35)";
-  if (p.includes("universal") || p.includes("multi-cloud")) return "rgba(99,102,241,0.35)";
   if (p.includes("snowflake")) return "rgba(41,181,232,0.35)";
   if (p.includes("anthropic") || p.includes("claude")) return "rgba(217,119,6,0.35)";
   if (p.includes("redis")) return "rgba(220,56,45,0.35)";

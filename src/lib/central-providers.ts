@@ -256,18 +256,6 @@ export const CENTRAL_PROVIDERS_LIST: CentralProvider[] = [
     description: "Complete practice questions and dumps for Databricks Certified Data Engineer, Machine Learning Associate/Professional, and Lakehouse Fundamentals.",
   },
   {
-    value: "Universal",
-    label: "Universal / Multi-Cloud",
-    slug: "universal",
-    shortName: "Universal",
-    logoUrl: "/favicon.ico",
-    logoLightUrl: "/favicon.ico",
-    brandColor: "#6366F1",
-    glowColor: "rgba(99, 102, 241, 0.35)",
-    badge: "Multi-Cloud & General",
-    description: "Universal study guides, cheat sheets, multi-cloud architectures, interview prep, and foundational IT resources.",
-  },
-  {
     value: "Alibaba",
     label: "Alibaba Cloud",
     slug: "alibaba",
@@ -301,7 +289,6 @@ export function normalizeCentralProviderSlug(name?: string): string {
   if (/^microsoft|^azure/.test(raw)) return "azure";
   if (/^google|^gcp/.test(raw)) return "gcp";
   if (/^databricks/.test(raw)) return "databricks";
-  if (/^universal|^multi-?cloud|^general/.test(raw)) return "universal";
   if (/^redis/.test(raw)) return "redis";
   if (/^snowflake/.test(raw)) return "snowflake";
   if (/^anthropic|^claude/.test(raw)) return "anthropic";

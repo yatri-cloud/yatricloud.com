@@ -27,7 +27,6 @@ const PROVIDER_LOGOS: Record<string, { logo: string; logoLight?: string }> = {
   anthropic: { logo: `/logos/anthropic-white.svg`, logoLight: `/logos/anthropic.svg` },
   snowflake: { logo: `/logos/snowflake.png`, logoLight: `/logos/snowflake.png` },
   databricks: { logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/databricks/databricks-original.svg" },
-  universal: { logo: "/favicon.ico" },
   hashicorp: { logo: `${LOGO_BASE_URL}/HashiCorp_logo.svg` },
   kubernetes: { logo: `${LOGO_BASE_URL}/Kubernetes_logo.svg` },
 };
