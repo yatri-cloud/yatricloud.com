@@ -208,7 +208,7 @@ export const KNOWN_EXAM_PROVIDERS: Record<string, ExamDumpProviderMeta> = {
     name: "Databricks",
     shortName: "Databricks",
     description: "Complete practice questions and verified exam dumps for Databricks Data Engineer, ML Associate, and Lakehouse exams.",
-    logoUrl: "/logos/databricks.svg",
+    logoUrl: "/logos/databricks.png",
     brandColor: "#FF3621",
     glowColor: "rgba(255, 54, 33, 0.35)",
     badge: "Data & Lakehouse",
