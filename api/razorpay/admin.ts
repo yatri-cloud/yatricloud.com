@@ -73,13 +73,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { action, access_token } = req.body || {};
   if (!action || !access_token) return res.status(400).json({ ok: false, message: 'Missing action or sign in token.' });
 
-  // ---- Verify the caller is an admin ----
+  const svcHeaders = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    'Content-Type': 'application/json',
+  };
+
+  // ---- Verify caller token ----
+  let authUser: any = null;
+  let isAdmin = false;
   try {
     const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: { apikey: serviceKey, Authorization: `Bearer ${access_token}` },
     });
     if (!userRes.ok) return res.status(401).json({ ok: false, message: 'Please sign in again.' });
-    const authUser = await userRes.json().catch(() => null);
+    authUser = await userRes.json().catch(() => null);
     const uid = authUser?.id;
     if (!uid) return res.status(401).json({ ok: false, message: 'Please sign in again.' });
 
@@ -88,10 +96,76 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
     );
     const [profile] = (await profRes.json().catch(() => [])) as Array<{ role?: string }>;
-    if (profile?.role !== 'admin') return res.status(403).json({ ok: false, message: 'Admins only.' });
+    isAdmin = profile?.role === 'admin';
   } catch (e) {
     console.error('admin gateway auth error:', e);
     return res.status(500).json({ ok: false, message: 'Could not verify your access.' });
+  }
+
+  // ── User Purchases (for any authenticated user checking their own receipts & materials)
+  if (action === 'user.purchases') {
+    try {
+      const email = (authUser?.email || '').trim().toLowerCase();
+      const [invRes, ordersRes] = await Promise.all([
+        fetch(
+          `${supabaseUrl}/rest/v1/invoices?buyer_email=ilike.${encodeURIComponent(
+            email
+          )}&select=*&order=created_at.desc`,
+          { headers: svcHeaders }
+        ),
+        fetch(
+          `${supabaseUrl}/rest/v1/orders?email=ilike.${encodeURIComponent(
+            email
+          )}&select=*&order=created_at.desc`,
+          { headers: svcHeaders }
+        ),
+      ]);
+      const invoices = (await invRes.json().catch(() => [])) || [];
+      const orders = (await ordersRes.json().catch(() => [])) || [];
+      return res.status(200).json({
+        ok: true,
+        invoices: Array.isArray(invoices) ? invoices : [],
+        orders: Array.isArray(orders) ? orders : [],
+      });
+    } catch (err) {
+      console.error('user.purchases error:', err);
+      return res.status(500).json({ ok: false, message: 'Failed to fetch purchases' });
+    }
+  }
+
+  // All subsequent actions require Admin privileges
+  if (!isAdmin) {
+    return res.status(403).json({ ok: false, message: 'Admins only.' });
+  }
+
+  // ── Support Ticket Admin Actions
+  if (action === 'tickets.delete') {
+    const ticket_id = req.body?.ticket_id;
+    if (!ticket_id) return res.status(400).json({ ok: false, message: 'ticket_id is required' });
+    await fetch(
+      `${supabaseUrl}/rest/v1/support_messages?ticket_id=eq.${encodeURIComponent(ticket_id)}`,
+      { method: 'DELETE', headers: svcHeaders }
+    );
+    const delRes = await fetch(
+      `${supabaseUrl}/rest/v1/support_tickets?id=eq.${encodeURIComponent(ticket_id)}`,
+      { method: 'DELETE', headers: { ...svcHeaders, Prefer: 'return=representation' } }
+    );
+    if (!delRes.ok) return res.status(500).json({ ok: false, message: 'Failed to delete ticket' });
+    return res.status(200).json({ ok: true, message: 'Ticket deleted successfully' });
+  }
+
+  if (action === 'tickets.set_status') {
+    const { ticket_id, status } = req.body || {};
+    if (!ticket_id || !status) return res.status(400).json({ ok: false, message: 'ticket_id and status required' });
+    const patch: Record<string, unknown> = { status, last_activity_at: new Date().toISOString() };
+    if (status === 'resolved') patch.resolved_at = new Date().toISOString();
+    if (status === 'closed') patch.closed_at = new Date().toISOString();
+    const patchRes = await fetch(
+      `${supabaseUrl}/rest/v1/support_tickets?id=eq.${encodeURIComponent(ticket_id)}`,
+      { method: 'PATCH', headers: { ...svcHeaders, Prefer: 'return=representation' }, body: JSON.stringify(patch) }
+    );
+    if (!patchRes.ok) return res.status(500).json({ ok: false, message: 'Failed to update ticket status' });
+    return res.status(200).json({ ok: true, message: 'Status updated' });
   }
 
   // ---- Razorpay call helper (Basic auth) ----
@@ -109,10 +183,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const p = req.body || {};
 
-    // Admin role & credential management — folded into this gateway to stay
-    // within the serverless-function budget (one function, many actions).
-    // Delegate adminUsers.* actions to the shared lib (which re-checks the
-    // caller's admin_users role, incl. super_admin protection).
+    // Admin role & credential management
     if (typeof action === 'string' && action.startsWith('adminUsers.')) {
       req.body = { ...(req.body || {}), action: action.slice('adminUsers.'.length) };
       return handleAdminUsers(req, res);

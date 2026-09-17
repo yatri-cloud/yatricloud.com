@@ -321,10 +321,10 @@ export async function listMyResources(): Promise<MyResource[]> {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
         if (token) {
-          const res = await fetch("/api/user-purchases", {
+          const res = await fetch("/api/razorpay/admin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ access_token: token }),
+            body: JSON.stringify({ action: "user.purchases", access_token: token }),
           });
           const json = await res.json().catch(() => ({}));
           if (json.ok && Array.isArray(json.invoices)) {

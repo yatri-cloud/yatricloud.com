@@ -331,13 +331,17 @@ export async function setTicketStatus(ticket: SupportTicket, status: TicketStatu
   } else {
     console.error("[support] setTicketStatus client error:", error.message);
     try {
-      const res = await fetch("/api/admin-ticket-action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "set_status", ticket_id: ticket.id, status }),
-      });
-      const json = await res.json().catch(() => ({}));
-      success = Boolean(json.ok);
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (token) {
+        const res = await fetch("/api/razorpay/admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "tickets.set_status", ticket_id: ticket.id, status, access_token: token }),
+        });
+        const json = await res.json().catch(() => ({}));
+        success = Boolean(json.ok);
+      }
     } catch (apiErr) {
       console.error("[support] setTicketStatus API fallback error:", apiErr);
     }
@@ -385,15 +389,19 @@ export async function deleteTicket(ticketId: string): Promise<boolean> {
 
   // Fallback to server API endpoint with service key
   try {
-    const res = await fetch("/api/admin-ticket-action", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", ticket_id: ticketId }),
-    });
-    const json = await res.json().catch(() => ({}));
-    return Boolean(json.ok);
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (token) {
+      const res = await fetch("/api/razorpay/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "tickets.delete", ticket_id: ticketId, access_token: token }),
+      });
+      const json = await res.json().catch(() => ({}));
+      return Boolean(json.ok);
+    }
   } catch (apiErr) {
     console.error("[support] deleteTicket API fallback error:", apiErr);
-    return false;
   }
+  return false;
 }
