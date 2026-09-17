@@ -321,14 +321,30 @@ export async function replyAsAdmin(
 }
 
 export async function setTicketStatus(ticket: SupportTicket, status: TicketStatus): Promise<boolean> {
+  let success = false;
   const patch: Record<string, unknown> = { status, last_activity_at: new Date().toISOString() };
   if (status === "resolved") patch.resolved_at = new Date().toISOString();
   if (status === "closed") patch.closed_at = new Date().toISOString();
   const { error } = await supabase.from("support_tickets").update(patch).eq("id", ticket.id);
-  if (error) {
-    console.error("[support] setTicketStatus", error.message);
-    return false;
+  if (!error) {
+    success = true;
+  } else {
+    console.error("[support] setTicketStatus client error:", error.message);
+    try {
+      const res = await fetch("/api/admin-ticket-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set_status", ticket_id: ticket.id, status }),
+      });
+      const json = await res.json().catch(() => ({}));
+      success = Boolean(json.ok);
+    } catch (apiErr) {
+      console.error("[support] setTicketStatus API fallback error:", apiErr);
+    }
   }
+
+  if (!success) return false;
+
   if (status === "resolved") {
     void emailQuietly(
       ticket.email,
@@ -353,4 +369,31 @@ export async function setTicketPriority(ticketId: string, priority: TicketPriori
   const { error } = await supabase.from("support_tickets").update({ priority }).eq("id", ticketId);
   if (error) console.error("[support] setTicketPriority", error.message);
   return !error;
+}
+
+/** Admin deletes a ticket and its associated messages permanently. */
+export async function deleteTicket(ticketId: string): Promise<boolean> {
+  try {
+    // Attempt deletion via client SDK
+    await supabase.from("support_messages").delete().eq("ticket_id", ticketId);
+    const { error } = await supabase.from("support_tickets").delete().eq("id", ticketId);
+    if (!error) return true;
+    console.warn("[support] client deleteTicket failed, trying API fallback:", error.message);
+  } catch (err) {
+    console.warn("[support] client deleteTicket threw:", err);
+  }
+
+  // Fallback to server API endpoint with service key
+  try {
+    const res = await fetch("/api/admin-ticket-action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", ticket_id: ticketId }),
+    });
+    const json = await res.json().catch(() => ({}));
+    return Boolean(json.ok);
+  } catch (apiErr) {
+    console.error("[support] deleteTicket API fallback error:", apiErr);
+    return false;
+  }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search, StickyNote } from "lucide-react";
+import { CheckCircle, Loader2, Search, StickyNote, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -24,6 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import ScrollReveal from "@/components/ScrollReveal";
 import {
   ADMIN_STATUS_LABELS,
+  deleteTicket,
   listAllTickets,
   listMessages,
   replyAsAdmin,
@@ -39,8 +50,7 @@ import {
  * /admin/tickets — the support queue. Filter by status/priority, search,
  * open a ticket to read the thread (internal notes highlighted), reply
  * (emails the Yatri and flips the ticket to "Waiting on Yatri"), leave
- * internal notes, and set status/priority. Auto-close of quiet resolved
- * tickets runs in /api/cron/support-auto-close.
+ * internal notes, close manually, and delete tickets.
  */
 
 const STATUS_STYLES: Record<TicketStatus, string> = {
@@ -74,6 +84,8 @@ const AdminTickets = () => {
   const [reply, setReply] = useState("");
   const [internal, setInternal] = useState(false);
   const [sending, setSending] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [ticketToDelete, setTicketToDelete] = useState<SupportTicket | null>(null);
 
   const load = async () => {
     setRows(await listAllTickets());
@@ -117,6 +129,38 @@ const AdminTickets = () => {
     if (!ok) { toast({ title: "Update failed", variant: "destructive" }); return; }
     toast({ title: "Saved", description: `Ticket is now ${ADMIN_STATUS_LABELS[status]}.` });
     void refreshActive(active.id);
+  };
+
+  const handleQuickClose = async (t: SupportTicket, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const ok = await setTicketStatus(t, "closed");
+    if (!ok) {
+      toast({ title: "Update failed", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Ticket closed", description: `Ticket ${t.ticketNumber} is now Closed.` });
+    setRows((prev) =>
+      prev.map((r) => (r.id === t.id ? { ...r, status: "closed", lastActivityAt: new Date().toISOString() } : r))
+    );
+    if (active?.id === t.id) {
+      setActive((prev) => (prev ? { ...prev, status: "closed" } : null));
+    }
+  };
+
+  const handleDelete = async (t: SupportTicket) => {
+    setDeletingId(t.id);
+    const ok = await deleteTicket(t.id);
+    setDeletingId(null);
+    setTicketToDelete(null);
+    if (!ok) {
+      toast({ title: "Delete failed", description: "Could not delete ticket.", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Deleted", description: `Ticket ${t.ticketNumber} was permanently removed.` });
+    setRows((prev) => prev.filter((r) => r.id !== t.id));
+    if (active?.id === t.id) {
+      setActive(null);
+    }
   };
 
   const handlePriority = async (priority: TicketPriority) => {
@@ -211,64 +255,137 @@ const AdminTickets = () => {
               </p>
             ) : (
               shown.map((t) => (
-                <button
+                <div
                   key={t.id}
-                  onClick={() => openTicket(t)}
                   data-testid={`ticket-row-${t.ticketNumber}`}
-                  className="flex w-full flex-wrap items-center gap-3 p-4 text-left odd:bg-brand-50/30 hover:bg-brand-50/60 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={() => openTicket(t)}
+                  className="flex w-full flex-wrap items-center justify-between gap-3 p-4 text-left odd:bg-brand-50/30 hover:bg-brand-50/60 transition cursor-pointer group"
                 >
-                  <span className="font-mono text-sm font-semibold text-primary">{t.ticketNumber}</span>
-                  <span className="min-w-[200px] flex-1 font-semibold">{t.subject}</span>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${PRIORITY_STYLES[t.priority]}`}>{t.priority}</span>
-                  <Badge className={`rounded-full border ${STATUS_STYLES[t.status]}`}>{ADMIN_STATUS_LABELS[t.status]}</Badge>
-                  <span className="text-xs text-muted-foreground">{t.name} · {fmt(t.lastActivityAt)}</span>
-                </button>
+                  <div className="flex flex-wrap items-center gap-3 min-w-[280px] flex-1">
+                    <span className="font-mono text-sm font-semibold text-primary">{t.ticketNumber}</span>
+                    <span className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">{t.subject}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${PRIORITY_STYLES[t.priority]}`}>{t.priority}</span>
+                    <Badge className={`rounded-full border ${STATUS_STYLES[t.status]}`}>{ADMIN_STATUS_LABELS[t.status]}</Badge>
+                    <span className="text-xs text-muted-foreground">{t.name} · {fmt(t.lastActivityAt)}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    {t.status !== "closed" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => handleQuickClose(t, e)}
+                        className="h-8 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                        title="Close Ticket"
+                      >
+                        <XCircle className="h-3.5 w-3.5 mr-1 text-muted-foreground" /> Close
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleStatus("open");
+                        }}
+                        className="h-8 text-xs font-medium rounded-lg text-muted-foreground hover:text-primary"
+                        title="Reopen Ticket"
+                      >
+                        <CheckCircle className="h-3.5 w-3.5 mr-1 text-emerald-500" /> Reopen
+                      </Button>
+                    )}
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTicketToDelete(t);
+                      }}
+                      disabled={deletingId === t.id}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                      title="Delete Ticket"
+                    >
+                      {deletingId === t.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-destructive" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
               ))
             )}
           </div>
         </div>
       </div>
 
+      {/* Ticket Details & Discussion Modal */}
       <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           {active && (
             <>
-              <DialogHeader>
-                <DialogTitle className="font-display tracking-tight">
-                  <span className="font-mono text-primary mr-2">{active.ticketNumber}</span>
-                  {active.subject}
-                </DialogTitle>
-                <DialogDescription>
-                  {active.name} · {active.email} · {active.category}
-                </DialogDescription>
+              <DialogHeader className="flex flex-row items-start justify-between gap-4 border-b border-border/80 pb-4">
+                <div className="space-y-1 pr-6">
+                  <DialogTitle className="font-display tracking-tight text-lg">
+                    <span className="font-mono text-primary mr-2">{active.ticketNumber}</span>
+                    {active.subject}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {active.name} · {active.email} · <span className="capitalize">{active.category}</span>
+                  </DialogDescription>
+                </div>
               </DialogHeader>
 
-              <div className="flex flex-wrap gap-3">
-                <div className="flex-1 min-w-[160px]">
-                  <Label className="mb-1.5 block text-xs">Status</Label>
-                  <Select value={active.status} onValueChange={(v) => handleStatus(v as TicketStatus)}>
-                    <SelectTrigger className="min-h-[44px] rounded-xl" data-testid="ticket-admin-status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(Object.keys(ADMIN_STATUS_LABELS) as TicketStatus[]).map((s) => (
-                        <SelectItem key={s} value={s}>{ADMIN_STATUS_LABELS[s]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <div className="flex flex-wrap gap-3 flex-1">
+                  <div className="flex-1 min-w-[140px]">
+                    <Label className="mb-1.5 block text-xs">Status</Label>
+                    <Select value={active.status} onValueChange={(v) => handleStatus(v as TicketStatus)}>
+                      <SelectTrigger className="min-h-[40px] rounded-xl" data-testid="ticket-admin-status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(ADMIN_STATUS_LABELS) as TicketStatus[]).map((s) => (
+                          <SelectItem key={s} value={s}>{ADMIN_STATUS_LABELS[s]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1 min-w-[140px]">
+                    <Label className="mb-1.5 block text-xs">Priority</Label>
+                    <Select value={active.priority} onValueChange={(v) => handlePriority(v as TicketPriority)}>
+                      <SelectTrigger className="min-h-[40px] rounded-xl" data-testid="ticket-admin-priority">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(["low", "normal", "high", "urgent"] as const).map((p) => (
+                          <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-[160px]">
-                  <Label className="mb-1.5 block text-xs">Priority</Label>
-                  <Select value={active.priority} onValueChange={(v) => handlePriority(v as TicketPriority)}>
-                    <SelectTrigger className="min-h-[44px] rounded-xl" data-testid="ticket-admin-priority">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(["low", "normal", "high", "urgent"] as const).map((p) => (
-                        <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+                <div className="flex items-end gap-2 pt-5">
+                  {active.status !== "closed" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleQuickClose(active)}
+                      className="rounded-xl font-medium text-xs h-10 border-border hover:bg-muted/80"
+                    >
+                      <XCircle className="h-4 w-4 mr-1.5 text-muted-foreground" /> Close Ticket
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setTicketToDelete(active)}
+                    className="rounded-xl font-medium text-xs h-10 border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" /> Delete Ticket
+                  </Button>
                 </div>
               </div>
 
@@ -329,6 +446,33 @@ const AdminTickets = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={!!ticketToDelete} onOpenChange={(o) => !o && setTicketToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="h-5 w-5" /> Delete Support Ticket
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete ticket{" "}
+              <strong>{ticketToDelete?.ticketNumber}</strong> ({ticketToDelete?.subject})?
+              All messages and records associated with this ticket will be removed. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!deletingId}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => ticketToDelete && handleDelete(ticketToDelete)}
+              disabled={!!deletingId}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingId ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Delete Permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
