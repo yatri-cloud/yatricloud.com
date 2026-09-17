@@ -75,17 +75,49 @@ export default function AdminAnalytics() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [days, setDays] = useState(30);
+  const [timeframe, setTimeframe] = useState<string>("30");
   const navigate = useNavigate();
+
+  const getDaysFromTimeframe = (tf: string): number => {
+    if (tf === "1") return 1;
+    if (tf === "7") return 7;
+    if (tf === "14") return 14;
+    if (tf === "30") return 30;
+    if (tf === "60") return 60;
+    if (tf === "90") return 90;
+    if (tf === "this_year") {
+      const start = new Date(new Date().getFullYear(), 0, 1).getTime();
+      return Math.max(1, Math.ceil((Date.now() - start) / (24 * 3600 * 1000)));
+    }
+    if (tf === "365") return 365;
+    if (tf === "all") return 1825;
+    return Number(tf) || 30;
+  };
+
+  const getTimeframeLabel = (tf: string): string => {
+    if (tf === "1") return "in the last 24 hours";
+    if (tf === "7") return "in the last 7 days";
+    if (tf === "14") return "in the last 14 days";
+    if (tf === "30") return "in the last 30 days";
+    if (tf === "60") return "in the last 60 days";
+    if (tf === "90") return "in the last 90 days";
+    if (tf === "this_year") return "this year";
+    if (tf === "365") return "in the past year";
+    if (tf === "all") return "all time (lifetime)";
+    return `in the last ${tf} days`;
+  };
+
+  const days = getDaysFromTimeframe(timeframe);
 
   const loadData = useCallback(async (showFullLoader = false) => {
     try {
       if (showFullLoader) setLoading(true);
       else setRefreshing(true);
       setError(null);
+      const queryDays = getDaysFromTimeframe(timeframe);
       const [summary, vData] = await Promise.all([
-        getAnalyticsSummary(days),
-        fetchVercelAnalytics(days)
+        getAnalyticsSummary(queryDays),
+        fetchVercelAnalytics(queryDays)
       ]);
       if (summary) setData(summary);
       else setError("Failed to load analytics data.");
@@ -96,7 +128,7 @@ export default function AdminAnalytics() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [days]);
+  }, [timeframe]);
 
   useEffect(() => {
     loadData(true);
@@ -160,19 +192,20 @@ export default function AdminAnalytics() {
           <p className="text-muted-foreground">Full live web analytics, visitor traffic, referrers, and search demand.</p>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
-          <Select value={days.toString()} onValueChange={(val) => setDays(Number(val))}>
-            <SelectTrigger className="w-[170px] sm:w-[180px] font-medium bg-card">
+          <Select value={timeframe} onValueChange={(val) => setTimeframe(val)}>
+            <SelectTrigger className="w-[190px] sm:w-[210px] font-medium bg-card">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent align="end">
-              <SelectItem value="1">Today (Last 24h)</SelectItem>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="14">Last 14 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="60">Last 60 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
-              <SelectItem value="180">Last 6 months</SelectItem>
-              <SelectItem value="365">Last 1 year</SelectItem>
+              <SelectItem value="all">All Time (Lifetime)</SelectItem>
+              <SelectItem value="1">Last 24 Hours (Today)</SelectItem>
+              <SelectItem value="7">Last 7 Days</SelectItem>
+              <SelectItem value="14">Last 14 Days</SelectItem>
+              <SelectItem value="30">Last 30 Days (Month)</SelectItem>
+              <SelectItem value="60">Last 60 Days</SelectItem>
+              <SelectItem value="90">Last 90 Days (Quarter)</SelectItem>
+              <SelectItem value="this_year">This Year</SelectItem>
+              <SelectItem value="365">Past Year (12 Months)</SelectItem>
             </SelectContent>
           </Select>
 
@@ -203,7 +236,7 @@ export default function AdminAnalytics() {
         <StatCard
           label="Total Visitors"
           value={vercelData?.totalVisitors || data?.uniqueVisitors || data?.totalViews || 0}
-          sub={`Unique users in last ${days} days`}
+          sub={`Unique users ${getTimeframeLabel(timeframe)}`}
         />
         <StatCard
           label="Total Pageviews"
@@ -244,7 +277,7 @@ export default function AdminAnalytics() {
       <Card>
         <CardHeader>
           <CardTitle>Daily Traffic & Engagement</CardTitle>
-          <CardDescription>Daily visitors, pageviews, and platform downloads over the last {days} days</CardDescription>
+          <CardDescription>Daily visitors, pageviews, and platform downloads {getTimeframeLabel(timeframe)}</CardDescription>
         </CardHeader>
         <CardContent className="px-2 sm:px-6 pb-6">
           <div className="h-[280px] w-full">
