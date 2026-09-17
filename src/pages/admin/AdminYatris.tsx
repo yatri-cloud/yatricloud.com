@@ -73,9 +73,7 @@ export default function AdminYatris() {
     const [userToDelete, setUserToDelete] = useState<YatriRow | null>(null);
     const [isDeletingUser, setIsDeletingUser] = useState(false);
 
-    // Stats
-    const [totalCount, setTotalCount] = useState(0);
-    const [newThisMonth, setNewThisMonth] = useState(0);
+    // Stats computed via timeframeStats and roleCounts useMemo
 
     useEffect(() => { setPage(1); }, [search, roleFilter, dateFilter, sort, pageSize]);
 
@@ -111,11 +109,6 @@ export default function AdminYatris() {
             }));
 
             setUsers(rows);
-            setTotalCount(rows.length);
-
-            // Count new this month
-            const monthStart = startOfMonth(new Date()).toISOString();
-            setNewThisMonth(rows.filter(r => r.created_at >= monthStart).length);
         } catch (e: any) {
             toast.error("Failed to load users: " + (e?.message || "Unknown error"));
         } finally {
@@ -156,8 +149,11 @@ export default function AdminYatris() {
             } else {
                 threshold = new Date(0);
             }
-            const thresholdIso = threshold.toISOString();
-            list = list.filter(u => u.created_at >= thresholdIso);
+            const thresholdTime = threshold.getTime();
+            list = list.filter(u => {
+                const t = new Date(u.created_at).getTime();
+                return !isNaN(t) && t >= thresholdTime;
+            });
         }
 
         // Search
@@ -191,6 +187,63 @@ export default function AdminYatris() {
         }
         return sorted;
     }, [users, roleFilter, dateFilter, q, sort]);
+
+    const timeframeStats = useMemo(() => {
+        const now = new Date();
+        let threshold: Date;
+        let periodLabel = "Lifetime";
+        if (dateFilter === "1d") {
+            threshold = subDays(now, 1);
+            periodLabel = "Today";
+        } else if (dateFilter === "7d") {
+            threshold = subDays(now, 7);
+            periodLabel = "Last 7 Days";
+        } else if (dateFilter === "30d") {
+            threshold = subDays(now, 30);
+            periodLabel = "Last 30 Days";
+        } else if (dateFilter === "90d") {
+            threshold = subDays(now, 90);
+            periodLabel = "Last 90 Days";
+        } else if (dateFilter === "365d") {
+            threshold = subDays(now, 365);
+            periodLabel = "Past Year";
+        } else if (dateFilter === "this_year") {
+            threshold = startOfYear(now);
+            periodLabel = "This Year";
+        } else {
+            threshold = new Date(0);
+            periodLabel = "All Time";
+        }
+
+        const thresholdTime = threshold.getTime();
+        const inPeriodUsers = dateFilter === "all"
+            ? users
+            : users.filter(u => {
+                const t = new Date(u.created_at).getTime();
+                return !isNaN(t) && t >= thresholdTime;
+            });
+
+        const periodTotal = inPeriodUsers.length;
+        const periodTrainers = inPeriodUsers.filter(u => u.role === "trainer").length;
+        const periodAdmins = inPeriodUsers.filter(u => u.role === "admin").length;
+        const periodYatris = inPeriodUsers.filter(u => u.role === "user" || u.role === "yatri").length;
+
+        const monthStartTime = startOfMonth(now).getTime();
+        const newThisMonthCount = users.filter(u => {
+            const t = new Date(u.created_at).getTime();
+            return !isNaN(t) && t >= monthStartTime;
+        }).length;
+
+        return {
+            periodLabel,
+            total: periodTotal,
+            trainers: periodTrainers,
+            admins: periodAdmins,
+            yatris: periodYatris,
+            lifetimeTotal: users.length,
+            newThisMonth: newThisMonthCount,
+        };
+    }, [users, dateFilter]);
 
     const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
     const currentPage = Math.min(page, pageCount);
@@ -314,9 +367,27 @@ export default function AdminYatris() {
 
                 {/* Stats inside header */}
                 <div className="relative mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <StatsCard title="Total users" value={totalCount} icon={Users} color="bg-blue-500 text-white border-0" />
-                    <StatsCard title="New this month" value={newThisMonth} icon={UserCheck} color="bg-emerald-500 text-white border-0" />
-                    <StatsCard title="Trainers" value={roleCounts.trainer || 0} icon={Users} color="bg-violet-500/10 text-violet-600" />
+                    <StatsCard
+                        title={dateFilter === "all" ? "Total Users" : `Users (${timeframeStats.periodLabel})`}
+                        value={timeframeStats.total}
+                        subtitle={dateFilter !== "all" ? `${timeframeStats.lifetimeTotal} lifetime users` : "All lifetime registered users"}
+                        icon={Users}
+                        color="bg-blue-500 text-white border-0"
+                    />
+                    <StatsCard
+                        title={dateFilter === "all" ? "New This Month" : `Joined (${timeframeStats.periodLabel})`}
+                        value={dateFilter === "all" ? timeframeStats.newThisMonth : timeframeStats.total}
+                        subtitle={dateFilter !== "all" ? `New accounts in ${timeframeStats.periodLabel.toLowerCase()}` : "Registered this calendar month"}
+                        icon={UserCheck}
+                        color="bg-emerald-500 text-white border-0"
+                    />
+                    <StatsCard
+                        title={dateFilter === "all" ? "Trainers" : `Trainers (${timeframeStats.periodLabel})`}
+                        value={timeframeStats.trainers}
+                        subtitle={dateFilter !== "all" ? `${roleCounts.trainer || 0} lifetime trainers` : `${roleCounts.admin || 0} admins • ${roleCounts.user || 0} yatris`}
+                        icon={Users}
+                        color="bg-violet-500/10 text-violet-600"
+                    />
                 </div>
             </div>
 

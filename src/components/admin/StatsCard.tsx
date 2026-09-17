@@ -6,9 +6,10 @@ interface StatsCardProps {
     value: number | string;
     icon: LucideIcon;
     color: string;
+    subtitle?: string;
 }
 
-export const StatsCard = ({ title, value, icon: Icon, color }: StatsCardProps) => {
+export const StatsCard = ({ title, value, icon: Icon, color, subtitle }: StatsCardProps) => {
     // `color` comes in as e.g. "bg-primary text-white" — derive the ink
     // colour so the accent bar + watermark stay on the same token family.
     const textClass = color.split(" ").find((c) => c.startsWith("text-")) ?? "text-primary";
@@ -31,6 +32,9 @@ export const StatsCard = ({ title, value, icon: Icon, color }: StatsCardProps) =
             <div className="relative">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
                 <p className="mt-3 font-display text-4xl font-black tracking-tight tabular-nums">{value}</p>
+                {subtitle && (
+                    <p className="mt-1 text-xs text-muted-foreground font-medium">{subtitle}</p>
+                )}
                 <span className={`mt-4 block h-1 w-12 rounded-full ${barClass}`} />
             </div>
         </motion.div>
