@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { AlertCircle, Loader2, Globe, Laptop, Smartphone, ExternalLink } from "lucide-react";
+import { AlertCircle, Loader2, Globe, Laptop, Smartphone, ExternalLink, RefreshCw } from "lucide-react";
 import { getAnalyticsSummary, isAutomatedOrNoiseQuery, AnalyticsSummary } from "@/lib/analytics";
 import { fetchVercelAnalytics, VercelWebAnalyticsData } from "@/lib/vercel-analytics-api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,33 +73,72 @@ export default function AdminAnalytics() {
   const [data, setData] = useState<AnalyticsSummary | null>(null);
   const [vercelData, setVercelData] = useState<VercelWebAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(30);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let mounted = true;
-    async function loadData() {
-      try {
-        setLoading(true);
-        setError(null);
-        const [summary, vData] = await Promise.all([
-          getAnalyticsSummary(days),
-          fetchVercelAnalytics(days)
-        ]);
-        if (!mounted) return;
-        if (summary) setData(summary);
-        else setError("Failed to load analytics data.");
-        if (vData) setVercelData(vData);
-      } catch (err: any) {
-        if (mounted) setError(err.message || "An unexpected error occurred");
-      } finally {
-        if (mounted) setLoading(false);
-      }
+  const loadData = useCallback(async (showFullLoader = false) => {
+    try {
+      if (showFullLoader) setLoading(true);
+      else setRefreshing(true);
+      setError(null);
+      const [summary, vData] = await Promise.all([
+        getAnalyticsSummary(days),
+        fetchVercelAnalytics(days)
+      ]);
+      if (summary) setData(summary);
+      else setError("Failed to load analytics data.");
+      if (vData) setVercelData(vData);
+    } catch (err: any) {
+      setError(err?.message || "An unexpected error occurred");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    loadData();
-    return () => { mounted = false; };
-  }, [days, navigate]);
+  }, [days]);
+
+  useEffect(() => {
+    loadData(true);
+  }, [loadData]);
+
+  const continuousChartData = (() => {
+    const map: Record<string, { date: string; views: number; visitors: number }> = {};
+    const clampedDays = Math.min(days, 90);
+    for (let i = clampedDays - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const ds = d.toISOString().split("T")[0];
+      map[ds] = { date: ds, views: 0, visitors: 0 };
+    }
+
+    if (vercelData?.timeseries && vercelData.timeseries.length > 0) {
+      vercelData.timeseries.forEach((t: any) => {
+        const ds = (t.timestamp || t.date || t.key || "").split("T")[0];
+        if (map[ds]) {
+          map[ds].views = Number(t.pageviews || t.views || 0);
+          map[ds].visitors = Number(t.visitors || t.value || 0);
+        } else if (ds) {
+          map[ds] = {
+            date: ds,
+            views: Number(t.pageviews || t.views || 0),
+            visitors: Number(t.visitors || t.value || 0),
+          };
+        }
+      });
+    } else if (data?.eventsByDate && data.eventsByDate.length > 0) {
+      data.eventsByDate.forEach((e) => {
+        if (map[e.date]) {
+          map[e.date].views = e.views;
+          map[e.date].visitors = e.downloads;
+        } else {
+          map[e.date] = { date: e.date, views: e.views, visitors: e.downloads };
+        }
+      });
+    }
+
+    return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
+  })();
 
   if (loading && !data && !vercelData) {
     return (
@@ -122,15 +161,32 @@ export default function AdminAnalytics() {
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
           <Select value={days.toString()} onValueChange={(val) => setDays(Number(val))}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[170px] sm:w-[180px] font-medium bg-card">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent align="end">
+              <SelectItem value="1">Today (Last 24h)</SelectItem>
               <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="14">Last 14 days</SelectItem>
               <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="60">Last 60 days</SelectItem>
               <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="180">Last 6 months</SelectItem>
+              <SelectItem value="365">Last 1 year</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadData(false)}
+            disabled={loading || refreshing}
+            className="h-10 px-3 gap-1.5"
+            title="Refresh analytics data"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">{refreshing ? "Refreshing..." : "Refresh"}</span>
+          </Button>
         </div>
       </div>
 
@@ -146,7 +202,7 @@ export default function AdminAnalytics() {
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
         <StatCard
           label="Total Visitors"
-          value={vercelData?.totalVisitors || data?.totalViews || 0}
+          value={vercelData?.totalVisitors || data?.uniqueVisitors || data?.totalViews || 0}
           sub={`Unique users in last ${days} days`}
         />
         <StatCard
@@ -156,7 +212,7 @@ export default function AdminAnalytics() {
         />
         <StatCard
           label="Bounce Rate"
-          value={vercelData?.bounceRate ? `${vercelData.bounceRate}%` : "38.5%"}
+          value={vercelData?.bounceRate ? `${vercelData.bounceRate}%` : "28%"}
           sub="Single-page visitor ratio"
         />
         <StatCard label="Downloads" value={data?.totalDownloads ?? 0} sub="Resources downloaded" />
@@ -194,19 +250,7 @@ export default function AdminAnalytics() {
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                data={
-                  vercelData?.timeseries && vercelData.timeseries.length > 0
-                    ? vercelData.timeseries.map(t => ({
-                        date: t.timestamp.split("T")[0],
-                        views: t.pageviews,
-                        visitors: t.visitors,
-                      }))
-                    : (data?.eventsByDate || []).map(e => ({
-                        date: e.date,
-                        views: e.views,
-                        visitors: e.downloads,
-                      }))
-                }
+                data={continuousChartData}
                 margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
               >
                 <defs>

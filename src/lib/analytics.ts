@@ -164,12 +164,13 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
     since.setDate(since.getDate() - days);
     const sinceStr = since.toISOString();
 
-    // Fetch all events in the time range in one query
+    // Fetch all events in the time range in one query (up to 5000 events)
     const { data: events, error } = await supabase
       .from("analytics_events")
       .select("event_name, category, target_id, metadata, created_at, user_id")
       .gte("created_at", sinceStr)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: true })
+      .limit(5000);
 
     if (error) throw error;
     if (!events) return null;
@@ -181,6 +182,7 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
     let totalEnrollments = 0;
     let totalPurchases = 0;
     const uniqueUserIds = new Set<string>();
+    const uniqueVisitorIds = new Set<string>();
     const dateMap: Record<string, { date: string; downloads: number; views: number; other: number }> = {};
     const resourceCounts: Record<string, number> = {};
     const pageCounts: Record<string, number> = {};
@@ -199,6 +201,8 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
 
     for (const ev of events) {
       if (ev.user_id) uniqueUserIds.add(ev.user_id);
+      const visitorId = ev.user_id || ev.metadata?.session_id || ev.metadata?.user_agent || ev.metadata?.ip;
+      if (visitorId) uniqueVisitorIds.add(visitorId);
 
       const ds = ev.created_at.split("T")[0];
 
@@ -331,7 +335,7 @@ export async function getAnalyticsSummary(days: number = 30): Promise<AnalyticsS
       totalSearches,
       totalEnrollments,
       totalPurchases,
-      uniqueVisitors: uniqueUserIds.size,
+      uniqueVisitors: uniqueVisitorIds.size || uniqueUserIds.size,
       eventsByDate: Object.values(dateMap),
       topResources: topResourceEntries,
       topPages,
